@@ -1,0 +1,311 @@
+{
+    "pages": {
+        "common": {
+            "campi": {
+                "soggetto": "Contribuente",
+                "modello": "Modello",
+                "scadenza": "Data di versamento",
+                "descrizione": "Descrizione",
+                "stato": "Stato",
+                "codiceFiscaleCoobbligato": "Secondo codice fiscale (coobbligato, erede, genitore, ...)",
+                "codiceIdentificativo": "Codice identificativo",
+                "contoAddebito": "Conto di addebito",
+                "codiceUfficio": "Codice ufficio",
+                "codiceAtto": "Codice atto",
+                "identificativoOperazione": "Identificativo operazione",
+                "detrazioneImu": "Detrazione abitazione principale (€)",
+                "note": "Note",
+                "dataQuietanza": "Data quietanza",
+                "protocollo": "Protocollo / riferimento",
+                "codiceTributo": "Codice tributo",
+                "codiceEnteRegioni": "Codice regione",
+                "codiceEnteTributiLocali": "Codice ente / comune",
+                "codiceEnteAltriEnti": "Codice ente",
+                "codiceSede": "Codice sede",
+                "causale": "Causale contributo",
+                "causaleInail": "Causale",
+                "posizioneInps": "Matricola INPS / codice INPS / filiale azienda",
+                "posizioneInail": "Codice ditta",
+                "posizioneAltriEnti": "Codice posizione",
+                "cifraControllo": "C.C.",
+                "numeroRiferimento": "Numero di riferimento",
+                "rateazione": "Rateazione / regione / prov. / mese rif.",
+                "annoRiferimento": "Anno di riferimento",
+                "periodoDa": "Periodo da (MM/AAAA)",
+                "periodoA": "Periodo a (MM/AAAA)",
+                "ravvedimento": "Ravvedimento",
+                "immobiliVariati": "Immobili variati",
+                "acconto": "Acconto",
+                "saldo": "Saldo",
+                "numeroImmobili": "Numero immobili",
+                "tipoElide": "Tipo",
+                "elementiIdentificativi": "Elementi identificativi",
+                "importoDebito": "Importo a debito (€)",
+                "importoCredito": "Importo a credito (€)",
+                "debito": "Debito",
+                "credito": "Credito",
+                "saldoFinale": "Saldo finale",
+                "codice": "Codice",
+                "sezione": "Sezione",
+                "tipoTributo": "Tipo",
+                "formalismi": "Compilazione",
+                "origine": "Origine",
+                "importoTributo": "Importo non versato (€)",
+                "scadenzaOriginale": "Scadenza originale",
+                "termineDichiarazione": "Termine della dichiarazione (riduzione 1/8)",
+                "termineDichiarazioneSuccessiva": "Termine dichiarazione anno successivo (riduzione 1/7)",
+                "codiceSanzione": "Codice tributo della sanzione",
+                "codiceInteressi": "Codice tributo degli interessi",
+                "intermediario": "Intermediario",
+                "telefono": "Telefono",
+                "email": "E-mail",
+                "contoIntermediario": "Conto per l'addebito unico",
+                "predefinito": "Intermediario predefinito",
+                "addebitoIntermediario": "Addebito unico sul conto dell'intermediario",
+                "deleghe": "Deleghe",
+                "totale": "Totale",
+                "file": "File",
+                "numeroCertificazione": "Numero di certificazione del credito",
+                "provincia": "Provincia",
+                "codiceIdentificativoEnte": "Codice identificativo",
+                "meseRiferimento": "Mese",
+                "circostanza": "Momento della regolarizzazione",
+                "riferimentoContributi": "Contributi a cui si riferisce",
+                "importoContributi": "Contributi versati in ritardo (€)",
+                "regime": "Regime",
+                "spontaneo": "Pagamento spontaneo in unica soluzione",
+                "importo": "Importo del credito (€)",
+                "utilizzabileDal": "Utilizzabile dal"
+            },
+            "azioni": {
+                "salva": "Salva",
+                "annulla": "Annulla",
+                "modifica": "Modifica",
+                "elimina": "Elimina",
+                "aggiungi": "Aggiungi",
+                "cerca": "Cerca",
+                "stampa": "Stampa modello",
+                "duplica": "Duplica in una nuova data",
+                "nuovaDelega": "Nuova delega",
+                "ravvedimento": "Ravvedimento",
+                "calcola": "Calcola e genera le righe",
+                "nuovoIntermediario": "Nuovo intermediario",
+                "nuovoInvio": "Nuovo invio telematico",
+                "genera": "Genera il file",
+                "scarica": "Scarica il file",
+                "annullaInvio": "Annulla invio",
+                "calcolaSanzioni": "Calcola le sanzioni civili",
+                "apri": "Apri",
+                "nuovoVersamento": "Nuovo versamento",
+                "nuovoCredito": "Nuovo credito",
+                "delegaVuota": "Nuova delega",
+                "generaDelega": "Genera la delega",
+                "ravvedi": "Ravvedi",
+                "aggiungiDaVersare": "Aggiungi alla delega",
+                "compensa": "Compensa",
+                "compensaTutti": "Compensa con i crediti disponibili",
+                "rimuovi": "Togli dalla delega (torna da versare)",
+                "copia": "Copia in una nuova data",
+                "ripeti": "Ripeti nel tempo",
+                "anteprima": "Aggiorna anteprima",
+                "creaCopie": "Crea i versamenti"
+            },
+            "navCodiciTributo": "Codici tributo",
+            "navInvii": "Invii telematici",
+            "navIntermediari": "Intermediari",
+            "selezionare": "— Seleziona —",
+            "nessunConto": "— Nessuno —",
+            "campiObbligatori": "I campi con * sono obbligatori.",
+            "confermaElimina": "Confermi l'eliminazione?",
+            "nessunDato": "Nessun dato presente.",
+            "tutti": "Tutti gli stati",
+            "tutte": "Tutte le sezioni",
+            "risultati": "risultati",
+            "generata": "generata",
+            "segnapostoCodice": "Cerca per codice o descrizione",
+            "navContribuenti": "Contribuenti",
+            "periodo": "Periodo",
+            "rateazioneAbbreviata": "Rate./mese",
+            "anno": "Anno",
+            "etichettaDaVersare": "Da versare",
+            "colonnaResiduo": "Residuo",
+            "aiutoDescrizione": "Es. Saldo IRPEF 2025, rata 2 di 6.",
+            "copieDaCreare": "Versamenti da creare"
+        },
+        "delega": {
+            "form": {
+                "segnapostoSoggetto": "Cerca per nominativo o codice fiscale",
+                "sezioneTestata": "Contribuente e versamento",
+                "sezioneCoobbligato": "Secondo codice fiscale",
+                "aiutoCoobbligato": "Da compilare solo se il versamento è effettuato da un soggetto diverso dal contribuente o è riferito anche a un altro soggetto (tabella dei codici identificativi dell'Agenzia delle Entrate).",
+                "aiutoConto": "Conti attivi del contribuente e del secondo soggetto (se in anagrafica). Si aggiungono dalla scheda del soggetto in Anagrafica.",
+                "aiutoContoNuova": "Se non indicato si usa il conto predefinito del contribuente.",
+                "sezioneDatiSezioni": "Dati delle sezioni",
+                "aiutoDatiSezioni": "Codice ufficio e atto si indicano per i versamenti richiesti con un atto (sezione Erario); l'identificativo operazione e la detrazione nella sezione IMU.",
+                "aiutoScadenzaNuova": "Nella delega entrano i versamenti da versare con questa data.",
+                "nessunaDataDaVersare": "Nessun versamento da versare: la delega sarà vuota.",
+                "dateConVersamenti": "Date con versamenti da versare:"
+            },
+            "show": {
+                "contribuente": "Contribuente",
+                "riepilogo": "Riepilogo",
+                "errori": "Errori da correggere prima della conferma",
+                "avvisi": "Da verificare",
+                "nessunRigo": "Nessun rigo.",
+                "rigoGenerato": "Rigo generato da",
+                "quietanza": "Quietanza",
+                "aiutoQuietanza": "Data dell'addebito o della ricevuta di pagamento",
+                "codiceEnte": "Ente",
+                "modelliF24": "modelli F24",
+                "sezioneRavvedimenti": "Ravvedimenti",
+                "giorniRitardo": "giorni di ritardo",
+                "riduzione": "riduzione",
+                "sanzione": "Sanzione",
+                "interessi": "Interessi",
+                "invio": "Invio telematico",
+                "sanzioniCiviliVoce": "Sanzioni civili",
+                "sezioneSanzioniCivili": "Sanzioni civili",
+                "tetto": "raggiunto il tetto",
+                "soloProspetto": "prospetto (le richiede l'ente)",
+                "testoDaVersare": "%d versamenti da versare con la stessa data (saldo € %s): aggiungili alla delega.",
+                "sezioneCreditiDisponibili": "Crediti disponibili per la compensazione",
+                "utilizzoCredito": "compensazione"
+            },
+            "stampa": {
+                "pageTitle": "Modello F24"
+            },
+            "duplica": {
+                "aiutoDuplica": "Si riportano alla nuova data i versamenti inseriti a mano nella delega, con mese di riferimento, rata e periodi aggiornati; non le compensazioni (si rifanno sui crediti) né i versamenti generati dagli altri moduli (li ricalcola il modulo).",
+                "nessunaCopiaDelega": "La delega non ha versamenti inseriti a mano da riportare.",
+                "etichettaGenera": "Genera subito la delega di quella data"
+            }
+        },
+        "versamento": {
+            "form": {
+                "aiutoRateazione": "Es. 0102 per la prima di due rate, 0003 per il mese di marzo, 0008 per la regione Lazio; secondo il codice tributo.",
+                "aiutoCodiceComune": "Codice catastale del comune (es. H501) o codice dell'ente indicato dal tributo.",
+                "aiutoImporti": "Indicare l'importo a debito oppure quello a credito compensato.",
+                "aiutoCausale": "Causale della tabella dell'ente previdenziale (es. E150 per la CNPADC).",
+                "aiutoElementi": "Secondo il codice tributo: es. identificativo telematico del contratto di locazione, targa.",
+                "aiutoCertificazione": "Solo per il credito certificato verso la PA (codice PPAA): numero rilasciato dalla piattaforma dei crediti commerciali.",
+                "aiutoIdentificativoEnte": "Codice richiesto dall'ente per il tributo (es. codice ditta, codice concessione)."
+            },
+            "ripeti": {
+                "versamentoDiPartenza": "Versamento di partenza",
+                "etichettaCadenza": "Cadenza",
+                "etichettaVolte": "Quante copie",
+                "aiutoRipeti": "Le copie vanno tra i versamenti da versare, a partire dalla scadenza successiva all'originale. Si aggiornano la data (spostata al primo giorno lavorativo), il mese di riferimento (rateazione 00MM e anno), la rata (NNRR, fino all'ultima), i periodi MM/AAAA e, per la cadenza annuale, l'anno di riferimento. Importi e altri dati restano quelli dell'originale: si correggono sulle singole copie.",
+                "nessunaCopia": "Nessuna copia: la rata del versamento è già l'ultima."
+            }
+        },
+        "ravvedimento": {
+            "form": {
+                "sezioneVersamento": "Versamento da regolarizzare",
+                "sezioneCalcolo": "Riduzioni e codici",
+                "aiutoTermine": "Se vuoto, è proposto il termine ordinario della dichiarazione del tributo (spostato al primo giorno lavorativo) o un anno dalla scadenza.",
+                "aiutoTermineSuccessivo": "Solo per le violazioni fino al 31/08/2024: se vuoto, un anno dopo il termine precedente.",
+                "aiutoCodici": "Se vuoti, sono proposti dalla regola del tributo. Senza codice degli interessi questi si sommano al tributo (es. ritenute); senza codice della sanzione si somma anche la sanzione (IMU).",
+                "titoloRegole": "Tributi con codici di sanzione e interessi già noti",
+                "aiutoNormativa": "Sanzione 25% (30% per violazioni fino al 31/08/2024), dimezzata entro 90 giorni e ridotta di 1/15 per giorno entro 15 giorni; riduzione 1/10 entro 30 giorni, 1/9 entro 90, 1/8 entro il termine della dichiarazione, poi 1/7 (1/6 oltre il termine dell'anno successivo per le violazioni precedenti); interessi al tasso legale giorno per giorno.",
+                "erroreCalcoloTitolo": "Calcolo non riuscito",
+                "aiutoCircostanza": "Dopo uno schema d'atto o un verbale di constatazione la riduzione è fissa (art. 13, c. 1, lett. b-ter, b-quater, b-quinquies, D.Lgs. 472/1997); per le violazioni fino al 31/08/2024 solo 1/5 dopo il verbale."
+            }
+        },
+        "intermediario": {
+            "index": {
+                "pageTitle": "Intermediari Entratel",
+                "aiuto": "Soggetti abilitati a Entratel che trasmettono le deleghe dello studio: i dati anagrafici sono quelli dell'anagrafica (record A del flusso).",
+                "nessuno": "Nessun intermediario: inseriscine uno per generare i file telematici."
+            },
+            "form": {
+                "segnapostoSoggetto": "Cerca in anagrafica (intermediario persona fisica o società)",
+                "aiutoConto": "Conti attivi dell'intermediario, necessari solo per gli invii con addebito unico (salva prima l'intermediario per sceglierlo)."
+            }
+        },
+        "invioTelematico": {
+            "index": {
+                "pageTitle": "Invii telematici F24",
+                "aiuto": "File per Entratel con le deleghe confermate (specifiche tecniche F24 per gli intermediari). Il file va controllato e autenticato con il software dell'Agenzia delle Entrate, poi trasmesso.",
+                "nessuno": "Nessun invio."
+            },
+            "create": {
+                "deleghe": "Deleghe confermate",
+                "nessuna": "Nessuna delega confermata da inviare.",
+                "titoloProblemiIntermediario": "Dati dell'intermediario da completare",
+                "aiutoAddebito": "Flusso \"Y\": addebito cumulativo sul conto dell'intermediario, previa accettazione del provvedimento del 21 giugno 2007 prot. 2007/101553; altrimenti addebito sul conto di ciascun contribuente.",
+                "aggiorna": "Aggiorna",
+                "modelli": "modelli"
+            },
+            "show": {
+                "aiutoScarto": "Se il file viene scartato dai controlli dell'Agenzia, annulla l'invio: le deleghe tornano confermate."
+            }
+        },
+        "codiceTributo": {
+            "index": {
+                "pageTitle": "Codici tributo F24",
+                "segnapostoRicerca": "Codice o parte della descrizione",
+                "etichettaSoppressi": "Includi i codici non più in uso",
+                "nonInUso": "non in uso",
+                "soloDebito": "solo debito",
+                "soloCredito": "solo credito",
+                "debitoCredito": "debito e credito",
+                "anno": "anno",
+                "ufficio": "ufficio",
+                "atto": "atto",
+                "fonte": "Fonte: tabelle F24 dell'Agenzia delle Entrate, aggiornate con il comando sisma tabelle-f24.",
+                "nessunRisultato": "Nessun codice trovato."
+            }
+        },
+        "sanzioneCivile": {
+            "form": {
+                "sezioneContributi": "Contributi versati in ritardo",
+                "aiutoNormativa": "Art. 116, c. 8, L. 388/2000: omissione al tasso di riferimento BCE più 5,5 punti annui (solo tasso di riferimento se il pagamento spontaneo avviene entro 120 giorni), tetto 40%; evasione 30% annuo, tetto 60%, ridotta con la denuncia spontanea entro 12 mesi. Calcolo giorno per giorno dal giorno successivo alla scadenza alla data di versamento della delega.",
+                "aiutoRiferimento": "Es. DM10 ottobre 2026, contributi fissi artigiani 2ª rata.",
+                "sezioneVersamento": "Versamento nella delega (facoltativo)",
+                "aiutoVersamento": "Di norma l'INPS calcola e richiede le sanzioni civili: senza causale il calcolo resta un prospetto. Indicare la causale solo se le sanzioni si versano con F24 (es. SPCF, SLAA, SLAS della tabella delle causali)."
+            }
+        },
+        "contribuente": {
+            "index": {
+                "pageTitle": "Deleghe F24",
+                "aiuto": "Scegli il contribuente: nella sua scheda trovi i versamenti da versare, le deleghe e i crediti in compensazione.",
+                "segnapostoRicerca": "Nominativo, codice fiscale o partita IVA",
+                "etichettaTutti": "Includi i soggetti non clienti",
+                "nessunRisultato": "Nessun contribuente trovato.",
+                "colonnaDaVersare": "Versamenti da versare",
+                "colonnaDeleghe": "Deleghe aperte",
+                "dal": "dal",
+                "etichettaScaduti": "scaduti",
+                "etichettaBozze": "in bozza",
+                "etichettaConfermate": "confermate"
+            },
+            "show": {
+                "schedaVersamenti": "Da versare",
+                "schedaDeleghe": "Deleghe",
+                "schedaCrediti": "Crediti",
+                "schedaAnagrafica": "Scheda anagrafica",
+                "aiutoVersamenti": "Versamenti dovuti dal contribuente, inseriti qui o calcolati dagli altri moduli (es. IMU). Per ogni data si genera la delega; i versamenti scaduti si regolarizzano con il ravvedimento.",
+                "nessunVersamento": "Nessun versamento da versare.",
+                "etichettaScaduto": "scaduto",
+                "etichettaCompensa": "compensa con i crediti",
+                "aiutoScaduti": "Data superata: ravvedimento o nuova data",
+                "nessunaDelega": "Nessuna delega.",
+                "aiutoCrediti": "Crediti da utilizzare in compensazione: il residuo diminuisce con gli utilizzi nelle deleghe.",
+                "nessunCredito": "Nessun credito.",
+                "colonnaUtilizzato": "Utilizzato",
+                "sezioneCreditiDisponibili": "Crediti da compensare",
+                "aiutoCreditiDisponibili": "Generando la delega si compensano fino al saldo dei versamenti, se utilizzabili alla data."
+            }
+        },
+        "credito": {
+            "form": {
+                "sezioneRigo": "Dati del rigo a credito",
+                "aiutoRigo": "Come il credito sarà indicato nel modello F24 (codice, anno, riferimenti dell'ente).",
+                "sezioneImporto": "Importo e utilizzo",
+                "giaUtilizzato": "Già utilizzato:",
+                "aiutoUtilizzabile": "Prima data di versamento in cui si può compensare (es. per il credito IVA annuale oltre 5.000 € il decimo giorno dopo la presentazione della dichiarazione).",
+                "aiutoDescrizione": "Es. Credito IVA 2025 da dichiarazione annuale."
+            }
+        }
+    }
+}

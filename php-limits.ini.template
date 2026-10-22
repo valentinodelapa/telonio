@@ -1,0 +1,7 @@
+; Generato da docker-entrypoint.sh a partire dalle variabili d'ambiente (.env).
+; Non modificare a mano: viene sovrascritto ad ogni avvio del container.
+upload_max_filesize = ${UPLOAD_MAX_FILESIZE}
+post_max_size = ${POST_MAX_SIZE}
+memory_limit = ${MEMORY_LIMIT}
+max_execution_time = ${MAX_EXECUTION_TIME}
+max_input_time = ${MAX_INPUT_TIME}

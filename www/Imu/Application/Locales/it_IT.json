@@ -1,0 +1,298 @@
+{
+    "pages": {
+        "common": {
+            "campi": {
+                "contribuente": "Contribuente",
+                "anno": "Anno",
+                "immobile": "Immobile",
+                "classamento": "Classamento",
+                "possesso": "Possesso",
+                "titolo": "Titolo",
+                "quota": "Quota",
+                "utilizzo": "Utilizzo",
+                "periodo": "Periodo",
+                "mesi": "Mesi",
+                "fattispecie": "Fattispecie",
+                "codiceTributo": "Codice tributo",
+                "comune": "Comune",
+                "baseImponibile": "Base imponibile",
+                "aliquota": "Aliquota",
+                "aliquotaAcconto": "Aliquota acconto",
+                "impostaAnnua": "Imposta annua",
+                "acconto": "Acconto",
+                "saldo": "Saldo",
+                "detrazione": "Detrazione",
+                "scadenza": "Data di versamento",
+                "importo": "Importo",
+                "stato": "Stato",
+                "validoDal": "Valido dal",
+                "validoAl": "Valido fino al",
+                "storicoArtistico": "Fabbricato di interesse storico o artistico (base al 50%)",
+                "inagibile": "Inagibile o inabitabile e di fatto non utilizzato (base al 50%)",
+                "ruraleStrumentale": "Fabbricato rurale ad uso strumentale (annotazione di ruralità)",
+                "beneMerce": "Fabbricato merce dell'impresa costruttrice, non locato",
+                "areaFabbricabile": "Area fabbricabile",
+                "valoreVenale": "Valore venale al 1° gennaio (€)",
+                "esenzione": "Esenzione",
+                "note": "Note",
+                "comodatoParenti": "Comodato a parenti in linea retta di primo grado con i requisiti (base al 50%)",
+                "conduzioneAgricola": "Posseduto e condotto da coltivatore diretto o IAP",
+                "assimilazione": "Assimilazione all'abitazione principale",
+                "pensionatoEstero": "Pensionato residente all'estero in regime di convenzione",
+                "aliquotaDifferenziata": "Aliquota differenziata del prospetto",
+                "aliquotaStudio": "Oppure aliquota indicata dallo studio (%)",
+                "motivo": "Motivo",
+                "unicaSoluzione": "Unica soluzione al 16 giugno",
+                "numeroDelibera": "Delibera n.",
+                "dataDelibera": "Data della delibera",
+                "dataPubblicazione": "Pubblicato il",
+                "assimilazioneAnziani": "Assimila all'abitazione principale le unità di anziani o disabili ricoverati",
+                "detrazioneAbitazionePrincipale": "Detrazione abitazione principale (€)",
+                "importoMinimo": "Versamento annuo minimo (€)",
+                "esenzioni": "Esenzioni e agevolazioni del comune",
+                "origine": "Origine",
+                "valoreContabile": "Fabbricato del gruppo D senza rendita a valore contabile (impresa)",
+                "exComune": "Ex comune (comuni nati da fusione)",
+                "annoCosto": "Anno del costo",
+                "descrizione": "Descrizione",
+                "codiceComune": "Codice comune",
+                "dataVersamento": "Data di versamento",
+                "esente": "Utilizzato interamente con modalità non commerciali (esente)",
+                "tipoConcessione": "Concessione",
+                "comodatario": "Comodatario",
+                "didatticaCorrispettivoMedio": "Corrispettivo medio percepito (Cm, €)",
+                "didatticaCostoMedioStudente": "Costo medio per studente pubblicato dal Ministero (Cms, €)",
+                "altreCorrispettivoMedio": "Corrispettivo medio percepito dall'ente (Cenc, €)",
+                "altreCorrispettivoMercato": "Corrispettivo medio delle attività commerciali analoghe (Cm, €)",
+                "rapportoSuperficie": "Superficie commerciale / totale (%)",
+                "rapportoSuperficieGiorni": "Superficie commerciale / totale × giorni / 365 (%)",
+                "rapportoSoggetti": "Soggetti a modalità commerciali / totale (%)",
+                "rapportoSoggettiGiorni": "Soggetti a modalità commerciali × giorni / 365 (%)",
+                "rapportoGiorni": "Giorni di utilizzo commerciale / 365 (%)",
+                "dichiarante": "Dichiarante (se diverso dal contribuente)",
+                "codiceCarica": "Codice di carica",
+                "intermediario": "Intermediario che trasmette",
+                "dataImpegno": "Data dell'impegno",
+                "dataDichiarazione": "Data della dichiarazione",
+                "annotazioni": "Annotazioni",
+                "impostaDovuta": "IMU dovuta (€)",
+                "eccedenzaPrecedente": "Eccedenza della dichiarazione precedente (€)",
+                "eccedenzaCompensata": "Eccedenza compensata con F24 (€)",
+                "rateVersate": "Rate versate (€)",
+                "creditoRimborso": "Credito chiesto a rimborso (€)",
+                "creditoCompensazione": "Credito da compensare (€)",
+                "impostaDebito": "IMU a debito",
+                "impostaCredito": "IMU a credito",
+                "dataPresentazione": "Data di presentazione",
+                "protocollo": "Protocollo telematico",
+                "tipologia": "Tipologia",
+                "caratteristica": "Caratteristica",
+                "valore": "Valore (€)",
+                "vicenda": "Vicenda",
+                "quadro": "Quadro",
+                "percentualePossesso": "Percentuale di possesso",
+                "equiparazione": "Equiparazione all'abitazione principale",
+                "riduzione": "Riduzione",
+                "acquisto": "Acquisto",
+                "cessione": "Cessione",
+                "altro": "Altro",
+                "altroDescrizione": "Descrizione (altro)",
+                "dataVariazione": "Data di inizio, termine o variazione",
+                "inizioTermine": "Inizio o termine dell'agevolazione",
+                "agenziaEntrate": "Agenzia delle Entrate di",
+                "estremiTitolo": "Estremi del titolo",
+                "nonUtilizzabileTipo": "Tipo",
+                "nonUtilizzabileAutorita": "Autorità della denuncia",
+                "nonUtilizzabileData": "Data della denuncia o del provvedimento"
+            },
+            "azioni": {
+                "salva": "Salva",
+                "annulla": "Annulla",
+                "modifica": "Modifica",
+                "elimina": "Elimina",
+                "cerca": "Cerca",
+                "apri": "Apri",
+                "elabora": "Calcola e registra i versamenti",
+                "ricalcola": "Ricalcola e aggiorna i versamenti",
+                "stampa": "Stampa il prospetto",
+                "caratteristiche": "Caratteristiche IMU",
+                "agevolazioni": "Agevolazioni",
+                "aliquota": "Aliquota",
+                "importa": "Importa i prospetti dal Dipartimento delle Finanze",
+                "inserisci": "Aliquote dello studio",
+                "vediProspetto": "Prospetto",
+                "deleghe": "Apri in Deleghe F24",
+                "nuovaVersione": "Nuova variazione",
+                "tornaElenco": "Elenco dei comuni",
+                "costiContabili": "Costi contabili",
+                "utilizzoEnc": "Utilizzo non commerciale",
+                "nuovoAcconto": "Acconto versato",
+                "proponiDichiarazioni": "Proponi le dichiarazioni dell'anno",
+                "fileTelematico": "File telematico",
+                "aggiungiImmobile": "Aggiungi immobile",
+                "ricalcolaQuadroC": "Ricalcola dal calcolo e dai versamenti",
+                "segnaPresentata": "Segna come presentata",
+                "sostitutiva": "Crea la sostitutiva",
+                "riportaBozza": "Riporta in bozza"
+            },
+            "navContribuenti": "Contribuenti",
+            "navAliquote": "Aliquote dei comuni",
+            "selezionare": "— Seleziona —",
+            "nessuna": "— Nessuna —",
+            "campiObbligatori": "I campi con * sono obbligatori.",
+            "confermaElimina": "Confermi l'eliminazione?",
+            "esente": "Esente",
+            "daVersare": "Da versare",
+            "titoloStorico": "Versioni",
+            "sempre": "in corso",
+            "baseLegge": "base di legge",
+            "nessuno": "— Nessuno —",
+            "quadroA": "Quadro A - Immobili",
+            "quadroAEnc": "Quadro A - Immobili imponibili",
+            "quadroBEnc": "Quadro B - Immobili esenti o parzialmente imponibili",
+            "quadroC": "Quadri C e D - Determinazione dell'IMU, compensazioni e rimborsi"
+        },
+        "contribuenteImu": {
+            "index": {
+                "pageTitle": "IMU",
+                "aiuto": "Scegli il contribuente: il calcolo usa gli immobili, i dati catastali e i possessi dell'Anagrafica, con le aliquote dei comuni dell'anno.",
+                "segnapostoRicerca": "Cerca per nominativo, codice fiscale o partita IVA",
+                "etichettaTutti": "Includi i soggetti non clienti",
+                "nessunRisultato": "Nessun contribuente trovato.",
+                "risultati": "contribuenti",
+                "colonnaCalcolo": "Calcolo",
+                "nonCalcolato": "non calcolato"
+            },
+            "show": {
+                "schedaAnagrafica": "Scheda anagrafica",
+                "sezioneImmobili": "Immobili posseduti nell'anno",
+                "aiutoImmobili": "Immobili, classamento e possessi (titolo, quota, utilizzo) sono quelli dell'Anagrafica: si modificano lì. Qui si indicano solo i dati propri dell'IMU.",
+                "nessunImmobile": "Il contribuente non possiede immobili nell'anno secondo l'Anagrafica.",
+                "gestisciAnagrafica": "Immobili in Anagrafica",
+                "sezioneCalcolo": "Prospetto di calcolo",
+                "nessunCalcolo": "Calcolo non ancora elaborato per l'anno.",
+                "aiutoCalcolo": "Il calcolo registra i versamenti di acconto e saldo nell'archivio del contribuente in Deleghe F24, da cui si generano le deleghe. Un nuovo calcolo sostituisce i versamenti da versare o in bozza; quelli in deleghe confermate restano e le differenze sono segnalate.",
+                "elaboratoIl": "Elaborato il",
+                "sezioneVersamenti": "Versamenti registrati per le deleghe F24",
+                "nessunVersamento": "Nessun versamento registrato.",
+                "sezioneAvvisi": "Avvisi",
+                "sezioneDifferenze": "Differenze con versamenti già in deleghe non modificabili",
+                "prospettoComune": "Aliquote",
+                "aliquotaScelta": "aliquota scelta",
+                "totale": "Totale",
+                "nonImponibile": "Non imponibile",
+                "badgeEnc": "Ente non commerciale",
+                "encEsente": "ENC esente",
+                "encMisto": "ENC imponibile",
+                "sezioneAcconti": "Acconti versati fuori dalla procedura",
+                "aiutoAcconti": "Se l'acconto è stato versato senza la procedura (dal contribuente, da altri, o per il 2020 la metà di IMU e TASI 2019), indicarlo qui: il calcolo non lo registra e determina il saldo su questo importo.",
+                "sezioneDichiarazioni": "Dichiarazioni IMU",
+                "aiutoDichiarazioni": "La dichiarazione si presenta entro il 30 giugno dell'anno successivo solo per le variazioni non conoscibili dal comune (riduzioni, aree fabbricabili, esenzioni, leasing, valori contabili, ...): la proposta le ricava dai dati dell'anno.",
+                "aiutoDichiarazioniEnc": "Gli enti non commerciali presentano la dichiarazione ogni anno, per tutti gli immobili, entro il 30 giugno dell'anno successivo (comma 768-bis).",
+                "scadenzaDichiarazione": "entro il"
+            }
+        },
+        "caratteristicheImu": {
+            "form": {
+                "aiuto": "Dati dell'immobile validi per tutti i possessori. Per le aree fabbricabili indica una nuova variazione ogni anno con il valore al 1° gennaio.",
+                "aiutoTerreno": "Per i terreni agricoli posseduti e condotti da coltivatori diretti o IAP usa le agevolazioni del possessore.",
+                "sezioneValidita": "Validità",
+                "sezioneCaratteristiche": "Caratteristiche",
+                "aiutoExComune": "Il comune applica aliquote diverse negli ex comuni: indicare quello in cui si trova l'immobile."
+            }
+        },
+        "agevolazioneImu": {
+            "form": {
+                "aiuto": "Agevolazioni che dipendono dal possessore. L'utilizzo (abitazione principale, pertinenza, locato a canone concordato, ...) è quello del possesso in Anagrafica.",
+                "sezioneValidita": "Validità",
+                "sezioneAgevolazioni": "Agevolazioni"
+            }
+        },
+        "aliquotaApplicata": {
+            "form": {
+                "aiuto": "Di norma si applica l'aliquota della fattispecie di base. Se l'immobile rientra in un'aliquota differenziata del comune (condizioni del prospetto) sceglila qui; vale per l'anno indicato.",
+                "nessunaDifferenziata": "Il prospetto del comune non ha aliquote differenziate.",
+                "verificaPdf": "Le condizioni sono lette dal PDF del prospetto: in caso di dubbio controlla l'originale.",
+                "aliquotaBase": "Usa l'aliquota della fattispecie di base"
+            }
+        },
+        "prospettoAliquote": {
+            "index": {
+                "aiuto": "Comuni degli immobili dello studio. Dal 2025 le aliquote sono quelle del prospetto pubblicato dal Dipartimento delle Finanze (in mancanza si applicano le aliquote di base); per gli anni precedenti, o per correggere, si inseriscono le aliquote dello studio, che prevalgono.",
+                "nessunComune": "Nessun immobile in Anagrafica.",
+                "colonnaApplicate": "Aliquote applicate",
+                "pubblicato": "pubblicato",
+                "delloStudio": "dello studio",
+                "mancante": "nessun prospetto",
+                "nonImportabile": "Il prospetto è obbligatorio dal 2025: per questo anno inserisci le aliquote dello studio."
+            },
+            "show": {
+                "sezioneBase": "Aliquote di base",
+                "sezioneDifferenziate": "Aliquote differenziate",
+                "sezioneEsenzioni": "Esenzioni e agevolazioni indicate dal comune",
+                "nessunaDifferenziata": "Nessuna aliquota differenziata.",
+                "vediPdf": "PDF del prospetto pubblicato",
+                "nonIndicata": "non indicata (base di legge)"
+            },
+            "form": {
+                "aiuto": "Le aliquote non indicate sono quelle di base di legge. Le aliquote differenziate per il singolo immobile si indicano dalla scheda del contribuente.",
+                "sezioneAliquote": "Aliquote di base",
+                "sezioneAltro": "Detrazione, minimo ed esenzioni",
+                "pubblicatoPresente": "Esiste il prospetto pubblicato: le aliquote dello studio lo sostituiscono per tutti i calcoli dello studio."
+            }
+        },
+        "costoContabileImu": {
+            "index": {
+                "aiuto": "Costi di acquisizione e incrementativi dalle scritture contabili, per anno di sostenimento: il valore IMU al 1° gennaio è la somma dei costi per i coefficienti del decreto annuale (comma 746). I costi dell'anno contano dall'anno successivo, salvo acquisto nell'anno.",
+                "sezioneCosti": "Costi registrati",
+                "valoreAnno": "Valore IMU",
+                "coefficientiDel": "coefficienti del",
+                "coefficientiMancanti": "coefficienti non in archivio (sisma tabelle-imu)",
+                "totaleCosti": "Totale costi",
+                "nuovoCosto": "Nuovo costo"
+            }
+        },
+        "accontoVersatoImu": {
+            "form": {
+                "aiuto": "Acconto per comune e codice tributo versato senza la procedura: non viene registrato tra i versamenti e il saldo si calcola su questo importo."
+            }
+        },
+        "utilizzoMistoEnc": {
+            "form": {
+                "aiuto": "Immobile destinato alle attività del comma 759, lett. g): se utilizzato solo con modalità non commerciali è esente; con utilizzo misto è imponibile per la parte commerciale secondo i rapporti del D.M. 200/2012 (superficie, soggetti, giorni). I dati vanno nel quadro B della dichiarazione ENC.",
+                "sezioneAttivita": "Attività svolte",
+                "sezioneDidattica": "Attività didattica",
+                "sezioneAltre": "Altre attività",
+                "comodato": "Comodato",
+                "strutturale": "Immobile strutturalmente funzionale"
+            }
+        },
+        "dichiarazioneImu": {
+            "show": {
+                "presentataIl": "presentata il",
+                "scadenza": "Scadenza",
+                "datiMancanti": "Da completare prima della trasmissione",
+                "aiutoTelematico": "Il file va controllato con il modulo di controllo IMU del Dipartimento delle Finanze in Desktop Telematico e trasmesso con Entratel o Fisconline (comma 768-bis: solo in via telematica).",
+                "sezioneFrontespizio": "Frontespizio",
+                "ilContribuente": "il contribuente"
+            },
+            "form": {
+                "aiutoDichiarante": "Per società ed enti il rappresentante legale (proposto dall'Anagrafica); per le persone fisiche solo se firma un altro soggetto."
+            }
+        },
+        "rigoDichiarazioneImu": {
+            "form": {
+                "aiuto": "Un quadro per ogni vicenda dell'immobile; vicende dello stesso immobile in date diverse vanno in quadri distinti (stesso progressivo immobile).",
+                "sezioneImmobile": "Immobile",
+                "aiutoValore": "Per intero, indipendentemente dalla quota.",
+                "aiutoEsenzioneEnc": "Quadro B: un valore diverso da \"Nessuna\" indica l'esenzione totale.",
+                "sezioneVicenda": "Vicenda",
+                "inizio": "Inizio",
+                "termine": "Termine",
+                "sezioneNonUtilizzabile": "Immobile non utilizzabile né disponibile (esenzione 1)",
+                "violazioneDomicilio": "Art. 614 o 633 c.p. (violazione di domicilio, invasione)",
+                "occupazioneAbusiva": "Occupazione abusiva denunciata"
+            }
+        }
+    }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "Imu",
+  "version": "0.1.0",
+  "framework_version": "12.13.2",
+  "description": "Calcolo dell'IMU sugli immobili dell'Anagrafica, aliquote comunali e versamenti per le deleghe F24",
+  "authors": [
+    "Valentino de Lapa <valentino.delapa@gmail.com>"
+  ],
+  "requires": {
+    "sismaframework": ">=12.13.2",
+    "CommSuite": ">=0.1.0",
+    "Anagrafica": ">=0.1.0",
+    "Deleghe": ">=0.1.0"
+  },
+  "license": "MIT"
+}

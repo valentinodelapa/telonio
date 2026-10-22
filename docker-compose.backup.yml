@@ -1,0 +1,12 @@
+services:
+  # --- BACKUP DATABASE (opzionale) ---
+  backup:
+    build:
+      context: ./backup
+    container_name: comm_suite_backup
+    env_file:
+      - .env
+    volumes:
+      - ./backups:/backups
+    networks:
+      - default

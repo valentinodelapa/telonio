@@ -1,0 +1,21 @@
+{
+    "pages": {
+        "auth": {
+            "login": {
+                "pageTitle": "Accesso",
+                "sottotitolo": "Suite gestionale per lo studio professionale",
+                "etichettaUtente": "Nome utente",
+                "etichettaPassword": "Password",
+                "pulsanteAccedi": "Accedi",
+                "messaggioAccessoFallito": "Nome utente o password non corretti."
+            }
+        },
+        "home": {
+            "index": {
+                "pageTitle": "Scrivania",
+                "benvenuto": "Bentornato",
+                "inArrivo": "In arrivo"
+            }
+        }
+    }
+}

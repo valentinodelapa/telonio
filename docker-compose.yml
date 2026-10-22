@@ -1,0 +1,56 @@
+services:
+  # --- NGINX WEB SERVER ---
+  nginx:
+    image: nginx:alpine
+    container_name: comm_suite_nginx
+    volumes:
+      - ./www:/var/www/html/
+      - ./nginx.conf.template:/etc/nginx/templates/default.conf.template
+    environment:
+      # Allineato a POST_MAX_SIZE (.env), vedi nginx.conf.template. L'immagine
+      # nginx:alpine renderizza automaticamente i file in /etc/nginx/templates/
+      # sostituendo le variabili d'ambiente presenti nel container.
+      POST_MAX_SIZE: ${POST_MAX_SIZE:-12M}
+    depends_on:
+      - php
+    networks:
+      - default
+
+  # --- PHP-FPM ---
+  php:
+    build:
+      context: .
+    container_name: comm_suite_php
+    user: root
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./www:/var/www/html/
+    env_file:
+      - .env
+    networks:
+      - default
+
+  # --- DATABASE ---
+  db:
+    image: mariadb:latest
+    container_name: comm_suite_db
+    profiles:
+      - internal-db
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${DATABASE_NAME}
+      MARIADB_USER: ${DATABASE_USERNAME}
+      MARIADB_PASSWORD: ${DATABASE_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./comm_suite.sql:/docker-entrypoint-initdb.d/comm_suite.sql
+    networks:
+      - default
+
+networks:
+  web_network:
+    external: true
+
+volumes:
+  db_data:

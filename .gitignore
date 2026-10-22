@@ -1,0 +1,9 @@
+www/vendor/
+www/composer.lock
+www/Cache/
+www/Logs/
+www/filesystemMedia/
+.env
+/backups/
+.claude/
+nbproject/

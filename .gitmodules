@@ -1,0 +1,3 @@
+[submodule "www/SismaFramework"]
+	path = www/SismaFramework
+	url = https://github.com/valentinodelapa/SismaFramework.git

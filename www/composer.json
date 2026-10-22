@@ -1,0 +1,17 @@
+{
+    "name": "valentinodelapa/commsuite",
+    "description": "Suite gestionale multi-studio per studi commerciali e tributari su SismaFramework",
+    "type": "project",
+    "version": "0.1.0-alpha",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Valentino de Lapa",
+            "email": "valentino.delapa@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=8.5",
+        "psr/log": "^2.0 || ^3.0"
+    }
+}

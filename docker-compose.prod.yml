@@ -1,0 +1,13 @@
+services:
+  # L'esposizione pubblica di "nginx" non è definita qui: dipende dall'infrastruttura
+  # reale (pubblicare una porta, oppure agganciarsi a un proprio reverse proxy/
+  # Traefik di produzione con dominio reale e TLS). Vedi README, sezione
+  # "Esposizione in produzione".
+  nginx:
+    restart: unless-stopped
+
+  php:
+    restart: unless-stopped
+
+  db:
+    restart: unless-stopped

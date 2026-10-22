@@ -1,0 +1,13 @@
+{
+  "name": "CommSuite",
+  "version": "0.1.0",
+  "framework_version": "12.13.2",
+  "description": "Modulo base della suite: studi, utenti, accesso, layout e componenti comuni",
+  "authors": [
+    "Valentino de Lapa <valentino.delapa@gmail.com>"
+  ],
+  "requires": {
+    "sismaframework": ">=12.13.2"
+  },
+  "license": "MIT"
+}
