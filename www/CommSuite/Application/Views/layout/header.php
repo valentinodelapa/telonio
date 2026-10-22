@@ -17,14 +17,31 @@ use CommSuite\Application\HelperClasses\Html;
         <nav class="navbar navbar-expand navbar-dark bg-dark suite-navbar">
             <div class="container-fluid">
                 <a class="navbar-brand fw-semibold" href="/home/index"><i class="bi bi-grid-3x3-gap-fill me-2"></i>CommSuite</a>
-                <span class="navbar-text text-white-50 d-none d-md-inline"><i class="bi bi-building me-1"></i><?= Html::e($studio->denominazione) ?></span>
+                <?php if ($utente->isAmministratore()): ?>
+                    <a class="navbar-text text-white-50 text-decoration-none d-none d-md-inline" href="/studio/update"><i class="bi bi-building me-1"></i><?= Html::e($studio->denominazione) ?></a>
+                <?php else: ?>
+                    <span class="navbar-text text-white-50 d-none d-md-inline"><i class="bi bi-building me-1"></i><?= Html::e($studio->denominazione) ?></span>
+                <?php endif; ?>
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-person-circle me-1"></i><?= Html::e($utente->getNomeCompleto()) ?>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><span class="dropdown-item-text small text-body-secondary"><?= Html::e($utente->email) ?></span></li>
+                            <li>
+                                <span class="dropdown-item-text small text-body-secondary">
+                                    <?= Html::e($utente->email) ?>
+                                    <span class="d-block"><?= Html::e($utente->ruolo->getLabel()) ?></span>
+                                </span>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="/profilo/update"><i class="bi bi-person-gear me-2"></i>Profilo personale</a></li>
+                            <li><a class="dropdown-item" href="/profilo/password"><i class="bi bi-key me-2"></i>Cambio password</a></li>
+                            <?php if ($utente->isAmministratore()): ?>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="/studio/update"><i class="bi bi-building-gear me-2"></i>Dati dello studio</a></li>
+                                <li><a class="dropdown-item" href="/utente/index"><i class="bi bi-people me-2"></i>Utenti dello studio</a></li>
+                            <?php endif; ?>
                             <li><hr class="dropdown-divider"></li>
                             <li>
                                 <form method="post" action="/auth/logout">

@@ -368,10 +368,12 @@ $esito = (new ArchivioVersamenti($dataMapper))->registra($soggetto, 'Imu', 'calc
   **sostituisce** i versamenti precedenti: quelli da versare e quelli in una
   delega in bozza (i nuovi vanno nella stessa delega); un elenco vuoto li
   rimuove;
-- i versamenti già in una delega confermata, trasmessa o quietanzata non si
-  toccano: l'esito (`EsitoRegistrazione::$differenze`) riporta per ogni data
-  l'importo in delega e quello ricalcolato, da gestire a mano (riportando la
-  delega in bozza o con un versamento integrativo);
+- i versamenti già in una delega confermata, trasmessa o quietanzata, o
+  regolarizzati con un ravvedimento, non si toccano, insieme a quelli della
+  stessa data: l'esito (`EsitoRegistrazione::$differenze`) riporta per ogni
+  data l'importo registrato e quello ricalcolato, da gestire a mano
+  (riportando la delega in bozza, ricalcolando il ravvedimento o con un
+  versamento integrativo);
 - i versamenti non validi sollevano `InvalidArgumentException` (stesse
   regole dei form, compresi i formalismi dei codici);
 - un rigo IMU dell'abitazione principale (3912) può riportare in

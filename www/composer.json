@@ -2,7 +2,7 @@
     "name": "valentinodelapa/commsuite",
     "description": "Suite gestionale multi-studio per studi commerciali e tributari su SismaFramework",
     "type": "project",
-    "version": "0.1.0-alpha",
+    "version": "0.2.0-alpha",
     "license": "MIT",
     "authors": [
         {

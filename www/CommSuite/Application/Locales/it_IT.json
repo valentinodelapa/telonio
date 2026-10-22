@@ -1,5 +1,39 @@
 {
     "pages": {
+        "common": {
+            "campi": {
+                "denominazione": "Denominazione dello studio",
+                "codiceFiscale": "Codice fiscale",
+                "partitaIva": "Partita IVA",
+                "studio": "Studio",
+                "username": "Nome utente",
+                "nominativo": "Operatore",
+                "cognome": "Cognome",
+                "nome": "Nome",
+                "email": "E-mail",
+                "ruolo": "Ruolo",
+                "attivo": "Utente attivo (abilitato all'accesso)",
+                "stato": "Stato",
+                "ultimoAccesso": "Ultimo accesso",
+                "passwordAttuale": "Password attuale",
+                "passwordIniziale": "Password iniziale",
+                "nuovaPassword": "Nuova password",
+                "confermaPassword": "Conferma password"
+            },
+            "azioni": {
+                "salva": "Salva",
+                "annulla": "Annulla",
+                "modifica": "Modifica",
+                "nuovoUtente": "Nuovo utente",
+                "reimpostaPassword": "Reimposta password"
+            },
+            "campiObbligatori": "I campi contrassegnati con * sono obbligatori.",
+            "navDatiStudio": "Dati dello studio",
+            "navUtentiStudio": "Utenti dello studio",
+            "navDatiProfilo": "Dati personali",
+            "navCambioPassword": "Cambio password",
+            "aiutoPassword": "Almeno 8 caratteri."
+        },
         "auth": {
             "login": {
                 "pageTitle": "Accesso",
@@ -15,6 +49,36 @@
                 "pageTitle": "Scrivania",
                 "benvenuto": "Bentornato",
                 "inArrivo": "In arrivo"
+            }
+        },
+        "studio": {
+            "update": {
+                "pageTitle": "Dati dello studio",
+                "aiuto": "Dati identificativi dello studio titolare dell'ambiente."
+            }
+        },
+        "utente": {
+            "index": {
+                "pageTitle": "Utenti dello studio",
+                "aiuto": "Operatori dello studio abilitati all'accesso alla suite.",
+                "etichettaTu": "Tu",
+                "statoAttivo": "Attivo",
+                "statoDisattivato": "Disattivato"
+            },
+            "form": {
+                "aiutoUsername": "Lettere minuscole, cifre, punto, trattino o trattino basso (min. 3 caratteri).",
+                "aiutoRuolo": "Gli amministratori possono modificare i dati dello studio e gestire gli utenti."
+            },
+            "password": {
+                "pageTitle": "Reimposta password"
+            }
+        },
+        "profilo": {
+            "update": {
+                "pageTitle": "Profilo personale"
+            },
+            "password": {
+                "pageTitle": "Cambio password"
             }
         }
     }

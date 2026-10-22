@@ -37,6 +37,17 @@ class Campo
         return self::testo($nome, $etichetta, $origine, $errori, ['tipo' => 'date'] + $opzioni);
     }
 
+    public static function password(string $nome, string $etichetta, FormFilterError $errori, array $opzioni = []): string
+    {
+        $input = sprintf('<input type="password" class="form-control %s" id="%s" name="%s" value="" %s %s>',
+                Html::classeErrore($errori, $nome),
+                self::id($nome, $opzioni),
+                self::nomeHtml($nome, $opzioni),
+                empty($opzioni['richiesto']) ? '' : 'required',
+                $opzioni['attributi'] ?? '');
+        return self::contenitore($nome, $etichetta, $input, $errori, $opzioni);
+    }
+
     public static function areaTesto(string $nome, string $etichetta, ?object $origine, FormFilterError $errori, array $opzioni = []): string
     {
         $input = sprintf('<textarea class="form-control %s" id="%s" name="%s" rows="%d" %s>%s</textarea>',

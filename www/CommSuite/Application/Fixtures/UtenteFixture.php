@@ -3,6 +3,7 @@
 namespace CommSuite\Application\Fixtures;
 
 use CommSuite\Application\Entities\Utente;
+use CommSuite\Application\Enumerations\RuoloUtente;
 use SismaFramework\Core\BaseClasses\BaseFixture;
 
 /**
@@ -26,6 +27,7 @@ class UtenteFixture extends BaseFixture
         $utente->cognome = 'Amministratore';
         $utente->nome = 'Utente';
         $utente->email = 'admin@comm-suite.localhost';
+        $utente->ruolo = RuoloUtente::amministratore;
         $utente->attivo = true;
         $this->addEntity($utente);
     }

@@ -2,6 +2,7 @@
 
 namespace CommSuite\Application\Entities;
 
+use CommSuite\Application\Enumerations\RuoloUtente;
 use SismaFramework\Orm\CustomTypes\SismaDateTime;
 use SismaFramework\Orm\ExtendedClasses\ReferencedEntity;
 use SismaFramework\Security\Interfaces\Entities\AuthenticableInterface;
@@ -18,6 +19,7 @@ class Utente extends ReferencedEntity implements AuthenticableInterface
     protected string $cognome;
     protected string $nome;
     protected string $email;
+    protected RuoloUtente $ruolo;
     protected bool $attivo = true;
     protected ?SismaDateTime $ultimoAccesso = null;
 
@@ -30,11 +32,16 @@ class Utente extends ReferencedEntity implements AuthenticableInterface
     #[\Override]
     protected function setPropertyDefaultValue(): void
     {
-
+        $this->ruolo = RuoloUtente::operatore;
     }
 
     public function getNomeCompleto(): string
     {
         return $this->nome . ' ' . $this->cognome;
+    }
+
+    public function isAmministratore(): bool
+    {
+        return $this->ruolo === RuoloUtente::amministratore;
     }
 }

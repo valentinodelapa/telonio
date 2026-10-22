@@ -23,6 +23,7 @@ class StudioFixture extends BaseFixture
         $studio = new Studio($this->dataMapper);
         $studio->denominazione = 'Studio Demo Associati';
         $studio->codiceFiscale = '80012345676';
+        $studio->partitaIva = '80012345676';
         $studio->attivo = true;
         $this->addEntity($studio);
     }

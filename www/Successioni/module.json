@@ -1,13 +1,13 @@
 {
   "name": "Successioni",
   "version": "0.1.0",
-  "framework_version": "12.13.2",
+  "framework_version": "12.14.0",
   "description": "Dichiarazione di successione e domanda di volture catastali: beneficiari, attivo e passivo dall'Anagrafica, autoliquidazione, file telematico SUC13 e versamenti F24 degli eredi",
   "authors": [
     "Valentino de Lapa <valentino.delapa@gmail.com>"
   ],
   "requires": {
-    "sismaframework": ">=12.13.2",
+    "sismaframework": ">=12.14.0",
     "CommSuite": ">=0.1.0",
     "Anagrafica": ">=0.1.0",
     "Deleghe": ">=0.1.0"

@@ -362,6 +362,13 @@ class DelegaController extends DelegheController
                 $tornati++;
             }
         }
+        // i calcoli puntano alla delega: il framework ne impedisce l'eliminazione finché esistono
+        foreach ((new RavvedimentoModel($this->dataMapper))->getElenco($delega) as $ravvedimento) {
+            $this->dataMapper->delete($ravvedimento);
+        }
+        foreach ((new SanzioneCivileModel($this->dataMapper))->getElenco($delega) as $sanzioneCivile) {
+            $this->dataMapper->delete($sanzioneCivile);
+        }
         $this->dataMapper->delete($delega);
         $this->dataMapper->commitTransaction($primaTransazione);
         $this->aggiungiMessaggio('Delega eliminata' . ($tornati > 0 ? ': ' . $tornati . ' versamenti sono tornati tra quelli da versare.' : '.'));

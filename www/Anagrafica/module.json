@@ -1,13 +1,13 @@
 {
   "name": "Anagrafica",
   "version": "0.1.0",
-  "framework_version": "12.13.2",
+  "framework_version": "12.14.0",
   "description": "Anagrafica unica dei soggetti dello studio, condivisa dai moduli della suite",
   "authors": [
     "Valentino de Lapa <valentino.delapa@gmail.com>"
   ],
   "requires": {
-    "sismaframework": ">=12.13.2",
+    "sismaframework": ">=12.14.0",
     "CommSuite": ">=0.1.0"
   },
   "license": "MIT"

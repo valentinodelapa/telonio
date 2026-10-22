@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS `utente` (
   `cognome` VARCHAR(100) NOT NULL,
   `nome` VARCHAR(100) NOT NULL,
   `email` VARCHAR(255) NOT NULL,
+  `ruolo` ENUM('amministratore','operatore') NOT NULL DEFAULT 'operatore',
   `attivo` TINYINT(1) NOT NULL DEFAULT 1,
   `ultimo_accesso` DATETIME NULL,
   PRIMARY KEY (`id`),

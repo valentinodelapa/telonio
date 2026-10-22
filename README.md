@@ -11,7 +11,7 @@ Ogni applicativo è un modulo `SismaFramework` all'interno di `www/` che condivi
 
 | Modulo | Stato | Descrizione | Documentazione |
 |---|---|---|---|
-| **`CommSuite`** | Disponibile | Modulo base: gestione studi, utenti, autenticazione, layout e validatori fiscali (Codice Fiscale, Partita IVA, IBAN) | `www/CommSuite/` |
+| **`CommSuite`** | Disponibile | Modulo base: gestione studi (CLI e web), utenti e ruoli (`amministratore`, `operatore`), profilo e password, autenticazione, layout e validatori fiscali (Codice Fiscale, Partita IVA, IBAN) | [`www/CommSuite/Docs/README.md`](www/CommSuite/Docs/README.md) |
 | **`Anagrafica`** | Disponibile | Archivio unico storicizzato dei soggetti dello studio (persone fisiche, ditte individuali, società, enti), dati fiscali, indirizzi, legami/soci, conti correnti, immobili con storico catastale e quote di possesso, tabelle ANPR e ATECO | [`www/Anagrafica/Docs/README.md`](www/Anagrafica/Docs/README.md) |
 | **`Deleghe`** | Disponibile | Deleghe di pagamento F24 (Ordinario, Semplificato, ELIDE, Accise): archivio versamenti e crediti in compensazione, controlli formali sulle tabelle dell'Agenzia delle Entrate, ripartizione su più modelli, ravvedimento operoso, sanzioni civili INPS/INAIL, stampa su modello ufficiale SVG e generazione del file telematico Entratel | [`www/Deleghe/Docs/README.md`](www/Deleghe/Docs/README.md) |
 | **`Imu`** | Disponibile | Calcolo dell'IMU sugli immobili in anagrafica: importazione dei prospetti comunali delle aliquote dal portale del Dipartimento delle Finanze, gestione caratteristiche e agevolazioni storicizzate, prospetto di calcolo e invio automatico dei versamenti di acconto e saldo all'archivio `Deleghe`, dichiarazione IMU/IMPi e IMU ENC con file telematico | [`www/Imu/Docs/README.md`](www/Imu/Docs/README.md) |
@@ -59,8 +59,12 @@ Ogni applicativo è un modulo `SismaFramework` all'interno di `www/` che condivi
     docker exec -i comm_suite_db mariadb -uroot -pchange_me_root_password comm_suite < www/Successioni/Database/schema.sql
     docker exec -i comm_suite_db mariadb -uroot -pchange_me_root_password comm_suite < www/Successioni/Database/dati-riferimento.sql
     ```
-4.  *(Opzionale, solo sviluppo)* Carica i dati demo (studio, utente `admin` / `admin`, soggetti con storico, immobili e deleghe di esempio):
+4.  Crea uno studio e il primo utente amministratore (oppure, in sviluppo, carica i dati demo con utente `admin` / `admin`, soggetti con storico, immobili, deleghe, calcoli IMU e successione di esempio):
     ```bash
+    # Creazione di uno studio (interattiva o con opzioni, vedi www/CommSuite/Docs/README.md)
+    docker exec -it comm_suite_php sh -c 'cd /var/www/html && sisma studio crea'
+
+    # Oppure, solo sviluppo su tabelle vuote: carica i dati demo
     docker exec comm_suite_php sh -c 'cd /var/www/html && sisma fixtures'
     ```
 
@@ -68,9 +72,13 @@ L'applicazione sarà disponibile su `http://comm-suite.localhost`, phpMyAdmin su
 
 ## Comandi CLI (`sisma`)
 
-Il comando `sisma` è disponibile nel container `comm_suite_php` e include i comandi dei moduli per l'aggiornamento delle tabelle di riferimento e dei modelli ufficiali:
+Il comando `sisma` è disponibile nel container `comm_suite_php` e include i comandi dei moduli per la gestione degli studi e l'aggiornamento delle tabelle di riferimento e dei modelli ufficiali:
 
 ```bash
+# Elenca gli studi e i relativi utenti, oppure crea/gestisce uno studio e i suoi amministratori
+docker exec comm_suite_php sh -c 'cd /var/www/html && sisma studio'
+docker exec -it comm_suite_php sh -c 'cd /var/www/html && sisma studio crea'
+
 # Carica i dati demo di sviluppo (su tabelle vuote)
 docker exec comm_suite_php sh -c 'cd /var/www/html && sisma fixtures'
 
