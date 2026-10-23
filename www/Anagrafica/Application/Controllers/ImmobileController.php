@@ -15,6 +15,7 @@ use Anagrafica\Application\Forms\DatiCatastaliForm;
 use Anagrafica\Application\Forms\ImmobileForm;
 use Anagrafica\Application\Forms\PossessoForm;
 use Anagrafica\Application\Models\DatiCatastaliModel;
+use Anagrafica\Application\Models\IdentificativoGraffatoModel;
 use Anagrafica\Application\Models\ImmobileModel;
 use Anagrafica\Application\Models\PossessoModel;
 use Anagrafica\Application\Services\ControlloQuote;
@@ -201,6 +202,7 @@ class ImmobileController extends AnagraficaController
         $this->vars['datiCatastaliStorico'] = $datiCatastaliModel->getStorico($immobile);
         $this->vars['datiCatastaliVigenti'] = $datiCatastaliModel->getVigenteAl($immobile, $dataRiferimento);
         $this->vars['possessi'] = (new PossessoModel($this->dataMapper))->getStoricoImmobile($immobile);
+        $this->vars['graffati'] = (new IdentificativoGraffatoModel($this->dataMapper))->getElenco($immobile);
         $this->vars['pageTitle'] = $immobile->tipoCatasto->getLabel() . ' ' . $immobile->getIdentificativo();
         $this->vars['briciole'] = ['Anagrafica' => '/soggetto/index', 'Immobili' => '/immobile/index', $immobile->getIdentificativo() => null];
         return $this->render->generateView('immobile/show', $this->vars);
@@ -218,6 +220,7 @@ class ImmobileController extends AnagraficaController
         $primaTransazione = $this->dataMapper->startTransaction();
         $possessoModel->deleteByImmobile($immobile);
         (new DatiCatastaliModel($this->dataMapper))->deleteByImmobile($immobile);
+        (new IdentificativoGraffatoModel($this->dataMapper))->deleteByImmobile($immobile);
         $this->dataMapper->delete($immobile);
         foreach ($soggetti as $soggetto) {
             (new SincronizzazioneSoggetto($this->dataMapper))->aggiorna($soggetto);

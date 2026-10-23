@@ -21,6 +21,8 @@ use Deleghe\Application\Models\CreditoModel;
 use Deleghe\Application\Models\RavvedimentoModel;
 use Deleghe\Application\Models\SanzioneCivileModel;
 use Deleghe\Application\Models\VersamentoModel;
+use Deleghe\Application\Services\CalcoloRavvedimento;
+use Deleghe\Application\Services\CalcoloSanzioniCivili;
 use Deleghe\Application\Services\Compensazioni;
 use Deleghe\Application\Services\ControlloDelega;
 use Deleghe\Application\Services\CopiaVersamenti;
@@ -28,6 +30,8 @@ use Deleghe\Application\Services\DatiContribuente;
 use Deleghe\Application\Services\EsitoControllo;
 use Deleghe\Application\Services\GenerazioneDeleghe;
 use Deleghe\Application\Services\ModelloCompilato;
+use Deleghe\Application\Services\RavvedimentoService;
+use Deleghe\Application\Services\SanzioniCiviliService;
 use Deleghe\Application\Services\Stampa\ModuloUfficialeF24;
 use SismaFramework\Core\HttpClasses\Request;
 use SismaFramework\Core\HttpClasses\Response;
@@ -167,9 +171,18 @@ class DelegaController extends DelegheController
         if (($bloccata = $this->verificaModificabile($delega)) !== null) {
             return $bloccata;
         }
+        $dataPrecedente = $delega->scadenza->format('Y-m-d');
         $form = new DelegaForm($delega);
         if ($this->isInvioValido($request, $form)) {
             $delega = $form->resolveEntity();
+            $dataCambiata = $delega->scadenza->format('Y-m-d') !== $dataPrecedente;
+            $ravvedimenti = iterator_to_array((new RavvedimentoModel($this->dataMapper))->getElenco($delega), false);
+            $sanzioniCivili = iterator_to_array((new SanzioneCivileModel($this->dataMapper))->getElenco($delega), false);
+            $errore = $dataCambiata ? $this->verificaRicalcoli($delega, $ravvedimenti, $sanzioniCivili) : null;
+            if ($errore !== null) {
+                $this->aggiungiMessaggio('Data non modificata: ' . $errore, 'danger');
+                return $this->vaiAllaDelega($delega);
+            }
             $delega->dataModifica = new SismaDateTime();
             $primaTransazione = $this->dataMapper->startTransaction();
             $this->dataMapper->save($delega);
@@ -179,13 +192,48 @@ class DelegaController extends DelegheController
                     $this->dataMapper->save($versamento);
                 }
             }
+            if ($dataCambiata) {
+                // sanzioni e interessi dipendono dalla data di versamento
+                foreach ($ravvedimenti as $ravvedimento) {
+                    (new RavvedimentoService($this->dataMapper))->registra($ravvedimento);
+                }
+                foreach ($sanzioniCivili as $sanzioneCivile) {
+                    (new SanzioniCiviliService($this->dataMapper))->registra($sanzioneCivile);
+                }
+            }
             $this->dataMapper->commitTransaction($primaTransazione);
-            $this->aggiungiMessaggio('Dati della delega aggiornati.');
+            $ricalcolati = count($ravvedimenti) + count($sanzioniCivili);
+            $this->aggiungiMessaggio('Dati della delega aggiornati' . (($dataCambiata && ($ricalcolati > 0)) ? ': ravvedimenti e sanzioni civili ricalcolati alla nuova data.' : '.'));
             return $this->vaiAllaDelega($delega);
         }
         $this->vars['pageTitle'] = 'Modifica delega';
         $this->impostaBriciole($delega, 'Modifica');
         return $this->generaVistaForm($form, $delega, false);
+    }
+
+    /**
+     * Prova i calcoli alla nuova data prima di salvare: un ravvedimento o
+     * una sanzione civile non ricalcolabile (es. data non successiva alla
+     * scadenza originale) impedisce il cambio di data.
+     *
+     * @param Ravvedimento[] $ravvedimenti
+     * @param SanzioneCivile[] $sanzioniCivili
+     */
+    private function verificaRicalcoli(Delega $delega, array $ravvedimenti, array $sanzioniCivili): ?string
+    {
+        try {
+            foreach ($ravvedimenti as $ravvedimento) {
+                (new CalcoloRavvedimento($this->dataMapper))->calcola($ravvedimento->importoTributo, $ravvedimento->scadenzaOriginale, $delega->scadenza,
+                        $ravvedimento->termineDichiarazione, $ravvedimento->termineDichiarazioneSuccessiva, $ravvedimento->circostanza);
+            }
+            foreach ($sanzioniCivili as $sanzioneCivile) {
+                (new CalcoloSanzioniCivili($this->dataMapper))->calcola($sanzioneCivile->importoContributi, $sanzioneCivile->scadenzaOriginale, $delega->scadenza,
+                        $sanzioneCivile->regime, $sanzioneCivile->spontaneo);
+            }
+        } catch (\InvalidArgumentException | \UnexpectedValueException $errore) {
+            return $errore->getMessage();
+        }
+        return null;
     }
 
     private function generaVistaForm(DelegaForm $form, Delega $delega, bool $nuova): Response

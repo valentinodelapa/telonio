@@ -41,6 +41,10 @@ class PropostaVolture
     public function proponi(DatiDichiarazione $dati): array
     {
         $dichiarazione = $dati->dichiarazione;
+        if ($dichiarazione->codiceCarica?->isSenzaVoltureAutomatiche() ?? false) {
+            // eredità giacente o amministrata e trust: i beni non passano ancora ai beneficiari
+            return [];
+        }
         $decesso = $dichiarazione->getDataApertura();
         $dal = new SismaDate((new \DateTimeImmutable($decesso->format('Y-m-d')))->modify('+1 day')->format('Y-m-d'));
         $possessoModel = new PossessoModel($this->dataMapper);

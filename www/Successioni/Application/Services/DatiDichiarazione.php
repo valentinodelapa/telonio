@@ -3,7 +3,9 @@
 namespace Successioni\Application\Services;
 
 use Anagrafica\Application\Entities\DatiCatastali;
+use Anagrafica\Application\Entities\IdentificativoGraffato;
 use Anagrafica\Application\Models\DatiCatastaliModel;
+use Anagrafica\Application\Models\IdentificativoGraffatoModel;
 use SismaFramework\Orm\HelperClasses\DataMapper;
 use Successioni\Application\Entities\AllegatoSuccessione;
 use Successioni\Application\Entities\BeneficiarioSuccessione;
@@ -42,6 +44,9 @@ class DatiDichiarazione
     /** @var array<int, ?DatiCatastali> classamento alla data del decesso, per id del bene */
     public array $catasto = [];
 
+    /** @var array<int, IdentificativoGraffato[]> identificativi graffati dei fabbricati, per id del bene */
+    public array $graffati = [];
+
     /** @var array<int, \Successioni\Application\Entities\EstremoVoltura[]> estremi del quadro EI, per id del bene */
     public array $estremi = [];
 
@@ -61,6 +66,7 @@ class DatiDichiarazione
         $devoluzioneModel = new DevoluzioneSuccessioneModel($dataMapper);
         $datiCatastaliModel = new DatiCatastaliModel($dataMapper);
         $estremoModel = new EstremoVolturaModel($dataMapper);
+        $graffatoModel = new IdentificativoGraffatoModel($dataMapper);
         foreach ($this->getBeni() as $bene) {
             $this->devoluzioni[$bene->id] = iterator_to_array($devoluzioneModel->getElenco($bene), false);
             if ($bene->discordanzaIntestatario) {
@@ -68,6 +74,9 @@ class DatiDichiarazione
             }
             if ($bene->immobile !== null) {
                 $this->catasto[$bene->id] = $datiCatastaliModel->getVigenteAl($bene->immobile, $dichiarazione->getDataApertura());
+                if ($bene->quadro->isFabbricato()) {
+                    $this->graffati[$bene->id] = iterator_to_array($graffatoModel->getElenco($bene->immobile), false);
+                }
             }
         }
         $this->passivita = iterator_to_array((new PassivitaSuccessioneModel($dataMapper))->getElenco($dichiarazione), false);
@@ -100,6 +109,14 @@ class DatiDichiarazione
     public function getDevoluzioni(BeneSuccessione $bene): array
     {
         return $this->devoluzioni[$bene->id] ?? [];
+    }
+
+    /**
+     * @return IdentificativoGraffato[]
+     */
+    public function getGraffati(BeneSuccessione $bene): array
+    {
+        return $this->graffati[$bene->id] ?? [];
     }
 
     public function getCatasto(BeneSuccessione $bene): ?DatiCatastali

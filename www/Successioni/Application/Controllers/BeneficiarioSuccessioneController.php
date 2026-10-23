@@ -47,7 +47,7 @@ class BeneficiarioSuccessioneController extends SuccessioniController
         $form = new BeneficiarioSuccessioneForm($beneficiario);
         if ($this->isInvioValido($request, $form)) {
             $beneficiario = $form->resolveEntity();
-            if ($this->isDelloStudio($beneficiario->soggetto) && $this->isDelloStudio($beneficiario->rappresentato)) {
+            if ($this->isDelloStudio($beneficiario->soggetto) && $this->isDelloStudio($beneficiario->rappresentato) && $this->isDelloStudio($beneficiario->beneficiarioFinale)) {
                 $this->dataMapper->save($beneficiario);
                 $this->aggiungiMessaggio('Beneficiario salvato.');
             }

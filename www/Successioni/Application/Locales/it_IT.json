@@ -97,6 +97,26 @@
                 "creditoIpotecaria": "Credito d'imposta usato per l'ipotecaria (€)",
                 "creditoCatastale": "Credito d'imposta usato per la catastale (€)",
                 "creditoSuccessione": "Credito d'imposta usato per la successione (€)",
+                "codiceFiscaleTrust": "Codice fiscale del trust",
+                "beneficiarioFinale": "Beneficiario finale",
+                "pagamentoAnticipatoTrust": "Pagamento anticipato dell'imposta da parte del trustee",
+                "immobileEstero": "Immobile situato all'estero",
+                "statoEstero": "Stato estero",
+                "codiceStatoEstero": "Codice dello Stato",
+                "localitaEstero": "Località",
+                "indirizzoEstero": "Indirizzo",
+                "creditoTipo": "Imposta pagata sull'acquisto",
+                "creditoImporto": "Credito d'imposta (€)",
+                "creditoAcquistoUfficio": "Ufficio di registrazione",
+                "creditoAcquistoSerie": "Serie",
+                "creditoAcquistoNumero": "Numero",
+                "creditoAcquistoSottonumero": "Sottonumero",
+                "creditoAcquistoData": "Data di registrazione",
+                "creditoVenditaUfficio": "Ufficio di registrazione",
+                "creditoVenditaSerie": "Serie",
+                "creditoVenditaNumero": "Numero",
+                "creditoVenditaSottonumero": "Sottonumero",
+                "creditoVenditaData": "Data di registrazione",
                 "beneficiario": "Beneficiario",
                 "quota": "Quota",
                 "diritto": "Diritto",
@@ -248,13 +268,20 @@
             "pagamento": {
                 "aiutoPagamento": "Le imposte ipotecaria, catastale, di bollo e i tributi speciali si addebitano sul conto indicato con la dichiarazione. L'imposta di successione si paga con la dichiarazione o con F24 dei beneficiari entro 90 giorni dal termine di presentazione, anche a rate (acconto del 20%, da 1.000 euro da rateizzare).",
                 "sezioneSostitutiva": "Dichiarazione sostitutiva: importi già versati e crediti",
-                "nessunConto": "Nessun conto del dichiarante, del rappresentato o dell'intermediario in Anagrafica."
+                "sezioneCredito": "Credito d'imposta per il riacquisto della prima casa (quadro EH, sezione III)",
+                "aiutoCredito": "Per il dichiarante che ha venduto la casa acquistata con le agevolazioni prima casa e ne riceve un'altra in successione con le stesse agevolazioni (art. 7 L. 448/1998): il credito riduce l'imposta ipotecaria e, per il resto, la catastale.",
+                "registrazioneAcquisto": "Registrazione dell'atto di acquisto",
+                "registrazioneVendita": "Registrazione dell'atto di vendita (se già venduta)",
+                "nessunConto": "Nessun conto del dichiarante, del rappresentato o dell'intermediario in Anagrafica.",
+                "aiutoAnticipato": "Senza l'opzione l'imposta di successione è dovuta all'attribuzione dei beni ai beneficiari finali; con l'opzione si autoliquida ora, senza riduzioni ed esenzioni (che restano precluse anche in seguito)."
             }
         },
         "beneficiarioSuccessione": {
             "form": {
                 "sezioneRinuncia": "Rinuncia all'eredità",
                 "sezioneRappresentazione": "Successione per rappresentazione",
+                "sezioneTrust": "Parte riservata al trust",
+                "aiutoTrust": "Trust testamentario (tipo soggetto 5, carica 9): il soggetto è il trustee, un rigo per ogni beneficiario finale con il suo grado di parentela con il defunto (35 se non individuato). Il trustee non può essere beneficiario e tutti i beni devono essere conferiti nel trust; altrimenti si usa il modello 4 cartaceo.",
                 "aiutoSoggetto": "Soggetto dell'Anagrafica (persona fisica, società o ente).",
                 "aiutoRappresentazione": "Per i discendenti che subentrano a un figlio o a un fratello premorto o rinunciatario."
             }
@@ -265,7 +292,8 @@
                 "aiutoImmobile": "Immobili posseduti dal defunto secondo l'Anagrafica: ubicazione e classamento si leggono da lì.",
                 "nessunImmobile": "Nessun immobile del defunto in Anagrafica: inseriscilo nella scheda del soggetto.",
                 "aiutoDimensione": "Per le unità a vela la lunghezza in centimetri, per quelle a motore la stazza in tonnellate.",
-                "aiutoAzienda": "Per gli immobili dell'azienda del quadro EN: il loro valore conta nell'azienda (quadro EE)."
+                "aiutoAzienda": "Per gli immobili dell'azienda del quadro EN: il loro valore conta nell'azienda (quadro EE).",
+                "aiutoEstero": "Terreni e fabbricati all'estero non sono nell'archivio immobili: indicare Stato, codice dello Stato (elenco dei Paesi esteri in appendice alle istruzioni), località e indirizzo. Non scontano le imposte ipotecaria e catastale."
             },
             "devoluzioni": {
                 "aiuto": "Quote devolute ai beneficiari: la somma deve essere pari all'intero per ogni diritto. Se il diritto coincide con quello del defunto il valore si calcola dalla quota; altrimenti (es. usufrutto e nuda proprietà) va indicato con i coefficienti del TUS.",

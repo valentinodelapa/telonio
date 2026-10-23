@@ -44,6 +44,6 @@ enum TipoBeneficiario: string
      */
     public static function getGestiti(): array
     {
-        return [self::erede, self::legatario, self::chiamato, self::coniugeRinunciatario, self::altro];
+        return self::cases();
     }
 }

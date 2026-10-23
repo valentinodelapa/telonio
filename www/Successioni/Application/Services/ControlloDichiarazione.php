@@ -3,6 +3,7 @@
 namespace Successioni\Application\Services;
 
 use Anagrafica\Application\Enumerations\TitoloPossesso;
+use Successioni\Application\Entities\BeneficiarioSuccessione;
 use Successioni\Application\Entities\BeneSuccessione;
 use Successioni\Application\Entities\DevoluzioneSuccessione;
 use Successioni\Application\Enumerations\Agevolazione;
@@ -13,6 +14,7 @@ use Successioni\Application\Enumerations\QuadroBene;
 use Successioni\Application\Enumerations\TipoAllegato;
 use Successioni\Application\Enumerations\TipoBeneficiario;
 use Successioni\Application\Enumerations\TipoCespite;
+use Successioni\Application\Enumerations\TipoDichiarazioneSuccessione;
 use Successioni\Application\Enumerations\TempisticaPagamento;
 use Successioni\Application\Enumerations\TipoPassivita;
 use Successioni\Application\Models\ComuneCatastaleTavolareModel;
@@ -114,12 +116,77 @@ class ControlloDichiarazione
             if (($dichiarazione->codiceCarica === CaricaDichiarante::esecutoreTestamentario) && ($dichiarazione->devoluzioneTestamento === false)) {
                 $this->errore('L\'esecutore testamentario presuppone la devoluzione per testamento.');
             }
+            $this->verificaCariche($dati);
         }
         if (($dichiarazione->telefono === null) && ($dichiarazione->email === null)) {
             $this->errore('Indicare il telefono o l\'indirizzo e-mail del dichiarante.');
         }
         if (($dichiarazione->intermediario !== null) && (($dichiarazione->impegno === null) || ($dichiarazione->dataImpegno === null))) {
             $this->errore('Indicare l\'impegno a trasmettere dell\'intermediario e la sua data.');
+        }
+    }
+
+    /**
+     * Eredità giacente (carica 5): nel quadro EA solo la curatela, con tipo
+     * soggetto 6; trust testamentario (carica 9): righi di tipo 5 intestati
+     * al trustee, uno per beneficiario finale. Per le eredità giacenti e
+     * amministrate le agevolazioni sono limitate ad A, C, D, E, M, N, L.
+     */
+    private function verificaCariche(DatiDichiarazione $dati): void
+    {
+        $dichiarazione = $dati->dichiarazione;
+        $carica = $dichiarazione->codiceCarica;
+        $righiTrust = array_filter($dati->beneficiari, fn(BeneficiarioSuccessione $beneficiario) => $beneficiario->isTrust());
+        if (($carica === CaricaDichiarante::curatoreEreditaGiacente) && ($dichiarazione->tipoDichiarazione === TipoDichiarazioneSuccessione::prima)
+                && ((count($dati->beneficiari) !== 1) || ($dati->beneficiari[0]->tipoBeneficiario !== TipoBeneficiario::altro))) {
+            $this->errore('Eredità giacente: nel quadro EA va indicata solo la curatela, con tipo soggetto 6 (altro).');
+        }
+        if (($carica === CaricaDichiarante::curatoreEreditaGiacente) && ($dati->getBeneficiarioDichiarante() !== null)) {
+            $this->errore('Il curatore dell\'eredità giacente non deve essere nel quadro EA.');
+        }
+        if (in_array($carica, [CaricaDichiarante::curatoreEreditaGiacente, CaricaDichiarante::amministratoreEredita], true)) {
+            foreach ($dati->getBeni() as $bene) {
+                foreach ($dati->getDevoluzioni($bene) as $devoluzione) {
+                    if (($devoluzione->agevolazione !== null) && (in_array($devoluzione->agevolazione->value, ['A', 'C', 'D', 'E', 'M', 'N', 'L'], true) === false)) {
+                        $this->errore('Eredità giacente o amministrata: sono ammesse solo le agevolazioni A, C, D, E, M, N, L (' . $bene->getDescrizioneBreve() . ').');
+                        break 2;
+                    }
+                }
+            }
+        }
+        foreach ($dati->getBeni() as $bene) {
+            foreach ($dati->getDevoluzioni($bene) as $devoluzione) {
+                if ($devoluzione->beneficiarioSuccessione->isTrust() && (($devoluzione->agevolazione !== null) || ($devoluzione->riduzione !== null) || ($bene->dirittoAbitazione !== null))) {
+                    $this->errore('Trust: sui beni conferiti nel trust non si indicano agevolazioni, riduzioni o diritto di abitazione (' . $bene->getDescrizioneBreve() . ').');
+                    break 2;
+                }
+            }
+        }
+        if ((count($righiTrust) > 0) && ($carica !== CaricaDichiarante::trustee)) {
+            $this->errore('Con un trust nel quadro EA il codice di carica è 9 (trustee).');
+        }
+        if ($carica === CaricaDichiarante::trustee) {
+            if ($dichiarazione->devoluzioneTestamento === false) {
+                $this->errore('Il trust si dichiara con questo modello solo se istituito per testamento.');
+            }
+            if ((count($righiTrust) === 0) || (count($righiTrust) !== count($dati->beneficiari))) {
+                $this->errore('Trust: tutti i righi del quadro EA sono di tipo 5 (trust); se non tutti i beni sono conferiti nel trust si usa il modello 4 cartaceo.');
+            }
+            $finali = [];
+            foreach ($righiTrust as $rigo) {
+                if ($rigo->soggetto->id !== $dichiarazione->presentatore?->id) {
+                    $this->errore('Trust: i righi del quadro EA sono intestati al trustee che presenta la dichiarazione.');
+                    break;
+                }
+                if ($rigo->beneficiarioFinale !== null) {
+                    if (isset($finali[$rigo->beneficiarioFinale->id])) {
+                        $this->errore('Trust: lo stesso beneficiario finale è indicato su più righi.');
+                    }
+                    $finali[$rigo->beneficiarioFinale->id] = true;
+                }
+            }
+        } elseif ($dichiarazione->pagamentoAnticipatoTrust) {
+            $this->errore('Il pagamento anticipato si sceglie solo per il trust (carica 9).');
         }
     }
 
@@ -247,8 +314,36 @@ class ControlloDichiarazione
         }
     }
 
+    /**
+     * Immobili all'estero (provincia "EE"): Stato, codice e indirizzo; niente
+     * agevolazioni prima casa (P, Z, X, Y) né diritto di abitazione del
+     * coniuge diverso da 4 e 8.
+     */
+    private function verificaImmobileEstero(DatiDichiarazione $dati, BeneSuccessione $bene, string $nome): void
+    {
+        if (($bene->statoEstero === null) || ($bene->codiceStatoEstero === null) || ($bene->indirizzoEstero === null)) {
+            $this->errore($nome . ': per l\'immobile all\'estero indicare Stato, codice dello Stato e indirizzo.');
+        }
+        if ($bene->quadro->isTerreno() && ($bene->tipologiaTerreno === null)) {
+            $this->errore($nome . ': indicare la tipologia del terreno.');
+        }
+        foreach ($dati->getDevoluzioni($bene) as $devoluzione) {
+            if (in_array($devoluzione->agevolazione, [Agevolazione::primaCasa, Agevolazione::primaCasaContiguo, Agevolazione::pertinenzaPrimaCasa, Agevolazione::pertinenzaSenzaPrincipale], true)) {
+                $this->errore($nome . ': le agevolazioni prima casa non si applicano agli immobili all\'estero.');
+                break;
+            }
+        }
+        if (($bene->dirittoAbitazione !== null) && (in_array($bene->dirittoAbitazione->value, ['4', '8'], true) === false)) {
+            $this->errore($nome . ': per l\'immobile all\'estero il diritto di abitazione del coniuge può essere solo 4 o 8.');
+        }
+    }
+
     private function verificaImmobile(DatiDichiarazione $dati, BeneSuccessione $bene, string $nome): void
     {
+        if ($bene->isImmobileEstero()) {
+            $this->verificaImmobileEstero($dati, $bene, $nome);
+            return;
+        }
         if ($bene->immobile === null) {
             $this->errore($nome . ': collegare l\'immobile dell\'Anagrafica.');
             return;

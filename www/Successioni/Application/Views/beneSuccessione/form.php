@@ -20,7 +20,14 @@ require Layout::percorso('header');
         <div class="card-body row g-3">
             <?php if ($quadro->isImmobile()): ?>
                 <?php if (count($immobili) === 0): ?><div class="col-12 small text-warning"><?= Html::e($nessunImmobile) ?></div><?php endif; ?>
-                <?= Campo::selezione('immobile', $campi['immobile'], $formEntity, $errors, $immobili, ['richiesto' => true, 'vuota' => $selezionare, 'colonna' => 'col-12', 'aiuto' => $aiutoImmobile]) ?>
+                <?= Campo::selezione('immobile', $campi['immobile'], $formEntity, $errors, $immobili, ['richiesto' => $quadro->isTavolare(), 'vuota' => $selezionare, 'colonna' => 'col-12', 'aiuto' => $aiutoImmobile]) ?>
+                <?php if (in_array($quadro, [QuadroBene::terreni, QuadroBene::fabbricati], true)): ?>
+                    <?= Campo::spunta('beneEstero', $campi['immobileEstero'], $formEntity, $errors, ['colonna' => 'col-12', 'aiuto' => $aiutoEstero]) ?>
+                    <?= Campo::autocompleta('statoEstero', $campi['statoEstero'], $formEntity, $errors, '/tabelle/nazioni', $formEntity->statoEstero?->denominazione, ['colonna' => 'col-md-4']) ?>
+                    <?= Campo::testo('codiceStatoEstero', $campi['codiceStatoEstero'], $formEntity, $errors, ['colonna' => 'col-md-2', 'attributi' => 'maxlength="3" inputmode="numeric"']) ?>
+                    <?= Campo::testo('localitaEstero', $campi['localitaEstero'], $formEntity, $errors, ['colonna' => 'col-md-6', 'attributi' => 'maxlength="50"']) ?>
+                    <?= Campo::testo('indirizzoEstero', $campi['indirizzoEstero'], $formEntity, $errors, ['colonna' => 'col-12', 'attributi' => 'maxlength="80"']) ?>
+                <?php endif; ?>
             <?php elseif ($quadro === QuadroBene::aziende): ?>
                 <?= Campo::testo('descrizione', $campi['denominazioneAzienda'], $formEntity, $errors, ['richiesto' => true, 'colonna' => 'col-md-8', 'attributi' => 'maxlength="150"']) ?>
                 <?= Campo::testo('codiceFiscaleEmittente', $campi['codiceFiscaleAzienda'], $formEntity, $errors, ['colonna' => 'col-md-4', 'attributi' => 'maxlength="16"']) ?>

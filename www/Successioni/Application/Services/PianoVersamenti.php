@@ -155,7 +155,10 @@ class PianoVersamenti
         $versamenti = [];
         $rate = $this->getRate($dichiarazione, $risultato);
         $primaData = $rate[0]['scadenza'] ?? $dichiarazione->dataVersamento ?? $dichiarazione->getScadenzaPagamento();
-        if ($risultato->sanzionePresentazione > 0) {
+        if ($risultato->sanzionePresentazioneFissa && ($risultato->sanzionePresentazione > 0)) {
+            $obbligato = $dichiarazione->presentatore ?? reset($beneficiari)->soggetto;
+            $versamenti[$obbligato->id][] = $this->crea($dichiarazione, $primaData, $codici[self::CODICE_SANZIONE_PRESENTAZIONE], null, (int) round($risultato->sanzionePresentazione * 100), 'Sanzione tardiva presentazione successione ' . $cognome);
+        } elseif ($risultato->sanzionePresentazione > 0) {
             foreach (self::ripartisci((int) round($risultato->sanzionePresentazione * 100), $risultato) as $id => $centesimi) {
                 $versamenti[$beneficiari[$id]->soggetto->id][] = $this->crea($dichiarazione, $primaData, $codici[self::CODICE_SANZIONE_PRESENTAZIONE], null, $centesimi, 'Sanzione tardiva presentazione successione ' . $cognome);
             }
@@ -232,6 +235,9 @@ class PianoVersamenti
         $soggetti = [];
         foreach ($dati->beneficiari as $beneficiario) {
             $soggetti[$beneficiario->soggetto->id] = $beneficiario->soggetto;
+        }
+        if ($dichiarazione->presentatore !== null) {
+            $soggetti[$dichiarazione->presentatore->id] ??= $dichiarazione->presentatore;
         }
         foreach ($this->getSoggettiRegistrati($dichiarazione) as $soggetto) {
             $soggetti[$soggetto->id] ??= $soggetto;

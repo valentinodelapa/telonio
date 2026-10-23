@@ -23,6 +23,14 @@ class RisultatoLiquidazione
     public int $agevolazioneGImposta = 0;
     public int $agevolazioneMValore = 0;
     public int $agevolazioneMImposta = 0;
+
+    /** EF3bis/EF10bis: valore degli immobili conferiti in trust e imposte fisse */
+    public int $trustValore = 0;
+    public int $trustIpotecaria = 0;
+    public int $trustCatastale = 0;
+
+    /** Trust senza pagamento anticipato: l'imposta di successione è dovuta all'attribuzione ai beneficiari finali */
+    public bool $trustDifferito = false;
     public int $primaCasaNumero = 0;
     public int $primaCasaValore = 0;
     public int $primaCasaImposta = 0;
@@ -69,6 +77,9 @@ class RisultatoLiquidazione
 
     /** Sanzione per la tardiva presentazione da versare con F24 (codice 1549) */
     public float $sanzionePresentazione = 0.0;
+
+    /** Sanzione in misura fissa (nessuna imposta di successione dovuta), a carico di chi presenta */
+    public bool $sanzionePresentazioneFissa = false;
 
     /** @var array<int, QuotaImposta> passaggi di calcolo per id del beneficiario */
     public array $quote = [];

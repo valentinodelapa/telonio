@@ -2,6 +2,7 @@
 
 namespace Successioni\Application\Services;
 
+use Successioni\Application\Entities\BeneficiarioSuccessione;
 use Successioni\Application\Entities\BeneSuccessione;
 use Successioni\Application\Entities\DevoluzioneSuccessione;
 use Successioni\Application\Enumerations\Agevolazione;
@@ -43,7 +44,8 @@ class Liquidazione
     public const TRIBUTI_SPECIALI_COPIA_CONFORME = 16.0;
     public const PRESUNZIONE_DENARO = 0.10;
     public const SOGLIA_IMPOSTA_MINIMA = 10;
-    public const COMUNI_TAVOLARI_SENZA_CATASTALE = ['G831', 'E800', 'L468', 'G406'];
+    public const INIZIO_TRUST_DISABILI = '2017-01-01';
+    public const COMUNI_TAVOLARI_SENZA_CATASTALE = ['G831A', 'E800', 'L468', 'G406'];
 
     public function liquida(DatiDichiarazione $dati): RisultatoLiquidazione
     {
@@ -120,10 +122,16 @@ class Liquidazione
         foreach ([QuadroBene::terreni, QuadroBene::fabbricati, QuadroBene::terreniTavolare, QuadroBene::fabbricatiTavolare] as $quadro) {
             foreach ($dati->getBeniQuadro($quadro) as $bene) {
                 $devoluzioni = array_filter($dati->getDevoluzioni($bene), fn(DevoluzioneSuccessione $devoluzione) => self::isImponibileIpocatastale($devoluzione));
-                if ((count($devoluzioni) === 0) || ($bene->codiceDiritto === CodiceDiritto::oneriReali)) {
+                if ((count($devoluzioni) === 0) || ($bene->codiceDiritto === CodiceDiritto::oneriReali) || $bene->isImmobileEstero()) {
                     continue;
                 }
                 $presenti = true;
+                if (count(array_filter($devoluzioni, fn(DevoluzioneSuccessione $devoluzione) => $devoluzione->beneficiarioSuccessione->isTrust())) > 0) {
+                    // EF3bis/EF10bis: con la sola dotazione del trust le imposte sono fisse
+                    $soloTerreniNonEdificabili = false;
+                    $risultato->trustValore += (int) round(array_sum(array_map(fn(DevoluzioneSuccessione $devoluzione) => (float) $devoluzione->valoreQuota, $devoluzioni)));
+                    continue;
+                }
                 $agevolazioni = array_map(fn(DevoluzioneSuccessione $devoluzione) => $devoluzione->agevolazione, $devoluzioni);
                 $primaCasa = self::isPrimaCasa($bene, $agevolazioni);
                 $agevolato = count(array_filter($agevolazioni, fn(?Agevolazione $agevolazione) => $agevolazione !== null)) > 0;
@@ -178,21 +186,25 @@ class Liquidazione
         $risultato->primaCasaNumero = $principali > 0 ? $principali : min(1, $contigui);
         $risultato->primaCasaValore = (int) round($valorePrimaCasa);
         $risultato->primaCasaImposta = $risultato->primaCasaNumero * self::IMPOSTA_FISSA;
-        $risultato->ipotecariaDovuta = $risultato->ipotecariaProporzionale + $risultato->agevolazioneGImposta + $risultato->agevolazioneMImposta + $risultato->primaCasaImposta;
+        $risultato->trustIpotecaria = $risultato->trustCatastale = $risultato->trustValore > 0 ? self::IMPOSTA_FISSA : 0;
+        $risultato->ipotecariaDovuta = $risultato->ipotecariaProporzionale + $risultato->agevolazioneGImposta + $risultato->agevolazioneMImposta + $risultato->trustIpotecaria + $risultato->primaCasaImposta;
         if (($proporzionale > 0) && ($soloTerreniNonEdificabili === false)) {
             $risultato->ipotecariaDovuta = max(self::MINIMO_PROPORZIONALE, $risultato->ipotecariaDovuta);
         }
         $risultato->catastaleFissa = $risultato->primaCasaImposta;
-        $risultato->catastaleDovuta = $risultato->catastaleProporzionale + $risultato->catastaleFissa;
+        $risultato->catastaleDovuta = $risultato->catastaleProporzionale + $risultato->catastaleFissa + $risultato->trustCatastale;
         if (($proporzionale > 0) && ($soloTerreniNonEdificabili === false)) {
             $risultato->catastaleDovuta = max(self::MINIMO_PROPORZIONALE, $risultato->catastaleDovuta);
         }
         $dichiarazione = $dati->dichiarazione;
         $risultato->ipotecariaVersata = (int) $dichiarazione->ipotecariaVersata;
-        $risultato->ipotecariaCredito = (int) $dichiarazione->creditoIpotecaria;
-        $risultato->ipotecariaDaVersare = max(0, $risultato->ipotecariaDovuta - $risultato->ipotecariaVersata - $risultato->ipotecariaCredito);
         $risultato->catastaleVersata = (int) $dichiarazione->catastaleVersata;
-        $risultato->catastaleCredito = (int) $dichiarazione->creditoCatastale;
+        // credito del quadro EH, sezione III: prima sull'ipotecaria, il resto sulla catastale
+        $credito = (int) $dichiarazione->creditoImporto;
+        $risultato->ipotecariaCredito = (int) ($dichiarazione->creditoIpotecaria ?? min($credito, max(0, $risultato->ipotecariaDovuta - $risultato->ipotecariaVersata)));
+        $risultato->ipotecariaDaVersare = max(0, $risultato->ipotecariaDovuta - $risultato->ipotecariaVersata - $risultato->ipotecariaCredito);
+        $residuo = $risultato->ipotecariaDaVersare === 0 ? max(0, $credito - $risultato->ipotecariaCredito) : 0;
+        $risultato->catastaleCredito = (int) ($dichiarazione->creditoCatastale ?? min($residuo, max(0, $risultato->catastaleDovuta - $risultato->catastaleVersata)));
         $risultato->catastaleDaVersare = max(0, $risultato->catastaleDovuta - $risultato->catastaleVersata - $risultato->catastaleCredito);
     }
 
@@ -216,7 +228,8 @@ class Liquidazione
     /**
      * I terreni del catasto tavolare di Trento e Bolzano (e dei comuni con
      * il libro fondiario indicati nelle specifiche) non scontano l'imposta
-     * catastale proporzionale.
+     * catastale proporzionale. "G831A" è la sezione censuaria A del comune
+     * G831 (Pontebba).
      */
     private static function isSoggettoCatastale(BeneSuccessione $bene): bool
     {
@@ -224,7 +237,19 @@ class Liquidazione
             return true;
         }
         $comune = $bene->immobile?->comune;
-        return (in_array($comune?->siglaProvincia, ['TN', 'BZ'], true) === false) && (in_array($comune?->codiceCatastale, self::COMUNI_TAVOLARI_SENZA_CATASTALE, true) === false);
+        $codice = $comune?->codiceCatastale;
+        return (in_array($comune?->siglaProvincia, ['TN', 'BZ'], true) === false) && (in_array($codice, self::COMUNI_TAVOLARI_SENZA_CATASTALE, true) === false)
+                && (in_array($codice . mb_strtoupper($bene->immobile?->sezione ?? ''), self::COMUNI_TAVOLARI_SENZA_CATASTALE, true) === false);
+    }
+
+    /**
+     * Trust i cui righi del quadro EA sono tutti a favore di persone con
+     * disabilità grave.
+     */
+    public static function isTrustDisabili(DatiDichiarazione $dati): bool
+    {
+        $righi = array_filter($dati->beneficiari, fn(BeneficiarioSuccessione $beneficiario) => $beneficiario->isTrust());
+        return (count($righi) > 0) && (count(array_filter($righi, fn(BeneficiarioSuccessione $beneficiario) => $beneficiario->disabile === false)) === 0);
     }
 
     private static function isImponibileIpocatastale(DevoluzioneSuccessione $devoluzione): bool
@@ -264,7 +289,13 @@ class Liquidazione
         $indicate = $dati->dichiarazione->numeroCircoscrizioni;
         $risultato->circoscrizioniTassa = count($tassa) > 0 ? ($indicate ?? count($tassa)) : 0;
         $risultato->circoscrizioniBollo = count($bollo) === 0 ? 0 : ($indicate === null ? count($bollo) : min($indicate, count($bollo)));
-        $risultato->tassaIpotecaria = $risultato->circoscrizioniTassa * ($dati->dichiarazione->senzaVolture ? self::TASSA_IPOTECARIA_SENZA_VOLTURE : self::TASSA_IPOTECARIA);
+        $senzaVolture = $dati->dichiarazione->senzaVolture || ($dati->dichiarazione->codiceCarica?->isSenzaVoltureAutomatiche() ?? false);
+        $risultato->tassaIpotecaria = $risultato->circoscrizioniTassa * ($senzaVolture ? self::TASSA_IPOTECARIA_SENZA_VOLTURE : self::TASSA_IPOTECARIA);
+        if (self::isTrustDisabili($dati) && ($dati->dichiarazione->getDataApertura()->format('Y-m-d') >= self::INIZIO_TRUST_DISABILI)) {
+            // trust a favore di persone con disabilità grave (art. 6 L. 112/2016): niente bollo
+            $risultato->circoscrizioniBollo = 0;
+            $risultato->bollo = 0;
+        }
         $risultato->bollo = $risultato->circoscrizioniBollo * self::BOLLO_CIRCOSCRIZIONE;
         if (($indicate === null) && (count($tassa) > 1)) {
             $risultato->avviso('Circoscrizioni immobiliari contate per comune (' . count($tassa) . '): se più comuni appartengono alla stessa conservatoria indicare il numero nel frontespizio.');
@@ -276,6 +307,14 @@ class Liquidazione
      */
     private function liquidaSuccessione(DatiDichiarazione $dati, RisultatoLiquidazione $risultato): void
     {
+        $dichiarazione = $dati->dichiarazione;
+        $trust = count(array_filter($dati->beneficiari, fn(BeneficiarioSuccessione $beneficiario) => $beneficiario->isTrust())) > 0;
+        if ($trust && (($dichiarazione->pagamentoAnticipatoTrust === false) || (self::isTrustDisabili($dati) && ($dichiarazione->getDataApertura()->format('Y-m-d') >= self::INIZIO_TRUST_DISABILI)))) {
+            // trust: imposta all'attribuzione ai beneficiari finali, o esente se tutti con disabilità grave
+            $risultato->trustDifferito = $dichiarazione->pagamentoAnticipatoTrust === false;
+            $risultato->avviso($risultato->trustDifferito ? 'Trust senza pagamento anticipato: l\'imposta di successione è dovuta all\'attribuzione dei beni ai beneficiari finali.' : 'Trust a favore di persone con disabilità grave: imposta di successione non dovuta (art. 6 L. 112/2016).');
+            return;
+        }
         $beniInventariati = false;
         foreach ($dati->getBeniQuadro(QuadroBene::altriBeni) as $bene) {
             $beniInventariati = $beniInventariati || ($bene->tipoCespite === TipoCespite::beniInventariati);
@@ -297,7 +336,8 @@ class Liquidazione
                 $devolutePerBeneficiario[$devoluzione->beneficiarioSuccessione->id][] = $devoluzione;
                 if ($bene->tipoCespite === TipoCespite::denaroGioielliMobilia) {
                     $quota->quotaDenaro += (float) $devoluzione->valoreQuota;
-                } elseif (($devoluzione->agevolazione === null) || ($devoluzione->agevolazione->isEsenteSuccessione() === false)) {
+                } elseif ($trust || ($devoluzione->agevolazione === null) || ($devoluzione->agevolazione->isEsenteSuccessione() === false)) {
+                    // con il pagamento anticipato del trustee non si applicano esenzioni e riduzioni
                     $quota->quotaEreditaria += (float) $devoluzione->valoreQuota;
                 }
             }
@@ -318,7 +358,8 @@ class Liquidazione
             if (($quota->aliquota === 0.0) || ($quota->attivoNetto === 0.0)) {
                 continue;
             }
-            $chiaveSoggetto = $beneficiario->soggetto->id;
+            // franchigia per beneficiario: nel trust quello finale (o il rigo, se non individuato)
+            $chiaveSoggetto = $beneficiario->isTrust() ? ($beneficiario->beneficiarioFinale !== null ? 's' . $beneficiario->beneficiarioFinale->id : 'r' . $beneficiario->id) : 's' . $beneficiario->soggetto->id;
             $franchigiaResidua = $beneficiario->gradoParentela->getFranchigia($beneficiario->disabile) - ($franchigieUsate[$chiaveSoggetto] ?? 0.0);
             $quota->franchigia = min(max(0.0, $franchigiaResidua), $quota->attivoNetto);
             $franchigieUsate[$chiaveSoggetto] = ($franchigieUsate[$chiaveSoggetto] ?? 0.0) + $quota->franchigia;
@@ -328,14 +369,13 @@ class Liquidazione
             }
             $quota->imponibile = $quota->quotaNetta + $quota->presunzione;
             $quota->impostaLorda = $quota->imponibile * $quota->aliquota / 100;
-            if ($quota->quotaEreditaria > 0) {
+            if (($quota->quotaEreditaria > 0) && ($trust === false)) {
                 $this->riduci($quota, $devolutePerBeneficiario[$id] ?? []);
             }
             $quota->impostaNetta = max(0.0, round($quota->impostaLorda - $quota->riduzioni - $quota->detrazioneEstero, 2));
             $totale += $quota->impostaNetta;
         }
         $risultato->quote = $quote;
-        $dichiarazione = $dati->dichiarazione;
         $risultato->successioneImposta = (int) round($totale);
         $risultato->successioneVersata = (int) $dichiarazione->successioneVersata;
         $risultato->successioneCredito = (int) $dichiarazione->creditoSuccessione;

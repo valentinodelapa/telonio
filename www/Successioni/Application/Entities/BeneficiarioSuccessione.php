@@ -42,6 +42,8 @@ class BeneficiarioSuccessione extends ReferencedEntity
     protected ?SismaDate $rinunciaData = null;
     protected ?Soggetto $rappresentato = null;
     protected ?GradoParentela $gradoParentelaRappresentato = null;
+    protected ?string $codiceFiscaleTrust = null;
+    protected ?Soggetto $beneficiarioFinale = null;
 
     #[\Override]
     protected function setEncryptedProperties(): void
@@ -53,6 +55,11 @@ class BeneficiarioSuccessione extends ReferencedEntity
     protected function setPropertyDefaultValue(): void
     {
 
+    }
+
+    public function isTrust(): bool
+    {
+        return $this->tipoBeneficiario === TipoBeneficiario::trust;
     }
 
     public function getModulo(): int

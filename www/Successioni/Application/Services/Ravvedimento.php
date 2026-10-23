@@ -24,7 +24,12 @@ use Successioni\Application\Enumerations\TempisticaPagamento;
  *   minima entro 30 giorni (4,5%), 1/9 entro 90 (13,33%), 1/8 entro un
  *   anno (15%), 1/7 oltre (17,14%). Con il pagamento contestuale va nella
  *   sezione VI con l'imposta di successione; altrimenti si versa con F24
- *   (codice 1549, risoluzione n. 2/E del 2025).
+ *   (codice 1549, risoluzione n. 2/E del 2025);
+ * - tardiva presentazione senza imposta di successione dovuta (art. 50 TUS:
+ *   da 150 a 500 euro entro 30 giorni, da 250 a 1.000 euro oltre), con le
+ *   stesse riduzioni sul minimo: 15 euro entro 30 giorni, 27,78 entro 90,
+ *   31,25 entro un anno, 35,71 oltre; si versa con F24 (codice 1549) da chi
+ *   presenta la dichiarazione.
  *
  * Le misure della tardiva presentazione seguono la prassi applicativa
  * (software di compilazione): da verificare con le istruzioni a ogni
@@ -34,6 +39,8 @@ class Ravvedimento
 {
 
     public const INIZIO_REGIME = '2024-09-01';
+    public const SANZIONE_MINIMA_TARDIVA = 150.0;
+    public const SANZIONE_MINIMA_OMESSA = 250.0;
 
     public function __construct(private DataMapper $dataMapper = new DataMapper())
     {
@@ -75,7 +82,10 @@ class Ravvedimento
                 $risultato->interessi[$voce] = $calcolo->calcolaInteressi($importo, $termine, $presentazione)[0];
             }
         }
-        if ($risultato->autoliquidazione && ($risultato->successioneImposta > 0)) {
+        if ($risultato->autoliquidazione && ($risultato->successioneImposta <= 0)) {
+            $risultato->sanzionePresentazione = self::getSanzioneFissa($giorni);
+            $risultato->sanzionePresentazioneFissa = true;
+        } elseif ($risultato->autoliquidazione) {
             $risultato->sanzionePresentazione = round($risultato->successioneImposta * self::getPercentualePresentazione($giorni) / 100, 2);
             $contestuale = (new Liquidazione())->getSuccessioneConDichiarazione($dati, $risultato);
             $scadenzaPagamento = $dichiarazione->getScadenzaPagamento();
@@ -93,7 +103,7 @@ class Ravvedimento
             }
         }
         $risultato->avviso(sprintf('Dichiarazione presentata con %d giorni di ritardo: sanzioni ridotte e interessi del ravvedimento nel quadro EF, sezione VI%s.', $giorni,
-                        $risultato->sanzionePresentazione > 0 ? '; sanzione per la tardiva presentazione con F24 dei beneficiari (codice 1549)' : ''));
+                        $risultato->sanzionePresentazione > 0 ? ($risultato->sanzionePresentazioneFissa ? '; sanzione per la tardiva presentazione in misura fissa con F24 di chi presenta la dichiarazione (codice 1549)' : '; sanzione per la tardiva presentazione con F24 dei beneficiari (codice 1549)') : ''));
     }
 
     /**
@@ -120,6 +130,20 @@ class Ravvedimento
             $giorni <= 90 => round(120 / 9, 2),
             $giorni <= 365 => 15.0,
             default => round(120 / 7, 2),
+        };
+    }
+
+    /**
+     * Sanzione ridotta in misura fissa per la tardiva presentazione senza
+     * imposta di successione dovuta.
+     */
+    public static function getSanzioneFissa(int $giorni): float
+    {
+        return match (true) {
+            $giorni <= 30 => round(self::SANZIONE_MINIMA_TARDIVA / 10, 2),
+            $giorni <= 90 => round(self::SANZIONE_MINIMA_OMESSA / 9, 2),
+            $giorni <= 365 => round(self::SANZIONE_MINIMA_OMESSA / 8, 2),
+            default => round(self::SANZIONE_MINIMA_OMESSA / 7, 2),
         };
     }
 

@@ -43,6 +43,16 @@ enum CaricaDichiarante: string
     }
 
     /**
+     * Eredità giacente o amministrata e trust: le volture catastali non sono
+     * automatiche (casella "casi particolari" barrata, tassa ipotecaria di
+     * 65 euro per circoscrizione) e i possessi non si aggiornano.
+     */
+    public function isSenzaVoltureAutomatiche(): bool
+    {
+        return in_array($this, [self::curatoreEreditaGiacente, self::amministratoreEredita, self::trustee], true);
+    }
+
+    /**
      * Va indicato il codice fiscale del soggetto rappresentato.
      */
     public function richiedeRappresentato(): bool
@@ -51,13 +61,12 @@ enum CaricaDichiarante: string
     }
 
     /**
-     * Cariche gestite dalla procedura: trust, eredità giacente e assenza
-     * hanno quadri e controlli propri, non ancora gestiti.
+     * Cariche gestite dalla procedura (tutte quelle del modello).
      *
      * @return self[]
      */
     public static function getGestite(): array
     {
-        return [self::erede, self::legatario, self::rappresentanteLegatario, self::rappresentanteErede, self::amministratoreEredita, self::esecutoreTestamentario];
+        return self::cases();
     }
 }

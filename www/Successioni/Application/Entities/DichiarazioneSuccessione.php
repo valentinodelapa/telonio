@@ -17,6 +17,7 @@ use Successioni\Application\Enumerations\StatoCivileDefunto;
 use Successioni\Application\Enumerations\StatoDichiarazioneSuccessione;
 use Successioni\Application\Enumerations\TempisticaPagamento;
 use Successioni\Application\Enumerations\TipoDichiarazioneSuccessione;
+use Successioni\Application\Enumerations\TipoImpostaCredito;
 
 /**
  * Dichiarazione di successione e domanda di volture catastali del defunto
@@ -86,6 +87,7 @@ class DichiarazioneSuccessione extends ReferencedEntity
     protected ?ContoCorrente $contoAddebito = null;
     protected ?TempisticaPagamento $tempisticaPagamento = null;
     protected ?int $numeroRate = null;
+    protected bool $pagamentoAnticipatoTrust = false;
     protected ?int $acconto = null;
     protected ?SismaDate $dataVersamento = null;
     protected ?int $ipotecariaVersata = null;
@@ -94,6 +96,18 @@ class DichiarazioneSuccessione extends ReferencedEntity
     protected ?int $creditoIpotecaria = null;
     protected ?int $creditoCatastale = null;
     protected ?int $creditoSuccessione = null;
+    protected ?TipoImpostaCredito $creditoTipo = null;
+    protected ?int $creditoImporto = null;
+    protected ?UfficioRegistrazione $creditoAcquistoUfficio = null;
+    protected ?string $creditoAcquistoSerie = null;
+    protected ?string $creditoAcquistoNumero = null;
+    protected ?string $creditoAcquistoSottonumero = null;
+    protected ?SismaDate $creditoAcquistoData = null;
+    protected ?UfficioRegistrazione $creditoVenditaUfficio = null;
+    protected ?string $creditoVenditaSerie = null;
+    protected ?string $creditoVenditaNumero = null;
+    protected ?string $creditoVenditaSottonumero = null;
+    protected ?SismaDate $creditoVenditaData = null;
     protected ?int $numeroCircoscrizioni = null;
     protected ?string $primaCasaOpzione = null;
     protected bool $primaCasaTrasferimentoPrima = false;

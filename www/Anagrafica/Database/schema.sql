@@ -220,6 +220,19 @@ CREATE TABLE IF NOT EXISTS `immobile` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Archivio immobili dello studio (unità del catasto fabbricati e particelle dei terreni)';
 
+CREATE TABLE IF NOT EXISTS `identificativo_graffato` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `immobile_id` INT UNSIGNED NOT NULL,
+  `sezione` VARCHAR(5) NULL,
+  `foglio` VARCHAR(10) NOT NULL,
+  `particella` VARCHAR(10) NOT NULL,
+  `subalterno` VARCHAR(10) NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_identificativo_graffato_immobile` (`immobile_id`),
+  CONSTRAINT `fk_identificativo_graffato_immobile` FOREIGN KEY (`immobile_id`) REFERENCES `immobile` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Ulteriori identificativi catastali delle unità graffate';
+
 CREATE TABLE IF NOT EXISTS `dati_catastali` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `immobile_id` INT UNSIGNED NOT NULL,

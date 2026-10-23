@@ -41,6 +41,14 @@ require Layout::percorso('header');
             <?= Campo::selezioneEnum('gradoParentelaRappresentato', $campi['gradoParentelaRappresentato'], $formEntity, $errors, $gradiRappresentato, ['vuota' => $nessuno, 'colonna' => 'col-md-6']) ?>
         </div>
     </div>
+    <div class="card shadow-sm mb-3">
+        <div class="card-header bg-white fw-semibold"><?= Html::e($sezioneTrust) ?></div>
+        <div class="card-body row g-3">
+            <div class="col-12 small text-body-secondary"><?= Html::e($aiutoTrust) ?></div>
+            <?= Campo::testo('codiceFiscaleTrust', $campi['codiceFiscaleTrust'], $formEntity, $errors, ['colonna' => 'col-md-4', 'attributi' => 'maxlength="11"']) ?>
+            <?= Campo::autocompleta('beneficiarioFinale', $campi['beneficiarioFinale'], $formEntity, $errors, '/soggetto/cerca', $etichettaSoggetto($formEntity->beneficiarioFinale ?? null), ['colonna' => 'col-md-8']) ?>
+        </div>
+    </div>
     <?php require __DIR__ . '/../commonParts/pulsantiForm.php'; ?>
 </form>
 <?php require Layout::percorso('footer'); ?>

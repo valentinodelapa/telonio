@@ -149,7 +149,14 @@
             },
             "show": {
                 "sezionePossessori": "Possessori",
+                "sezioneGraffati": "Identificativi graffati",
+                "nessunGraffato": "Nessuna particella o subalterno graffato all'unità.",
                 "confermaEliminaImmobile": "Eliminare l'immobile con i suoi dati catastali e i possessi?"
+            }
+        },
+        "identificativoGraffato": {
+            "form": {
+                "aiutoGraffato": "Particella o subalterno accatastato insieme all'unità (un solo classamento): l'immobile resta identificato dal primo identificativo."
             }
         },
         "possesso": {

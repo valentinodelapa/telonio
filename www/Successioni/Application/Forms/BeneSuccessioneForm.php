@@ -5,6 +5,7 @@ namespace Successioni\Application\Forms;
 use CommSuite\Application\HelperClasses\CodiceFiscale;
 use SismaFramework\Core\BaseClasses\BaseForm;
 use SismaFramework\Core\Enumerations\FilterType;
+use SismaFramework\Orm\ExtendedClasses\StandardEntity;
 use Successioni\Application\Entities\BeneSuccessione;
 use Successioni\Application\Enumerations\QuadroBene;
 
@@ -33,7 +34,7 @@ class BeneSuccessioneForm extends BaseForm
         if (isset($this->request->input['quotaNumeratore']) && is_string($this->request->input['quotaNumeratore'])) {
             $this->addRequest('quotaNumeratore', str_replace(',', '.', trim($this->request->input['quotaNumeratore'])));
         }
-        foreach (['codiceFiscaleEmittente', 'codiceTitolo', 'natura', 'ufficioIscrizione', 'numeroIscrizione'] as $campo) {
+        foreach (['codiceFiscaleEmittente', 'codiceTitolo', 'natura', 'ufficioIscrizione', 'numeroIscrizione', 'codiceStatoEstero', 'localitaEstero', 'indirizzoEstero'] as $campo) {
             if (isset($this->request->input[$campo]) && is_string($this->request->input[$campo])) {
                 $this->addRequest($campo, strtoupper(trim($this->request->input[$campo])));
             }
@@ -52,14 +53,19 @@ class BeneSuccessioneForm extends BaseForm
                 ->addFilterFieldMode('impostaEstero', FilterType::isInteger, [], true)
                 ->addFilterFieldMode('beneEstero', FilterType::isBoolean);
         if ($quadro->isImmobile()) {
-            $this->addFilterFieldMode('immobile', FilterType::isEntity)
+            // terreni e fabbricati all'estero non hanno l'immobile dell'Anagrafica (controllo in customFilter)
+            $this->addFilterFieldMode('immobile', FilterType::isEntity, [], $quadro->isTavolare() === false)
                     ->addFilterFieldMode('azienda', FilterType::isEntity, [], true);
         } elseif (in_array($quadro, [QuadroBene::aeromobili, QuadroBene::navi], true) === false) {
             $this->addFilterFieldMode('descrizione', FilterType::isMaxLimitString, [$quadro === QuadroBene::aziende ? 150 : 250]);
         }
         if (in_array($quadro, [QuadroBene::terreni, QuadroBene::fabbricati], true)) {
             $this->addFilterFieldMode('discordanzaIntestatario', FilterType::isBoolean)
-                    ->addFilterFieldMode('passaggiSenzaAtti', FilterType::isBoolean);
+                    ->addFilterFieldMode('passaggiSenzaAtti', FilterType::isBoolean)
+                    ->addFilterFieldMode('statoEstero', FilterType::isEntity, [], true)
+                    ->addFilterFieldMode('codiceStatoEstero', FilterType::isMaxLimitString, [3], true)
+                    ->addFilterFieldMode('localitaEstero', FilterType::isMaxLimitString, [50], true)
+                    ->addFilterFieldMode('indirizzoEstero', FilterType::isMaxLimitString, [80], true);
         }
         match ($quadro) {
             QuadroBene::terreni, QuadroBene::terreniTavolare => $this->addFilterFieldMode('tipologiaTerreno', FilterType::isEnumeration)
@@ -136,8 +142,49 @@ class BeneSuccessioneForm extends BaseForm
             $this->formFilterError->codiceFiscaleEmittenteCustomMessage = 'Codice fiscale dell\'emittente non valido.';
             $valido = false;
         }
+        if (in_array($quadro, [QuadroBene::terreni, QuadroBene::fabbricati], true) && ($this->verificaEstero($dati) === false)) {
+            $valido = false;
+        }
         if (($dati->impostaEstero !== null) && ($dati->beneEstero === false) && ($quadro->isImmobile() === false)) {
             $this->formFilterError->impostaEsteroCustomMessage = 'L\'imposta estera si indica per i beni situati all\'estero.';
+            $valido = false;
+        }
+        return $valido;
+    }
+
+    /**
+     * Terreni e fabbricati: immobile dell'Anagrafica oppure, se all'estero,
+     * Stato, codice dello Stato (elenco dei Paesi esteri delle istruzioni) e
+     * indirizzo.
+     */
+    private function verificaEstero(StandardEntity $dati): bool
+    {
+        $valido = true;
+        if ($dati->beneEstero === false) {
+            if ($dati->immobile === null) {
+                $this->formFilterError->immobileCustomMessage = 'Scegliere l\'immobile dell\'Anagrafica (o indicare che è all\'estero).';
+                $valido = false;
+            }
+            return $valido;
+        }
+        if ($dati->immobile !== null) {
+            $this->formFilterError->immobileCustomMessage = 'Per l\'immobile all\'estero non si collega l\'immobile dell\'Anagrafica.';
+            $valido = false;
+        }
+        if ($dati->statoEstero === null) {
+            $this->formFilterError->statoEsteroCustomMessage = 'Indicare lo Stato estero.';
+            $valido = false;
+        }
+        if (($dati->codiceStatoEstero === null) || (preg_match('/^\d{3}$/', $dati->codiceStatoEstero) !== 1)) {
+            $this->formFilterError->codiceStatoEsteroCustomMessage = 'Codice dello Stato estero di tre cifre (elenco dei Paesi esteri delle istruzioni).';
+            $valido = false;
+        }
+        if ($dati->indirizzoEstero === null) {
+            $this->formFilterError->indirizzoEsteroCustomMessage = 'Indicare l\'indirizzo dell\'immobile.';
+            $valido = false;
+        }
+        if ($dati->discordanzaIntestatario || $dati->passaggiSenzaAtti) {
+            $this->formFilterError->discordanzaIntestatarioCustomMessage = 'Non previsto per gli immobili all\'estero.';
             $valido = false;
         }
         return $valido;

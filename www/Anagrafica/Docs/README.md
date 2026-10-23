@@ -40,6 +40,7 @@ riferimento (punto 3). Ogni modulo registrato deve avere la cartella
 | `ContoCorrente` | IBAN (controllo modulo 97 e CIN per i conti italiani, `CommSuite\HelperClasses\Iban`), conto predefinito per gli addebiti, conto estinto mantenuto come non attivo | no |
 | `DocumentoIdentita` | documenti delle persone fisiche | no |
 | `Immobile` | archivio immobili dello studio: fabbricato o terreno, identificativo catastale, ubicazione, dati del catasto tavolare (partita e corpo tavolare, comune catastale, porzione materiale) | no |
+| `IdentificativoGraffato` | ulteriori identificativi catastali (sezione, foglio, particella, subalterno) delle unità graffate | no |
 | `DatiCatastali` | classamento: categoria, classe, consistenza, rendita (fabbricati); qualità, redditi dominicale e agrario (terreni) | sì |
 | `Possesso` | soggetto che possiede l'immobile: titolo, quota, utilizzo | sì |
 | `Comune`, `Nazione`, `CodiceAteco` | tabelle di riferimento comuni a tutti gli studi | versioni con validità |

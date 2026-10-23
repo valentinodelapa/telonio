@@ -36,13 +36,16 @@ La dichiarazione ha sei schede:
   prima casa del dichiarante, estremi per esenzioni e riduzioni).
 - **Eredi e legatari (EA)**: soggetti dell'Anagrafica con tipo, grado di
   parentela, disabilità grave, rinuncia con gli estremi di registrazione,
-  successione per rappresentazione. L'ordine determina rigo e modulo del
-  quadro (tre beneficiari per modulo).
+  successione per rappresentazione, parte riservata al trust (codice
+  fiscale del trust e beneficiario finale). L'ordine determina rigo e
+  modulo del quadro (tre beneficiari per modulo).
 - **Attivo e passivo**: beni dei quadri EB, EC (catasto ordinario), EL, EM
   (catasto tavolare), EN (aziende, con gli immobili aziendali collegati),
   EO (azioni, obbligazioni, titoli, quote), EP (aeromobili), EQ (navi e
   imbarcazioni) ed ER (crediti, conti e depositi, denaro, altri beni) con
-  la devoluzione ai beneficiari; per gli immobili con i dati
+  la devoluzione ai beneficiari; terreni e fabbricati all'estero (Stato,
+  codice dello Stato, località e indirizzo, senza l'archivio immobili);
+  per gli immobili con i dati
   dell'intestatario discordanti o passaggi senza atti legali, gli estremi
   degli atti di provenienza (quadro EI); passività del quadro ED con la
   ripartizione. "Proponi la devoluzione per legge" applica a tutti i beni le
@@ -71,11 +74,13 @@ CommSuite, Anagrafica e Deleghe. Script da eseguire come root dopo quelli
 di Deleghe:
 
 1. `Successioni/Database/schema.sql`
-2. `Successioni/Database/dati-riferimento.sql` (uffici di registrazione,
-   generato da `sisma specifiche-successioni --sql`)
+2. `Successioni/Database/dati-riferimento.sql` (uffici di registrazione e
+   di trascrizione, comuni catastali di Trento e Bolzano, generato da
+   `sisma specifiche-successioni --sql`)
 
-Il modulo aggiunge anche due colonne ad altri moduli, già negli schemi:
-`soggetto.data_decesso` (Anagrafica) e `versamento.codice_fiscale_coobbligato`
+Il modulo si appoggia anche a colonne e tabelle di altri moduli, già negli
+schemi: `soggetto.data_decesso`, i dati tavolari di `immobile` e la tabella
+`identificativo_graffato` (Anagrafica), `versamento.codice_fiscale_coobbligato`
 / `versamento.codice_identificativo` (Deleghe, vedi "Versamenti F24").
 
 Le fixture (`sisma fixtures`) creano la successione demo di Giuseppe
@@ -83,15 +88,19 @@ Esposito, deceduto a Napoli il 12 settembre 2025: metà dell'appartamento
 (con la prima casa per la moglie) e il terreno di Caserta dall'Anagrafica,
 il conto corrente, le azioni legate per testamento al nipote, le spese
 funerarie; eredi per legge la moglie e i due figli (entro la franchigia),
-legatario il nipote (6%, 3.000 euro di imposta) che versa a rate.
+legatario il nipote (6%, 3.000 euro di imposta) che versa a rate. Ci sono
+anche la ferramenta del defunto (quadro EN) passata ai figli con
+l'agevolazione D, con il negozio di Trento del catasto tavolare (EM) come
+bene aziendale, la barca a vela (EQ) e, per il terreno intestato in
+catasto al venditore, gli estremi della trascrizione dell'acquisto (EI).
 
 ## Modello dei dati
 
 | Entità | Contenuto |
 |---|---|
-| `DichiarazioneSuccessione` | defunto (`Soggetto`), tipo ed estremi della prima dichiarazione, devoluzione e testamento, stato civile e luogo del decesso, dichiarante e carica, rappresentato, intermediario e impegno, conto di addebito (`ContoCorrente`), tempistica e rateazione dell'imposta di successione, importi già versati e crediti (sostitutive), circoscrizioni, dati del quadro EH, stato e presentazione, volture applicate |
-| `BeneficiarioSuccessione` | rigo del quadro EA: soggetto, tipo, grado di parentela, disabilità e certificatore, rinuncia con estremi, rappresentato e suo grado |
-| `BeneSuccessione` | bene dell'attivo: quadro, immobile dell'Anagrafica (EB, EC, EL, EM) e azienda di cui è bene aziendale, diritto e quota del defunto, valore, valore esente (EO), valore nella successione precedente, natura e tipologia del terreno, diritto di abitazione del coniuge, discordanza e passaggi senza atti (EI), bene estero e imposta estera, descrizione e dati del titolo, del cespite, dell'azienda (inventario, deposito), dell'aeromobile o della nave |
+| `DichiarazioneSuccessione` | defunto (`Soggetto`), tipo ed estremi della prima dichiarazione, devoluzione e testamento, stato civile e luogo del decesso, dichiarante e carica, rappresentato, intermediario e impegno, conto di addebito (`ContoCorrente`), tempistica e rateazione dell'imposta di successione, pagamento anticipato del trust, importi già versati e crediti (sostitutive), credito d'imposta della sezione III del quadro EH con gli estremi di acquisto e vendita, circoscrizioni, dati del quadro EH, stato e presentazione, volture applicate |
+| `BeneficiarioSuccessione` | rigo del quadro EA: soggetto, tipo, grado di parentela, disabilità e certificatore, rinuncia con estremi, rappresentato e suo grado, codice fiscale del trust e beneficiario finale |
+| `BeneSuccessione` | bene dell'attivo: quadro, immobile dell'Anagrafica (EB, EC, EL, EM) e azienda di cui è bene aziendale, diritto e quota del defunto, valore, valore esente (EO), valore nella successione precedente, natura e tipologia del terreno, diritto di abitazione del coniuge, discordanza e passaggi senza atti (EI), bene estero e imposta estera, descrizione e dati del titolo, del cespite, dell'azienda (inventario, deposito), dell'aeromobile o della nave, Stato, codice, località e indirizzo dell'immobile all'estero |
 | `EstremoVoltura` | quadro EI: trascrizione (servizio di pubblicità immobiliare, registro particolare, anno) o registrazione (ufficio, anno, volume, numero) di provenienza dell'immobile |
 | `DevoluzioneSuccessione` | quota del bene al beneficiario: quota, diritto, valore della quota, agevolazione, riduzione art. 25 |
 | `PassivitaSuccessione`, `RipartizionePassivita` | quadro ED: tipo, documento, quota del defunto, valore, cespite collegato; quote sostenute dai beneficiari |
@@ -123,6 +132,19 @@ si ricava dal nome con la tabella delle specifiche, senza che l'Anagrafica
 dipenda da questo modulo. I terreni tavolari di Trento e Bolzano (e dei
 comuni indicati dalle specifiche) non scontano l'imposta catastale.
 
+Gli **immobili graffati** (più particelle o subalterni accatastati come
+un'unica unità) sono identificativi dell'immobile in Anagrafica
+(`IdentificativoGraffato`); nei quadri EC ed EM si riportano fino a quattro
+per rigo, gli altri nel rigo successivo con la casella di continuazione.
+
+Gli **immobili all'estero** (quadri EB ed EC, provincia "EE") non sono
+nell'archivio immobili, che riguarda il catasto italiano: il bene ha lo
+Stato dell'Anagrafica, il codice dello Stato dell'elenco dei Paesi esteri
+delle istruzioni (indicato a mano: l'Agenzia non pubblica la tabella in un
+formato importabile), località e indirizzo. Non scontano le imposte
+ipotecaria e catastale né la tassa ipotecaria e non ammettono le
+agevolazioni prima casa.
+
 ### Aziende e beni aziendali
 
 Gli immobili dell'azienda restano nei quadri degli immobili, collegati
@@ -148,9 +170,12 @@ tecniche (documentazione degli elementi dello schema):
   112,5);
 - **tassa ipotecaria** 120 euro (65 senza volture) e **imposta di bollo**
   85 euro per circoscrizione immobiliare, più 32 euro di bollo e 16 di
-  tributi speciali per la copia conforme. Le circoscrizioni si contano per
-  comune: se più comuni appartengono alla stessa conservatoria il numero si
-  indica nel pagamento;
+  tributi speciali per la copia conforme. Come dicono le istruzioni, la
+  conservatoria si individua dal codice catastale del comune: le
+  circoscrizioni si contano per comune e, se più comuni appartengono alla
+  stessa conservatoria, il numero si indica nel pagamento (l'Agenzia non
+  pubblica l'elenco dei comuni per conservatoria in un formato
+  importabile);
 - **imposta di successione** (sezione V-bis, successioni aperte dal 2025),
   per beneficiario secondo la guida dell'Agenzia allegata alle specifiche:
   quota ereditaria QE (esclusi i beni esenti A, C, D, E, G, H, N e il
@@ -165,6 +190,39 @@ tecniche (documentazione degli elementi dello schema):
 Le devoluzioni allo Stato e agli enti (gradi 36-39) non entrano nelle
 imposte ipotecaria e catastale. Nel quadro EE non contano gli immobili
 aziendali e i beni con l'agevolazione A.
+
+Il **credito d'imposta per il riacquisto della prima casa** (art. 7 L.
+448/1998, quadro EH sezione III: imposta di registro o IVA pagata
+sull'acquisto, con gli estremi di registrazione dell'acquisto e della
+vendita) riduce l'imposta ipotecaria e, per il resto, la catastale.
+
+### Eredità giacente, eredità amministrata e trust
+
+Per il curatore dell'eredità giacente (carica 5) nel quadro EA c'è solo la
+curatela (tipo soggetto 6), beneficiaria temporanea, che autoliquida le
+imposte; il grado di parentela (e quindi aliquota e franchigia) è quello
+indicato dal professionista. Per le cariche 5 e 6 il quadro EH non si
+compila (le dichiarazioni sostitutive vanno allegate) e le agevolazioni
+sono limitate ad A, C, D, E, M, N, L.
+
+Il trust testamentario (carica 9) ha nel quadro EA un rigo di tipo 5,
+intestato al trustee, per ogni beneficiario finale, con il suo grado di
+parentela con il defunto (35 se non è individuato); il trustee non può
+essere beneficiario e tutti i beni devono essere conferiti nel trust
+(altrimenti si usa il modello 4 cartaceo). Gli immobili conferiti scontano
+le imposte ipotecaria e catastale fisse (righi EF3bis ed EF10bis) e senza
+agevolazioni. L'imposta di successione è dovuta all'attribuzione ai
+beneficiari finali, salvo il **pagamento anticipato** scelto dal trustee:
+allora si autoliquida subito con aliquote e franchigie dei beneficiari
+finali, senza riduzioni ed esenzioni, e si versa con F24 del trustee. Il
+trust a favore di sole persone con disabilità grave (art. 6 L. 112/2016)
+è esente dall'imposta di successione e dal bollo.
+
+Per le cariche 5, 6 e 9 le volture catastali non sono automatiche: la
+casella "casi particolari" è barrata, la tassa ipotecaria è di 65 euro per
+circoscrizione e la scheda "Volture" non propone variazioni dei possessi.
+L'immesso nel possesso dei beni dell'assente (carica 8) presenta la
+dichiarazione ordinaria, con la decorrenza del termine dall'immissione.
 
 ### Presentazione tardiva
 
@@ -181,9 +239,14 @@ dichiarazione è presentata dopo il termine (violazioni dal 1° settembre
   successione 90 giorni dopo;
 - **tardiva presentazione** con imposta di successione dovuta (art. 50
   TUS: 45% entro 30 giorni, 120% oltre): 4,5% entro 30 giorni, 13,33%
-  entro 90, 15% entro un anno, 17,14% oltre. Con il pagamento contestuale
-  va nella sezione VI con l'imposta di successione; altrimenti con F24 dei
+  entro 90, 15% entro un anno, 17,14% oltre (1/10, 1/9, 1/8, 1/7 del
+  minimo, come nella prassi applicativa). Con il pagamento contestuale va
+  nella sezione VI con l'imposta di successione; altrimenti con F24 dei
   beneficiari (codice 1549);
+- **tardiva presentazione senza imposta dovuta** (art. 50 TUS: da 150 a
+  500 euro entro 30 giorni, da 250 a 1.000 oltre): 15 euro entro 30 giorni,
+  27,78 entro 90, 31,25 entro un anno, 35,71 oltre, con F24 (codice 1549)
+  di chi presenta la dichiarazione;
 - l'imposta di successione versata con F24 oltre i 90 giorni dal termine
   si ravvede con i codici 1535 (sanzione) e 1537 (interessi); presentando
   oltre quel termine l'imposta si paga con la dichiarazione (tempistica 2).
@@ -197,7 +260,8 @@ mano (avviso).
 
 `Services\ValoreCatastale` propone il valore catastale (art. 34, c. 5,
 TUS; art. 52, c. 4, TUR): rendita rivalutata del 5% per 120 (gruppi A e
-C/2, C/6, C/7; 110 con la prima casa), 140 (B, C/3, C/4, C/5), 60 (A/10, D),
+C/2, C/6, C/7; 110 con la prima casa), 140 (B, già rivalutato del 40% dal
+D.L. 262/2006, art. 2, c. 45; C/3, C/4, C/5), 60 (A/10, D),
 40,8 (C/1, E); terreni: reddito dominicale rivalutato del 25% per 90. Le
 aree edificabili vanno al valore venale. Il valore resta modificabile.
 
@@ -215,7 +279,7 @@ dell'intermediario). L'imposta di successione (rigo EF18ter):
   di pari importo (da 1.000 euro da rateizzare, fino a 8 rate, fino a 12
   oltre 20.000 euro) che scadono l'ultimo giorno di ciascun trimestre dal
   versamento dell'acconto, con gli interessi dal giorno successivo
-  all'acconto.
+  all'acconto al 3% annuo a scalare (art. 5, c. 3, D.M. 21 maggio 2009).
 
 `Services\PianoVersamenti` registra **un F24 per beneficiario** sulla sua
 quota d'imposta (gli eredi sono obbligati in solido, i legatari per la
@@ -240,8 +304,10 @@ Eliminando la dichiarazione si rimuovono i versamenti ancora sostituibili.
 secondo le specifiche tecniche dell'Agenzia delle Entrate (aggiornamento
 del 2 luglio 2025, schema `fornituraSUC13_v1.xsd`): messaggio con il codice
 fiscale del fornitore (intermediario o dichiarante), frontespizio, quadri
-EA, EB, EC, ED, EE, EF (con la sezione VI), EG (allegati in base64), EH
-(con aziende, navi e aeromobili), EI, EL, EM, EN, EO, EP, EQ, ER. Righi e moduli
+EA (con la parte riservata al trust), EB, EC (anche immobili graffati e
+all'estero), ED, EE, EF (con i righi del trust e la sezione VI), EG
+(allegati in base64), EH (con aziende, navi, aeromobili e il credito
+d'imposta), EI, EL, EM, EN, EO, EP, EQ, ER. Righi e moduli
 seguono il modello (tre beneficiari, due immobili, tre titoli, quattro
 rendite, tre passività per modulo; oltre tre beneficiari di un bene la
 devoluzione continua nel rigo successivo).
@@ -319,28 +385,27 @@ uffici di registrazione sono comuni e in sola lettura.
 - istruzioni del modello, fascicoli 1 e 2 (allegato 5 "Devoluzione" per le
   quote di legge);
 - risoluzione n. 2/E del 10 gennaio 2025 (codici tributo 1539, 1635, 1549);
+- circolare n. 3/E del 16 aprile 2025 (riforma dell'imposta di successione,
+  sanzioni dell'art. 50 TUS dopo il D.Lgs. 87/2024);
+- art. 13 D.Lgs. 472/1997 (ravvedimento), D.M. 21 maggio 2009, art. 5
+  (interessi sulle rate), D.L. 262/2006, art. 2, c. 45 (moltiplicatore del
+  gruppo B), art. 7 L. 448/1998 (credito d'imposta), art. 6 L. 112/2016
+  (trust per persone con disabilità grave);
 - artt. 565-586 c.c. (successione legittima).
 
 ## Da completare
 
-- immobili graffati e immobili all'estero (provincia "EE");
-- trust (codice di carica 9, tipo beneficiario 5), eredità giacente e
-  assenza (cariche 5 e 8);
-- misure della sanzione per tardiva presentazione (4,5%, 13,33%, 15%,
-  17,14% dell'imposta, dalla prassi applicativa) e sanzione in misura fissa
-  quando non è dovuta imposta: da verificare; ravvedimento delle
-  sostitutive presentate dopo il termine;
-- quadro EI per i comuni "G831A" (codice di cinque caratteri delle
-  specifiche): oggi l'esclusione dall'imposta catastale vale per tutto il
-  comune G831;
-- credito d'imposta della sezione III del quadro EH;
-- **tasso degli interessi delle rate**: 3% annuo (misura indicata dalla
-  prassi per la rateazione dell'imposta di successione), da verificare
-  sulla norma vigente (`PianoVersamenti::TASSO_INTERESSI`);
-- moltiplicatore del gruppo B nel valore catastale (140, oppure 196 con la
-  rivalutazione del 40% del D.L. 262/2006): da verificare;
-- tabella dei comuni per circoscrizione immobiliare (conservatoria), oggi
-  approssimata con i comuni distinti;
+- sanzione per la tardiva presentazione tra 31 e 90 giorni: la prassi
+  applicativa usa 1/9 del minimo (13,33%), la lettera c) dell'art. 13 D.Lgs.
+  472/1997 porterebbe a 1/10 (12%); il modulo applica la misura più alta,
+  da confermare;
+- ravvedimento delle sostitutive presentate dopo il termine (oggi avviso,
+  da calcolare a mano);
+- grado di parentela della curatela nell'eredità giacente: scelto dal
+  professionista (la norma non lo indica);
+- codice dello Stato estero degli immobili all'estero indicato a mano;
+- numero delle conservatorie quando più comuni ne condividono una
+  (indicato a mano nel pagamento);
 - verifica dei file con il software di controllo dell'Agenzia (la
   validazione sullo schema è superata; i controlli di merito del software
   non sono stati provati).

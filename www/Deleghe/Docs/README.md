@@ -225,7 +225,10 @@ versamento è quella della delega. Per un versamento dell'archivio con data
 superata, "Ravvedi" nella scheda del contribuente apre lo stesso calcolo
 nella delega in bozza della data scelta (creata se manca) con i dati del
 versamento, collegato al ravvedimento (`versamentoOmesso`): non risulta più
-da versare, e torna tale se il ravvedimento viene eliminato. `Services\CalcoloRavvedimento` applica
+da versare, e torna tale se il ravvedimento (o la sua delega) viene
+eliminato, pronto per un nuovo ravvedimento a un'altra data. Cambiando la
+data della delega, ravvedimenti e sanzioni civili si ricalcolano alla nuova
+data (se un calcolo non è possibile la data non cambia). `Services\CalcoloRavvedimento` applica
 (testi vigenti su Normattiva):
 
 - sanzione dell'art. 13, c. 1, D.Lgs. 471/1997: 30%, o 25% per le

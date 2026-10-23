@@ -3,6 +3,7 @@
 namespace Successioni\Application\Entities;
 
 use Anagrafica\Application\Entities\Immobile;
+use Anagrafica\Application\Entities\Nazione;
 use SismaFramework\Orm\CustomTypes\SismaDate;
 use SismaFramework\Orm\ExtendedClasses\ReferencedEntity;
 use Successioni\Application\Enumerations\CodiceDiritto;
@@ -69,6 +70,10 @@ class BeneSuccessione extends ReferencedEntity
     protected ?string $ufficioIscrizione = null;
     protected ?TipoUnita $tipoUnita = null;
     protected ?int $dimensione = null;
+    protected ?Nazione $statoEstero = null;
+    protected ?string $codiceStatoEstero = null;
+    protected ?string $localitaEstero = null;
+    protected ?string $indirizzoEstero = null;
 
     #[\Override]
     protected function setEncryptedProperties(): void
@@ -101,11 +106,24 @@ class BeneSuccessione extends ReferencedEntity
         if ($this->immobile !== null) {
             return $this->immobile->getIdentificativo() . ' - ' . $this->immobile->comune->denominazione;
         }
+        if ($this->isImmobileEstero()) {
+            return trim(($this->indirizzoEstero ?? '') . ' ' . ($this->localitaEstero ?? '')) . ' - ' . $this->statoEstero?->denominazione;
+        }
         return match ($this->quadro) {
             QuadroBene::aeromobili => trim($this->marcaModello . ' ' . $this->numeroIscrizione),
             QuadroBene::navi => trim(($this->descrizione ?? $this->tipoUnita?->getLabel() ?? '') . ' ' . $this->ufficioIscrizione . ' ' . $this->numeroIscrizione),
             default => (string) $this->descrizione,
         };
+    }
+
+    /**
+     * Terreno o fabbricato situato all'estero (provincia "EE"): non è
+     * nell'archivio immobili dell'Anagrafica, che riguarda il catasto
+     * italiano, e non sconta le imposte ipotecaria e catastale.
+     */
+    public function isImmobileEstero(): bool
+    {
+        return in_array($this->quadro, [QuadroBene::terreni, QuadroBene::fabbricati], true) && $this->beneEstero;
     }
 
     public function isAziendale(): bool

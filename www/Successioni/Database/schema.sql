@@ -82,6 +82,7 @@ CREATE TABLE IF NOT EXISTS `dichiarazione_successione` (
   `conto_addebito_id` INT UNSIGNED NULL,
   `tempistica_pagamento` CHAR(1) NULL,
   `numero_rate` TINYINT UNSIGNED NULL,
+  `pagamento_anticipato_trust` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'EF18ter: il trustee versa l''imposta subito, non all''attribuzione ai beneficiari finali',
   `acconto` INT UNSIGNED NULL,
   `data_versamento` DATE NULL COMMENT 'Data del versamento F24 (unica soluzione o acconto)',
   `ipotecaria_versata` INT UNSIGNED NULL,
@@ -90,6 +91,18 @@ CREATE TABLE IF NOT EXISTS `dichiarazione_successione` (
   `credito_ipotecaria` INT UNSIGNED NULL,
   `credito_catastale` INT UNSIGNED NULL,
   `credito_successione` INT UNSIGNED NULL,
+  `credito_tipo` CHAR(1) NULL COMMENT 'EH sez. III: imposta pagata sull''acquisto della precedente prima casa (1 registro, 2 IVA, 3 IVA Sostegni-bis)',
+  `credito_importo` INT UNSIGNED NULL COMMENT 'EH sez. III: credito d''imposta (art. 7 L. 448/1998)',
+  `credito_acquisto_ufficio_id` INT UNSIGNED NULL,
+  `credito_acquisto_serie` VARCHAR(2) NULL,
+  `credito_acquisto_numero` VARCHAR(6) NULL,
+  `credito_acquisto_sottonumero` VARCHAR(3) NULL,
+  `credito_acquisto_data` DATE NULL,
+  `credito_vendita_ufficio_id` INT UNSIGNED NULL,
+  `credito_vendita_serie` VARCHAR(2) NULL,
+  `credito_vendita_numero` VARCHAR(6) NULL,
+  `credito_vendita_sottonumero` VARCHAR(3) NULL,
+  `credito_vendita_data` DATE NULL,
   `numero_circoscrizioni` TINYINT UNSIGNED NULL COMMENT 'Circoscrizioni immobiliari (conservatorie): se NULL i comuni distinti degli immobili',
   `prima_casa_opzione` CHAR(1) NULL COMMENT 'EH sez. II: R residenza, A attivita, C cambio residenza, E estero, F forze armate',
   `prima_casa_trasferimento_prima` TINYINT(1) NOT NULL DEFAULT 0,
@@ -121,7 +134,9 @@ CREATE TABLE IF NOT EXISTS `dichiarazione_successione` (
   CONSTRAINT `fk_dichiarazione_successione_testamento_ufficio` FOREIGN KEY (`testamento_ufficio_id`) REFERENCES `ufficio_registrazione` (`id`),
   CONSTRAINT `fk_dichiarazione_successione_intermediario` FOREIGN KEY (`intermediario_id`) REFERENCES `intermediario` (`id`),
   CONSTRAINT `fk_dichiarazione_successione_conto` FOREIGN KEY (`conto_addebito_id`) REFERENCES `conto_corrente` (`id`),
-  CONSTRAINT `fk_dichiarazione_successione_sostituita` FOREIGN KEY (`sostituita_id`) REFERENCES `dichiarazione_successione` (`id`)
+  CONSTRAINT `fk_dichiarazione_successione_sostituita` FOREIGN KEY (`sostituita_id`) REFERENCES `dichiarazione_successione` (`id`),
+  CONSTRAINT `fk_dichiarazione_successione_credito_acquisto` FOREIGN KEY (`credito_acquisto_ufficio_id`) REFERENCES `ufficio_registrazione` (`id`),
+  CONSTRAINT `fk_dichiarazione_successione_credito_vendita` FOREIGN KEY (`credito_vendita_ufficio_id`) REFERENCES `ufficio_registrazione` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Dichiarazione di successione e domanda di volture catastali (frontespizio, EF, EH)';
 
@@ -143,11 +158,14 @@ CREATE TABLE IF NOT EXISTS `beneficiario_successione` (
   `rinuncia_data` DATE NULL,
   `rappresentato_id` INT UNSIGNED NULL COMMENT 'Successione per rappresentazione: soggetto rappresentato',
   `grado_parentela_rappresentato` CHAR(2) NULL,
+  `codice_fiscale_trust` VARCHAR(16) NULL COMMENT 'Trust testamentario (tipo 5): codice fiscale del trust',
+  `beneficiario_finale_id` INT UNSIGNED NULL COMMENT 'Trust testamentario: beneficiario finale, se individuato',
   PRIMARY KEY (`id`),
   KEY `idx_beneficiario_successione_dichiarazione` (`dichiarazione_successione_id`, `ordine`),
   CONSTRAINT `fk_beneficiario_successione_dichiarazione` FOREIGN KEY (`dichiarazione_successione_id`) REFERENCES `dichiarazione_successione` (`id`),
   CONSTRAINT `fk_beneficiario_successione_soggetto` FOREIGN KEY (`soggetto_id`) REFERENCES `soggetto` (`id`),
   CONSTRAINT `fk_beneficiario_successione_rappresentato` FOREIGN KEY (`rappresentato_id`) REFERENCES `soggetto` (`id`),
+  CONSTRAINT `fk_beneficiario_successione_beneficiario_finale` FOREIGN KEY (`beneficiario_finale_id`) REFERENCES `soggetto` (`id`),
   CONSTRAINT `fk_beneficiario_successione_rinuncia_ufficio` FOREIGN KEY (`rinuncia_ufficio_id`) REFERENCES `ufficio_registrazione` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -191,11 +209,16 @@ CREATE TABLE IF NOT EXISTS `bene_successione` (
   `ufficio_iscrizione` VARCHAR(6) NULL COMMENT 'Navi: sigla dell''ufficio di iscrizione',
   `tipo_unita` CHAR(1) NULL COMMENT 'Navi: 1 vela, 2 motore',
   `dimensione` INT UNSIGNED NULL COMMENT 'Navi: lunghezza in cm (vela) o stazza in tonnellate (motore)',
+  `stato_estero_id` INT UNSIGNED NULL COMMENT 'Immobili all''estero (EB, EC): Stato in cui si trovano',
+  `codice_stato_estero` CHAR(3) NULL COMMENT 'Codice dello Stato estero dell''elenco delle istruzioni',
+  `localita_estero` VARCHAR(50) NULL,
+  `indirizzo_estero` VARCHAR(80) NULL,
   PRIMARY KEY (`id`),
   KEY `idx_bene_successione_dichiarazione` (`dichiarazione_successione_id`, `quadro`, `ordine`),
   CONSTRAINT `fk_bene_successione_dichiarazione` FOREIGN KEY (`dichiarazione_successione_id`) REFERENCES `dichiarazione_successione` (`id`),
   CONSTRAINT `fk_bene_successione_immobile` FOREIGN KEY (`immobile_id`) REFERENCES `immobile` (`id`),
-  CONSTRAINT `fk_bene_successione_azienda` FOREIGN KEY (`azienda_id`) REFERENCES `bene_successione` (`id`)
+  CONSTRAINT `fk_bene_successione_azienda` FOREIGN KEY (`azienda_id`) REFERENCES `bene_successione` (`id`),
+  CONSTRAINT `fk_bene_successione_stato_estero` FOREIGN KEY (`stato_estero_id`) REFERENCES `nazione` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Quadro EI: estremi degli atti (trascrizioni o registrazioni) che

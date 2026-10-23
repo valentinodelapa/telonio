@@ -94,6 +94,25 @@ require Layout::percorso('header');
 
 <div class="card shadow-sm mb-4">
     <div class="card-header bg-white d-flex align-items-center">
+        <span class="fw-semibold me-auto"><?= Html::e($sezioneGraffati) ?></span>
+        <a href="/identificativo-graffato/create/immobile/<?= Html::e($id) ?>" class="btn btn-sm btn-outline-primary"><i class="bi bi-plus-lg me-1"></i><?= Html::e($azioni['aggiungi']) ?></a>
+    </div>
+    <?php if (count($graffati) === 0): ?>
+        <div class="card-body small text-body-secondary"><?= Html::e($nessunGraffato) ?></div>
+    <?php else: ?>
+        <ul class="list-group list-group-flush">
+            <?php foreach ($graffati as $graffato): ?>
+                <li class="list-group-item d-flex align-items-center">
+                    <span class="me-auto"><?= Html::e($graffato->getIdentificativo()) ?></span>
+                    <?= $pulsanteModifica('/identificativo-graffato/update/identificativo-graffato/' . $graffato->id) ?>&nbsp;<?= $pulsanteElimina('/identificativo-graffato/delete/identificativo-graffato/' . $graffato->id) ?>
+                </li>
+            <?php endforeach; ?>
+        </ul>
+    <?php endif; ?>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white d-flex align-items-center">
         <span class="fw-semibold me-auto"><?= Html::e($sezionePossessori) ?></span>
         <a href="/possesso/create/immobile/<?= Html::e($id) ?>" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg me-1"></i><?= Html::e($azioni['aggiungi']) ?></a>
     </div>

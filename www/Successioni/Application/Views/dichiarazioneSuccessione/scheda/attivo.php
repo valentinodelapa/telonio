@@ -47,6 +47,8 @@ use Successioni\Application\Enumerations\QuadroBene;
                                         <?php if ($bene->isAziendale()): ?><span class="badge text-bg-light border"><?= Html::e($campi['azienda']) ?>: <?= Html::e($bene->azienda->descrizione) ?></span><?php endif; ?>
                                         <?php if ($bene->discordanzaIntestatario || $bene->passaggiSenzaAtti): ?><span class="badge text-bg-warning">EI</span><?php endif; ?>
                                         <?php if ($catasto?->categoria !== null): ?><div class="text-body-secondary"><?= Html::e($catasto->categoria->value) ?> cl. <?= Html::e($catasto->classe ?? '') ?> · rendita <?= Html::e($euro((float) $catasto->rendita)) ?></div><?php elseif ($catasto?->redditoDominicale !== null): ?><div class="text-body-secondary">R.D. <?= Html::e($euro($catasto->redditoDominicale)) ?></div><?php endif; ?>
+                                    <?php elseif ($bene->isImmobileEstero()): ?>
+                                        <?= Html::e($bene->getDescrizioneBreve()) ?> <span class="badge text-bg-light border">EE</span>
                                     <?php else: ?>
                                         <?= Html::e($bene->getDescrizioneBreve()) ?><div class="text-body-secondary"><?= Html::e($bene->tipoCespite?->getLabel() ?? $bene->tipoTitolo?->getLabel() ?? $bene->tipoUnita?->getLabel() ?? '') ?></div>
                                     <?php endif; ?>

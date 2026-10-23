@@ -49,6 +49,7 @@ class GeneratoreSuc
     public const NS_SC = 'urn:www.agenziaentrate.gov.it:specificheTecniche:sco:common:v3';
     public const CODICE_FORNITURA = 'SUC13';
     public const DEVOLUZIONI_PER_RIGO = 3;
+    public const GRAFFATI_PER_RIGO = 4;
 
     private \DOMDocument $documento;
     private DatiDichiarazione $dati;
@@ -96,7 +97,7 @@ class GeneratoreSuc
         }
         $this->quadroEG($documento);
         if ($this->hasQuadroEH()) {
-            $this->quadroEH($documento);
+            $this->quadroEH($documento, $risultato);
         }
         if ($dichiarazione->tipoDichiarazione->hasQuadri()) {
             $this->quadroEI($documento);
@@ -214,9 +215,10 @@ class GeneratoreSuc
             $this->el($firma, 'Casella' . $quadro, '1');
         }
         $this->el($firma, 'FirmaDichiarante', '1');
-        if ($dichiarazione->senzaVolture || $dichiarazione->copiaConforme) {
+        $senzaVolture = $dichiarazione->senzaVolture || ($dichiarazione->codiceCarica?->isSenzaVoltureAutomatiche() ?? false);
+        if ($senzaVolture || $dichiarazione->copiaConforme) {
             $casi = $this->el($frontespizio, 'CasiParticolari');
-            $this->flag($casi, 'CasiParticolari', $dichiarazione->senzaVolture);
+            $this->flag($casi, 'CasiParticolari', $senzaVolture);
             $this->flag($casi, 'CopiaConforme', $dichiarazione->copiaConforme);
             $this->el($casi, 'FirmaDichiarante', '1');
         }
@@ -302,6 +304,15 @@ class GeneratoreSuc
                     $this->el($rappresentazione, 'CodiceFiscaleSoggettoRappresentato', $beneficiario->rappresentato->codiceFiscale);
                     $this->el($rappresentazione, 'GradoParentela', $beneficiario->gradoParentelaRappresentato?->value);
                 }
+                if ($beneficiario->isTrust() && (($beneficiario->codiceFiscaleTrust !== null) || ($beneficiario->beneficiarioFinale !== null))) {
+                    $trust = $this->el($soggetto, 'Trust');
+                    if ($beneficiario->codiceFiscaleTrust !== null) {
+                        $this->el($trust, 'CodiceFiscaleTrust', $beneficiario->codiceFiscaleTrust);
+                    }
+                    if ($beneficiario->beneficiarioFinale !== null) {
+                        $this->el($trust, 'CodiceFiscaleBeneficiario', $beneficiario->beneficiarioFinale->codiceFiscale);
+                    }
+                }
             }
         }
     }
@@ -318,9 +329,13 @@ class GeneratoreSuc
         }
         $righi = [];
         foreach ($beni as $bene) {
+            // le devoluzioni e i graffati che non stanno nel rigo continuano nei righi successivi
             $gruppi = array_chunk($this->dati->getDevoluzioni($bene), self::DEVOLUZIONI_PER_RIGO) ?: [[]];
-            foreach ($gruppi as $indice => $devoluzioni) {
-                $righi[] = ['bene' => $bene, 'devoluzioni' => $devoluzioni, 'continuazione' => $indice < count($gruppi) - 1, 'primo' => $indice === 0];
+            $graffati = array_chunk($this->dati->getGraffati($bene), self::GRAFFATI_PER_RIGO);
+            $numero = max(count($gruppi), count($graffati));
+            for ($indice = 0; $indice < $numero; $indice++) {
+                $righi[] = ['bene' => $bene, 'devoluzioni' => $gruppi[$indice] ?? [], 'continuazione' => $indice < count($gruppi) - 1, 'primo' => $indice === 0,
+                    'graffati' => $graffati[$indice] ?? [], 'continuazioneGraffati' => $indice < count($graffati) - 1];
             }
         }
         $quadro = $this->el($documento, 'Quadro' . $quadroBene->value);
@@ -350,6 +365,7 @@ class GeneratoreSuc
                     QuadroBene::navi => $this->nave($elemento, $rigo['bene'], $rigo['primo']),
                     QuadroBene::altriBeni => $this->rendita($elemento, $rigo['bene'], $rigo['primo']),
                 };
+                $this->graffati($elemento, $rigo['graffati'], $rigo['continuazioneGraffati'], $quadroBene === QuadroBene::fabbricatiTavolare);
                 $this->devoluzione($elemento, 'Devoluzione' . $quadroBene->value, $rigo['devoluzioni'], $rigo['continuazione']);
             }
         }
@@ -362,6 +378,10 @@ class GeneratoreSuc
         }
         $catasto = $this->dati->getCatasto($bene);
         $this->luogo($rigo, $bene);
+        if ($bene->isImmobileEstero()) {
+            $this->datiEstero($rigo, $bene);
+            return;
+        }
         $dati = $this->el($rigo, 'DatiTerreni');
         $this->datiCatastali($dati, $bene);
         $terreno = $this->el($dati, 'DatiTerreni', null, self::NS_REG);
@@ -394,6 +414,10 @@ class GeneratoreSuc
         }
         $catasto = $this->dati->getCatasto($bene);
         $this->luogo($rigo, $bene);
+        if ($bene->isImmobileEstero()) {
+            $this->datiEstero($rigo, $bene);
+            return;
+        }
         $dati = $this->el($rigo, 'DatiFabbricati');
         $this->datiCatastali($dati, $bene);
         $fabbricato = $this->el($dati, 'DatiFabbricati', null, self::NS_REG);
@@ -662,8 +686,40 @@ class GeneratoreSuc
         }
     }
 
+    /**
+     * Righi dei quadri EB ed EC per gli immobili all'estero: senza dati
+     * catastali, nell'ordine dello schema.
+     */
+    private function datiEstero(\DOMElement $rigo, BeneSuccessione $bene): void
+    {
+        $this->possesso($rigo, $bene);
+        $this->el($rigo, 'CodiceDiritto_P', $bene->codiceDiritto->value);
+        $this->flag($rigo, 'BeneAziendale', $bene->isAziendale());
+        $this->numero($rigo, 'ImpostaVersataEstero', (int) $bene->impostaEstero);
+        if ($bene->quadro->isTerreno()) {
+            $this->el($rigo, 'TipologiaTerreno', $bene->tipologiaTerreno?->value);
+        }
+        $this->numero($rigo, 'Valore', (int) $bene->valore);
+        $this->numero($rigo, 'ValorePrecSucc', (int) $bene->valorePrecedente);
+        if ($bene->quadro->isFabbricato() && ($bene->dirittoAbitazione !== null)) {
+            $this->el($rigo, 'DirittoAbitazione', $bene->dirittoAbitazione->value);
+        }
+    }
+
     private function luogo(\DOMElement $rigo, BeneSuccessione $bene): void
     {
+        if ($bene->isImmobileEstero()) {
+            $luogo = $this->el($rigo, 'Luogo');
+            $this->el($luogo, 'Provincia', 'EE', self::NS_REG);
+            $estero = $this->el($luogo, 'Estero', null, self::NS_REG);
+            $this->el($estero, 'CodiceStatoEstero', $bene->codiceStatoEstero, self::NS_SC);
+            if ($bene->localitaEstero !== null) {
+                $this->el($estero, 'LocalitaEstero', $this->testo($bene->localitaEstero, 50), self::NS_SC);
+            }
+            $this->el($estero, 'IndirizzoEstero', $this->testo($bene->indirizzoEstero, 80), self::NS_SC);
+            $this->el($estero, 'StatoEstero', $this->testo($bene->statoEstero?->denominazione, 34), self::NS_REG);
+            return;
+        }
         $immobile = $bene->immobile;
         $luogo = $this->el($rigo, 'Luogo');
         $this->el($luogo, 'Provincia', $immobile->comune->siglaProvincia, self::NS_REG);
@@ -692,6 +748,36 @@ class GeneratoreSuc
         $possesso = $this->el($rigo, 'Possesso');
         $this->el($possesso, 'PossessoNumeratore', $this->importo($bene->quotaNumeratore));
         $this->el($possesso, 'PossessoDenominatore', (string) $bene->quotaDenominatore);
+    }
+
+    /**
+     * Immobili graffati del rigo (quadri EC, EM): fino a quattro, gli altri
+     * nel rigo successivo con la casella di continuazione.
+     *
+     * @param \Anagrafica\Application\Entities\IdentificativoGraffato[] $graffati
+     */
+    private function graffati(\DOMElement $rigo, array $graffati, bool $continuazione, bool $tavolare): void
+    {
+        if (count($graffati) === 0) {
+            return;
+        }
+        $sezione = $this->el($rigo, 'Graffati');
+        foreach ($graffati as $graffato) {
+            $catastali = $this->el($this->el($sezione, 'ImmobiliGraffati'), $tavolare ? 'DatiCatastaliTavolare' : 'DatiCatastali');
+            $this->el($catastali, 'Foglio', $this->testo($graffato->foglio, 4), self::NS_REG);
+            [$particella, $denominatore] = $tavolare ? array_pad(explode('/', $graffato->particella, 2), 2, null) : [$graffato->particella, null];
+            $this->el($catastali, 'Particella', $this->testo($particella, 5), self::NS_REG);
+            if (($denominatore ?? '') !== '') {
+                $this->el($catastali, 'Particella_Denominatore', $this->testo($denominatore, 5), self::NS_REG);
+            }
+            if ($graffato->subalterno !== null) {
+                $this->el($catastali, 'Subalterno', $this->testo($graffato->subalterno, 4), self::NS_REG);
+            }
+            if ($graffato->sezione !== null) {
+                $this->el($catastali, 'SezioneUrbana', $this->testo($graffato->sezione, 3));
+            }
+        }
+        $this->flag($sezione, 'ContinuazioneGraffati', $continuazione);
     }
 
     /**
@@ -843,6 +929,11 @@ class GeneratoreSuc
             $this->coppia($sezione, 'ImpostaProporzionale', $risultato->ipotecariaImponibile, $risultato->ipotecariaProporzionale);
             $this->coppia($sezione, 'AgevolazioneG', $risultato->agevolazioneGValore, $risultato->agevolazioneGImposta);
             $this->coppia($sezione, 'AgevolazioneM', $risultato->agevolazioneMValore, $risultato->agevolazioneMImposta);
+            if ($risultato->trustValore > 0) {
+                $trust = $this->el($sezione, 'TrustDisab');
+                $this->el($trust, 'TrustDisab_Valore', (string) $risultato->trustValore);
+                $this->numero($trust, 'TrustDisab_Imposta', $risultato->trustIpotecaria);
+            }
             if ($risultato->primaCasaNumero > 0) {
                 $primaCasa = $this->el($sezione, 'PrimaCasa');
                 $this->el($primaCasa, 'PrimaCasa_Numero', (string) $risultato->primaCasaNumero);
@@ -858,6 +949,11 @@ class GeneratoreSuc
             $sezione = $this->el($quadro, 'SezioneII_ImpostaCatastale');
             $this->coppia($sezione, 'ImpostaProporzionale', $risultato->catastaleImponibile, $risultato->catastaleProporzionale);
             $this->numero($sezione, 'ImpostaCatastaleFissa', $risultato->catastaleFissa);
+            if ($risultato->trustValore > 0) {
+                $trust = $this->el($sezione, 'ImpostaCatastaleTrustDisab');
+                $this->el($trust, 'ImpostaCatastaleTrustDisab_Valore', (string) $risultato->trustValore);
+                $this->numero($trust, 'ImpostaCatastaleTrustDisab_Imposta', $risultato->trustCatastale);
+            }
             $this->numero($sezione, 'ImpostaCatastaleDovuta', $risultato->catastaleDovuta);
             $this->numero($sezione, 'ImpostaCatastaleVersata', $risultato->catastaleVersata);
             $this->numero($sezione, 'CreditoImposta', $risultato->catastaleCredito);
@@ -878,9 +974,12 @@ class GeneratoreSuc
             $copia = $this->el($this->el($quadro, 'SezioneV_TributiSpeciali'), 'CopiaConforme');
             $this->el($copia, 'CopiaConforme_Importo', $this->importo($risultato->tributiSpeciali));
         }
-        if ($risultato->autoliquidazione) {
+        $trustee = $dichiarazione->codiceCarica === CaricaDichiarante::trustee;
+        if ($risultato->autoliquidazione || ($trustee && $dichiarazione->pagamentoAnticipatoTrust)) {
             $sezione = $this->el($quadro, 'SezioneVBis_ImpostaSuccessione');
-            if ($risultato->successioneImposta > 0) {
+            if ($risultato->autoliquidazione && ($risultato->successioneImposta <= 0)) {
+                $this->el($sezione, 'ImpostaNonDovuta', '1');
+            } elseif ($risultato->successioneImposta > 0) {
                 $calcolata = $this->el($sezione, 'ImpostaCalcolata');
                 $this->el($calcolata, 'Imposta', (string) $risultato->successioneImposta);
                 $this->numero($calcolata, 'ImpostaVersata', $risultato->successioneVersata);
@@ -893,6 +992,9 @@ class GeneratoreSuc
                         $this->el($calcolata, 'Acconto', (string) $dichiarazione->acconto);
                     }
                 }
+            }
+            if ($trustee && $dichiarazione->pagamentoAnticipatoTrust) {
+                $this->el($sezione, 'PagamentoAnticipatoTrust', '1');
             }
         }
         $this->el($quadro, 'TotaleDaVersare', $this->importo($risultato->totaleDaVersare));
@@ -963,7 +1065,7 @@ class GeneratoreSuc
                 && (in_array($dichiarazione->codiceCarica, [CaricaDichiarante::curatoreEreditaGiacente, CaricaDichiarante::amministratoreEredita, CaricaDichiarante::esecutoreTestamentario], true) === false);
     }
 
-    private function quadroEH(\DOMElement $documento): void
+    private function quadroEH(\DOMElement $documento, RisultatoLiquidazione $risultato): void
     {
         $dichiarazione = $this->dati->dichiarazione;
         $defunto = $dichiarazione->defunto;
@@ -1041,6 +1143,7 @@ class GeneratoreSuc
         }
         $this->el($sezione, 'FirmaDichiarante', '1');
         $this->primaCasa($primo);
+        $this->creditoImposta($primo, $risultato);
         $this->altreAgevolazioni($primo);
         $ulteriori = max((int) ceil(max(0, count($eredi) - 3) / 3), count($disabili) - 1, count($rinunce) - 1, count($aziende) - 1, count($navi) - 1, count($aeromobili) - 1);
         for ($indice = 1; $indice <= $ulteriori; $indice++) {
@@ -1308,7 +1411,27 @@ class GeneratoreSuc
         if ($immobile->sezione !== null) {
             $this->el($elemento, 'SezioneUrbana', $this->testo($immobile->sezione, 3));
         }
-        $this->datiCatastali($elemento, $bene);
+        $this->datiCatastali($elemento, $bene, self::NS_SUC);
+    }
+
+    /**
+     * Sezione III: credito d'imposta per il riacquisto della prima casa
+     * (presente solo se il credito è usato nel rigo EF7).
+     */
+    private function creditoImposta(\DOMElement $modulo, RisultatoLiquidazione $risultato): void
+    {
+        $dichiarazione = $this->dati->dichiarazione;
+        if (($risultato->ipotecariaCredito <= 0) || ($dichiarazione->creditoTipo === null)) {
+            return;
+        }
+        $sezione = $this->el($modulo, 'SezioneIII_CreditoImposta');
+        $this->el($sezione, 'TipologiaImposta', $dichiarazione->creditoTipo->value);
+        $this->numero($sezione, 'Imposta', (int) $dichiarazione->creditoImporto);
+        $this->registrazione($this->el($sezione, 'RegistrazioneAcquisto'), $dichiarazione->creditoAcquistoUfficio, $dichiarazione->creditoAcquistoSerie, $dichiarazione->creditoAcquistoNumero, $dichiarazione->creditoAcquistoSottonumero, $dichiarazione->creditoAcquistoData);
+        if ($dichiarazione->creditoVenditaData !== null) {
+            $this->registrazione($this->el($sezione, 'RegistrazioneVendita'), $dichiarazione->creditoVenditaUfficio, $dichiarazione->creditoVenditaSerie, $dichiarazione->creditoVenditaNumero, $dichiarazione->creditoVenditaSottonumero, $dichiarazione->creditoVenditaData);
+        }
+        $this->el($sezione, 'FirmaDichiarante', '1');
     }
 
     /**

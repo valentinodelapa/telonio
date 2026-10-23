@@ -33,6 +33,7 @@ class BeneTerrenoEspositoFixture extends BaseFixture
         $bene->natura = 'T';
         $bene->tipologiaTerreno = TipologiaTerreno::nonEdificabile;
         $bene->valore = 9000;
+        $bene->discordanzaIntestatario = true;
         $this->addEntity($bene);
     }
 }

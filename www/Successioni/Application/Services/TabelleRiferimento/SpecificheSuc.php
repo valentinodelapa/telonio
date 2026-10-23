@@ -15,6 +15,7 @@ use Successioni\Application\Enumerations\TipoBeneficiario;
 use Successioni\Application\Enumerations\TipoCespite;
 use Successioni\Application\Enumerations\TipoDichiarazioneSuccessione;
 use Successioni\Application\Enumerations\TipoDocumentoTitolo;
+use Successioni\Application\Enumerations\TipoImpostaCredito;
 use Successioni\Application\Enumerations\TipologiaTerreno;
 use Successioni\Application\Enumerations\TipoPassivita;
 use Successioni\Application\Enumerations\TipoTitolo;
@@ -67,6 +68,7 @@ class SpecificheSuc
         TipoDichiarazioneSuccessione::class => ['tipi' => ['DichiarazioneSostitutiva'], 'esclusi' => ['0']],
         TipologiaTerreno::class => ['tipi' => ['TerrenoEdificabile_Type'], 'esclusi' => []],
         TipoUnita::class => ['tipi' => ['TipoUnita_Type'], 'esclusi' => []],
+        TipoImpostaCredito::class => ['tipi' => ['TipoImposta_Type'], 'esclusi' => []],
     ];
 
     public static function getCartellaXsd(): string

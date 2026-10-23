@@ -21,6 +21,7 @@ use Successioni\Application\Enumerations\StatoCivileDefunto;
 use Successioni\Application\Enumerations\StatoDichiarazioneSuccessione;
 use Successioni\Application\Enumerations\TempisticaPagamento;
 use Successioni\Application\Enumerations\TipoDichiarazioneSuccessione;
+use Successioni\Application\Enumerations\TipoImpostaCredito;
 use Successioni\Application\Forms\DichiarazioneSuccessioneForm;
 use Successioni\Application\Forms\PagamentoSuccessioneForm;
 use Successioni\Application\Models\AllegatoSuccessioneModel;
@@ -180,6 +181,7 @@ class DichiarazioneSuccessioneController extends SuccessioniController
         $this->vars['risultato'] = (new Liquidazione())->liquida($dati);
         $this->vars['conti'] = $this->getContiAmmessi($dichiarazione);
         $this->vars['tempistiche'] = TempisticaPagamento::cases();
+        $this->vars['tipiCredito'] = TipoImpostaCredito::cases();
         $this->vars['pageTitle'] = 'Pagamento delle imposte';
         $this->impostaBriciole($dichiarazione, 'Pagamento', 'liquidazione');
         return $this->render->generateView('dichiarazioneSuccessione/pagamento', $this->vars, $form->getResponseType());
