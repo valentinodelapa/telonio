@@ -2,7 +2,10 @@ services:
   # --- NGINX WEB SERVER ---
   nginx:
     image: nginx:alpine
-    container_name: comm_suite_nginx
+    # CONTAINER_PREFIX (.env) permette di avviare una seconda istanza dello
+    # stesso progetto sulla stessa macchina (es. produzione in un'altra
+    # cartella) senza conflitti sui nomi dei container.
+    container_name: ${CONTAINER_PREFIX:-comm_suite}_nginx
     volumes:
       - ./www:/var/www/html/
       - ./nginx.conf.template:/etc/nginx/templates/default.conf.template
@@ -18,9 +21,11 @@ services:
 
   # --- PHP-FPM ---
   php:
+    # Senza target viene costruito l'ultimo stage del Dockerfile ("prod");
+    # docker-compose.dev.yml seleziona "dev" (Xdebug, pcov).
     build:
       context: .
-    container_name: comm_suite_php
+    container_name: ${CONTAINER_PREFIX:-comm_suite}_php
     user: root
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -33,8 +38,12 @@ services:
 
   # --- DATABASE ---
   db:
-    image: mariadb:latest
-    container_name: comm_suite_db
+    # Versione fissata: con "latest" un pull potrebbe portare a una major
+    # successiva e aggiornare i dati del volume senza possibilità di tornare
+    # indietro (MariaDB non supporta il downgrade). Aggiornare a mano, dopo un
+    # backup; MARIADB_AUTO_UPGRADE aggiorna le tabelle di sistema all'avvio.
+    image: mariadb:12.2
+    container_name: ${CONTAINER_PREFIX:-comm_suite}_db
     profiles:
       - internal-db
     environment:
@@ -42,6 +51,7 @@ services:
       MARIADB_DATABASE: ${DATABASE_NAME}
       MARIADB_USER: ${DATABASE_USERNAME}
       MARIADB_PASSWORD: ${DATABASE_PASSWORD}
+      MARIADB_AUTO_UPGRADE: "1"
     volumes:
       - db_data:/var/lib/mysql
       - ./comm_suite.sql:/docker-entrypoint-initdb.d/comm_suite.sql

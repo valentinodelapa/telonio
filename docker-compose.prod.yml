@@ -1,10 +1,12 @@
 services:
-  # L'esposizione pubblica di "nginx" non è definita qui: dipende dall'infrastruttura
-  # reale (pubblicare una porta, oppure agganciarsi a un proprio reverse proxy/
-  # Traefik di produzione con dominio reale e TLS). Vedi README, sezione
-  # "Esposizione in produzione".
+  # nginx è pubblicato su HTTP_BIND:HTTP_PORT (.env), di default solo su
+  # 127.0.0.1:8080: non raggiungibile dalla rete, ma solo da un reverse proxy
+  # sulla stessa macchina che termina il TLS e assegna l'indirizzo web (es.
+  # "tailscale serve", Caddy, Traefik). Vedi README, sezione "Self-hosting".
   nginx:
     restart: unless-stopped
+    ports:
+      - "${HTTP_BIND:-127.0.0.1}:${HTTP_PORT:-8080}:80"
 
   php:
     restart: unless-stopped

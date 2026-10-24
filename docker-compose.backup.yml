@@ -3,10 +3,17 @@ services:
   backup:
     build:
       context: ./backup
-    container_name: comm_suite_backup
+    container_name: ${CONTAINER_PREFIX:-comm_suite}_backup
+    restart: unless-stopped
     env_file:
       - .env
+    environment:
+      # Configurazione rclone per le copie remote (BACKUP_REMOTES): contiene i
+      # token di accesso e le password di cifratura, va tenuta fuori da Git e
+      # scrivibile (rclone vi salva i token rinnovati).
+      RCLONE_CONFIG: /config/rclone/rclone.conf
     volumes:
       - ./backups:/backups
+      - ./rclone:/config/rclone
     networks:
       - default

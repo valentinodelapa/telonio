@@ -1,4 +1,10 @@
-FROM php:8.5-fpm
+# Build multi-stage: "base" contiene tutto ciò che serve all'applicativo,
+# "dev" aggiunge gli strumenti di debug e coverage (Xdebug, pcov), "prod" è la
+# sola base. Senza target esplicito viene costruito l'ultimo stage ("prod");
+# docker-compose.dev.yml seleziona "dev".
+
+# --- BASE COMUNE ---
+FROM php:8.5-fpm AS base
 
 # Dipendenze di sistema (gettext-base per envsubst, usato in docker-entrypoint.sh
 # per renderizzare i limiti PHP da .env; libarchive-tools per bsdtar, usato dal
@@ -13,11 +19,8 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Estensioni PHP
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg && docker-php-ext-install mysqli pdo pdo_mysql zip gd && docker-php-ext-enable mysqli
-RUN pecl install pcov && docker-php-ext-enable pcov
-RUN pecl install xdebug && docker-php-ext-enable xdebug
 
-# Configurazione Xdebug
-COPY xdebug.ini /usr/local/etc/php/conf.d/xdebug.ini
+# Limiti PHP (renderizzati da docker-entrypoint.sh)
 COPY php-limits.ini.template /usr/local/etc/php/conf.d/limits.ini.template
 
 # Script di avvio per impostare i permessi
@@ -29,3 +32,14 @@ ENV PATH="/var/www/html/SismaFramework/Console:${PATH}"
 
 ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["php-fpm"]
+
+# --- SVILUPPO/TEST: base + debug e coverage ---
+FROM base AS dev
+
+RUN pecl install pcov xdebug && docker-php-ext-enable pcov xdebug
+
+# Configurazione Xdebug
+COPY xdebug.ini /usr/local/etc/php/conf.d/xdebug.ini
+
+# --- PRODUZIONE: sola base ---
+FROM base AS prod

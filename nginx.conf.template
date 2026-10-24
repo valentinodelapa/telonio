@@ -20,8 +20,15 @@ server {
     }
 
     # Gestione PHP tramite PHP-FPM
+    # Il nome "php" è risolto a ogni richiesta (DNS interno di Docker) e non
+    # una sola volta all'avvio: quando il container php viene ricreato (es.
+    # aggiornamento con --build) cambia IP e nginx risponderebbe 502 fino al
+    # proprio riavvio. La variabile $php_upstream non è toccata dall'envsubst
+    # dell'immagine nginx, che sostituisce solo le variabili d'ambiente definite.
     location ~ \.php$ {
-        fastcgi_pass php:9000;
+        resolver 127.0.0.11 valid=10s ipv6=off;
+        set $php_upstream php:9000;
+        fastcgi_pass $php_upstream;
         fastcgi_index index.php;
         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
         include fastcgi_params;
