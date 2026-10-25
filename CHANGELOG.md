@@ -2,6 +2,45 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.0-alpha] - 2026-10-25 - Causale Catastale e Decorrenza delle Rendite
+
+Quinta versione alpha: causale delle variazioni catastali e decorrenza dei dati catastali dal possesso in `Anagrafica`; in `Imu` decorrenza delle rendite secondo l'art. 1, comma 745, L. 160/2019 (rendite vigenti al 1° gennaio, variazioni per interventi edilizi dall'ultimazione dei lavori) e classamento presunto per il possesso anteriore al primo classamento registrato; correzioni ai form con autocompletamento di `Deleghe` e `Imu`. Richiede l'aggiornamento del database. Valgono le avvertenze della 0.1.0-alpha: la versione non è indicata per l'uso in produzione su dati reali.
+
+Versioni dei moduli: `Anagrafica` 0.3.0, `Imu` 0.2.0 (richiede `Anagrafica` 0.3.0), `Successioni` 0.2.1 (richiede `Anagrafica` 0.3.0: causale nelle fixture dei dati catastali), `Deleghe` 0.1.3; `CommSuite` 0.2.0 invariato.
+
+### ✨ Nuove Funzionalità
+
+#### `Anagrafica`
+
+- **causale dei dati catastali** (`Enumerations\CausaleClassamento`, colonna `dati_catastali.causale`, obbligatoria): costituzione o primo classamento registrato, variazione per interventi edilizi (solo fabbricati), altra variazione. La prima versione di un nuovo immobile è la costituzione; nelle variazioni la causale si sceglie ogni volta; la correzione di un dato (anche della rendita proposta rettificata dall'Agenzia) resta una rettifica della versione. Visibile nello storico catastale della scheda dell'immobile;
+- **decorrenza dei dati catastali dal possesso**: nell'inserimento di un immobile dalla scheda del soggetto "Dati in vigore dal" è facoltativa e parte vuota; se non indicata vale la data di inizio del possesso (prima era proposta la data del giorno, e il classamento risultava in vigore solo dall'inserimento);
+- `DatiCatastaliModel::getVigenteOSuccessivo()`: dati catastali in vigore alla data o, in mancanza, i primi successivi.
+
+#### `Imu`
+
+- **decorrenza delle rendite secondo il comma 745** (`Services\ClassamentoImu`): valgono le rendite e i redditi dominicali vigenti al 1° gennaio; le variazioni per interventi edilizi valgono dalla loro decorrenza (ultimazione dei lavori o utilizzo), le altre dal 1° gennaio successivo, con nota nel rigo e avviso. Prima ogni variazione era applicata dalla sua decorrenza catastale;
+- **classamento presunto per il possesso anteriore al primo classamento registrato**: i mesi di possesso precedenti alla decorrenza dei primi dati catastali dell'immobile si calcolano con quel classamento, con nota nel rigo e avviso da verificare sulla visura storica (prima l'immobile non era calcolato per quei mesi, "dati catastali mancanti"); non per i fabbricati D a valore contabile, per i quali la rendita vale solo dall'attribuzione. Le stesse regole valgono per il valore nella proposta della dichiarazione.
+
+### 🐛 Correzioni
+
+#### `Deleghe`
+
+- **campo del codice tributo vuoto dopo un errore** nei form del versamento e del credito: ripresentando il form per correggere un altro campo, il codice tributo scelto restava valido (e veniva salvato) ma il testo del campo con autocompletamento era vuoto, e l'aiuto sul formato della rateazione mancava. Ora mostrano il codice inviato.
+
+#### `Imu`
+
+- **stesso difetto sul dichiarante** del form della dichiarazione IMU/IMPi: dopo un errore il campo con autocompletamento ora mostra il dichiarante inviato.
+
+### 🔄 Aggiornamento da 0.4.0-alpha
+
+Sui database esistenti eseguire come root `www/Anagrafica/Database/aggiornamento-0.3.sql`, poi eliminare `www/Cache/referenceCache.json`:
+
+```bash
+docker exec -i comm_suite_db sh -c 'mariadb -uroot -p"$MARIADB_ROOT_PASSWORD" --table comm_suite' < www/Anagrafica/Database/aggiornamento-0.3.sql
+```
+
+Lo script (idempotente) aggiunge `dati_catastali.causale` e la valorizza: prima versione di ogni immobile "costituzione"; versioni successive dei fabbricati "interventi edilizi", cioè con effetto dalla decorrenza come finora (i calcoli IMU già fatti non cambiano); versioni successive dei terreni "altra variazione", perché per i terreni la legge non prevede effetti in corso d'anno. Al termine elenca le variazioni dei fabbricati: quelle non dovute a interventi edilizi vanno corrette (rettifica della versione, causale "Altra variazione") e l'IMU degli anni interessati ricalcolata.
+
 ## [0.4.0-alpha] - 2026-10-24 - Self-hosting e Backup Remoti
 
 Quarta versione alpha, dedicata all'installazione: configurazione Docker di produzione per il self-hosting privato (accesso tramite reverse proxy locale, es. Tailscale), immagine di produzione senza strumenti di debug, modalità dell'applicativo da `.env` e copia remota cifrata dei backup su OneDrive, Google Drive o altri servizi supportati da rclone. Valgono le avvertenze della 0.1.0-alpha: la versione non è indicata per l'uso in produzione su dati reali.

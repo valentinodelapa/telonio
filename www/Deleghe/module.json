@@ -1,6 +1,6 @@
 {
   "name": "Deleghe",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "framework_version": "12.14.0",
   "description": "Deleghe di pagamento F24 dei soggetti dello studio, alimentate anche dagli altri moduli della suite",
   "authors": [

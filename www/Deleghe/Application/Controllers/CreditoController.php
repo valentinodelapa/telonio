@@ -67,7 +67,8 @@ class CreditoController extends DelegheController
         $this->vars['credito'] = $credito;
         $this->vars['campiRigo'] = CreditoForm::getCampiSezione($credito);
         $this->vars['utilizzato'] = $utilizzato;
-        $this->vars['codiceTributoCorrente'] = $credito->codiceTributo?->getEtichetta();
+        // dopo un invio con errori il codice è quello inviato, non quello dell'entità
+        $this->vars['codiceTributoCorrente'] = ($this->vars['formEntity']->codiceTributo ?? null)?->getEtichetta();
         $tabelle = new CodiceTabellaF24Model($this->dataMapper);
         $this->vars['regioni'] = $credito->sezione === SezioneF24::regioni ? $tabelle->getVoci(TabellaF24::regioni) : [];
         $this->vars['altriEnti'] = $credito->sezione === SezioneF24::altriEnti ? $tabelle->getVoci(TabellaF24::altriEnti) : [];

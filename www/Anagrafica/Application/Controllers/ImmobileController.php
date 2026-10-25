@@ -8,6 +8,7 @@ use Anagrafica\Application\Entities\Immobile;
 use Anagrafica\Application\Entities\Possesso;
 use Anagrafica\Application\Entities\Soggetto;
 use Anagrafica\Application\Enumerations\CategoriaCatastale;
+use Anagrafica\Application\Enumerations\CausaleClassamento;
 use Anagrafica\Application\Enumerations\TipoCatasto;
 use Anagrafica\Application\Enumerations\TitoloPossesso;
 use Anagrafica\Application\Enumerations\UtilizzoImmobile;
@@ -83,6 +84,7 @@ class ImmobileController extends AnagraficaController
         $immobileForm = new ImmobileForm($immobile);
         $datiCatastali = new DatiCatastali($this->dataMapper);
         $datiCatastali->immobile = $immobile;
+        $datiCatastali->causale = CausaleClassamento::costituzione;
         $datiCatastaliForm = new DatiCatastaliForm($datiCatastali);
         $forms = [$immobileForm, $datiCatastaliForm];
         $possesso = null;
@@ -92,6 +94,7 @@ class ImmobileController extends AnagraficaController
             $possesso->soggetto = $soggetto;
             $possesso->immobile = $immobile;
             $possessoForm = (new PossessoForm($possesso))->conPrefisso('possesso');
+            $datiCatastaliForm->conDecorrenzaDelPossesso('possesso');
             $forms[] = $possessoForm;
         }
         if ($this->isInvioValido($request, ...$forms)) {
@@ -110,6 +113,11 @@ class ImmobileController extends AnagraficaController
         $this->vars['immobile'] = $immobile;
         $this->vars['soggetto'] = $soggetto;
         $this->vars['nuovo'] = true;
+        $this->vars['causali'] = [CausaleClassamento::costituzione];
+        // con il possesso la decorrenza dei dati catastali è facoltativa e parte vuota (= inizio del possesso)
+        $this->vars['decorrenzaDalPossesso'] = $soggetto !== null;
+        // anche dopo un invio non valido, se lasciata vuota (segue il possesso, che può essere corretto)
+        $this->vars['decorrenzaVuota'] = ($soggetto !== null) && (trim((string) ($request->input['validoDal'] ?? '')) === '');
         $this->vars['pageTitle'] = 'Nuovo ' . mb_strtolower($tipo->getLabel());
         if ($soggetto !== null) {
             $this->impostaBriciole($soggetto, $this->vars['pageTitle']);

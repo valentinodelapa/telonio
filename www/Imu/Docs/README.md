@@ -122,6 +122,25 @@ periodi con possesso, classamento, caratteristiche e agevolazioni costanti:
   della metà dei giorni; il giorno del trasferimento è dell'acquirente, al
   quale resta il mese a parità di giorni; le variazioni a metà mese seguono
   la stessa regola;
+- **classamento** (commi 745 e 746, `ClassamentoImu`): valgono la rendita e
+  il reddito dominicale vigenti al 1° gennaio dell'anno; le variazioni di
+  rendita per interventi edilizi valgono dall'ultimazione dei lavori o, se
+  antecedente, dall'utilizzo, cioè dalla decorrenza della versione in
+  Anagrafica con causale "Variazione per interventi edilizi"; le altre
+  variazioni (e quelle dei terreni) dal 1° gennaio successivo, con nota nel
+  rigo e avviso. Una variazione superata da un'altra efficace prima non si
+  applica. La causale è in Anagrafica: le versioni esistenti prima della
+  0.3.0 la ricevono dallo script di aggiornamento, che elenca quelle da
+  verificare. La rendita proposta con il Docfa e rettificata dall'Agenzia
+  si registra rettificando la versione in Anagrafica: una volta notificata
+  vale anche per gli anni precedenti ancora aperti (Cass. SS.UU. n.
+  3160/2011, circolare n. 7/E del 2022), e il ricalcolo ne mostra la
+  differenza rispetto ai versamenti già eseguiti;
+- **classamento presunto**: per i mesi di possesso anteriori ai primi dati
+  catastali registrati si usano questi, con nota nel rigo e avviso da
+  verificare sulla visura storica (spesso la decorrenza in Anagrafica è
+  quella della visura o dell'inserimento, non quella catastale); non per i
+  fabbricati D a valore contabile, la cui rendita vale dall'attribuzione;
 - **base imponibile** (commi 745-746, `ValoreImmobile`): rendita rivalutata
   del 5% per il moltiplicatore (160 gruppo A escluso A/10 e C/2, C/6, C/7;
   140 gruppo B e C/3, C/4, C/5; 80 A/10 e D/5; 65 gruppo D; 55 C/1); reddito
@@ -339,6 +358,9 @@ studio.
 - circolare n. 9/1993 (Gazzetta Ufficiale) e risoluzione n. 1/DF del 1°
   aprile 2026;
 - L. 28 dicembre 2001, n. 448, allegato A (isole minori);
+- art. 74, c. 1, L. 21 novembre 2000, n. 342 e Agenzia delle Entrate,
+  circolare n. 7/E del 17 marzo 2022 (efficacia e utilizzabilità della
+  rendita rettificata);
 - D.M. 19 novembre 2012, n. 200 (immobili degli enti non commerciali).
 
 ## Da completare

@@ -71,6 +71,7 @@ class CalcoloImposta
     private RisultatoCalcoloImu $risultato;
     private bool $enteNonCommerciale = false;
     private Soggetto $soggetto;
+    private ClassamentoImu $classamento;
     /** @var array<int, \Imu\Application\Entities\UtilizzoMistoEnc> */
     private array $utilizziEnc = [];
 
@@ -102,6 +103,7 @@ class CalcoloImposta
     {
         $this->aliquote = new AliquoteComune($soggetto->studio, $this->dataMapper);
         $this->soggetto = $soggetto;
+        $this->classamento = new ClassamentoImu($this->dataMapper);
         $this->risultato = new RisultatoCalcoloImu();
         if ($anno === 2020) {
             $this->risultato->avviso('2020: l\'acconto era pari alla metà di IMU e TASI 2019 (comma 762); l\'acconto qui calcolato con le aliquote 2019 è indicativo.');
@@ -170,15 +172,15 @@ class CalcoloImposta
     }
 
     /**
-     * Date da cui cambiano classamento, caratteristiche o agevolazioni.
+     * Date da cui cambiano classamento (decorrenza IMU, ClassamentoImu),
+     * caratteristiche o agevolazioni.
      *
      * @return string[] Y-m-d
      */
     private function getDateVariazione(Soggetto $soggetto, Immobile $immobile): array
     {
-        $date = [];
+        $date = $this->classamento->getDateVariazione($immobile);
         $storici = [
-            (new DatiCatastaliModel($this->dataMapper))->getStorico($immobile),
             (new CaratteristicheImuModel($this->dataMapper))->getStorico($immobile),
             (new AgevolazioneImuModel($this->dataMapper))->getStorico($soggetto, $immobile),
         ];
@@ -232,14 +234,22 @@ class CalcoloImposta
         $immobile = $periodo['immobile'];
         $possesso = $periodo['possesso'];
         $data = new SismaDate($periodo['dal']->format('Y-m-d'));
-        $datiCatastali = (new DatiCatastaliModel($this->dataMapper))->getVigenteAl($immobile, $data);
         $caratteristiche = (new CaratteristicheImuModel($this->dataMapper))->getVigenteAl($immobile, $data);
+        // fabbricati a valore contabile: la rendita vale solo dall'attribuzione, niente classamento presunto
+        $classamento = $this->classamento->getVigenteAl($immobile, $data, $caratteristiche?->valoreContabile !== true);
+        $datiCatastali = $classamento['datiCatastali'] ?? null;
         $agevolazione = (new AgevolazioneImuModel($this->dataMapper))->getVigenteAl($soggetto, $immobile, $data);
         $periodo += ['datiCatastali' => $datiCatastali, 'caratteristiche' => $caratteristiche, 'agevolazione' => $agevolazione,
             'fattispecie' => null, 'esenzione' => null, 'base' => 0.0, 'riduzioneBase' => 1.0, 'riduzioneImposta' => 1.0, 'note' => [],
             'abitazionePrincipale' => false, 'pertinenza' => false];
         $this->risultato->comuni[$immobile->comune->codiceCatastale] = $immobile->comune->denominazione;
         $descrizione = $immobile->getIdentificativo() . ' (' . $immobile->comune->denominazione . ')';
+        if ($classamento['presunto'] ?? false) {
+            $periodo['note'][] = 'Classamento presunto: dati catastali in vigore dal ' . $datiCatastali->validoDal->format('d/m/Y');
+            $this->risultato->avviso($descrizione . ': dati catastali in vigore dal ' . $datiCatastali->validoDal->format('d/m/Y') . ', applicati anche al possesso precedente'
+                    . ' (classamento presunto): verificare la visura storica e, se il classamento era diverso, inserirlo in Anagrafica.');
+        }
+        $this->segnalaVariazioniDifferite($periodo, $immobile, $descrizione);
         if (self::isSoggettoPassivo($possesso->titolo) === false) {
             $periodo['esenzione'] = 'Nuda proprietà: l\'imposta è dovuta dal titolare del diritto di godimento (comma 743)';
             return;
@@ -266,6 +276,27 @@ class CalcoloImposta
             return;
         }
         $this->classificaFabbricato($periodo, $datiCatastali, $caratteristiche, $agevolazione, $anno, $descrizione);
+    }
+
+    /**
+     * Variazioni catastali con decorrenza nel periodo non ancora efficaci per
+     * l'IMU (non dovute a interventi edilizi: valgono dal 1° gennaio
+     * successivo, comma 745).
+     */
+    private function segnalaVariazioniDifferite(array &$periodo, Immobile $immobile, string $descrizione): void
+    {
+        $dal = $periodo['dal']->format('Y-m-d');
+        $al = $periodo['al']->format('Y-m-d');
+        foreach ((new DatiCatastaliModel($this->dataMapper))->getStorico($immobile) as $variazione) {
+            $decorrenza = $variazione->validoDal->format('Y-m-d');
+            if (($decorrenza < $dal) || ($decorrenza > $al) || (ClassamentoImu::getDecorrenza($variazione) === $decorrenza)) {
+                continue;
+            }
+            $efficace = (new \DateTimeImmutable(ClassamentoImu::getDecorrenza($variazione)))->format('d/m/Y');
+            $periodo['note'][] = 'Variazione catastale del ' . $variazione->validoDal->format('d/m/Y') . ' efficace dal ' . $efficace . ' (comma 745)';
+            $this->risultato->avviso($descrizione . ': la variazione catastale del ' . $variazione->validoDal->format('d/m/Y') . ' non è dovuta a interventi edilizi, per l\'IMU vale dal ' . $efficace
+                    . ' (comma 745); se lo è, indicarne la causale in Anagrafica.');
+        }
     }
 
     private function classificaArea(array &$periodo, CaratteristicheImu $caratteristiche, ?AgevolazioneImu $agevolazione, string $descrizione): void

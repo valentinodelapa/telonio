@@ -3,6 +3,7 @@
 namespace Successioni\Application\Fixtures;
 
 use Anagrafica\Application\Entities\DatiCatastali;
+use Anagrafica\Application\Enumerations\CausaleClassamento;
 use Anagrafica\Application\Enumerations\CategoriaCatastale;
 use SismaFramework\Core\BaseClasses\BaseFixture;
 use SismaFramework\Orm\CustomTypes\SismaDate;
@@ -25,6 +26,7 @@ class DatiCatastaliCasaEspositoFixture extends BaseFixture
         $datiCatastali = new DatiCatastali($this->dataMapper);
         $datiCatastali->immobile = $this->getEntityByFixtureName(ImmobileCasaEspositoFixture::class);
         $datiCatastali->validoDal = new SismaDate('1995-06-01');
+        $datiCatastali->causale = CausaleClassamento::costituzione;
         $datiCatastali->categoria = CategoriaCatastale::a2;
         $datiCatastali->classe = '3';
         $datiCatastali->consistenza = 6.0;

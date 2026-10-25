@@ -6,6 +6,7 @@ use Anagrafica\Application\BaseClasses\AnagraficaController;
 use Anagrafica\Application\Entities\DatiCatastali;
 use Anagrafica\Application\Entities\Immobile;
 use Anagrafica\Application\Enumerations\CategoriaCatastale;
+use Anagrafica\Application\Enumerations\CausaleClassamento;
 use Anagrafica\Application\Forms\DatiCatastaliForm;
 use Anagrafica\Application\Models\DatiCatastaliModel;
 use SismaFramework\Core\HttpClasses\Request;
@@ -17,7 +18,8 @@ class DatiCatastaliController extends AnagraficaController
     private const PROPRIETA_COPIATE = ['categoria', 'classe', 'consistenza', 'superficie', 'rendita', 'qualitaColtura', 'redditoDominicale', 'redditoAgrario'];
 
     /**
-     * Variazione catastale: parte dai dati della versione più recente.
+     * Variazione catastale: parte dai dati della versione più recente; la
+     * causale si sceglie ogni volta.
      */
     public function create(Request $request, Immobile $immobile): Response
     {
@@ -64,6 +66,7 @@ class DatiCatastaliController extends AnagraficaController
         $this->impostaVariabiliForm($form, $datiCatastali);
         $this->vars['immobile'] = $immobile;
         $this->vars['categorie'] = CategoriaCatastale::cases();
+        $this->vars['causali'] = CausaleClassamento::getAmmesse($immobile->tipoCatasto);
         $this->vars['nuovo'] = isset($datiCatastali->id) === false;
         $this->vars['pageTitle'] = $titolo;
         $this->vars['briciole'] = ['Anagrafica' => '/soggetto/index', 'Immobili' => '/immobile/index', $immobile->getIdentificativo() => '/immobile/show/immobile/' . $immobile->id, $titolo => null];

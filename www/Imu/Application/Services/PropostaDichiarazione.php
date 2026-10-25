@@ -9,7 +9,6 @@ use Anagrafica\Application\Enumerations\RuoloLegame;
 use Anagrafica\Application\Enumerations\TipoCatasto;
 use Anagrafica\Application\Enumerations\TitoloPossesso;
 use Anagrafica\Application\Enumerations\UtilizzoImmobile;
-use Anagrafica\Application\Models\DatiCatastaliModel;
 use Anagrafica\Application\Models\LegameModel;
 use Anagrafica\Application\Models\PossessoModel;
 use Deleghe\Application\Models\IntermediarioModel;
@@ -419,7 +418,7 @@ class PropostaDichiarazione
         $possesso = $stato['possesso'];
         $caratteristiche = $stato['caratteristiche'];
         $agevolazione = $stato['agevolazione'];
-        $datiCatastali = (new DatiCatastaliModel($this->dataMapper))->getVigenteAl($immobile, new SismaDate($stato['data']));
+        $datiCatastali = (new ClassamentoImu($this->dataMapper))->getVigenteAl($immobile, new SismaDate($stato['data']))['datiCatastali'] ?? null;
         $caratteristica = match (true) {
             $caratteristiche?->areaFabbricabile === true => CaratteristicaDichiarata::areaFabbricabile,
             $immobile->tipoCatasto === TipoCatasto::terreni => CaratteristicaDichiarata::terreno,

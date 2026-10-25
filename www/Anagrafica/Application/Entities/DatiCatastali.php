@@ -3,6 +3,7 @@
 namespace Anagrafica\Application\Entities;
 
 use Anagrafica\Application\Enumerations\CategoriaCatastale;
+use Anagrafica\Application\Enumerations\CausaleClassamento;
 use Anagrafica\Application\Interfaces\Storicizzabile;
 use Anagrafica\Application\Traits\StoricizzabileTrait;
 use SismaFramework\Orm\BaseClasses\BaseEntity;
@@ -11,7 +12,8 @@ use SismaFramework\Orm\CustomTypes\SismaDate;
 /**
  * Versione storicizzata dei dati di classamento di un immobile: una
  * variazione catastale (nuova rendita, cambio di categoria) è una nuova
- * versione con la decorrenza della variazione.
+ * versione con la decorrenza della variazione e la sua causale (che
+ * determina da quando la rendita vale per i tributi, es. IMU).
  *
  * Fabbricati: categoria, classe, consistenza, superficie, rendita.
  * Terreni: qualità di coltura, classe, superficie, redditi dominicale e
@@ -26,6 +28,7 @@ class DatiCatastali extends BaseEntity implements Storicizzabile
     protected Immobile $immobile;
     protected SismaDate $validoDal;
     protected ?SismaDate $validoAl = null;
+    protected CausaleClassamento $causale;
     protected ?CategoriaCatastale $categoria = null;
     protected ?string $classe = null;
     protected ?float $consistenza = null;

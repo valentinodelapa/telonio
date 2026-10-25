@@ -58,6 +58,7 @@ require Layout::percorso('header');
             <thead>
                 <tr>
                     <th><?= Html::e($campi['validoDal']) ?></th>
+                    <th><?= Html::e($campi['causale']) ?></th>
                     <?php if ($fabbricato): ?>
                         <th><?= Html::e($campi['categoria']) ?></th><th><?= Html::e($campi['classe']) ?></th><th><?= Html::e($campi['consistenza']) ?></th><th><?= Html::e($campi['superficieCatastale']) ?></th><th class="text-end"><?= Html::e($campi['rendita']) ?></th>
                     <?php else: ?>
@@ -70,6 +71,7 @@ require Layout::percorso('header');
                 <?php foreach ($datiCatastaliStorico as $versione): ?>
                     <tr class="<?= $classeRiga($versione) ?>">
                         <td class="text-nowrap"><?= $periodo($versione) ?></td>
+                        <td title="<?= Html::e($versione->causale->getDescrizione()) ?>"><?= Html::e($versione->causale->getLabel()) ?></td>
                         <?php if ($fabbricato): ?>
                             <td title="<?= Html::e($versione->categoria?->getDescrizione() ?? '') ?>"><?= Html::e($versione->categoria?->value ?? '') ?></td>
                             <td><?= Html::e($versione->classe ?? '') ?></td>

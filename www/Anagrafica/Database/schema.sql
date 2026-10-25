@@ -238,6 +238,7 @@ CREATE TABLE IF NOT EXISTS `dati_catastali` (
   `immobile_id` INT UNSIGNED NOT NULL,
   `valido_dal` DATE NOT NULL,
   `valido_al` DATE NULL,
+  `causale` CHAR(1) NOT NULL COMMENT 'C costituzione o primo classamento, E variazione per interventi edilizi, V altra variazione',
   `categoria` VARCHAR(4) NULL COMMENT 'Solo fabbricati, es. A/2',
   `classe` VARCHAR(10) NULL,
   `consistenza` DECIMAL(10,2) NULL COMMENT 'Vani, mq o mc secondo la categoria',

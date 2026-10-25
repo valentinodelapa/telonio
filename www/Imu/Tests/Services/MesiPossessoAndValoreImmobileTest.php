@@ -5,6 +5,7 @@ namespace Imu\Tests\Services;
 use Anagrafica\Application\Entities\DatiCatastali;
 use Anagrafica\Application\Entities\Immobile;
 use Anagrafica\Application\Enumerations\CategoriaCatastale;
+use Anagrafica\Application\Enumerations\CausaleClassamento;
 use Anagrafica\Application\Enumerations\UtilizzoImmobile;
 use CommSuite\Tests\SuiteTestCase;
 use CommSuite\Tests\TestResultSet;
@@ -56,6 +57,7 @@ class MesiPossessoAndValoreImmobileTest extends SuiteTestCase
     public function testValoreImmobileFabbricatoTerrenoEContabile(): void
     {
         $dati = new DatiCatastali($this->dataMapper);
+        $dati->causale = CausaleClassamento::costituzione;
         $this->assertSame(0.0, ValoreImmobile::fabbricato($dati));
 
         // Categoria A/2 (moltiplicatore 160), rendita 1000 => 1000 * 1.05 * 160 = 168000

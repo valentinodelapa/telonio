@@ -3,6 +3,7 @@
 namespace Anagrafica\Application\Forms;
 
 use Anagrafica\Application\Entities\DatiCatastali;
+use Anagrafica\Application\Enumerations\CausaleClassamento;
 use Anagrafica\Application\Enumerations\TipoCatasto;
 use SismaFramework\Core\BaseClasses\BaseForm;
 use SismaFramework\Core\Enumerations\FilterType;
@@ -16,6 +17,20 @@ class DatiCatastaliForm extends BaseForm
 
     private const CAMPI_NUMERICI = ['consistenza', 'superficie', 'rendita', 'redditoDominicale', 'redditoAgrario'];
 
+    private ?string $prefissoPossesso = null;
+
+    /**
+     * Nel form combinato di inserimento dell'immobile con il possesso la
+     * decorrenza lasciata vuota è quella del possesso (campi inviati come
+     * prefisso[campo], vedi PossessoForm::conPrefisso): così il classamento
+     * copre tutto il possesso e non parte dal giorno dell'inserimento.
+     */
+    public function conDecorrenzaDelPossesso(string $prefisso): self
+    {
+        $this->prefissoPossesso = $prefisso;
+        return $this;
+    }
+
     #[\Override]
     protected static function getEntityName(): string
     {
@@ -25,6 +40,10 @@ class DatiCatastaliForm extends BaseForm
     #[\Override]
     protected function injectRequest(): void
     {
+        $possesso = $this->prefissoPossesso === null ? null : ($this->request->input[$this->prefissoPossesso] ?? null);
+        if (is_array($possesso) && is_string($possesso['validoDal'] ?? null) && (trim((string) ($this->request->input['validoDal'] ?? '')) === '')) {
+            $this->addRequest('validoDal', $possesso['validoDal']);
+        }
         foreach (self::CAMPI_NUMERICI as $campo) {
             if (isset($this->request->input[$campo]) && is_string($this->request->input[$campo])) {
                 $this->addRequest($campo, self::normalizzaNumero($this->request->input[$campo]));
@@ -51,6 +70,7 @@ class DatiCatastaliForm extends BaseForm
     {
         $this->addFilterFieldMode('validoDal', FilterType::isDate)
                 ->addFilterFieldMode('validoAl', FilterType::isDate, [], true)
+                ->addFilterFieldMode('causale', FilterType::isEnumeration)
                 ->addFilterFieldMode('classe', FilterType::isMaxLimitString, [10], true)
                 ->addFilterFieldMode('superficie', FilterType::isNumeric, [], true);
         if ($this->entity->immobile->tipoCatasto === TipoCatasto::fabbricati) {
@@ -79,6 +99,11 @@ class DatiCatastaliForm extends BaseForm
                 $this->formFilterError->{$campo . 'CustomMessage'} = 'Il valore non può essere negativo.';
                 $valido = false;
             }
+        }
+        $causale = $this->entityData->causale;
+        if (($causale !== null) && (in_array($causale, CausaleClassamento::getAmmesse($this->entity->immobile->tipoCatasto), true) === false)) {
+            $this->formFilterError->causaleCustomMessage = 'Causale non ammessa per i terreni.';
+            $valido = false;
         }
         $categoria = $this->entityData->categoria;
         if ($categoria !== null) {

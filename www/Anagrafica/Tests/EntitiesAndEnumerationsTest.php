@@ -16,6 +16,7 @@ use Anagrafica\Application\Entities\Possesso;
 use Anagrafica\Application\Entities\Recapito;
 use Anagrafica\Application\Entities\Soggetto;
 use Anagrafica\Application\Enumerations\CategoriaCatastale;
+use Anagrafica\Application\Enumerations\CausaleClassamento;
 use Anagrafica\Application\Enumerations\ClassificazioneAteco;
 use Anagrafica\Application\Enumerations\NaturaGiuridica;
 use Anagrafica\Application\Enumerations\RuoloLegame;
@@ -249,6 +250,12 @@ class EntitiesAndEnumerationsTest extends SuiteTestCase
         $this->assertFalse(CategoriaCatastale::a10->isAbitativa());
         $this->assertFalse(CategoriaCatastale::f1->haRendita());
         $this->assertTrue(CategoriaCatastale::a2->haRendita());
+        foreach (CausaleClassamento::cases() as $causale) {
+            $this->assertNotEmpty($causale->getLabel());
+            $this->assertNotEmpty($causale->getDescrizione());
+        }
+        $this->assertSame(CausaleClassamento::cases(), CausaleClassamento::getAmmesse(TipoCatasto::fabbricati));
+        $this->assertSame([CausaleClassamento::costituzione, CausaleClassamento::altraVariazione], CausaleClassamento::getAmmesse(TipoCatasto::terreni));
 
         $this->assertSame(ClassificazioneAteco::ateco2022, ClassificazioneAteco::vigenteAl(new \DateTimeImmutable('2025-03-31')));
         $this->assertSame(ClassificazioneAteco::ateco2025, ClassificazioneAteco::vigenteAl(new \DateTimeImmutable('2025-04-01')));

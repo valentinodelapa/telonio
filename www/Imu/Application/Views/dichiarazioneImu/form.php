@@ -6,7 +6,9 @@ use CommSuite\Application\HelperClasses\Layout;
 use Imu\Application\Forms\DichiarazioneImuForm;
 
 $urlAnnulla = '/dichiarazione-imu/show/dichiarazione/' . $dichiarazione->id;
-$dichiaranteCorrente = $dichiarazione->dichiarante === null ? null : $dichiarazione->dichiarante->nominativo . ' - ' . $dichiarazione->dichiarante->codiceFiscale;
+// dopo un invio con errori il dichiarante è quello inviato, non quello dell'entità
+$dichiaranteScelto = isset($formEntity->dichiarante) ? $formEntity->dichiarante : null;
+$dichiaranteCorrente = $dichiaranteScelto === null ? null : $dichiaranteScelto->nominativo . ' - ' . $dichiaranteScelto->codiceFiscale;
 $intermediariScelte = [];
 foreach ($intermediari as $intermediario) {
     $intermediariScelte[$intermediario->id] = $intermediario->soggetto->nominativo . ' - ' . $intermediario->soggetto->codiceFiscale;

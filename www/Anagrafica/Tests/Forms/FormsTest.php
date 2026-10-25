@@ -233,6 +233,7 @@ class FormsTest extends SuiteTestCase
         $form = new DatiCatastaliForm($dc, $this->dataMapper);
         $form->handleRequest($this->creaRequest([
             'validoDal' => '2024-01-01',
+            'causale' => 'C',
             'categoria' => CategoriaCatastale::a2->value,
             'classe' => ' 3 ',
             'consistenza' => '5,5',
@@ -247,11 +248,59 @@ class FormsTest extends SuiteTestCase
         $formErr = new DatiCatastaliForm($dc, $this->dataMapper);
         $formErr->handleRequest($this->creaRequest([
             'validoDal' => '2024-01-01',
+            'causale' => 'C',
             'categoria' => CategoriaCatastale::f1->value,
             'rendita' => '100',
         ]));
         $this->assertFalse($formErr->isValid());
         $this->assertNotEmpty($formErr->getFilterErrors()->renditaCustomMessage);
+
+        // Form combinato con il possesso: decorrenza vuota = inizio del possesso, indicata = quella
+        $dcPossesso = new DatiCatastali($this->dataMapper);
+        $dcPossesso->immobile = $immobile;
+        $formPossesso = (new DatiCatastaliForm($dcPossesso, $this->dataMapper))->conDecorrenzaDelPossesso('possesso');
+        $formPossesso->handleRequest($this->creaRequest([
+            'validoDal' => '',
+            'causale' => 'C',
+            'categoria' => CategoriaCatastale::a2->value,
+            'rendita' => '500',
+            'possesso' => ['validoDal' => '2010-03-15'],
+        ]));
+        $this->assertTrue($formPossesso->isValid());
+        $this->assertSame('2010-03-15', $formPossesso->resolveEntity()->validoDal->format('Y-m-d'));
+        $dcIndicata = new DatiCatastali($this->dataMapper);
+        $dcIndicata->immobile = $immobile;
+        $formIndicata = (new DatiCatastaliForm($dcIndicata, $this->dataMapper))->conDecorrenzaDelPossesso('possesso');
+        $formIndicata->handleRequest($this->creaRequest([
+            'validoDal' => '2020-01-01',
+            'causale' => 'E',
+            'categoria' => CategoriaCatastale::a2->value,
+            'rendita' => '500',
+            'possesso' => ['validoDal' => '2010-03-15'],
+        ]));
+        $this->assertTrue($formIndicata->isValid());
+        $this->assertSame('2020-01-01', $formIndicata->resolveEntity()->validoDal->format('Y-m-d'));
+        $this->assertSame('E', $formIndicata->resolveEntity()->causale->value);
+
+        // Terreni: niente variazioni per interventi edilizi; causale obbligatoria
+        $terreno = new Immobile($this->dataMapper);
+        $terreno->tipoCatasto = TipoCatasto::terreni;
+        foreach (['E' => 'causaleCustomMessage', '' => null] as $causale => $messaggio) {
+            $dcTerreno = new DatiCatastali($this->dataMapper);
+            $dcTerreno->immobile = $terreno;
+            $formTerreno = new DatiCatastaliForm($dcTerreno, $this->dataMapper);
+            $formTerreno->handleRequest($this->creaRequest([
+                'validoDal' => '2024-01-01',
+                'causale' => $causale,
+                'qualitaColtura' => 'SEMINATIVO',
+                'redditoDominicale' => '10',
+                'redditoAgrario' => '8',
+            ]));
+            $this->assertFalse($formTerreno->isValid());
+            if ($messaggio !== null) {
+                $this->assertNotEmpty($formTerreno->getFilterErrors()->$messaggio);
+            }
+        }
     }
 
     public function testIndirizzoLegamePossessoContoDocumentoRecapitoForms(): void

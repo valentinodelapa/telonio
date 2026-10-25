@@ -3,6 +3,7 @@
 namespace Anagrafica\Application\Fixtures;
 
 use Anagrafica\Application\Entities\DatiCatastali;
+use Anagrafica\Application\Enumerations\CausaleClassamento;
 use SismaFramework\Core\BaseClasses\BaseFixture;
 use SismaFramework\Orm\CustomTypes\SismaDate;
 
@@ -24,6 +25,7 @@ class DatiCatastaliTerrenoVerdiFixture extends BaseFixture
         $datiCatastali = new DatiCatastali($this->dataMapper);
         $datiCatastali->immobile = $this->getEntityByFixtureName(ImmobileTerrenoVerdiFixture::class);
         $datiCatastali->validoDal = new SismaDate('2018-06-01');
+        $datiCatastali->causale = CausaleClassamento::costituzione;
         $datiCatastali->classe = '2';
         $datiCatastali->superficie = 12000.0;
         $datiCatastali->qualitaColtura = 'SEMINATIVO';

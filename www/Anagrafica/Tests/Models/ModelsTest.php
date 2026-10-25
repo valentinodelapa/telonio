@@ -211,6 +211,17 @@ class ModelsTest extends SuiteTestCase
         $this->assertSame($dc, $dcModel->getVigenteAl($immobile, new \DateTimeImmutable('2025-01-01')));
         $this->testAdapter->accodaSelect(new TestResultSet([$dc]));
         $this->assertNull($dcModel->getVigenteAl($immobile, new \DateTimeImmutable('2019-01-01')));
+        // prima del primo classamento: il primo successivo (presunto); alla data: quello vigente
+        $dcPrecedente = new DatiCatastali($this->dataMapper);
+        $dcPrecedente->id = 2;
+        $dcPrecedente->validoDal = new SismaDate('2018-06-01');
+        $dcPrecedente->validoAl = new SismaDate('2019-12-31');
+        $this->testAdapter->accodaSelect(new TestResultSet([$dc, $dcPrecedente]));
+        $this->assertSame($dcPrecedente, $dcModel->getVigenteOSuccessivo($immobile, new \DateTimeImmutable('2010-01-01')));
+        $this->testAdapter->accodaSelect(new TestResultSet([$dc, $dcPrecedente]));
+        $this->assertSame($dc, $dcModel->getVigenteOSuccessivo($immobile, new \DateTimeImmutable('2025-01-01')));
+        $this->testAdapter->accodaSelect(new TestResultSet([]));
+        $this->assertNull($dcModel->getVigenteOSuccessivo($immobile, new \DateTimeImmutable('2025-01-01')));
 
         // IndirizzoModel
         $ind = new Indirizzo($this->dataMapper);

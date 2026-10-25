@@ -3,6 +3,7 @@
 namespace Successioni\Application\Fixtures;
 
 use Anagrafica\Application\Entities\DatiCatastali;
+use Anagrafica\Application\Enumerations\CausaleClassamento;
 use SismaFramework\Core\BaseClasses\BaseFixture;
 use SismaFramework\Orm\CustomTypes\SismaDate;
 
@@ -24,6 +25,7 @@ class DatiCatastaliTerrenoEspositoFixture extends BaseFixture
         $datiCatastali = new DatiCatastali($this->dataMapper);
         $datiCatastali->immobile = $this->getEntityByFixtureName(ImmobileTerrenoEspositoFixture::class);
         $datiCatastali->validoDal = new SismaDate('1990-01-01');
+        $datiCatastali->causale = CausaleClassamento::costituzione;
         $datiCatastali->superficie = 12500.0;
         $datiCatastali->qualitaColtura = 'Seminativo';
         $datiCatastali->redditoDominicale = 80.0;

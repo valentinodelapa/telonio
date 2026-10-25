@@ -347,7 +347,7 @@ class GeneratoreDichiarazioneImu
             return;
         }
         $immobile = $rigo->immobile;
-        $datiCatastali = (new DatiCatastaliModel($this->dataMapper))->getVigenteAl($immobile, $rigo->dataVariazione ?? new \DateTimeImmutable($rigo->dichiarazioneImu->anno . '-12-31'));
+        $datiCatastali = (new DatiCatastaliModel($this->dataMapper))->getVigenteOSuccessivo($immobile, $rigo->dataVariazione ?? new \DateTimeImmutable($rigo->dichiarazioneImu->anno . '-12-31'));
         $terreno = $immobile->tipoCatasto->value === 'T';
         $record->imposta($campo('catasto'), $terreno ? 'T' : 'U')
                 ->impostaTroncato($campo('sezione'), $immobile->sezione)

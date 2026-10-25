@@ -112,13 +112,15 @@ class VersamentoController extends DelegheController
         $this->impostaVariabiliForm($form, $versamento);
         $this->vars['versamento'] = $versamento;
         $this->vars['sezione'] = $versamento->sezione;
-        $this->vars['codiceTributoCorrente'] = $versamento->codiceTributo?->getEtichetta();
+        // dopo un invio con errori il codice è quello inviato, non quello dell'entità
+        $codiceTributo = $this->vars['formEntity']->codiceTributo ?? null;
+        $this->vars['codiceTributoCorrente'] = $codiceTributo?->getEtichetta();
         $tabelle = new CodiceTabellaF24Model($this->dataMapper);
         $this->vars['regioni'] = $versamento->sezione === SezioneF24::regioni ? $tabelle->getVoci(TabellaF24::regioni) : [];
         $this->vars['altriEnti'] = $versamento->sezione === SezioneF24::altriEnti ? $tabelle->getVoci(TabellaF24::altriEnti) : [];
         $this->vars['tipiElide'] = $versamento->sezione === SezioneF24::elide ? $tabelle->getVoci(TabellaF24::tipiElide) : [];
-        $this->vars['formatoRateazione'] = $versamento->codiceTributo?->getDescrizioneRateazione();
-        $this->vars['descrizioneIdentificativo'] = $versamento->codiceTributo?->codiceIdentificativoEnte;
+        $this->vars['formatoRateazione'] = $codiceTributo?->getDescrizioneRateazione();
+        $this->vars['descrizioneIdentificativo'] = $codiceTributo?->codiceIdentificativoEnte;
         $this->vars['pageTitle'] = $titolo;
         if ($versamento->delega === null) {
             $this->impostaBricioleContribuente($versamento->soggetto, $titolo);

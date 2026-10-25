@@ -10,6 +10,7 @@ use Anagrafica\Application\Entities\Nazione;
 use Anagrafica\Application\Entities\Recapito;
 use Anagrafica\Application\Entities\Soggetto;
 use Anagrafica\Application\Enumerations\CategoriaCatastale;
+use Anagrafica\Application\Enumerations\CausaleClassamento;
 use Anagrafica\Application\Enumerations\Sesso;
 use Anagrafica\Application\Enumerations\TipoCatasto;
 use Anagrafica\Application\Enumerations\TipoIndirizzo;
@@ -113,6 +114,7 @@ class TelematicoAndTabelleTest extends SuiteTestCase
         $immobile->numeroCivico = '100';
 
         $dc = new DatiCatastali($this->dataMapper);
+        $dc->causale = CausaleClassamento::costituzione;
         $dc->id = 1;
         $dc->immobile = $immobile;
         $dc->categoria = CategoriaCatastale::a2;

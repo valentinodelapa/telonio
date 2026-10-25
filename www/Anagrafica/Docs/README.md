@@ -14,6 +14,11 @@ sullo schema del progetto, in quest'ordine:
 3. `Anagrafica/Database/dati-riferimento.sql` (comuni e stati esteri:
    necessari anche in produzione, vedi "Tabelle di riferimento")
 
+Sui database creati con le versioni precedenti alla 0.3.0 eseguire
+`Anagrafica/Database/aggiornamento-0.3.sql` (causale dei dati catastali,
+idempotente; elenca le variazioni dei fabbricati da verificare) ed
+eliminare `Cache/referenceCache.json`.
+
 Per lo sviluppo, i dati demo (studio, utente `admin`/`admin`, una società
 con storico di denominazione, sede e soci, una ditta individuale divenuta
 impresa familiare con collaboratrice, persone fisiche, tre immobili con
@@ -80,7 +85,26 @@ catastali e il possesso del soggetto; se l'identificativo catastale esiste
 già nello studio l'immobile viene riusato e si registra solo il possesso.
 
 - **Dati catastali** storicizzati: una variazione catastale (nuova rendita,
-  cambio di categoria) è una nuova versione con la sua decorrenza.
+  cambio di categoria) è una nuova versione con la sua decorrenza e la sua
+  **causale** (`CausaleClassamento`): costituzione o primo classamento
+  registrato, variazione per interventi edilizi (solo fabbricati; decorrenza
+  dall'ultimazione dei lavori o, se prima, dall'utilizzo), altra variazione
+  (revisione o classamento d'ufficio, qualità o coltura, ...). La causale
+  serve ai moduli che applicano le rendite con regole proprie: per l'IMU le
+  variazioni non edilizie valgono dal 1° gennaio successivo (art. 1, c. 745,
+  L. 160/2019). Correggere un dato, o la rendita proposta rettificata
+  dall'Agenzia, non è una variazione: si rettifica la versione, che mantiene
+  decorrenza e causale. Per la rendita proposta con il Docfa (art. 1, c. 3,
+  D.M. 701/1994) e poi rettificata, la notifica (art. 74, c. 1, L. 342/2000)
+  è condizione di efficacia ma non ha effetto costitutivo: una volta
+  notificata, la rendita definitiva si applica anche ai periodi d'imposta
+  precedenti ancora suscettibili di accertamento, liquidazione o rimborso
+  (Cass. SS.UU. 9 febbraio 2011, n. 3160; Agenzia delle Entrate, circolare
+  n. 7/E del 17 marzo 2022, par. 3). Rettificando la versione, i moduli
+  ricalcolano gli anni aperti con la rendita definitiva.
+  Inserendo l'immobile dalla scheda del soggetto la decorrenza dei primi
+  dati catastali, se non indicata, è quella del possesso: il classamento
+  copre tutto il possesso e non parte dal giorno dell'inserimento.
 - **Possesso** storicizzato per soggetto, immobile e titolo: acquisti,
   cessioni di quote e cambi di utilizzo (es. da abitazione principale a
   locato) sono variazioni.
@@ -92,7 +116,10 @@ già nello studio l'immobile viene riusato e si registra solo il possesso.
 Per gli altri moduli (redditi fondiari, IMU):
 
 ```php
+// dati catastali vigenti alla data (per la decorrenza ai fini dei tributi vedi la causale)
 $classamento = (new DatiCatastaliModel($dataMapper))->getVigenteAl($immobile, new SismaDate('2025-12-31'));
+// in mancanza di dati alla data, i primi successivi (classamento presunto)
+$classamento = (new DatiCatastaliModel($dataMapper))->getVigenteOSuccessivo($immobile, new SismaDate('2010-01-01'));
 $possessori = (new PossessoModel($dataMapper))->getVigentiAl($immobile, new SismaDate('2025-12-31'));
 ```
 

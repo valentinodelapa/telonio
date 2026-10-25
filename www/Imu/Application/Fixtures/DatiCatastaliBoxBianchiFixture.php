@@ -3,6 +3,7 @@
 namespace Imu\Application\Fixtures;
 
 use Anagrafica\Application\Entities\DatiCatastali;
+use Anagrafica\Application\Enumerations\CausaleClassamento;
 use Anagrafica\Application\Enumerations\CategoriaCatastale;
 use SismaFramework\Core\BaseClasses\BaseFixture;
 use SismaFramework\Orm\CustomTypes\SismaDate;
@@ -25,6 +26,7 @@ class DatiCatastaliBoxBianchiFixture extends BaseFixture
         $datiCatastali = new DatiCatastali($this->dataMapper);
         $datiCatastali->immobile = $this->getEntityByFixtureName(ImmobileBoxBianchiFixture::class);
         $datiCatastali->validoDal = new SismaDate('2005-06-01');
+        $datiCatastali->causale = CausaleClassamento::costituzione;
         $datiCatastali->categoria = CategoriaCatastale::c6;
         $datiCatastali->classe = '8';
         $datiCatastali->consistenza = 18.0;
