@@ -561,6 +561,12 @@ class CalcoloImposta
         } elseif ($prospetto['prospetto']->isPubblicato() && ($prospetto['prospetto']->dataPubblicazione !== null) && ($prospetto['prospetto']->dataPubblicazione->format('Y-m-d') > $anno . '-10-28')) {
             $this->risultato->avviso($this->risultato->comuni[$comune] . ' ' . $anno . ': prospetto pubblicato il ' . $prospetto['prospetto']->dataPubblicazione->format('d/m/Y') . ', dopo il 28 ottobre: verificare se è applicabile (comma 767).');
         }
+        // l'acconto si calcola con le aliquote dell'anno precedente (comma 762): segnalarne il prospetto mancante (il 2020 ha il suo avviso)
+        $prospettoPrecedente = $this->aliquote->getProspetto($comune, $anno - 1, $exComune);
+        if (($anno > 2020) && ($prospettoPrecedente['prospetto'] === null)) {
+            $this->risultato->avviso($this->risultato->comuni[$comune] . ' ' . $anno . ': acconto con le aliquote del ' . ($anno - 1) . ', ' . $prospettoPrecedente['origine']
+                    . '; importa il prospetto ' . ($anno - 1) . ' o inserisci le aliquote del comune.');
+        }
         if (($exComune === null) && $this->aliquote->hasExComuni($comune, $anno)) {
             $this->risultato->avviso($descrizione . ': il comune applica aliquote diverse negli ex comuni, indicare l\'ex comune nelle caratteristiche IMU.');
         }

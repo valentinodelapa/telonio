@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.1-alpha] - 2026-10-25 - Avviso sulle Aliquote dell'Acconto IMU
+
+Versione di correzione: in `Imu` il calcolo segnala il prospetto delle aliquote dell'anno precedente mancante, con cui si determina l'acconto. Valgono le avvertenze della 0.1.0-alpha: la versione non è indicata per l'uso in produzione su dati reali.
+
+Versioni dei moduli: `Imu` 0.2.1; `CommSuite` 0.2.0, `Anagrafica` 0.3.0, `Deleghe` 0.1.3 e `Successioni` 0.2.1 invariati.
+
+### 🐛 Correzioni
+
+#### `Imu`
+
+- **prospetto dell'anno precedente mancante non segnalato**: l'acconto si calcola con le aliquote dell'anno precedente (comma 762); se il prospetto di quell'anno non era in archivio (es. non importato) l'acconto usava le aliquote di base di legge senza alcun avviso, con un saldo diverso dall'acconto senza spiegazione. Ora il calcolo lo segnala, invitando a importare il prospetto o a inserire le aliquote del comune.
+
+### 🔄 Aggiornamento da 0.5.0-alpha
+
+Nessuna modifica al database.
+
 ## [0.5.0-alpha] - 2026-10-25 - Causale Catastale e Decorrenza delle Rendite
 
 Quinta versione alpha: causale delle variazioni catastali e decorrenza dei dati catastali dal possesso in `Anagrafica`; in `Imu` decorrenza delle rendite secondo l'art. 1, comma 745, L. 160/2019 (rendite vigenti al 1° gennaio, variazioni per interventi edilizi dall'ultimazione dei lavori) e classamento presunto per il possesso anteriore al primo classamento registrato; correzioni ai form con autocompletamento di `Deleghe` e `Imu`. Richiede l'aggiornamento del database. Valgono le avvertenze della 0.1.0-alpha: la versione non è indicata per l'uso in produzione su dati reali.

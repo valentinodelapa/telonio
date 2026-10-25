@@ -379,6 +379,8 @@ class CalcoloImpostaAndElaborazioneTest extends SuiteTestCase
         $this->assertEqualsWithDelta(1444.80, $imposta($risultato), 0.01);
         $this->assertStringContainsString('efficace dal 01/01/2026 (comma 745)', implode(' ', array_map(fn(RigoCalcoloImu $rigo) => (string) $rigo->note, $risultato->righi)));
         $this->assertStringContainsString('per l\'IMU vale dal 01/01/2026', implode(' ', $risultato->avvisi));
+        // acconto con le aliquote dell'anno precedente: prospetto 2024 mancante segnalato
+        $this->assertStringContainsString('acconto con le aliquote del 2024', implode(' ', $risultato->avvisi));
         $this->assertEqualsWithDelta(2889.60, $imposta((new CalcoloImposta($this->dataMapper))->calcola($soggetto, 2026)), 0.01);
     }
 
