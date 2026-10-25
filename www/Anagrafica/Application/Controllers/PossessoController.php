@@ -26,6 +26,7 @@ class PossessoController extends AnagraficaController
 
     private const RITORNO_SOGGETTO = 'soggetto';
     private const RITORNO_IMMOBILE = 'immobile';
+    private const PROPRIETA_VARIAZIONE = ['immobile', 'soggetto', 'titolo', 'quota', 'utilizzo'];
 
     /**
      * Da un immobile (/possesso/create/immobile/ID) si sceglie il soggetto,
@@ -47,6 +48,28 @@ class PossessoController extends AnagraficaController
         return $this->gestisci($request, $possesso, $immobile !== null ? self::RITORNO_IMMOBILE : self::RITORNO_SOGGETTO, 'Nuovo possesso', 'Possesso registrato.');
     }
 
+    /**
+     * Variazione del possesso (es. quota aumentata per successione, cambio di
+     * utilizzo): parte dalla versione più recente dello stesso soggetto,
+     * immobile e titolo, che viene chiusa il giorno prima della decorrenza.
+     * Il titolo non cambia: un diritto diverso è un altro possesso.
+     */
+    public function variazione(Request $request, Possesso $possesso, string $ritorno = self::RITORNO_SOGGETTO): Response
+    {
+        $this->autorizzaImmobile($possesso->immobile);
+        $ultima = $possesso;
+        foreach ((new PossessoModel($this->dataMapper))->getAmbito($possesso) as $versione) {
+            if ($versione->validoDal->format('Y-m-d') > $ultima->validoDal->format('Y-m-d')) {
+                $ultima = $versione;
+            }
+        }
+        $variazione = new Possesso($this->dataMapper);
+        foreach (self::PROPRIETA_VARIAZIONE as $proprieta) {
+            $variazione->$proprieta = $ultima->$proprieta;
+        }
+        return $this->gestisci($request, $variazione, $ritorno, 'Variazione possesso', 'Variazione del possesso registrata.', true);
+    }
+
     public function update(Request $request, Possesso $possesso, string $ritorno = self::RITORNO_SOGGETTO): Response
     {
         $this->autorizzaImmobile($possesso->immobile);
@@ -60,23 +83,28 @@ class PossessoController extends AnagraficaController
         return $this->eliminaVersione($request, $possesso, $ambito, fn(Possesso $eliminato) => $this->esito($eliminato, $ritorno, 'Possesso eliminato.'));
     }
 
-    private function gestisci(Request $request, Possesso $possesso, string $ritorno, string $titolo, string $messaggio): Response
+    private function gestisci(Request $request, Possesso $possesso, string $ritorno, string $titolo, string $messaggio, bool $variazione = false): Response
     {
         $form = new PossessoForm($possesso);
         $possessoModel = new PossessoModel($this->dataMapper);
+        $titoloPossesso = $variazione ? $possesso->titolo : null;
         $risposta = $this->registraVersione($request, $form, $possesso,
                 fn(Possesso $versione) => $possessoModel->getAmbito($versione),
                 fn(Possesso $salvato) => $this->esito($salvato, $ritorno, $messaggio),
-                ['quota' => fn(Possesso $versione) => (new ControlloQuote($this->dataMapper))->verifica($versione)]);
+                [
+                    'titolo' => fn(Possesso $versione) => (($titoloPossesso !== null) && ($versione->titolo !== $titoloPossesso)) ? 'Con una variazione il titolo non cambia: per un diritto diverso registra un nuovo possesso.' : null,
+                    'quota' => fn(Possesso $versione) => (new ControlloQuote($this->dataMapper))->verifica($versione),
+        ]);
         if ($risposta !== null) {
             return $risposta;
         }
         $this->impostaVariabiliForm($form, $possesso);
         $this->vars['possesso'] = $possesso;
         $this->vars['ritorno'] = $ritorno;
-        $this->vars['titoli'] = TitoloPossesso::cases();
+        $this->vars['titoli'] = $variazione ? [$titoloPossesso] : TitoloPossesso::cases();
         $this->vars['utilizzi'] = UtilizzoImmobile::cases();
         $this->vars['nuovo'] = isset($possesso->id) === false;
+        $this->vars['variazione'] = $variazione;
         $this->vars['pageTitle'] = $titolo;
         $this->vars['urlAnnulla'] = $this->getUrlRitorno($possesso, $ritorno);
         $this->vars['briciole'] = ['Anagrafica' => '/soggetto/index', $titolo => null];

@@ -18,6 +18,7 @@ require Layout::percorso('header');
     <?php if ($immobileFisso && $soggettoFisso): ?> · <?php endif; ?>
     <?php if ($soggettoFisso): ?><?= Html::e($possesso->soggetto->nominativo) ?><?php endif; ?>
     <?php if (!$nuovo): ?> · <?= Html::e($aiutoRettifica) ?><?php endif; ?>
+    <?php if ($variazione): ?> · <?= Html::e($aiutoVariazione) ?><?php endif; ?>
 </p>
 
 <form method="post" novalidate>

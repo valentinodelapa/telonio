@@ -107,7 +107,14 @@ già nello studio l'immobile viene riusato e si registra solo il possesso.
   copre tutto il possesso e non parte dal giorno dell'inserimento.
 - **Possesso** storicizzato per soggetto, immobile e titolo: acquisti,
   cessioni di quote e cambi di utilizzo (es. da abitazione principale a
-  locato) sono variazioni.
+  locato) sono variazioni. Il pulsante "Nuova variazione" della riga del
+  possesso in vigore (schede del soggetto e dell'immobile) apre il form con
+  la versione più recente: si indicano la decorrenza e la nuova quota o il
+  nuovo utilizzo, e la versione precedente si chiude il giorno prima. Il
+  titolo resta fisso: un diritto diverso è un altro possesso. Es. figlio
+  erede del 16,67% alla morte del primo genitore e di un altro 33,33% alla
+  morte del secondo: variazione del suo possesso al 50% dalla seconda
+  successione (il modulo `Successioni` la propone con le volture).
 - **Quote**: alla decorrenza di un possesso, la somma delle quote non può
   superare il 100% per componente del diritto: la piena proprietà conta sia
   come titolarità sia come godimento, la nuda proprietà come titolarità,

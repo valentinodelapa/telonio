@@ -17,10 +17,13 @@ use Anagrafica\Application\Entities\CodiceAteco;
 use Anagrafica\Application\Entities\Comune;
 use Anagrafica\Application\Entities\Immobile;
 use Anagrafica\Application\Entities\Nazione;
+use Anagrafica\Application\Entities\Possesso;
 use Anagrafica\Application\Entities\Soggetto;
 use Anagrafica\Application\Enumerations\TipoCatasto;
 use Anagrafica\Application\Enumerations\TipoIndirizzo;
 use Anagrafica\Application\Enumerations\TipoSoggetto;
+use Anagrafica\Application\Enumerations\TitoloPossesso;
+use Anagrafica\Application\Enumerations\UtilizzoImmobile;
 use Anagrafica\Application\Services\TabelleRiferimento\ArchivioComuniAnpr;
 use Anagrafica\Application\Services\TabelleRiferimento\ClassificazioniAtecoIstat;
 use Anagrafica\Application\Services\TabelleRiferimento\GeneratoreSql;
@@ -282,6 +285,53 @@ class ControllersAndCommandsTest extends SuiteTestCase
         $recController = new RecapitoController($this->dataMapper);
         $recController->create($this->creaRequest([], [], [], 'GET'), $soggetto);
         $this->assertSame('recapito/form', $cattura->ultimaVista);
+    }
+
+    public function testPossessoControllerVariazione(): void
+    {
+        $soggetto = $this->preparaSessione();
+        $cattura = $this->catturaRenderERouter();
+        $comune = new Comune($this->dataMapper);
+        $comune->id = 1;
+        $comune->denominazione = 'Roma';
+        $comune->codiceCatastale = 'H501';
+        $immobile = new Immobile($this->dataMapper);
+        $immobile->id = 50;
+        $immobile->studio = $soggetto->studio;
+        $immobile->tipoCatasto = TipoCatasto::fabbricati;
+        $immobile->comune = $comune;
+        $immobile->foglio = '1';
+        $immobile->particella = '2';
+        // quota ereditata dal primo genitore, poi aumentata alla morte del secondo
+        $crea = function (int $id, string $dal, float $quota, ?string $al) use ($soggetto, $immobile): Possesso {
+            $possesso = new Possesso($this->dataMapper);
+            $possesso->id = $id;
+            $possesso->soggetto = $soggetto;
+            $possesso->immobile = $immobile;
+            $possesso->titolo = TitoloPossesso::proprieta;
+            $possesso->quota = $quota;
+            $possesso->utilizzo = UtilizzoImmobile::aDisposizione;
+            $possesso->validoDal = new SismaDate($dal);
+            $possesso->validoAl = $al === null ? null : new SismaDate($al);
+            return $possesso;
+        };
+        $prima = $crea(1, '2015-03-01', 16.67, '2024-05-09');
+        $ultima = $crea(2, '2024-05-10', 50.0, null);
+        $this->testAdapter->impostaSelectCallback(fn(string $query): TestResultSet => str_contains($query, 'possesso') ? new TestResultSet([$prima, $ultima]) : new TestResultSet([$this->utenteCorrente]));
+
+        // dalla versione più vecchia la variazione parte comunque dalla più recente, con il titolo fisso
+        (new PossessoController($this->dataMapper))->variazione($this->creaRequest([], [], [], 'GET'), $prima);
+        $this->assertSame('possesso/form', $cattura->ultimaVista);
+        $this->assertTrue($cattura->ultimeVars['variazione']);
+        $this->assertSame([TitoloPossesso::proprieta], $cattura->ultimeVars['titoli']);
+        $this->assertSame(50.0, $cattura->ultimeVars['formEntity']->quota);
+        $this->assertSame(UtilizzoImmobile::aDisposizione, $cattura->ultimeVars['formEntity']->utilizzo);
+        $this->assertFalse(isset($cattura->ultimeVars['formEntity']->id));
+
+        // la rettifica resta una rettifica
+        (new PossessoController($this->dataMapper))->update($this->creaRequest([], [], [], 'GET'), $ultima);
+        $this->assertFalse($cattura->ultimeVars['variazione']);
+        $this->assertSame(TitoloPossesso::cases(), $cattura->ultimeVars['titoli']);
     }
 
     public function testPossessoControllerEccezioneParametri(): void

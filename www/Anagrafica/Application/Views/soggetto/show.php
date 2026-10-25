@@ -26,6 +26,7 @@ $pulsanteElimina = function (string $url) use ($csrfToken, $confermaElimina, $az
             . '<button type="submit" class="btn btn-sm btn-outline-danger" title="' . Html::e($azioni['elimina']) . '"><i class="bi bi-trash"></i></button></form>';
 };
 $pulsanteModifica = fn(string $url): string => '<a href="' . Html::e($url) . '" class="btn btn-sm btn-outline-secondary" title="' . Html::e($azioni['rettifica']) . '"><i class="bi bi-pencil"></i></a>';
+$pulsanteVariazione = fn(string $url): string => '<a href="' . Html::e($url) . '" class="btn btn-sm btn-outline-primary" title="' . Html::e($azioni['variazione']) . '"><i class="bi bi-plus-lg"></i></a>';
 $periodo = fn($versione): string => Html::data($versione->validoDal) . ' → ' . ($versione->validoAl === null ? '…' : Html::data($versione->validoAl));
 $classeRiga = fn($versione): string => $versione->isVigenteAl($dataRiferimento) ? 'table-success' : 'storico-non-vigente';
 $badgeVigente = fn($versione): string => $versione->isVigenteAl($dataRiferimento) ? '<span class="badge text-bg-success">' . Html::e($vigente) . '</span>' : '';
@@ -356,7 +357,7 @@ require Layout::percorso('header');
                                 <td class="small"><?= Html::e($possesso->utilizzo?->getLabel() ?? '') ?></td>
                                 <td class="text-nowrap"><?= $periodo($possesso) ?></td>
                                 <td><?= $badgeVigente($possesso) ?></td>
-                                <td class="text-end text-nowrap"><?= $pulsanteModifica('/possesso/update/possesso/' . $possesso->id . '/ritorno/soggetto') ?> <?= $pulsanteElimina('/possesso/delete/possesso/' . $possesso->id . '/ritorno/soggetto') ?></td>
+                                <td class="text-end text-nowrap"><?= $possesso->isAperto() ? $pulsanteVariazione('/possesso/variazione/possesso/' . $possesso->id . '/ritorno/soggetto') : '' ?> <?= $pulsanteModifica('/possesso/update/possesso/' . $possesso->id . '/ritorno/soggetto') ?> <?= $pulsanteElimina('/possesso/delete/possesso/' . $possesso->id . '/ritorno/soggetto') ?></td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>

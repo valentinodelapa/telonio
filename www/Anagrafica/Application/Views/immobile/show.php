@@ -12,6 +12,7 @@ $periodo = fn($versione): string => Html::data($versione->validoDal) . ' → ' .
 $classeRiga = fn($versione): string => $versione->isVigenteAl($dataRiferimento) ? 'table-success' : 'storico-non-vigente';
 $badgeVigente = fn($versione): string => $versione->isVigenteAl($dataRiferimento) ? '<span class="badge text-bg-success">' . Html::e($vigente) . '</span>' : '';
 $pulsanteModifica = fn(string $url): string => '<a href="' . Html::e($url) . '" class="btn btn-sm btn-outline-secondary" title="' . Html::e($azioni['rettifica']) . '"><i class="bi bi-pencil"></i></a>';
+$pulsanteVariazione = fn(string $url): string => '<a href="' . Html::e($url) . '" class="btn btn-sm btn-outline-primary" title="' . Html::e($azioni['variazione']) . '"><i class="bi bi-plus-lg"></i></a>';
 $pulsanteElimina = function (string $url) use ($csrfToken, $confermaElimina, $azioni): string {
     return '<form method="post" action="' . Html::e($url) . '" class="d-inline" data-conferma="' . Html::e($confermaElimina) . '">'
             . '<input type="hidden" name="' . Html::e(\Config\CSRF_TOKEN_KEY) . '" value="' . Html::e($csrfToken) . '">'
@@ -133,7 +134,7 @@ require Layout::percorso('header');
                             <td><?= Html::e($possesso->utilizzo?->getLabel() ?? '') ?></td>
                             <td class="text-nowrap"><?= $periodo($possesso) ?></td>
                             <td><?= $badgeVigente($possesso) ?></td>
-                            <td class="text-end text-nowrap"><?= $pulsanteModifica('/possesso/update/possesso/' . $possesso->id . '/ritorno/immobile') ?> <?= $pulsanteElimina('/possesso/delete/possesso/' . $possesso->id . '/ritorno/immobile') ?></td>
+                            <td class="text-end text-nowrap"><?= $possesso->isAperto() ? $pulsanteVariazione('/possesso/variazione/possesso/' . $possesso->id . '/ritorno/immobile') : '' ?> <?= $pulsanteModifica('/possesso/update/possesso/' . $possesso->id . '/ritorno/immobile') ?> <?= $pulsanteElimina('/possesso/delete/possesso/' . $possesso->id . '/ritorno/immobile') ?></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>

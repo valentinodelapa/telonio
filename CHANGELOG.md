@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.0-alpha] - 2026-10-25 - Variazione del Possesso
+
+Sesta versione alpha: in `Anagrafica` la variazione del possesso (quota o utilizzo) dalla scheda del soggetto o dell'immobile, con chiusura automatica della versione precedente. Valgono le avvertenze della 0.1.0-alpha: la versione non è indicata per l'uso in produzione su dati reali.
+
+Versioni dei moduli: `Anagrafica` 0.4.0; `CommSuite` 0.2.0, `Deleghe` 0.1.3, `Imu` 0.2.1 e `Successioni` 0.2.1 invariati.
+
+### ✨ Nuove Funzionalità
+
+#### `Anagrafica`
+
+- **variazione del possesso**: pulsante "Nuova variazione" sulle righe dei possessi in vigore nelle schede del soggetto e dell'immobile (`/possesso/variazione`). Il form parte dalla versione più recente dello stesso soggetto, immobile e titolo (quota e utilizzo); alla decorrenza indicata la versione precedente si chiude il giorno prima, con il controllo della somma delle quote. Il titolo non si cambia con una variazione. Prima la variazione si otteneva solo con "Nuovo possesso" sullo stesso immobile e titolo, e il pulsante della riga era solo la rettifica.
+
+### 🔄 Aggiornamento da 0.5.1-alpha
+
+Nessuna modifica al database.
+
 ## [0.5.1-alpha] - 2026-10-25 - Avviso sulle Aliquote dell'Acconto IMU
 
 Versione di correzione: in `Imu` il calcolo segnala il prospetto delle aliquote dell'anno precedente mancante, con cui si determina l'acconto. Valgono le avvertenze della 0.1.0-alpha: la versione non è indicata per l'uso in produzione su dati reali.
