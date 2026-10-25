@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+<!--
+The MIT License
+
+Copyright (c) 2020-present Valentino de Lapa.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+-->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         backupGlobals="false"
+         bootstrap="CommSuite/Tests/bootstrap.php"
+         colors="true"
+         recordTestRunHistory="true"
+         processIsolation="false"
+         stopOnFailure="false"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/13.3/phpunit.xsd"
+         cacheDirectory=".phpunit.cache"
+         backupStaticProperties="false"
+         failOnWarning="true"
+         displayDetailsOnAllIssues="true">
+    <testsuites>
+        <testsuite name="CommSuite">
+            <directory suffix="Test.php">./CommSuite/Tests</directory>
+        </testsuite>
+        <testsuite name="Anagrafica">
+            <directory suffix="Test.php">./Anagrafica/Tests</directory>
+        </testsuite>
+        <testsuite name="Deleghe">
+            <directory suffix="Test.php">./Deleghe/Tests</directory>
+        </testsuite>
+        <testsuite name="Imu">
+            <directory suffix="Test.php">./Imu/Tests</directory>
+        </testsuite>
+        <testsuite name="Successioni">
+            <directory suffix="Test.php">./Successioni/Tests</directory>
+        </testsuite>
+    </testsuites>
+    <php>
+        <server name="HTTP_USER_AGENT" value=""/>
+        <server name="HTTP_HOST" value="localhost"/>
+        <server name="QUERY_STRING" value=""/>
+        <server name="REMOTE_ADDR" value="127.0.0.1"/>
+        <server name="REQUEST_METHOD" value="POST"/>
+        <server name="REQUEST_URI" value="/"/>
+        <server name="SERVER_PROTOCOL" value="HTTP/1.1"/>
+    </php>
+    <source>
+        <include>
+            <directory suffix=".php">./CommSuite/Application</directory>
+            <directory suffix=".php">./CommSuite/Console</directory>
+            <directory suffix=".php">./Anagrafica/Application</directory>
+            <directory suffix=".php">./Anagrafica/Console</directory>
+            <directory suffix=".php">./Deleghe/Application</directory>
+            <directory suffix=".php">./Deleghe/Console</directory>
+            <directory suffix=".php">./Imu/Application</directory>
+            <directory suffix=".php">./Imu/Console</directory>
+            <directory suffix=".php">./Successioni/Application</directory>
+            <directory suffix=".php">./Successioni/Console</directory>
+        </include>
+        <exclude>
+            <directory>./CommSuite/Application/Views</directory>
+            <directory>./Anagrafica/Application/Views</directory>
+            <directory>./Deleghe/Application/Views</directory>
+            <directory>./Imu/Application/Views</directory>
+            <directory>./Successioni/Application/Views</directory>
+        </exclude>
+    </source>
+</phpunit>
