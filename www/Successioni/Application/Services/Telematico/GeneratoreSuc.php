@@ -1308,7 +1308,7 @@ class GeneratoreSuc
         if ($immobile->sezione !== null) {
             $this->el($elemento, 'SezioneUrbana', $this->testo($immobile->sezione, 3));
         }
-        $this->datiCatastali($elemento, $bene);
+        $this->datiCatastali($elemento, $bene, self::NS_SUC);
     }
 
     /**
