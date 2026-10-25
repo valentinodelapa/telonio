@@ -3,6 +3,7 @@ www/composer.lock
 www/Cache/
 www/Logs/
 www/filesystemMedia/
+www/.phpunit.cache/
 .env
 /backups/
 .claude/
