@@ -2,12 +2,12 @@
 
 namespace GestioneStudio\Tests;
 
-use CommSuite\Application\Entities\Studio;
-use CommSuite\Application\Enumerations\ModuloSuite;
-use CommSuite\Application\Interfaces\FonteScadenze;
-use CommSuite\Application\Services\RaccoltaScadenze;
-use CommSuite\Application\Services\Scadenza;
-use CommSuite\Tests\TestResultSet;
+use Telonio\Application\Entities\Studio;
+use Telonio\Application\Enumerations\ModuloSuite;
+use Telonio\Application\Interfaces\FonteScadenze;
+use Telonio\Application\Services\RaccoltaScadenze;
+use Telonio\Application\Services\Scadenza;
+use Telonio\Tests\TestResultSet;
 use GestioneStudio\Application\Entities\LavorazioneScadenza;
 use GestioneStudio\Application\Enumerations\FiltroStato;
 use GestioneStudio\Application\Enumerations\StatoLavorazione;

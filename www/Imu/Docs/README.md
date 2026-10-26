@@ -48,7 +48,7 @@ inseriscono le aliquote dello studio.
 ## Installazione
 
 Il modulo è registrato in `MODULE_FOLDERS` e in `ModuloSuite`; richiede
-CommSuite, Anagrafica e Deleghe. Script da eseguire come root dopo quelli
+Telonio, Anagrafica e Deleghe. Script da eseguire come root dopo quelli
 di Deleghe:
 
 1. `Imu/Database/schema.sql`
@@ -226,10 +226,10 @@ pubblicato dopo il 28 ottobre è segnalato (non è efficace per l'anno).
 
 ```bash
 # importa i prospetti dell'anno per i comuni degli immobili di tutti gli studi
-docker exec comm_suite_php sh -c 'cd /var/www/html && sisma aliquote-imu --anno=2026'
+docker exec telonio_php sh -c 'cd /var/www/html && sisma aliquote-imu --anno=2026'
 
 # solo alcuni comuni, salvando i file scaricati
-docker exec comm_suite_php sh -c 'cd /var/www/html && sisma aliquote-imu --anno=2026 --comuni=F205,H501 --copia=/tmp/prospetti-imu'
+docker exec telonio_php sh -c 'cd /var/www/html && sisma aliquote-imu --anno=2026 --comuni=F205,H501 --copia=/tmp/prospetti-imu'
 ```
 
 La stessa importazione per i comuni dello studio è in "Aliquote dei
@@ -274,10 +274,10 @@ modificabili con le aliquote dello studio.
 
 ```bash
 # aggiorna coefficienti e comuni esenti nel database
-docker exec comm_suite_php sh -c 'cd /var/www/html && sisma tabelle-imu'
+docker exec telonio_php sh -c 'cd /var/www/html && sisma tabelle-imu'
 
 # rigenera lo script dati-riferimento.sql
-docker exec comm_suite_php sh -c 'cd /var/www/html && sisma tabelle-imu --sql=Imu/Database/dati-riferimento.sql'
+docker exec telonio_php sh -c 'cd /var/www/html && sisma tabelle-imu --sql=Imu/Database/dati-riferimento.sql'
 ```
 
 - **Coefficienti dei fabbricati D** (comma 746): decreto annuale del MEF;

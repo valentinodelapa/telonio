@@ -3,8 +3,8 @@
 namespace Anagrafica\Tests\Services;
 
 use Anagrafica\Application\Services\RiepilogoScrivania;
-use CommSuite\Tests\SuiteTestCase;
-use CommSuite\Tests\TestResultSet;
+use Telonio\Tests\SuiteTestCase;
+use Telonio\Tests\TestResultSet;
 
 class RiepilogoScrivaniaTest extends SuiteTestCase
 {

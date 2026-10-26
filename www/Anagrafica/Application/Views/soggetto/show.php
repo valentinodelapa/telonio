@@ -1,8 +1,8 @@
 <?php
 
-use CommSuite\Application\Enumerations\ModuloSuite;
-use CommSuite\Application\HelperClasses\Html;
-use CommSuite\Application\HelperClasses\Layout;
+use Telonio\Application\Enumerations\ModuloSuite;
+use Telonio\Application\HelperClasses\Html;
+use Telonio\Application\HelperClasses\Layout;
 
 $id = $soggetto->id;
 $personaFisica = $soggetto->isPersonaFisica();

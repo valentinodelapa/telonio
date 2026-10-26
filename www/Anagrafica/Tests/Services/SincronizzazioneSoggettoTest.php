@@ -8,7 +8,7 @@ use Anagrafica\Application\Enumerations\NaturaGiuridica;
 use Anagrafica\Application\Enumerations\TipoAttivita;
 use Anagrafica\Application\Enumerations\TipoSoggetto;
 use Anagrafica\Application\Services\SincronizzazioneSoggetto;
-use CommSuite\Tests\SuiteTestCase;
+use Telonio\Tests\SuiteTestCase;
 use SismaFramework\Orm\CustomTypes\SismaDate;
 
 class SincronizzazioneSoggettoTest extends SuiteTestCase

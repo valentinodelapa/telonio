@@ -1,7 +1,7 @@
 <?php
 
-use CommSuite\Application\HelperClasses\Html;
-use CommSuite\Application\HelperClasses\Layout;
+use Telonio\Application\HelperClasses\Html;
+use Telonio\Application\HelperClasses\Layout;
 
 $urlAnnulla = '/immobile/show/immobile/' . $immobile->id;
 $tipoCatasto = $immobile->tipoCatasto;

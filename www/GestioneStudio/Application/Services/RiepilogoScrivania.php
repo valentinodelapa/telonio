@@ -2,7 +2,7 @@
 
 namespace GestioneStudio\Application\Services;
 
-use CommSuite\Application\Entities\Studio;
+use Telonio\Application\Entities\Studio;
 use GestioneStudio\Application\Enumerations\FiltroStato;
 use SismaFramework\Orm\CustomTypes\SismaDate;
 use SismaFramework\Orm\HelperClasses\DataMapper;

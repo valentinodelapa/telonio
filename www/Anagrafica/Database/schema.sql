@@ -1,7 +1,7 @@
 -- =====================================================
 -- Anagrafica - archivio unico dei soggetti dello studio
 -- =====================================================
--- Richiede le tabelle del modulo CommSuite (studio).
+-- Richiede le tabelle del modulo Telonio (studio).
 -- Le colonne "valido_dal"/"valido_al" storicizzano i dati che variano nel
 -- tempo: valido_al NULL indica la versione tuttora vigente.
 

@@ -3,7 +3,7 @@
 namespace Imu\Application\Entities;
 
 use Anagrafica\Application\Entities\Soggetto;
-use CommSuite\Application\Entities\Studio;
+use Telonio\Application\Entities\Studio;
 use SismaFramework\Orm\CustomTypes\SismaDateTime;
 use SismaFramework\Orm\ExtendedClasses\ReferencedEntity;
 

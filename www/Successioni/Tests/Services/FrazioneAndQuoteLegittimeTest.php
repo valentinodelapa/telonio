@@ -4,7 +4,7 @@ namespace Successioni\Tests\Services;
 
 use Anagrafica\Application\Entities\DatiCatastali;
 use Anagrafica\Application\Enumerations\CategoriaCatastale;
-use CommSuite\Tests\SuiteTestCase;
+use Telonio\Tests\SuiteTestCase;
 use Successioni\Application\Entities\BeneficiarioSuccessione;
 use Successioni\Application\Enumerations\GradoParentela;
 use Successioni\Application\Enumerations\TipoBeneficiario;

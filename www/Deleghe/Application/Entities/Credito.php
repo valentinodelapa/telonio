@@ -3,7 +3,7 @@
 namespace Deleghe\Application\Entities;
 
 use Anagrafica\Application\Entities\Soggetto;
-use CommSuite\Application\Entities\Studio;
+use Telonio\Application\Entities\Studio;
 use Deleghe\Application\Enumerations\SezioneF24;
 use SismaFramework\Orm\CustomTypes\SismaDate;
 use SismaFramework\Orm\CustomTypes\SismaDateTime;

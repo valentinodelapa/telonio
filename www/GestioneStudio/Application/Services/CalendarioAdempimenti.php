@@ -3,8 +3,8 @@
 namespace GestioneStudio\Application\Services;
 
 use Anagrafica\Application\Entities\Soggetto;
-use CommSuite\Application\Entities\Studio;
-use CommSuite\Application\HelperClasses\Calendario;
+use Telonio\Application\Entities\Studio;
+use Telonio\Application\HelperClasses\Calendario;
 use GestioneStudio\Application\Entities\Adempimento;
 use GestioneStudio\Application\Entities\ProrogaAdempimento;
 use GestioneStudio\Application\Entities\TermineAdempimento;

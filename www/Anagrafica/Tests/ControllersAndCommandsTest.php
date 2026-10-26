@@ -26,13 +26,14 @@ use Anagrafica\Application\Enumerations\TitoloPossesso;
 use Anagrafica\Application\Enumerations\UtilizzoImmobile;
 use Anagrafica\Application\Services\TabelleRiferimento\ArchivioComuniAnpr;
 use Anagrafica\Application\Services\TabelleRiferimento\ClassificazioniAtecoIstat;
+use Anagrafica\Application\Services\TabelleRiferimento\CodiciIsoUe;
 use Anagrafica\Application\Services\TabelleRiferimento\GeneratoreSql;
 use Anagrafica\Application\Services\TabelleRiferimento\StatiEsteriAnpr;
 use Anagrafica\Console\Commands\TabelleRiferimentoCommand;
-use CommSuite\Application\Entities\Utente;
-use CommSuite\Application\Enumerations\RuoloUtente;
-use CommSuite\Tests\SuiteTestCase;
-use CommSuite\Tests\TestResultSet;
+use Telonio\Application\Entities\Utente;
+use Telonio\Application\Enumerations\RuoloUtente;
+use Telonio\Tests\SuiteTestCase;
+use Telonio\Tests\TestResultSet;
 use SismaFramework\Core\Exceptions\BadRequestException;
 use SismaFramework\Orm\CustomTypes\SismaDate;
 
@@ -359,8 +360,11 @@ class ControllersAndCommandsTest extends SuiteTestCase
         ]);
         $archivioComuni->method('getEscluse')->willReturn(0);
 
-        $statiEsteri = $this->createStub(StatiEsteriAnpr::class);
-        $statiEsteri->method('leggi')->willReturn([
+        $codiciIso = $this->createStub(CodiciIsoUe::class);
+        $codiciIso->method('leggi')->willReturn(['ITA' => 'IT']);
+
+        $statiEsteri = $this->createMock(StatiEsteriAnpr::class);
+        $statiEsteri->expects($this->once())->method('leggi')->with('finto_stati.xlsx', ['ITA' => 'IT'])->willReturn([
             [
                 'id_anpr' => 100,
                 'codice_iso' => 'IT',
@@ -384,7 +388,7 @@ class ControllersAndCommandsTest extends SuiteTestCase
             ],
         ]);
 
-        $command = new TabelleRiferimentoCommand($archivioComuni, $statiEsteri, $ateco, new GeneratoreSql());
+        $command = new TabelleRiferimentoCommand($archivioComuni, $statiEsteri, $codiciIso, $ateco, new GeneratoreSql());
         $this->assertTrue($command->checkCompatibility('tabelle-riferimento'));
         $this->assertFalse($command->checkCompatibility('altro'));
 
@@ -394,6 +398,7 @@ class ControllersAndCommandsTest extends SuiteTestCase
                 'sql' => $fileSql,
                 'comuni' => 'finto_comuni.csv',
                 'stati' => 'finto_stati.xlsx',
+                'iso' => 'finto_iso.csv',
                 'ateco2025' => 'finto_2025.xlsx',
                 'ateco2022' => 'finto_2022.xlsx',
             ]);
@@ -406,6 +411,7 @@ class ControllersAndCommandsTest extends SuiteTestCase
             $contenutoSql = file_get_contents($fileSql);
             $this->assertStringContainsString('INSERT INTO `comune`', $contenutoSql);
             $this->assertStringContainsString('INSERT INTO `nazione`', $contenutoSql);
+            $this->assertStringContainsString(CodiciIsoUe::ENDPOINT, $contenutoSql);
             $this->assertStringContainsString('INSERT INTO `codice_ateco`', $contenutoSql);
         } finally {
             if (file_exists($fileSql)) {

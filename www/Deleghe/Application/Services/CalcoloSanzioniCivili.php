@@ -3,7 +3,7 @@
 namespace Deleghe\Application\Services;
 
 use Deleghe\Application\Enumerations\RegimeSanzioneCivile;
-use CommSuite\Application\HelperClasses\Calendario;
+use Telonio\Application\HelperClasses\Calendario;
 use Deleghe\Application\Models\TassoRiferimentoModel;
 use SismaFramework\Orm\CustomTypes\SismaDate;
 use SismaFramework\Orm\HelperClasses\DataMapper;

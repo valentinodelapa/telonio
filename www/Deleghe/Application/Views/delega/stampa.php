@@ -1,6 +1,6 @@
 <?php
 
-use CommSuite\Application\HelperClasses\Html;
+use Telonio\Application\HelperClasses\Html;
 use Deleghe\Application\Enumerations\ModelloF24;
 use Deleghe\Application\Services\Stampa\ModuloUfficialeF24;
 

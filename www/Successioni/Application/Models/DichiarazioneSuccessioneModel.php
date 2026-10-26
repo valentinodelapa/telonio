@@ -3,7 +3,7 @@
 namespace Successioni\Application\Models;
 
 use Anagrafica\Application\Entities\Soggetto;
-use CommSuite\Application\Entities\Studio;
+use Telonio\Application\Entities\Studio;
 use SismaFramework\Orm\CustomTypes\SismaCollection;
 use SismaFramework\Orm\ExtendedClasses\DependentModel;
 use SismaFramework\Orm\HelperClasses\Query;

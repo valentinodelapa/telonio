@@ -5,7 +5,7 @@ namespace GestioneStudio\Application\Controllers;
 use Anagrafica\Application\Models\DatiFiscaliModel;
 use Anagrafica\Application\Models\SoggettoModel;
 use Anagrafica\Application\Services\StoricoService;
-use CommSuite\Application\Models\UtenteModel;
+use Telonio\Application\Models\UtenteModel;
 use GestioneStudio\Application\BaseClasses\GestioneStudioController;
 use GestioneStudio\Application\Entities\Adempimento;
 use GestioneStudio\Application\Entities\AssegnazioneAdempimento;

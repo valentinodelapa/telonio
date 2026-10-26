@@ -34,8 +34,8 @@ use Anagrafica\Application\Models\NazioneModel;
 use Anagrafica\Application\Models\PossessoModel;
 use Anagrafica\Application\Models\RecapitoModel;
 use Anagrafica\Application\Models\SoggettoModel;
-use CommSuite\Tests\SuiteTestCase;
-use CommSuite\Tests\TestResultSet;
+use Telonio\Tests\SuiteTestCase;
+use Telonio\Tests\TestResultSet;
 use SismaFramework\Orm\CustomTypes\SismaDate;
 
 class ModelsTest extends SuiteTestCase

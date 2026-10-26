@@ -6,7 +6,7 @@ use Anagrafica\Application\Entities\DatiFiscali;
 use Anagrafica\Application\Enumerations\ClassificazioneAteco;
 use Anagrafica\Application\Enumerations\TipoSoggetto;
 use Anagrafica\Application\Models\DatiFiscaliModel;
-use CommSuite\Application\HelperClasses\PartitaIva;
+use Telonio\Application\HelperClasses\PartitaIva;
 use SismaFramework\Core\BaseClasses\BaseForm;
 use SismaFramework\Core\Enumerations\FilterType;
 

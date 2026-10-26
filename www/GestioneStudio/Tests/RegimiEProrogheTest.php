@@ -10,7 +10,7 @@ use Anagrafica\Application\Enumerations\RegimeFiscale;
 use Anagrafica\Application\Enumerations\RuoloLegame;
 use Anagrafica\Application\Enumerations\TipoAttivita;
 use Anagrafica\Application\Enumerations\TipoSoggetto;
-use CommSuite\Tests\TestResultSet;
+use Telonio\Tests\TestResultSet;
 use GestioneStudio\Application\Enumerations\AmbitoAdempimento;
 use GestioneStudio\Application\Enumerations\CondizioneProroga;
 use GestioneStudio\Application\Services\CalendarioAdempimenti;

@@ -3,7 +3,7 @@
 namespace GestioneStudio\Application\Fixtures;
 
 use Anagrafica\Application\Fixtures\SoggettoRossiFixture;
-use CommSuite\Application\Fixtures\UtenteOperatoreFixture;
+use Telonio\Application\Fixtures\UtenteOperatoreFixture;
 use GestioneStudio\Application\Entities\AssegnazioneAdempimento;
 use SismaFramework\Core\BaseClasses\BaseFixture;
 use SismaFramework\Orm\CustomTypes\SismaDate;

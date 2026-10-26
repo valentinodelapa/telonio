@@ -2,7 +2,7 @@
 
 namespace Imu\Application\Entities;
 
-use CommSuite\Application\Entities\Studio;
+use Telonio\Application\Entities\Studio;
 use Imu\Application\Enumerations\FattispecieImu;
 use SismaFramework\Orm\CustomTypes\SismaDate;
 use SismaFramework\Orm\CustomTypes\SismaDateTime;

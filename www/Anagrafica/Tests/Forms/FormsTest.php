@@ -36,8 +36,8 @@ use Anagrafica\Application\Forms\LegameForm;
 use Anagrafica\Application\Forms\PossessoForm;
 use Anagrafica\Application\Forms\RecapitoForm;
 use Anagrafica\Application\Forms\SoggettoForm;
-use CommSuite\Tests\SuiteTestCase;
-use CommSuite\Tests\TestResultSet;
+use Telonio\Tests\SuiteTestCase;
+use Telonio\Tests\TestResultSet;
 use SismaFramework\Orm\CustomTypes\SismaDate;
 
 class FormsTest extends SuiteTestCase

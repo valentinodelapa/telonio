@@ -2,7 +2,7 @@
 
 namespace Deleghe\Application\Entities;
 
-use CommSuite\Application\Entities\Studio;
+use Telonio\Application\Entities\Studio;
 use SismaFramework\Orm\CustomTypes\SismaDateTime;
 use SismaFramework\Orm\ExtendedClasses\ReferencedEntity;
 

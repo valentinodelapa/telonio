@@ -1,6 +1,6 @@
 <?php
 
-use CommSuite\Application\HelperClasses\Html;
+use Telonio\Application\HelperClasses\Html;
 
 $defunto = $dichiarazione->defunto;
 $luogoDecesso = $dichiarazione->comuneDecesso?->getEtichetta() ?? $dichiarazione->statoDecesso;

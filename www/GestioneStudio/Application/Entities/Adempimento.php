@@ -2,7 +2,7 @@
 
 namespace GestioneStudio\Application\Entities;
 
-use CommSuite\Application\Entities\Studio;
+use Telonio\Application\Entities\Studio;
 use GestioneStudio\Application\Enumerations\AmbitoAdempimento;
 use GestioneStudio\Application\Enumerations\CategoriaAdempimento;
 use SismaFramework\Orm\ExtendedClasses\ReferencedEntity;

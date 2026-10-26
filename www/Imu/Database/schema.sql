@@ -1,7 +1,7 @@
 -- =====================================================
 -- Imu - imposta municipale propria (art. 1, commi 738-783, L. 160/2019)
 -- =====================================================
--- Richiede le tabelle dei moduli CommSuite (studio), Anagrafica (soggetto,
+-- Richiede le tabelle dei moduli Telonio (studio), Anagrafica (soggetto,
 -- immobile) e Deleghe (archivio dei versamenti). Gli immobili, i dati
 -- catastali e i possessi sono quelli dell'Anagrafica: il modulo aggiunge
 -- solo i dati propri dell'imposta. Le aliquote sono percentuali (0,86 =

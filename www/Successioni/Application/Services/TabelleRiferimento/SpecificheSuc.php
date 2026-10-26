@@ -89,7 +89,7 @@ class SpecificheSuc
             throw new \RuntimeException('Archivio non trovato: ' . $fonte);
         }
         $url = $fonte ?? $this->trovaLink();
-        $contenuto = @file_get_contents($url, false, stream_context_create(['http' => ['timeout' => 120, 'user_agent' => 'Mozilla/5.0 (CommSuite specifiche-successioni)']]));
+        $contenuto = @file_get_contents($url, false, stream_context_create(['http' => ['timeout' => 120, 'user_agent' => 'Mozilla/5.0 (Telonio specifiche-successioni)']]));
         if (($contenuto === false) || (str_starts_with($contenuto, 'PK') === false)) {
             throw new \RuntimeException('Download dell\'archivio delle specifiche non riuscito: ' . $url);
         }
@@ -99,7 +99,7 @@ class SpecificheSuc
 
     private function trovaLink(): string
     {
-        $html = @file_get_contents(self::URL_PAGINA, false, stream_context_create(['http' => ['timeout' => 60, 'user_agent' => 'Mozilla/5.0 (CommSuite specifiche-successioni)']]));
+        $html = @file_get_contents(self::URL_PAGINA, false, stream_context_create(['http' => ['timeout' => 60, 'user_agent' => 'Mozilla/5.0 (Telonio specifiche-successioni)']]));
         if (($html === false) || (preg_match_all('#href="([^"]*/SUC13_(\d{8})\.zip[^"]*)"#', $html, $link, PREG_SET_ORDER) === 0)) {
             throw new \RuntimeException('Link all\'archivio SUC13 non trovato nella pagina ' . self::URL_PAGINA);
         }

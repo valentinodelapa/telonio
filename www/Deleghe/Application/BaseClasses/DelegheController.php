@@ -4,8 +4,8 @@ namespace Deleghe\Application\BaseClasses;
 
 use Anagrafica\Application\Entities\Soggetto;
 use Anagrafica\Application\Permissions\SoggettoPermission;
-use CommSuite\Application\BaseClasses\SuiteController;
-use CommSuite\Application\Enumerations\ModuloSuite;
+use Telonio\Application\BaseClasses\SuiteController;
+use Telonio\Application\Enumerations\ModuloSuite;
 use Deleghe\Application\Entities\Delega;
 use Deleghe\Application\Entities\Versamento;
 use Deleghe\Application\Permissions\DelegaPermission;

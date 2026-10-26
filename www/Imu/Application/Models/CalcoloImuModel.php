@@ -3,7 +3,7 @@
 namespace Imu\Application\Models;
 
 use Anagrafica\Application\Entities\Soggetto;
-use CommSuite\Application\Entities\Studio;
+use Telonio\Application\Entities\Studio;
 use Imu\Application\Entities\CalcoloImu;
 use SismaFramework\Orm\CustomTypes\SismaCollection;
 use SismaFramework\Orm\ExtendedClasses\DependentModel;

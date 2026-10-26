@@ -1,6 +1,6 @@
 <?php
 
-use CommSuite\Application\HelperClasses\Html;
+use Telonio\Application\HelperClasses\Html;
 
 /**
  * Selettore dell'anno: $urlAnno è l'URL a cui si aggiunge l'anno.

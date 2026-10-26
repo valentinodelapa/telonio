@@ -4,7 +4,7 @@ namespace GestioneStudio\Tests;
 
 use Anagrafica\Application\Entities\Soggetto;
 use Anagrafica\Application\Enumerations\TipoSoggetto;
-use CommSuite\Tests\SuiteTestCase;
+use Telonio\Tests\SuiteTestCase;
 use GestioneStudio\Application\Entities\Adempimento;
 use GestioneStudio\Application\Entities\AssegnazioneAdempimento;
 use GestioneStudio\Application\Entities\ProrogaAdempimento;

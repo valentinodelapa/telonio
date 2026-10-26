@@ -2,7 +2,7 @@
 
 namespace Deleghe\Application\Models;
 
-use CommSuite\Application\Entities\Studio;
+use Telonio\Application\Entities\Studio;
 use Deleghe\Application\Entities\InvioTelematico;
 use SismaFramework\Orm\CustomTypes\SismaCollection;
 use SismaFramework\Orm\ExtendedClasses\DependentModel;

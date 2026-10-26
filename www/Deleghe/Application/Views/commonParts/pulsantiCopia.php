@@ -1,6 +1,6 @@
 <?php
 
-use CommSuite\Application\HelperClasses\Html;
+use Telonio\Application\HelperClasses\Html;
 
 /**
  * Copia e ripetizione del versamento $riga (CopiaVersamenti).

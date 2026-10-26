@@ -7,7 +7,7 @@ use Anagrafica\Application\Entities\Immobile;
 use Anagrafica\Application\Enumerations\StatoCivile;
 use Anagrafica\Application\Enumerations\TipoCatasto;
 use Anagrafica\Application\Enumerations\TitoloPossesso;
-use CommSuite\Tests\SuiteTestCase;
+use Telonio\Tests\SuiteTestCase;
 use SismaFramework\Orm\CustomTypes\SismaDate;
 use SismaFramework\Orm\CustomTypes\SismaDateTime;
 use Successioni\Application\Entities\AllegatoSuccessione;

@@ -2,7 +2,7 @@
 
 namespace GestioneStudio\Application\Models;
 
-use CommSuite\Application\Entities\Studio;
+use Telonio\Application\Entities\Studio;
 use GestioneStudio\Application\Entities\LavorazioneScadenza;
 use SismaFramework\Orm\Enumerations\ComparisonOperator;
 use SismaFramework\Orm\Enumerations\DataType;

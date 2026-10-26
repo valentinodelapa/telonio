@@ -1,7 +1,7 @@
 <?php
 
-use CommSuite\Application\HelperClasses\Html;
-use CommSuite\Application\HelperClasses\Layout;
+use Telonio\Application\HelperClasses\Html;
+use Telonio\Application\HelperClasses\Layout;
 use Deleghe\Application\Enumerations\SezioneF24;
 use Deleghe\Application\HelperClasses\Importo;
 use Deleghe\Application\Services\EsitoControllo;

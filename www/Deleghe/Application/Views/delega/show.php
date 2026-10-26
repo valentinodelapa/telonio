@@ -1,7 +1,7 @@
 <?php
 
-use CommSuite\Application\HelperClasses\Html;
-use CommSuite\Application\HelperClasses\Layout;
+use Telonio\Application\HelperClasses\Html;
+use Telonio\Application\HelperClasses\Layout;
 use Deleghe\Application\Entities\Ravvedimento;
 use Deleghe\Application\Entities\SanzioneCivile;
 use Deleghe\Application\Enumerations\ModelloF24;

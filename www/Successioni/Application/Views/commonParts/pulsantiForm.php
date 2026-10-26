@@ -1,6 +1,6 @@
 <?php
 
-use CommSuite\Application\HelperClasses\Html;
+use Telonio\Application\HelperClasses\Html;
 
 ?>
 <div class="d-flex align-items-center gap-2 mt-4">

@@ -4,7 +4,7 @@ namespace Anagrafica\Tests\Services;
 
 use Anagrafica\Application\Entities\DatiCatastali;
 use Anagrafica\Application\Services\StoricoService;
-use CommSuite\Tests\SuiteTestCase;
+use Telonio\Tests\SuiteTestCase;
 use SismaFramework\Orm\CustomTypes\SismaDate;
 
 class StoricoServiceTest extends SuiteTestCase

@@ -2,7 +2,7 @@
 
 namespace Deleghe\Application\Services;
 
-use CommSuite\Application\Entities\Studio;
+use Telonio\Application\Entities\Studio;
 use Deleghe\Application\Enumerations\StatoDelega;
 use Deleghe\Application\Models\DelegaModel;
 use SismaFramework\Orm\CustomTypes\SismaDate;

@@ -51,7 +51,7 @@ class CircolareTerreniMontani
     {
         $this->curl = curl_init();
         curl_setopt_array($this->curl, [CURLOPT_RETURNTRANSFER => true, CURLOPT_FOLLOWLOCATION => true, CURLOPT_TIMEOUT => 120, CURLOPT_COOKIEFILE => '',
-            CURLOPT_USERAGENT => 'Mozilla/5.0 (CommSuite tabelle-imu)']);
+            CURLOPT_USERAGENT => 'Mozilla/5.0 (Telonio tabelle-imu)']);
         $atto = $this->get(self::URL_ATTO);
         if (preg_match('~dataPubblicazioneGazzetta=([\d-]+)&(?:amp;)?atto\.codiceRedazionale=(\w+)~', $atto, $estremi) !== 1) {
             throw new \RuntimeException('Estremi dell\'atto non trovati nella Gazzetta Ufficiale.');

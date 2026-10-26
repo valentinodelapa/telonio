@@ -1,7 +1,7 @@
 -- =====================================================
 -- Successioni - dichiarazione di successione e domanda di volture catastali
 -- =====================================================
--- Richiede le tabelle dei moduli CommSuite, Anagrafica (soggetto, immobile,
+-- Richiede le tabelle dei moduli Telonio, Anagrafica (soggetto, immobile,
 -- conto_corrente) e Deleghe (intermediario). I beni immobili sono quelli
 -- dell'archivio immobili dell'Anagrafica; il modulo registra solo i dati
 -- della dichiarazione.

@@ -3,7 +3,7 @@
 namespace GestioneStudio\Application\Models;
 
 use Anagrafica\Application\Entities\Soggetto;
-use CommSuite\Application\Entities\Studio;
+use Telonio\Application\Entities\Studio;
 use GestioneStudio\Application\Entities\Adempimento;
 use GestioneStudio\Application\Entities\AssegnazioneAdempimento;
 use SismaFramework\Orm\CustomTypes\SismaCollection;

@@ -1,8 +1,8 @@
 <?php
 
 use Anagrafica\Application\Enumerations\TipoCatasto;
-use CommSuite\Application\HelperClasses\Campo;
-use CommSuite\Application\HelperClasses\Html;
+use Telonio\Application\HelperClasses\Campo;
+use Telonio\Application\HelperClasses\Html;
 
 /**
  * Campi dei dati catastali. Variabili: $dcEntity, $dcErrors, $tipoCatasto,

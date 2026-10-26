@@ -109,7 +109,7 @@ class ModelliUfficialiF24
 
     private function leggi(string $url): string
     {
-        $contesto = stream_context_create(['http' => ['timeout' => 60, 'user_agent' => 'Mozilla/5.0 (CommSuite modelli-f24)']]);
+        $contesto = stream_context_create(['http' => ['timeout' => 60, 'user_agent' => 'Mozilla/5.0 (Telonio modelli-f24)']]);
         $contenuto = @file_get_contents($url, false, $contesto);
         if ($contenuto === false) {
             throw new \RuntimeException('Download non riuscito: ' . $url);

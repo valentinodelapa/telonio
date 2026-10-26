@@ -5,7 +5,7 @@ namespace Successioni\Application\Entities;
 use Anagrafica\Application\Entities\Comune;
 use Anagrafica\Application\Entities\ContoCorrente;
 use Anagrafica\Application\Entities\Soggetto;
-use CommSuite\Application\Entities\Studio;
+use Telonio\Application\Entities\Studio;
 use Deleghe\Application\Entities\Intermediario;
 use SismaFramework\Orm\CustomTypes\SismaDate;
 use SismaFramework\Orm\CustomTypes\SismaDateTime;

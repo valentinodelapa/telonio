@@ -5,7 +5,7 @@ services:
     # CONTAINER_PREFIX (.env) permette di avviare una seconda istanza dello
     # stesso progetto sulla stessa macchina (es. produzione in un'altra
     # cartella) senza conflitti sui nomi dei container.
-    container_name: ${CONTAINER_PREFIX:-comm_suite}_nginx
+    container_name: ${CONTAINER_PREFIX:-telonio}_nginx
     volumes:
       - ./www:/var/www/html/
       - ./nginx.conf.template:/etc/nginx/templates/default.conf.template
@@ -25,7 +25,7 @@ services:
     # docker-compose.dev.yml seleziona "dev" (Xdebug, pcov).
     build:
       context: .
-    container_name: ${CONTAINER_PREFIX:-comm_suite}_php
+    container_name: ${CONTAINER_PREFIX:-telonio}_php
     user: root
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -43,7 +43,7 @@ services:
     # indietro (MariaDB non supporta il downgrade). Aggiornare a mano, dopo un
     # backup; MARIADB_AUTO_UPGRADE aggiorna le tabelle di sistema all'avvio.
     image: mariadb:12.2
-    container_name: ${CONTAINER_PREFIX:-comm_suite}_db
+    container_name: ${CONTAINER_PREFIX:-telonio}_db
     profiles:
       - internal-db
     environment:
@@ -54,7 +54,7 @@ services:
       MARIADB_AUTO_UPGRADE: "1"
     volumes:
       - db_data:/var/lib/mysql
-      - ./comm_suite.sql:/docker-entrypoint-initdb.d/comm_suite.sql
+      - ./db-init.sh:/docker-entrypoint-initdb.d/db-init.sh:ro
     networks:
       - default
 

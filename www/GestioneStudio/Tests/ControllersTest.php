@@ -3,7 +3,7 @@
 namespace GestioneStudio\Tests;
 
 use Anagrafica\Application\Entities\Soggetto;
-use CommSuite\Tests\TestResultSet;
+use Telonio\Tests\TestResultSet;
 use GestioneStudio\Application\Controllers\AdempimentoController;
 use GestioneStudio\Application\Controllers\AssegnazioneAdempimentoController;
 use GestioneStudio\Application\Controllers\ProrogaAdempimentoController;
@@ -60,7 +60,7 @@ class ControllersTest extends GestioneStudioTestCase
         $this->assertCount(1, $cattura->vars['voci']);
         $this->assertSame('Adempimento REDDITI_PF - anno 2025', $cattura->vars['voci'][0]->scadenza->descrizione);
         $this->assertSame('2026-11-02', $cattura->vars['voci'][0]->scadenza->data->format('Y-m-d'));
-        $this->assertContains(\CommSuite\Application\Enumerations\ModuloSuite::gestioneStudio, $cattura->vars['moduliFonte']);
+        $this->assertContains(\Telonio\Application\Enumerations\ModuloSuite::gestioneStudio, $cattura->vars['moduliFonte']);
         $this->assertStringStartsWith('/scadenzario/index?', VoceScadenzario::decodifica($cattura->vars['ritorno']));
 
         // periodo non valido: si torna al periodo predefinito

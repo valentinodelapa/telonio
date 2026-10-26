@@ -10,7 +10,7 @@ use Anagrafica\Application\Enumerations\TipoCatasto;
 use Anagrafica\Application\Enumerations\TipoSoggetto;
 use Anagrafica\Application\Enumerations\TitoloPossesso;
 use Anagrafica\Application\Services\ControlloQuote;
-use CommSuite\Tests\SuiteTestCase;
+use Telonio\Tests\SuiteTestCase;
 use SismaFramework\Orm\CustomTypes\SismaDate;
 
 class ControlloQuoteTest extends SuiteTestCase

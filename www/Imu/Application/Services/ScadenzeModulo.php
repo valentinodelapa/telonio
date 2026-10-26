@@ -2,11 +2,11 @@
 
 namespace Imu\Application\Services;
 
-use CommSuite\Application\Entities\Studio;
-use CommSuite\Application\Enumerations\ModuloSuite;
-use CommSuite\Application\HelperClasses\Calendario;
-use CommSuite\Application\Interfaces\FonteScadenze;
-use CommSuite\Application\Services\Scadenza;
+use Telonio\Application\Entities\Studio;
+use Telonio\Application\Enumerations\ModuloSuite;
+use Telonio\Application\HelperClasses\Calendario;
+use Telonio\Application\Interfaces\FonteScadenze;
+use Telonio\Application\Services\Scadenza;
 use Imu\Application\Enumerations\StatoDichiarazione;
 use Imu\Application\Models\DichiarazioneImuModel;
 use SismaFramework\Orm\BaseClasses\BaseEntity;

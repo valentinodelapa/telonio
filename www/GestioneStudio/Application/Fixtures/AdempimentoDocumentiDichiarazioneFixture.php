@@ -2,7 +2,7 @@
 
 namespace GestioneStudio\Application\Fixtures;
 
-use CommSuite\Application\Fixtures\StudioFixture;
+use Telonio\Application\Fixtures\StudioFixture;
 use GestioneStudio\Application\Entities\Adempimento;
 use GestioneStudio\Application\Enumerations\AmbitoAdempimento;
 use GestioneStudio\Application\Enumerations\CategoriaAdempimento;

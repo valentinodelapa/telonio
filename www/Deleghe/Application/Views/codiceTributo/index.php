@@ -1,7 +1,7 @@
 <?php
 
-use CommSuite\Application\HelperClasses\Html;
-use CommSuite\Application\HelperClasses\Layout;
+use Telonio\Application\HelperClasses\Html;
+use Telonio\Application\HelperClasses\Layout;
 
 $urlElenco = function (array $parametri) use ($testo, $sezioneFiltro, $soppressi): string {
     $parametri += ['testo' => $testo, 'sezione' => $sezioneFiltro?->value ?? '', 'soppressi' => $soppressi ? '1' : ''];

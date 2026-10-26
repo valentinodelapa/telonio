@@ -3,7 +3,7 @@
 namespace GestioneStudio\Application\Fixtures;
 
 use Anagrafica\Application\Fixtures\SoggettoVerdiFixture;
-use CommSuite\Application\Fixtures\UtenteOperatoreFixture;
+use Telonio\Application\Fixtures\UtenteOperatoreFixture;
 use GestioneStudio\Application\Entities\AssegnazioneAdempimento;
 use GestioneStudio\Application\Models\AdempimentoModel;
 use SismaFramework\Core\BaseClasses\BaseFixture;

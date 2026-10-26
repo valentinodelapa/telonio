@@ -1,6 +1,6 @@
 # NOTICE
 
-Questo progetto (`CommSuite`) è rilasciato sotto licenza **MIT** ed è un software open source indipendente, non affiliato, sponsorizzato né approvato da fornitori commerciali di software gestionale o dall'Amministrazione finanziaria.
+Questo progetto (`Telonio`) è rilasciato sotto licenza **MIT** ed è un software open source indipendente, non affiliato, sponsorizzato né approvato da fornitori commerciali di software gestionale o dall'Amministrazione finanziaria.
 
 Di seguito sono riportate le attribuzioni e le licenze relative ai componenti software di terze parti e alle banche dati pubbliche utilizzate dai moduli della suite.
 
@@ -38,5 +38,7 @@ I moduli della suite importano e utilizzano dati di riferimento e modelli pubbli
 *   **Banca Centrale Europea (BCE / ECB)**:
     *   *Fonte*: [ECB Data Portal](https://data.ecb.europa.eu/data/datasets/FM/FM.B.U2.EUR.4F.KR.MRR_FR.LEV) — Tasso sulle operazioni di rifinanziamento principali (*Main refinancing operations*).
     *   *Utilizzo*: popolare la tabella `tasso_riferimento` del modulo `Deleghe` per il calcolo delle sanzioni civili INPS e INAIL.
-*   **Codici ISO 3166-1 (`www/Anagrafica/Database/sorgenti/iso3166-1.csv`)**:
-    *   *Fonte*: Tabella di corrispondenza tra codici ISO 3166-1 alpha-3 e alpha-2 estratta dal pacchetto Debian [`iso-codes`](https://salsa.debian.org/iso-codes-team/iso-codes) (`data/iso_3166-1.json`), rilasciato sotto licenza **LGPL-2.1+**, integrata con il codice `XK` (Kosovo) utilizzato dalle specifiche UE e FatturaPA.
+*   **Ufficio delle pubblicazioni dell'Unione europea — EU Vocabularies**:
+    *   *Fonte*: [Tabella di autorità "Countries and territories"](https://op.europa.eu/web/eu-vocabularies/dataset/-/resource?uri=http://publications.europa.eu/resource/dataset/country), interrogata tramite l'endpoint SPARQL pubblico `https://publications.europa.eu/webapi/rdf/sparql`.
+    *   *Licenza della fonte*: riutilizzo ai sensi della Decisione 2011/833/UE della Commissione (**Creative Commons Attribuzione 4.0**). © Unione europea.
+    *   *Utilizzo*: corrispondenza tra i codici ISO 3166-1 alpha-3 e alpha-2 degli stati esteri importati dal comando `sisma tabelle-riferimento` del modulo `Anagrafica`, integrata con il codice `XK` (Kosovo) utilizzato dalle istituzioni dell'Unione e dalle specifiche FatturaPA.

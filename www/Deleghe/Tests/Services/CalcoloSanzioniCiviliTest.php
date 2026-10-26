@@ -4,7 +4,7 @@ namespace Deleghe\Tests\Services;
 
 use Anagrafica\Application\Entities\Soggetto;
 use Anagrafica\Application\Enumerations\TipoSoggetto;
-use CommSuite\Tests\SuiteTestCase;
+use Telonio\Tests\SuiteTestCase;
 use Deleghe\Application\Entities\CausaleContributo;
 use Deleghe\Application\Entities\CodiceTabellaF24;
 use Deleghe\Application\Entities\Delega;

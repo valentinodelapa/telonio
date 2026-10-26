@@ -6,7 +6,7 @@ use Anagrafica\Application\Enumerations\Sesso;
 use Anagrafica\Application\Enumerations\StatoCivile;
 use Anagrafica\Application\Enumerations\TipoAttivita;
 use Anagrafica\Application\Enumerations\TipoSoggetto;
-use CommSuite\Application\Entities\Studio;
+use Telonio\Application\Entities\Studio;
 use SismaFramework\Orm\CustomTypes\SismaDate;
 use SismaFramework\Orm\CustomTypes\SismaDateTime;
 use SismaFramework\Orm\ExtendedClasses\ReferencedEntity;

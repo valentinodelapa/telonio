@@ -2,7 +2,7 @@
 
 namespace Successioni\Application\Forms;
 
-use CommSuite\Application\HelperClasses\CodiceFiscale;
+use Telonio\Application\HelperClasses\CodiceFiscale;
 use SismaFramework\Core\BaseClasses\BaseForm;
 use SismaFramework\Core\Enumerations\FilterType;
 use SismaFramework\Orm\ExtendedClasses\StandardEntity;

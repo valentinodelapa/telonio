@@ -2,7 +2,7 @@
 
 namespace GestioneStudio\Application\Entities;
 
-use CommSuite\Application\Entities\Studio;
+use Telonio\Application\Entities\Studio;
 use GestioneStudio\Application\Enumerations\CondizioneProroga;
 use SismaFramework\Orm\BaseClasses\BaseEntity;
 use SismaFramework\Orm\CustomTypes\SismaDate;

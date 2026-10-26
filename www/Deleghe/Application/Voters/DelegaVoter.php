@@ -2,7 +2,7 @@
 
 namespace Deleghe\Application\Voters;
 
-use CommSuite\Application\Entities\Utente;
+use Telonio\Application\Entities\Utente;
 use Deleghe\Application\Entities\Delega;
 use SismaFramework\Security\BaseClasses\BaseVoter;
 

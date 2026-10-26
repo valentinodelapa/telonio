@@ -3,7 +3,7 @@
 namespace Successioni\Application\Fixtures;
 
 use Anagrafica\Application\Models\ComuneModel;
-use CommSuite\Application\Fixtures\StudioFixture;
+use Telonio\Application\Fixtures\StudioFixture;
 use Deleghe\Application\Fixtures\IntermediarioStudioFixture;
 use SismaFramework\Core\BaseClasses\BaseFixture;
 use SismaFramework\Orm\CustomTypes\SismaDate;

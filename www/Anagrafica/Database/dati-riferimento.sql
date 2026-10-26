@@ -1,12 +1,15 @@
 -- =====================================================
 -- Anagrafica - tabelle di riferimento
 -- =====================================================
--- Generato con "sisma tabelle-riferimento --sql" il 20/10/2026 03:14: non modificare a mano.
+-- Generato con "sisma tabelle-riferimento --sql" il 26/10/2026 15:40: non modificare a mano.
 -- Fonti:
 --   comuni e stati esteri: tabelle di decodifica ANPR (Ministero dell'Interno),
 --   con codici catastali attribuiti dall'Agenzia delle Entrate
 --     https://www.anagrafenazionale.interno.it/wp-content/uploads/ANPR_archivio_comuni.csv
 --     https://www.anagrafenazionale.interno.it/wp-content/uploads/tabella_2_statiesteri.xlsx
+--   codici ISO alpha-2 degli stati esteri: EU Vocabularies, tabella "Countries
+--   and territories" (Ufficio delle pubblicazioni dell'UE, endpoint SPARQL)
+--     https://publications.europa.eu/webapi/rdf/sparql
 --   classificazioni ATECO: ISTAT
 --     https://www.istat.it/wp-content/uploads/2024/12/StrutturaATECO-2025-IT-EN-1.xlsx
 --     https://www.istat.it/wp-content/uploads/2026/07/Aggiornamento-2026-Tabella-operativa-riclassificazione-ATECO-2022-ATECO-2025.xlsx
@@ -54,7 +57,7 @@ INSERT INTO `nazione` (`id_anpr`, `codice_iso`, `codice_iso3`, `codice_catastale
 (2, 'AL', 'ALB', 'Z100', 'ALBANIA', '1900-01-01', NULL),
 (20, 'BT', 'BTN', 'Z205', 'BHUTAN', '1900-01-01', NULL),
 (201, 'CF', 'CAF', 'Z308', 'REPUBBLICA CENTRAFRICANA', '1900-01-01', NULL),
-(202, NULL, NULL, NULL, 'ATOLLO DI CLIPPERTON', '1900-01-01', '2019-01-01'),
+(202, 'CP', 'CPT', NULL, 'ATOLLO DI CLIPPERTON', '1900-01-01', '2019-01-01'),
 (203, 'NU', 'NIU', NULL, 'NIUE', '1900-01-01', NULL),
 (204, 'BQ', 'BES', NULL, 'BONAIRE, SINT EUSTATIUS, SABA', '1900-01-01', NULL),
 (205, 'CW', 'CUW', NULL, 'CURACAO', '1900-01-01', NULL),

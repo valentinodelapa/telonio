@@ -38,7 +38,7 @@ class FonteAgenzia
             usleep(self::PAUSA_MICROSECONDI);
         }
         $url = self::URL . $pagina . ($post ? '' : '?' . http_build_query($parametri));
-        $opzioni = ['timeout' => 60, 'user_agent' => 'Mozilla/5.0 (CommSuite codici-tributo)'];
+        $opzioni = ['timeout' => 60, 'user_agent' => 'Mozilla/5.0 (Telonio codici-tributo)'];
         if ($post) {
             $opzioni += ['method' => 'POST', 'header' => 'Content-Type: application/x-www-form-urlencoded', 'content' => http_build_query($parametri)];
         }

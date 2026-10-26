@@ -42,7 +42,7 @@ intermediari e i codici tributo restano a livello di studio.
 
 ## Installazione
 
-Il modulo è registrato in `MODULE_FOLDERS` e richiede CommSuite e
+Il modulo è registrato in `MODULE_FOLDERS` e richiede Telonio e
 Anagrafica (tabella `conto_corrente`). Script da eseguire come root dopo
 quelli di Anagrafica:
 
@@ -249,7 +249,7 @@ data (se un calcolo non è possibile la data non cambia). `Services\CalcoloRavve
 
 Il termine della dichiarazione è proposto da `DichiarazioneRiferimento`
 (redditi, IRAP e 770: 31 ottobre; IVA: 30 aprile; IMU: 30 giugno dell'anno
-successivo; spostato al primo giorno lavorativo da `CommSuite\HelperClasses\Calendario`)
+successivo; spostato al primo giorno lavorativo da `Telonio\HelperClasses\Calendario`)
 ed è modificabile per i termini prorogati.
 
 `Services\RavvedimentoService` genera i versamenti nella delega con origine
@@ -297,7 +297,7 @@ Stampare in A4, senza margini e in scala 100%.
 
 ```bash
 # aggiorna gli sfondi dai modelli pubblicati dall'Agenzia
-docker exec comm_suite_php sh -c 'cd /var/www/html && sisma modelli-f24'
+docker exec telonio_php sh -c 'cd /var/www/html && sisma modelli-f24'
 ```
 
 Il comando trova il PDF nella scheda "Modello e istruzioni" di ogni
@@ -401,10 +401,10 @@ modificano; si possono eliminare (un nuovo calcolo li ripropone).
 
 ```bash
 # aggiorna il database dalle fonti
-docker exec comm_suite_php sh -c 'cd /var/www/html && sisma tabelle-f24'
+docker exec telonio_php sh -c 'cd /var/www/html && sisma tabelle-f24'
 
 # rigenera lo script SQL versionato nel modulo
-docker exec comm_suite_php sh -c 'cd /var/www/html && sisma tabelle-f24 --sql=Deleghe/Database/dati-riferimento.sql'
+docker exec telonio_php sh -c 'cd /var/www/html && sisma tabelle-f24 --sql=Deleghe/Database/dati-riferimento.sql'
 ```
 
 Fonti:
@@ -446,7 +446,7 @@ originale; dove la fonte ha perso dei byte resta un carattere errato (es.
 ## Scadenzario dello studio
 
 `Services\ScadenzeModulo` espone allo scadenzario del modulo
-`GestioneStudio` (contratto `CommSuite\Interfaces\FonteScadenze`) i
+`GestioneStudio` (contratto `Telonio\Interfaces\FonteScadenze`) i
 versamenti dell'archivio del contribuente raggruppati per data di
 scadenza, compresi quelli registrati dagli altri moduli: una scadenza per
 contribuente e data, con il saldo e lo stato delle deleghe. È completata

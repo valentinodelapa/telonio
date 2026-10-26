@@ -2,7 +2,7 @@
 
 namespace Imu\Application\Models;
 
-use CommSuite\Application\Entities\Studio;
+use Telonio\Application\Entities\Studio;
 use Imu\Application\Entities\ProspettoAliquote;
 use SismaFramework\Orm\CustomTypes\SismaCollection;
 use SismaFramework\Orm\ExtendedClasses\DependentModel;

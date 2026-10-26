@@ -2,7 +2,7 @@
 
 namespace Deleghe\Application\Fixtures;
 
-use CommSuite\Application\Fixtures\StudioFixture;
+use Telonio\Application\Fixtures\StudioFixture;
 use Deleghe\Application\Entities\Intermediario;
 use SismaFramework\Core\BaseClasses\BaseFixture;
 

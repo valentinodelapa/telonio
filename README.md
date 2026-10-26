@@ -1,4 +1,4 @@
-# CommSuite
+# Telonio
 
 [![PHP Version Support](https://img.shields.io/badge/php-%3E%3D8.5-blue)](https://www.php.net/)
 [![license](https://img.shields.io/badge/license-MIT-yellowgreen)](LICENSE)
@@ -11,7 +11,7 @@ Ogni applicativo è un modulo `SismaFramework` all'interno di `www/` che condivi
 
 | Modulo | Stato | Descrizione | Documentazione |
 |---|---|---|---|
-| **`CommSuite`** | Disponibile | Modulo base: gestione studi (CLI e web), utenti e ruoli (`amministratore`, `operatore`), profilo e password, autenticazione, layout e validatori fiscali (Codice Fiscale, Partita IVA, IBAN) | [`www/CommSuite/Docs/README.md`](www/CommSuite/Docs/README.md) |
+| **`Telonio`** | Disponibile | Modulo base: gestione studi (CLI e web), utenti e ruoli (`amministratore`, `operatore`), profilo e password, autenticazione, layout e validatori fiscali (Codice Fiscale, Partita IVA, IBAN) | [`www/Telonio/Docs/README.md`](www/Telonio/Docs/README.md) |
 | **`Anagrafica`** | Disponibile | Archivio unico storicizzato dei soggetti dello studio (persone fisiche, ditte individuali, società, enti), dati fiscali e regime fiscale (ordinario, semplificato, forfetario, periodicità IVA, ISA, sostituto d'imposta), indirizzi, legami/soci, conti correnti, immobili con storico catastale, identificativi graffati e quote di possesso, tabelle ANPR e ATECO | [`www/Anagrafica/Docs/README.md`](www/Anagrafica/Docs/README.md) |
 | **`Deleghe`** | Disponibile | Deleghe di pagamento F24 (Ordinario, Semplificato, ELIDE, Accise): archivio versamenti e crediti in compensazione, controlli formali sulle tabelle dell'Agenzia delle Entrate, ripartizione su più modelli, ravvedimento operoso, sanzioni civili INPS/INAIL, stampa su modello ufficiale SVG e generazione del file telematico Entratel | [`www/Deleghe/Docs/README.md`](www/Deleghe/Docs/README.md) |
 | **`Imu`** | Disponibile | Calcolo dell'IMU sugli immobili in anagrafica: importazione dei prospetti comunali delle aliquote dal portale del Dipartimento delle Finanze, gestione caratteristiche e agevolazioni storicizzate, prospetto di calcolo e invio automatico dei versamenti di acconto e saldo all'archivio `Deleghe`, dichiarazione IMU/IMPi e IMU ENC con file telematico | [`www/Imu/Docs/README.md`](www/Imu/Docs/README.md) |
@@ -40,7 +40,7 @@ Ogni applicativo è un modulo `SismaFramework` all'interno di `www/` che condivi
 1.  Clona il repository comprensivo del submodule `SismaFramework`:
     ```bash
     git clone --recurse-submodules <url-repository>
-    cd commercial-suite
+    cd telonio
     ```
 2.  Crea il file `.env` a partire da `.env.example` e avvia i container:
     ```bash
@@ -49,58 +49,58 @@ Ogni applicativo è un modulo `SismaFramework` all'interno di `www/` che condivi
     ```
 3.  Crea le tabelle dei moduli e importa i dati di riferimento (comuni, stati esteri, codici ATECO, tabelle F24 e tassi, coefficienti e comuni esenti IMU, uffici di registrazione, calendario fiscale degli adempimenti):
     ```bash
-    docker exec -i comm_suite_db mariadb -uroot -pchange_me_root_password comm_suite < www/CommSuite/Database/schema.sql
-    docker exec -i comm_suite_db mariadb -uroot -pchange_me_root_password comm_suite < www/Anagrafica/Database/schema.sql
-    docker exec -i comm_suite_db mariadb -uroot -pchange_me_root_password comm_suite < www/Anagrafica/Database/dati-riferimento.sql
-    docker exec -i comm_suite_db mariadb -uroot -pchange_me_root_password comm_suite < www/Deleghe/Database/schema.sql
-    docker exec -i comm_suite_db mariadb -uroot -pchange_me_root_password comm_suite < www/Deleghe/Database/dati-riferimento.sql
-    docker exec -i comm_suite_db mariadb -uroot -pchange_me_root_password comm_suite < www/Imu/Database/schema.sql
-    docker exec -i comm_suite_db mariadb -uroot -pchange_me_root_password comm_suite < www/Imu/Database/dati-riferimento.sql
-    docker exec -i comm_suite_db mariadb -uroot -pchange_me_root_password comm_suite < www/Successioni/Database/schema.sql
-    docker exec -i comm_suite_db mariadb -uroot -pchange_me_root_password comm_suite < www/Successioni/Database/dati-riferimento.sql
-    docker exec -i comm_suite_db mariadb -uroot -pchange_me_root_password comm_suite < www/GestioneStudio/Database/schema.sql
-    docker exec -i comm_suite_db mariadb -uroot -pchange_me_root_password comm_suite < www/GestioneStudio/Database/dati-riferimento.sql
+    docker exec -i telonio_db mariadb -uroot -pchange_me_root_password telonio < www/Telonio/Database/schema.sql
+    docker exec -i telonio_db mariadb -uroot -pchange_me_root_password telonio < www/Anagrafica/Database/schema.sql
+    docker exec -i telonio_db mariadb -uroot -pchange_me_root_password telonio < www/Anagrafica/Database/dati-riferimento.sql
+    docker exec -i telonio_db mariadb -uroot -pchange_me_root_password telonio < www/Deleghe/Database/schema.sql
+    docker exec -i telonio_db mariadb -uroot -pchange_me_root_password telonio < www/Deleghe/Database/dati-riferimento.sql
+    docker exec -i telonio_db mariadb -uroot -pchange_me_root_password telonio < www/Imu/Database/schema.sql
+    docker exec -i telonio_db mariadb -uroot -pchange_me_root_password telonio < www/Imu/Database/dati-riferimento.sql
+    docker exec -i telonio_db mariadb -uroot -pchange_me_root_password telonio < www/Successioni/Database/schema.sql
+    docker exec -i telonio_db mariadb -uroot -pchange_me_root_password telonio < www/Successioni/Database/dati-riferimento.sql
+    docker exec -i telonio_db mariadb -uroot -pchange_me_root_password telonio < www/GestioneStudio/Database/schema.sql
+    docker exec -i telonio_db mariadb -uroot -pchange_me_root_password telonio < www/GestioneStudio/Database/dati-riferimento.sql
     ```
 4.  Crea uno studio e il primo utente amministratore (oppure, in sviluppo, carica i dati demo con utente `admin` / `admin`, soggetti con storico, immobili, deleghe, calcoli IMU e successione di esempio):
     ```bash
-    # Creazione di uno studio (interattiva o con opzioni, vedi www/CommSuite/Docs/README.md)
-    docker exec -it comm_suite_php sh -c 'cd /var/www/html && sisma studio crea'
+    # Creazione di uno studio (interattiva o con opzioni, vedi www/Telonio/Docs/README.md)
+    docker exec -it telonio_php sh -c 'cd /var/www/html && sisma studio crea'
 
     # Oppure, solo sviluppo su tabelle vuote: carica i dati demo
-    docker exec comm_suite_php sh -c 'cd /var/www/html && sisma fixtures'
+    docker exec telonio_php sh -c 'cd /var/www/html && sisma fixtures'
     ```
 
-L'applicazione sarà disponibile su `http://comm-suite.localhost`, phpMyAdmin su `http://db.comm-suite.localhost` e Mailpit su `http://mail.comm-suite.localhost`.
+L'applicazione sarà disponibile su `http://telonio.localhost`, phpMyAdmin su `http://db.telonio.localhost` e Mailpit su `http://mail.telonio.localhost`.
 
 ## Comandi CLI (`sisma`)
 
-Il comando `sisma` è disponibile nel container `comm_suite_php` e include i comandi dei moduli per la gestione degli studi e l'aggiornamento delle tabelle di riferimento e dei modelli ufficiali:
+Il comando `sisma` è disponibile nel container `telonio_php` e include i comandi dei moduli per la gestione degli studi e l'aggiornamento delle tabelle di riferimento e dei modelli ufficiali:
 
 ```bash
 # Elenca gli studi e i relativi utenti, oppure crea/gestisce uno studio e i suoi amministratori
-docker exec comm_suite_php sh -c 'cd /var/www/html && sisma studio'
-docker exec -it comm_suite_php sh -c 'cd /var/www/html && sisma studio crea'
+docker exec telonio_php sh -c 'cd /var/www/html && sisma studio'
+docker exec -it telonio_php sh -c 'cd /var/www/html && sisma studio crea'
 
 # Carica i dati demo di sviluppo (su tabelle vuote)
-docker exec comm_suite_php sh -c 'cd /var/www/html && sisma fixtures'
+docker exec telonio_php sh -c 'cd /var/www/html && sisma fixtures'
 
 # Aggiorna comuni e stati esteri (ANPR) e classificazioni ATECO (ISTAT)
-docker exec comm_suite_php sh -c 'cd /var/www/html && sisma tabelle-riferimento'
+docker exec telonio_php sh -c 'cd /var/www/html && sisma tabelle-riferimento'
 
 # Aggiorna codici tributo, causali, enti F24 (Agenzia delle Entrate) e tassi BCE
-docker exec comm_suite_php sh -c 'cd /var/www/html && sisma tabelle-f24'
+docker exec telonio_php sh -c 'cd /var/www/html && sisma tabelle-f24'
 
 # Aggiorna gli sfondi SVG dei modelli F24 ufficiali dai PDF dell'Agenzia delle Entrate
-docker exec comm_suite_php sh -c 'cd /var/www/html && sisma modelli-f24'
+docker exec telonio_php sh -c 'cd /var/www/html && sisma modelli-f24'
 
 # Importa i prospetti comunali delle aliquote IMU dal Dipartimento delle Finanze
-docker exec comm_suite_php sh -c 'cd /var/www/html && sisma aliquote-imu --anno=2026'
+docker exec telonio_php sh -c 'cd /var/www/html && sisma aliquote-imu --anno=2026'
 
 # Aggiorna gli XSD della dichiarazione di successione e gli uffici di registrazione (Agenzia delle Entrate)
-docker exec comm_suite_php sh -c 'cd /var/www/html && sisma specifiche-successioni'
+docker exec telonio_php sh -c 'cd /var/www/html && sisma specifiche-successioni'
 
 # Aggiorna il calendario fiscale degli adempimenti (termini e proroghe di legge) dalle sorgenti del modulo
-docker exec comm_suite_php sh -c 'cd /var/www/html && sisma calendario-fiscale'
+docker exec telonio_php sh -c 'cd /var/www/html && sisma calendario-fiscale'
 ```
 
 ## Ambienti: sviluppo e produzione
@@ -110,7 +110,7 @@ La configurazione Docker è divisa in quattro file:
 | File | Contenuto |
 |---|---|
 | `docker-compose.yml` | Servizi core (`nginx`, `php`, `db`), comuni a ogni ambiente. `db` è dietro il profilo `internal-db` (vedi "Database interno o esterno") |
-| `docker-compose.dev.yml` | Aggiunte per lo sviluppo: immagine `php` con Xdebug e pcov (stage `dev` del `Dockerfile`), esposizione di `nginx` via Traefik (`web_network`, dominio `comm-suite.localhost`), `phpmyadmin`, `mailpit` (mock SMTP) |
+| `docker-compose.dev.yml` | Aggiunte per lo sviluppo: immagine `php` con Xdebug e pcov (stage `dev` del `Dockerfile`), esposizione di `nginx` via Traefik (`web_network`, dominio `telonio.localhost`), `phpmyadmin`, `mailpit` (mock SMTP) |
 | `docker-compose.prod.yml` | Aggiunte per la produzione: `restart: unless-stopped` sui servizi core, `nginx` pubblicato su `HTTP_BIND:HTTP_PORT` (default `127.0.0.1:8080`) |
 | `docker-compose.backup.yml` | Layer opzionale: backup schedulato del database |
 
@@ -138,12 +138,12 @@ Le credenziali (e la passphrase di cifratura) sono lette dal file `.env` (non ve
 | Parametro | Valore di default (`.env.example`) |
 |---|---|
 | Host | `db` |
-| Database | `comm_suite` |
-| Utente | `comm_suite_user` |
+| Database | `telonio` |
+| Utente | `telonio_user` |
 | Password | `change_me_db_password` |
 | Password root | `change_me_root_password` |
 
-L'utente applicativo (`comm_suite_user`) ha soli permessi DML (`SELECT`, `INSERT`, `UPDATE`, `DELETE`) sullo schema del progetto (configurati in `comm_suite.sql`); le operazioni di struttura (DDL) vanno eseguite come `root`.
+L'utente applicativo (`telonio_user`) ha soli permessi DML (`SELECT`, `INSERT`, `UPDATE`, `DELETE`) sullo schema del progetto (configurati in `db-init.sh`, eseguito alla creazione del database); le operazioni di struttura (DDL) vanno eseguite come `root`.
 
 ## Database interno o esterno
 
@@ -163,22 +163,22 @@ Su una macchina sempre accesa (mini PC, NAS, server o VPS) con Docker, **fuori d
 1.  Scarica il codice: clone con `git clone --recurse-submodules` (poi `composer install --working-dir=www --no-dev`) oppure l'archivio di una release, che contiene già framework e dipendenze.
 2.  Crea il `.env` da `.env.example` con password e passphrase nuove (es. `openssl rand -base64 32`), `DEVELOPMENT_ENVIRONMENT=false`, `HTTPS_IS_FORCED=true` e i parametri SMTP reali.
 3.  Avvia lo stack con il backup: `make start-backup`.
-4.  Crea le tabelle eseguendo come `root` gli script `schema.sql` e `dati-riferimento.sql` dei moduli, come al passo 3 di "Avvio e installazione" (con `docker exec -i comm_suite_db ...`).
-5.  Crea lo studio e il primo amministratore: `docker exec -it comm_suite_php sh -c 'cd /var/www/html && sisma studio crea'`. **Non** caricare le fixture (`sisma fixtures`), che creano l'utente demo `admin` / `admin`.
+4.  Crea le tabelle eseguendo come `root` gli script `schema.sql` e `dati-riferimento.sql` dei moduli, come al passo 3 di "Avvio e installazione" (con `docker exec -i telonio_db ...`).
+5.  Crea lo studio e il primo amministratore: `docker exec -it telonio_php sh -c 'cd /var/www/html && sisma studio crea'`. **Non** caricare le fixture (`sisma fixtures`), che creano l'utente demo `admin` / `admin`.
 
-Per una seconda istanza sulla stessa macchina dello sviluppo usare una cartella separata con `CONTAINER_PREFIX` diverso in `.env` (es. `comm_suite_prod`): nome di progetto Compose, volume del database e container restano distinti.
+Per una seconda istanza sulla stessa macchina dello sviluppo usare una cartella separata con `CONTAINER_PREFIX` diverso in `.env` (es. `telonio_prod`): nome di progetto Compose, volume del database e container restano distinti. In produzione fissare in `.env` anche `COMPOSE_PROJECT_NAME` (es. `telonio-prod`): il volume del database prende il nome del progetto, che altrimenti è quello della cartella, e un aggiornamento estratto in un'altra cartella partirebbe da un database vuoto.
 
 ### Indirizzo web con Tailscale
 
 [Tailscale](https://tailscale.com/) crea una rete privata tra i propri dispositivi, senza aprire porte sul router:
 
 1.  Installa Tailscale sull'host e su ogni PC da cui accedere, con lo stesso account.
-2.  Nella console di amministrazione attiva **MagicDNS** e **HTTPS Certificates** (DNS → HTTPS Certificates) e, se vuoi, rinomina la macchina (es. `commsuite`).
+2.  Nella console di amministrazione attiva **MagicDNS** e **HTTPS Certificates** (DNS → HTTPS Certificates) e, se vuoi, rinomina la macchina (es. `telonio`).
 3.  Sull'host: `tailscale serve --bg 8080`.
 
-L'applicativo è raggiungibile su `https://commsuite.<nome-tailnet>.ts.net`, con certificato valido, solo dai dispositivi della propria rete Tailscale.
+L'applicativo è raggiungibile su `https://telonio.<nome-tailnet>.ts.net`, con certificato valido, solo dai dispositivi della propria rete Tailscale.
 
-Per un nome del proprio dominio (es. `commsuite.studio.it`) servono un record DNS che punti all'IP Tailscale dell'host (`100.x.y.z`, raggiungibile solo dalla rete privata) e un reverse proxy che ottenga il certificato con la verifica DNS (es. Caddy con il plugin del proprio provider DNS) e inoltri a `127.0.0.1:8080`.
+Per un nome del proprio dominio (es. `telonio.studio.it`) servono un record DNS che punti all'IP Tailscale dell'host (`100.x.y.z`, raggiungibile solo dalla rete privata) e un reverse proxy che ottenga il certificato con la verifica DNS (es. Caddy con il plugin del proprio provider DNS) e inoltri a `127.0.0.1:8080`.
 
 ### Backup e ripristino
 
@@ -189,11 +189,11 @@ Il servizio di backup esegue un dump compresso del database ogni notte (`BACKUP_
 *   una **prova periodica di ripristino** su un database temporaneo:
 
 ```bash
-docker exec comm_suite_db sh -c 'mariadb -uroot -p"$MARIADB_ROOT_PASSWORD" -e "CREATE DATABASE comm_suite_ripristino"'
-gunzip -c backups/comm_suite_AAAAMMGG_HHMMSS.sql.gz | docker exec -i comm_suite_db sh -c 'mariadb -uroot -p"$MARIADB_ROOT_PASSWORD" comm_suite_ripristino'
+docker exec telonio_db sh -c 'mariadb -uroot -p"$MARIADB_ROOT_PASSWORD" -e "CREATE DATABASE telonio_ripristino"'
+gunzip -c backups/telonio_AAAAMMGG_HHMMSS.sql.gz | docker exec -i telonio_db sh -c 'mariadb -uroot -p"$MARIADB_ROOT_PASSWORD" telonio_ripristino'
 ```
 
-Per il ripristino effettivo si importa il dump nel database `comm_suite` (svuotato) con lo stesso comando.
+Per il ripristino effettivo si importa il dump nel database `telonio` (svuotato) con lo stesso comando.
 
 ### Copia remota cifrata (OneDrive, Google Drive)
 
@@ -210,7 +210,7 @@ Funzionamento:
 
 *   la copia usa `rclone copy`, non `sync`: i dump spariti in locale (guasto, cancellazione, ransomware) non vengono cancellati in remoto;
 *   in remoto si conservano i dump degli ultimi `BACKUP_REMOTE_RETENTION_DAYS` giorni (default 90), indipendentemente dalla retention locale;
-*   un remote non raggiungibile non blocca gli altri: il dump resta in locale e l'errore compare nel log del container (`docker logs comm_suite_backup`).
+*   un remote non raggiungibile non blocca gli altri: il dump resta in locale e l'errore compare nel log del container (`docker logs telonio_backup`).
 
 La configurazione di rclone sta in `./rclone/rclone.conf` (esclusa da Git): contiene i token di accesso e le password di cifratura, va protetta come il `.env`. Dopo una modifica a `BACKUP_REMOTES` riavviare il servizio (`make start-backup`).
 
@@ -218,25 +218,25 @@ La configurazione di rclone sta in `./rclone/rclone.conf` (esclusa da Git): cont
 
 L'accesso a OneDrive e Google Drive richiede un login dal browser, che sull'host spesso non c'è: il token si ottiene su un PC con [rclone installato](https://rclone.org/install/) (su Windows `winget install Rclone.Rclone`) e si incolla nella configurazione sull'host. Il token si rinnova da solo.
 
-1.  Avvia il servizio di backup (`make start-backup`) e apri la configurazione guidata nel container: `docker exec -it comm_suite_backup rclone config`.
+1.  Avvia il servizio di backup (`make start-backup`) e apri la configurazione guidata nel container: `docker exec -it telonio_backup rclone config`.
 2.  **OneDrive**: `n` (nuovo remote), nome `onedrive`, tipo `onedrive`, `client_id` e `client_secret` vuoti, regione `global`. Alla domanda sul browser rispondi `n`: rclone mostra il comando da eseguire sul PC (`rclone authorize "onedrive"`), che apre il browser per l'accesso e stampa il token da incollare. Scegli poi "OneDrive Personal or Business" e il drive proposto.
 3.  **Google Drive**: nome `gdrive`, tipo `drive`. È consigliato un `client_id` proprio ([istruzioni](https://rclone.org/drive/#making-your-own-client-id)): quello condiviso di rclone ha limiti di traffico. Come `scope` scegli `drive.file` (rclone vede solo i file che crea lui). Il token si ottiene come per OneDrive, con il comando `rclone authorize "drive" ...` mostrato da rclone.
-4.  **Remote cifrati**, uno per servizio: nome `onedrive-cifrato`, tipo `crypt`, `remote` = `onedrive:Backup/CommSuite`, cifratura dei nomi `standard`, cifratura delle cartelle `true`, password e salt (`password2`) scelti da te (`y`, poi digitati). Stesso procedimento per `gdrive-cifrato` con `remote` = `gdrive:Backup/CommSuite`.
+4.  **Remote cifrati**, uno per servizio: nome `onedrive-cifrato`, tipo `crypt`, `remote` = `onedrive:Backup/Telonio`, cifratura dei nomi `standard`, cifratura delle cartelle `true`, password e salt (`password2`) scelti da te (`y`, poi digitati). Stesso procedimento per `gdrive-cifrato` con `remote` = `gdrive:Backup/Telonio`.
 5.  **Conserva password e salt di ogni remote cifrato nel password manager**: senza, e senza `rclone.conf`, i dump remoti non sono recuperabili da nessuno, nemmeno da te.
-6.  Imposta `BACKUP_REMOTES` in `.env`, riavvia con `make start-backup` e prova subito: `docker exec comm_suite_backup backup.sh` deve terminare con `Copia remota completata` per ogni remote.
+6.  Imposta `BACKUP_REMOTES` in `.env`, riavvia con `make start-backup` e prova subito: `docker exec telonio_backup backup.sh` deve terminare con `Copia remota completata` per ogni remote.
 
 #### Ripristino da remoto
 
 ```bash
-docker exec comm_suite_backup rclone ls onedrive-cifrato:
-docker exec comm_suite_backup rclone copy onedrive-cifrato:comm_suite_AAAAMMGG_HHMMSS.sql.gz /backups/
+docker exec telonio_backup rclone ls onedrive-cifrato:
+docker exec telonio_backup rclone copy onedrive-cifrato:telonio_AAAAMMGG_HHMMSS.sql.gz /backups/
 ```
 
 Il file arriva già decifrato in `./backups` e si importa come sopra. Su una macchina nuova basta rclone con un `rclone.conf` che abbia gli stessi remote (token di accesso nuovo, stesse password e salt).
 
 ### Aggiornamento
 
-Prima di aggiornare eseguire un backup (`docker exec comm_suite_backup backup.sh`), poi aggiornare il codice (nuova release o `git pull` su un tag), applicare gli eventuali script di migrazione indicati nel `CHANGELOG.md` e ricostruire con `docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.backup.yml --profile internal-db up -d --build`. L'immagine di MariaDB è fissata a una versione (`docker-compose.yml`): passare alla successiva a mano, dopo un backup (MariaDB non supporta il ritorno a una versione precedente).
+Prima di aggiornare eseguire un backup (`docker exec telonio_backup backup.sh`), poi aggiornare il codice (nuova release o `git pull` su un tag; se la nuova versione va in un'altra cartella, copiarvi `.env`, `backups/` e `rclone/` e verificare che `.env` contenga `COMPOSE_PROJECT_NAME`), applicare gli eventuali script di migrazione indicati nel `CHANGELOG.md` e ricostruire con `docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.backup.yml --profile internal-db up -d --build`. L'immagine di MariaDB è fissata a una versione (`docker-compose.yml`): passare alla successiva a mano, dopo un backup (MariaDB non supporta il ritorno a una versione precedente).
 
 ## Configurazione SMTP e limiti PHP
 
@@ -248,4 +248,4 @@ Prima di aggiornare eseguire un backup (`docker exec comm_suite_backup backup.sh
 
 Rilasciato sotto licenza **MIT** — vedi il file [LICENSE](LICENSE).
 
-Per l'elenco completo delle librerie open source di terze parti e delle fonti istituzionali dei dati pubblici e dei modelli fiscali utilizzati (ANPR, ISTAT, Agenzia delle Entrate, MEF, BCE, Debian `iso-codes`) consulta il file [NOTICE.md](NOTICE.md).
+Per l'elenco completo delle librerie open source di terze parti e delle fonti istituzionali dei dati pubblici e dei modelli fiscali utilizzati (ANPR, ISTAT, Agenzia delle Entrate, MEF, BCE, Ufficio delle pubblicazioni dell'UE) consulta il file [NOTICE.md](NOTICE.md).

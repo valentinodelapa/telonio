@@ -4,10 +4,10 @@ namespace GestioneStudio\Application\BaseClasses;
 
 use Anagrafica\Application\Entities\Soggetto;
 use Anagrafica\Application\Permissions\SoggettoPermission;
-use CommSuite\Application\BaseClasses\SuiteController;
-use CommSuite\Application\Entities\Utente;
-use CommSuite\Application\Enumerations\ModuloSuite;
-use CommSuite\Application\Models\UtenteModel;
+use Telonio\Application\BaseClasses\SuiteController;
+use Telonio\Application\Entities\Utente;
+use Telonio\Application\Enumerations\ModuloSuite;
+use Telonio\Application\Models\UtenteModel;
 use GestioneStudio\Application\Entities\Adempimento;
 use SismaFramework\Core\BaseClasses\BaseForm;
 use SismaFramework\Core\Exceptions\AccessDeniedException;

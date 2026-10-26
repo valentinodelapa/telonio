@@ -70,7 +70,7 @@ class ArchivioTabelleF24
 
     private function leggiUrl(string $url): string
     {
-        $contesto = stream_context_create(['http' => ['timeout' => 120, 'user_agent' => 'Mozilla/5.0 (CommSuite tabelle-f24)']]);
+        $contesto = stream_context_create(['http' => ['timeout' => 120, 'user_agent' => 'Mozilla/5.0 (Telonio tabelle-f24)']]);
         $contenuto = @file_get_contents($url, false, $contesto);
         if ($contenuto === false) {
             throw new \RuntimeException('Download non riuscito: ' . $url);

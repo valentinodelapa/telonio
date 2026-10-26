@@ -4,7 +4,7 @@ namespace Deleghe\Application\Fixtures;
 
 use Anagrafica\Application\Fixtures\ContoCorrenteAlfaFixture;
 use Anagrafica\Application\Fixtures\SoggettoAlfaFixture;
-use CommSuite\Application\Fixtures\StudioFixture;
+use Telonio\Application\Fixtures\StudioFixture;
 use Deleghe\Application\Entities\Delega;
 use Deleghe\Application\Enumerations\StatoDelega;
 use SismaFramework\Core\BaseClasses\BaseFixture;

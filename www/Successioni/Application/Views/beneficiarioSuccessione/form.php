@@ -1,8 +1,8 @@
 <?php
 
-use CommSuite\Application\HelperClasses\Campo;
-use CommSuite\Application\HelperClasses\Html;
-use CommSuite\Application\HelperClasses\Layout;
+use Telonio\Application\HelperClasses\Campo;
+use Telonio\Application\HelperClasses\Html;
+use Telonio\Application\HelperClasses\Layout;
 
 $urlAnnulla = '/dichiarazione-successione/show/dichiarazione/' . $dichiarazione->id . '/scheda/beneficiari';
 $etichettaSoggetto = fn(?object $soggetto): ?string => $soggetto === null ? null : $soggetto->nominativo . ' - ' . $soggetto->codiceFiscale;

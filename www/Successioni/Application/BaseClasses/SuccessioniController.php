@@ -4,8 +4,8 @@ namespace Successioni\Application\BaseClasses;
 
 use Anagrafica\Application\Entities\Soggetto;
 use Anagrafica\Application\Permissions\SoggettoPermission;
-use CommSuite\Application\BaseClasses\SuiteController;
-use CommSuite\Application\Enumerations\ModuloSuite;
+use Telonio\Application\BaseClasses\SuiteController;
+use Telonio\Application\Enumerations\ModuloSuite;
 use SismaFramework\Core\BaseClasses\BaseForm;
 use SismaFramework\Core\HttpClasses\Response;
 use SismaFramework\Orm\BaseClasses\BaseEntity;

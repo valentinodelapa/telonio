@@ -1,6 +1,6 @@
 <?php
 
-use CommSuite\Application\HelperClasses\Html;
+use Telonio\Application\HelperClasses\Html;
 use Successioni\Application\Enumerations\StatoDichiarazioneSuccessione;
 
 $etichetteVoltura = ['chiusura' => $chiusura, 'nuovo' => $nuovo, 'variazione' => $variazione];

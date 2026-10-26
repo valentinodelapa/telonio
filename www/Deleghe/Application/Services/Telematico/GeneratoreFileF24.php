@@ -3,7 +3,7 @@
 namespace Deleghe\Application\Services\Telematico;
 
 use Anagrafica\Application\Entities\Soggetto;
-use CommSuite\Application\HelperClasses\CodiceFiscale;
+use Telonio\Application\HelperClasses\CodiceFiscale;
 use Deleghe\Application\Entities\Delega;
 use Deleghe\Application\Entities\Intermediario;
 use Deleghe\Application\Enumerations\CodiceIdentificativo;

@@ -32,7 +32,7 @@ di tutti gli operatori nel periodo.
 ## Installazione
 
 Il modulo è registrato in `MODULE_FOLDERS`. Script da eseguire come root
-sullo schema del progetto, dopo quelli di `CommSuite` e `Anagrafica`:
+sullo schema del progetto, dopo quelli di `Telonio` e `Anagrafica`:
 
 1. `GestioneStudio/Database/schema.sql`
 2. `GestioneStudio/Database/dati-riferimento.sql` (calendario fiscale:
@@ -83,7 +83,7 @@ dopo). Il termine effettivo (`Services\CalendarioAdempimenti`) è:
    lavorativo successivo (art. 7, c. 1, lett. h, D.L. 70/2011).
 
 Il calcolo dei giorni lavorativi è comune a tutta la suite
-(`CommSuite\HelperClasses\Calendario::termineFiscale`), con le festività
+(`Telonio\HelperClasses\Calendario::termineFiscale`), con le festività
 nazionali compreso il 4 ottobre dal 2026 (L. 151/2025).
 
 ## Proroghe
@@ -138,10 +138,10 @@ sempre confermata.
 ## Scadenze degli altri moduli
 
 Il modulo non dipende dagli applicativi di cui mostra le scadenze: il
-contratto è in CommSuite. Ogni modulo che ha scadenze le espone con la
+contratto è in Telonio. Ogni modulo che ha scadenze le espone con la
 classe `<Modulo>\Application\Services\ScadenzeModulo`, che implementa
-`CommSuite\Application\Interfaces\FonteScadenze`;
-`CommSuite\Application\Services\RaccoltaScadenze` le raccoglie dai moduli
+`Telonio\Application\Interfaces\FonteScadenze`;
+`Telonio\Application\Services\RaccoltaScadenze` le raccoglie dai moduli
 disponibili. Un modulo futuro (es. contabilità, dichiarazioni, parcelle)
 entra nello scadenzario solo dichiarando la sua fonte, senza modificare
 questo modulo.
@@ -207,10 +207,10 @@ assegnazioni dei clienti; gli adempimenti propri degli studi partono da
 ```bash
 # aggiorna il database dalle sorgenti (gli adempimenti tolti restano non attivi,
 # i dati degli studi non sono toccati)
-docker exec comm_suite_php sh -c 'cd /var/www/html && sisma calendario-fiscale'
+docker exec telonio_php sh -c 'cd /var/www/html && sisma calendario-fiscale'
 
 # rigenera lo script SQL versionato nel modulo
-docker exec comm_suite_php sh -c 'cd /var/www/html && sisma calendario-fiscale --sql=GestioneStudio/Database/dati-riferimento.sql'
+docker exec telonio_php sh -c 'cd /var/www/html && sisma calendario-fiscale --sql=GestioneStudio/Database/dati-riferimento.sql'
 ```
 
 Il comando si ferma senza modificare nulla se una sorgente ha

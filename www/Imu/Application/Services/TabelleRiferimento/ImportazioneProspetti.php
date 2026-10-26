@@ -3,7 +3,7 @@
 namespace Imu\Application\Services\TabelleRiferimento;
 
 use Anagrafica\Application\Models\ImmobileModel;
-use CommSuite\Application\Entities\Studio;
+use Telonio\Application\Entities\Studio;
 use Imu\Application\Entities\AliquotaDifferenziata;
 use Imu\Application\Entities\ProspettoAliquote;
 use Imu\Application\Enumerations\FattispecieImu;

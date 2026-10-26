@@ -2,7 +2,7 @@
 
 namespace Deleghe\Tests\HelperClasses;
 
-use CommSuite\Tests\SuiteTestCase;
+use Telonio\Tests\SuiteTestCase;
 use Deleghe\Application\HelperClasses\Importo;
 
 class ImportoTest extends SuiteTestCase

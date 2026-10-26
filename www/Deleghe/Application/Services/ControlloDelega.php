@@ -5,7 +5,7 @@ namespace Deleghe\Application\Services;
 use Anagrafica\Application\Entities\Soggetto;
 use Anagrafica\Application\Models\ComuneModel;
 use Anagrafica\Application\Models\SoggettoModel;
-use CommSuite\Application\HelperClasses\CodiceFiscale;
+use Telonio\Application\HelperClasses\CodiceFiscale;
 use Deleghe\Application\Entities\CausaleContributo;
 use Deleghe\Application\Entities\CodiceTributo;
 use Deleghe\Application\Entities\Delega;

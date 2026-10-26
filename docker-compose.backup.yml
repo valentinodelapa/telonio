@@ -3,7 +3,7 @@ services:
   backup:
     build:
       context: ./backup
-    container_name: ${CONTAINER_PREFIX:-comm_suite}_backup
+    container_name: ${CONTAINER_PREFIX:-telonio}_backup
     restart: unless-stopped
     env_file:
       - .env

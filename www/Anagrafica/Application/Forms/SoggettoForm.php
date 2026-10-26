@@ -6,7 +6,7 @@ use Anagrafica\Application\Entities\Soggetto;
 use Anagrafica\Application\Models\ComuneModel;
 use Anagrafica\Application\Models\NazioneModel;
 use Anagrafica\Application\Models\SoggettoModel;
-use CommSuite\Application\HelperClasses\CodiceFiscale;
+use Telonio\Application\HelperClasses\CodiceFiscale;
 use SismaFramework\Core\BaseClasses\BaseForm;
 use SismaFramework\Core\Enumerations\FilterType;
 

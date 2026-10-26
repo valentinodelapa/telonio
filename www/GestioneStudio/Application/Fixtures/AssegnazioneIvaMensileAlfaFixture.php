@@ -3,7 +3,7 @@
 namespace GestioneStudio\Application\Fixtures;
 
 use Anagrafica\Application\Fixtures\SoggettoAlfaFixture;
-use CommSuite\Application\Fixtures\UtenteFixture;
+use Telonio\Application\Fixtures\UtenteFixture;
 use GestioneStudio\Application\Entities\AssegnazioneAdempimento;
 use GestioneStudio\Application\Models\AdempimentoModel;
 use SismaFramework\Core\BaseClasses\BaseFixture;

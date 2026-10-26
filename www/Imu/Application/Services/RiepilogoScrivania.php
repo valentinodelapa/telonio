@@ -2,7 +2,7 @@
 
 namespace Imu\Application\Services;
 
-use CommSuite\Application\Entities\Studio;
+use Telonio\Application\Entities\Studio;
 use Imu\Application\Models\CalcoloImuModel;
 use SismaFramework\Orm\HelperClasses\DataMapper;
 

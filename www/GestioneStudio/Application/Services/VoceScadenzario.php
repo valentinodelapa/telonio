@@ -2,8 +2,8 @@
 
 namespace GestioneStudio\Application\Services;
 
-use CommSuite\Application\Entities\Utente;
-use CommSuite\Application\Services\Scadenza;
+use Telonio\Application\Entities\Utente;
+use Telonio\Application\Services\Scadenza;
 use GestioneStudio\Application\Entities\LavorazioneScadenza;
 use GestioneStudio\Application\Enumerations\StatoLavorazione;
 

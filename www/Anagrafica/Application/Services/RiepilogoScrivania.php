@@ -5,7 +5,7 @@ namespace Anagrafica\Application\Services;
 use Anagrafica\Application\Enumerations\TipoSoggetto;
 use Anagrafica\Application\Models\ImmobileModel;
 use Anagrafica\Application\Models\SoggettoModel;
-use CommSuite\Application\Entities\Studio;
+use Telonio\Application\Entities\Studio;
 use SismaFramework\Orm\HelperClasses\DataMapper;
 
 /**

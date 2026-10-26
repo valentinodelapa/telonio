@@ -3,7 +3,7 @@
 namespace Deleghe\Application\Models;
 
 use Anagrafica\Application\Entities\Soggetto;
-use CommSuite\Application\Entities\Studio;
+use Telonio\Application\Entities\Studio;
 use Deleghe\Application\Entities\Delega;
 use Deleghe\Application\Enumerations\StatoDelega;
 use SismaFramework\Orm\CustomTypes\SismaCollection;

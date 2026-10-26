@@ -8,8 +8,8 @@ use Anagrafica\Application\Permissions\ImmobilePermission;
 use Anagrafica\Application\Permissions\SoggettoPermission;
 use Anagrafica\Application\Voters\ImmobileVoter;
 use Anagrafica\Application\Voters\SoggettoVoter;
-use CommSuite\Application\Enumerations\RuoloUtente;
-use CommSuite\Tests\SuiteTestCase;
+use Telonio\Application\Enumerations\RuoloUtente;
+use Telonio\Tests\SuiteTestCase;
 use SismaFramework\Core\Exceptions\AccessDeniedException;
 use SismaFramework\Security\Enumerations\AccessControlEntry;
 

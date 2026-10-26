@@ -1,7 +1,7 @@
 <?php
 
-use CommSuite\Application\HelperClasses\Html;
-use CommSuite\Application\HelperClasses\Layout;
+use Telonio\Application\HelperClasses\Html;
+use Telonio\Application\HelperClasses\Layout;
 
 $urlElenco = function (array $parametri) use ($testo, $inclusiTutti): string {
     $parametri += ['testo' => $testo, 'tutti' => $inclusiTutti ? 1 : ''];

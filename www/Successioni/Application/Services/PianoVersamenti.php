@@ -7,7 +7,7 @@ use Deleghe\Application\Entities\Versamento;
 use Deleghe\Application\Enumerations\CodiceIdentificativo;
 use Deleghe\Application\Enumerations\SezioneCodiceTributo;
 use Deleghe\Application\Enumerations\SezioneF24;
-use CommSuite\Application\HelperClasses\Calendario;
+use Telonio\Application\HelperClasses\Calendario;
 use Deleghe\Application\Models\CodiceTributoModel;
 use Deleghe\Application\Models\VersamentoModel;
 use Deleghe\Application\Services\ArchivioVersamenti;

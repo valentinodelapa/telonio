@@ -24,7 +24,7 @@ class TassiRiferimentoBce
      */
     public function leggi(?string $sorgente = null): array
     {
-        $contenuto = @file_get_contents($sorgente ?? self::URL, false, stream_context_create(['http' => ['timeout' => 60, 'user_agent' => 'Mozilla/5.0 (CommSuite tabelle-f24)']]));
+        $contenuto = @file_get_contents($sorgente ?? self::URL, false, stream_context_create(['http' => ['timeout' => 60, 'user_agent' => 'Mozilla/5.0 (Telonio tabelle-f24)']]));
         if ($contenuto === false) {
             throw new \RuntimeException('Download non riuscito: ' . ($sorgente ?? self::URL));
         }

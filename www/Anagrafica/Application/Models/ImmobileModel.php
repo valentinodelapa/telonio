@@ -4,7 +4,7 @@ namespace Anagrafica\Application\Models;
 
 use Anagrafica\Application\Entities\Immobile;
 use Anagrafica\Application\Enumerations\TipoCatasto;
-use CommSuite\Application\Entities\Studio;
+use Telonio\Application\Entities\Studio;
 use SismaFramework\Orm\CustomTypes\SismaCollection;
 use SismaFramework\Orm\Enumerations\ComparisonOperator;
 use SismaFramework\Orm\Enumerations\DataType;

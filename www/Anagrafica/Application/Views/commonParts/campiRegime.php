@@ -4,7 +4,7 @@ use Anagrafica\Application\Enumerations\PeriodicitaIva;
 use Anagrafica\Application\Enumerations\RegimeFiscale;
 use Anagrafica\Application\Enumerations\TipoAttivita;
 use Anagrafica\Application\Enumerations\TipoSoggetto;
-use CommSuite\Application\HelperClasses\Campo;
+use Telonio\Application\HelperClasses\Campo;
 
 /**
  * Regime fiscale nei form dei dati fiscali: $origineRegime (entità o dati

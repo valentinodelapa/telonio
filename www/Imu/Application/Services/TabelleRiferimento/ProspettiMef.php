@@ -147,7 +147,7 @@ class ProspettiMef
         if ($this->scaricati++ > 0) {
             usleep(self::PAUSA_MICROSECONDI);
         }
-        $opzioni = ['timeout' => 60, 'user_agent' => 'Mozilla/5.0 (CommSuite aliquote-imu)'];
+        $opzioni = ['timeout' => 60, 'user_agent' => 'Mozilla/5.0 (Telonio aliquote-imu)'];
         if ($parametri !== null) {
             $opzioni += ['method' => 'POST', 'header' => 'Content-Type: application/x-www-form-urlencoded', 'content' => http_build_query($parametri)];
         }

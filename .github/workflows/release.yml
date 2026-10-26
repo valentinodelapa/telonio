@@ -1,4 +1,4 @@
-name: SLSA generic generator - CommSuite Release
+name: SLSA generic generator - Telonio Release
 on:
   push:
     tags:
@@ -159,7 +159,7 @@ jobs:
           RELEASE_BODY: ${{ needs.build.outputs.release_body }}
         with:
           tag_name: ${{ github.ref_name }}
-          name: CommSuite ${{ github.ref_name }}
+          name: Telonio ${{ github.ref_name }}
           body: ${{ env.RELEASE_BODY }}
           draft: false
           prerelease: ${{ contains(github.ref_name, '-') }}

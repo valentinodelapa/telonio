@@ -3,7 +3,7 @@
 namespace Deleghe\Application\Fixtures;
 
 use Anagrafica\Application\Fixtures\SoggettoRossiFixture;
-use CommSuite\Application\Fixtures\StudioFixture;
+use Telonio\Application\Fixtures\StudioFixture;
 use Deleghe\Application\Entities\Versamento;
 use Deleghe\Application\Enumerations\SezioneCodiceTributo;
 use Deleghe\Application\Enumerations\SezioneF24;

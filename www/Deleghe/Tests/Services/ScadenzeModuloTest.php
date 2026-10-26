@@ -2,9 +2,9 @@
 
 namespace Deleghe\Tests\Services;
 
-use CommSuite\Application\Enumerations\ModuloSuite;
-use CommSuite\Tests\SuiteTestCase;
-use CommSuite\Tests\TestResultSet;
+use Telonio\Application\Enumerations\ModuloSuite;
+use Telonio\Tests\SuiteTestCase;
+use Telonio\Tests\TestResultSet;
 use Deleghe\Application\Entities\Delega;
 use Deleghe\Application\Entities\Versamento;
 use Deleghe\Application\Enumerations\SezioneF24;

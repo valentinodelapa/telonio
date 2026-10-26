@@ -5,7 +5,7 @@ namespace Deleghe\Application\Services;
 use Deleghe\Application\Entities\Delega;
 use Deleghe\Application\Entities\Versamento;
 use Deleghe\Application\Enumerations\Periodicita;
-use CommSuite\Application\HelperClasses\Calendario;
+use Telonio\Application\HelperClasses\Calendario;
 use Deleghe\Application\Models\VersamentoModel;
 use SismaFramework\Orm\CustomTypes\SismaDate;
 use SismaFramework\Orm\HelperClasses\DataMapper;

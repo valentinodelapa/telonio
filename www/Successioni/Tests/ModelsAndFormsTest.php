@@ -2,8 +2,8 @@
 
 namespace Successioni\Tests;
 
-use CommSuite\Tests\SuiteTestCase;
-use CommSuite\Tests\TestResultSet;
+use Telonio\Tests\SuiteTestCase;
+use Telonio\Tests\TestResultSet;
 use SismaFramework\Orm\CustomTypes\SismaDate;
 use Successioni\Application\Entities\AllegatoSuccessione;
 use Successioni\Application\Entities\BeneficiarioSuccessione;

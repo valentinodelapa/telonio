@@ -9,7 +9,7 @@ propria anagrafica.
 Il modulo è registrato in `MODULE_FOLDERS`. Script da eseguire come root
 sullo schema del progetto, in quest'ordine:
 
-1. `CommSuite/Database/schema.sql`
+1. `Telonio/Database/schema.sql`
 2. `Anagrafica/Database/schema.sql`
 3. `Anagrafica/Database/dati-riferimento.sql` (comuni e stati esteri:
    necessari anche in produzione, vedi "Tabelle di riferimento")
@@ -26,7 +26,7 @@ storico catastale e comproprietà) si caricano con le fixture dei
 moduli (`Application/Fixtures`):
 
 ```bash
-docker exec comm_suite_php sh -c 'cd /var/www/html && sisma fixtures'
+docker exec telonio_php sh -c 'cd /var/www/html && sisma fixtures'
 ```
 
 Le fixture vanno eseguite su tabelle vuote e richiedono i dati di
@@ -42,7 +42,7 @@ riferimento (punto 3). Ogni modulo registrato deve avere la cartella
 | `Indirizzo` | residenza, domicilio fiscale, sedi, ... (una versione vigente per tipo) | sì |
 | `Legame` | il soggetto collegato ricopre un ruolo presso il soggetto (socio con quota, amministratore, legale rappresentante, ...) | sì |
 | `Recapito` | telefono, e-mail, PEC, ... con recapito principale per tipo | no |
-| `ContoCorrente` | IBAN (controllo modulo 97 e CIN per i conti italiani, `CommSuite\HelperClasses\Iban`), conto predefinito per gli addebiti, conto estinto mantenuto come non attivo | no |
+| `ContoCorrente` | IBAN (controllo modulo 97 e CIN per i conti italiani, `Telonio\HelperClasses\Iban`), conto predefinito per gli addebiti, conto estinto mantenuto come non attivo | no |
 | `DocumentoIdentita` | documenti delle persone fisiche | no |
 | `Immobile` | archivio immobili dello studio: fabbricato o terreno, identificativo catastale, ubicazione, dati del catasto tavolare (partita e corpo tavolare, comune catastale, porzione materiale) | no |
 | `IdentificativoGraffato` | ulteriori identificativi catastali (sezione, foglio, particella, subalterno) delle unità graffate | no |
@@ -225,8 +225,10 @@ classificazioni ATECO dall'ISTAT (https://www.istat.it/classificazione/ateco-202
   catastali (codice `ND`).
 - **stati esteri** (tabella 02, xlsx): codice catastale Z, ISO alpha-3 e
   validità; l'ISO alpha-2 (partita IVA comunitaria, fattura elettronica) è
-  ricavato da `Database/sorgenti/iso3166-1.csv` (Debian iso-codes, più il
-  codice `XK` del Kosovo).
+  ricavato dalla tabella dei paesi di EU Vocabularies (Ufficio delle
+  pubblicazioni dell'UE, licenza CC BY 4.0), scaricata dall'endpoint SPARQL
+  pubblico senza i paesi cessati, più il codice `XK` del Kosovo (non ISO,
+  usato da UE e FatturaPA).
 - **ATECO 2025** (struttura, xlsx) e **ATECO 2007 agg. 2022** (dalla
   tabella operativa di riclassificazione 2022 -> 2025, xlsx), vedi
   "Codici ATECO".
@@ -239,13 +241,13 @@ del modulo:
 ```bash
 # aggiorna il database dalle fonti (inserisce le nuove righe, aggiorna le
 # esistenti, non cancella nulla: le righe sono referenziate)
-docker exec comm_suite_php sh -c 'cd /var/www/html && sisma tabelle-riferimento'
+docker exec telonio_php sh -c 'cd /var/www/html && sisma tabelle-riferimento'
 
 # rigenera lo script SQL versionato nel modulo
-docker exec comm_suite_php sh -c 'cd /var/www/html && sisma tabelle-riferimento --sql=Anagrafica/Database/dati-riferimento.sql'
+docker exec telonio_php sh -c 'cd /var/www/html && sisma tabelle-riferimento --sql=Anagrafica/Database/dati-riferimento.sql'
 ```
 
-Opzioni `--comuni=`, `--stati=`, `--ateco2025=` e `--ateco2022=` per usare
+Opzioni `--comuni=`, `--stati=`, `--iso=`, `--ateco2025=` e `--ateco2022=` per usare
 file locali al posto del download. Il comando si ferma senza modificare
 nulla se il tracciato delle fonti cambia o se una tabella risulta
 incompleta.
@@ -257,7 +259,7 @@ scaricabile via HTTPS.
 
 ## Multi-studio
 
-Ogni soggetto appartiene a uno studio (`CommSuite\Application\Entities\Studio`).
+Ogni soggetto appartiene a uno studio (`Telonio\Application\Entities\Studio`).
 I controller verificano l'accesso con `Permissions\SoggettoPermission`
 (`Voters\SoggettoVoter`): un utente opera solo sui soggetti del proprio
 studio. Il codice fiscale è univoco per studio.

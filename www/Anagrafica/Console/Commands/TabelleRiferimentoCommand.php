@@ -4,13 +4,15 @@ namespace Anagrafica\Console\Commands;
 
 use Anagrafica\Application\Services\TabelleRiferimento\ArchivioComuniAnpr;
 use Anagrafica\Application\Services\TabelleRiferimento\ClassificazioniAtecoIstat;
+use Anagrafica\Application\Services\TabelleRiferimento\CodiciIsoUe;
 use Anagrafica\Application\Services\TabelleRiferimento\GeneratoreSql;
 use Anagrafica\Application\Services\TabelleRiferimento\StatiEsteriAnpr;
 use SismaFramework\Console\BaseClasses\BaseCommand;
 
 /**
  * Importa o aggiorna le tabelle di riferimento dell'anagrafica: comuni e
- * stati esteri (ANPR), classificazioni ATECO (ISTAT).
+ * stati esteri (ANPR, con i codici ISO alpha-2 di EU Vocabularies),
+ * classificazioni ATECO (ISTAT).
  *
  * Uso:
  *   sisma tabelle-riferimento                 aggiorna il database
@@ -18,8 +20,6 @@ use SismaFramework\Console\BaseClasses\BaseCommand;
  */
 class TabelleRiferimentoCommand extends BaseCommand
 {
-
-    private const FILE_ISO = __DIR__ . '/../../Database/sorgenti/iso3166-1.csv';
 
     /**
      * Tabella => colonne della chiave unica usata per l'aggiornamento.
@@ -35,6 +35,7 @@ class TabelleRiferimentoCommand extends BaseCommand
     public function __construct(
         private ArchivioComuniAnpr $archivioComuni = new ArchivioComuniAnpr(),
         private StatiEsteriAnpr $statiEsteri = new StatiEsteriAnpr(),
+        private CodiciIsoUe $codiciIso = new CodiciIsoUe(),
         private ClassificazioniAtecoIstat $classificazioniAteco = new ClassificazioniAtecoIstat(),
         private GeneratoreSql $generatoreSql = new GeneratoreSql(),
     ) {
@@ -52,12 +53,14 @@ class TabelleRiferimentoCommand extends BaseCommand
     {
         return <<<OUTPUT
 Usage: sisma tabelle-riferimento [--sql=FILE] [--comuni=FILE|URL] [--stati=FILE|URL]
-                                 [--ateco2025=FILE|URL] [--ateco2022=FILE|URL]
+                                 [--iso=FILE|URL] [--ateco2025=FILE|URL] [--ateco2022=FILE|URL]
 
 Importa o aggiorna le tabelle di riferimento del modulo Anagrafica:
   - comuni (ANPR, Ministero dell'Interno): archivio storico con date di
     istituzione e cessazione e codici catastali dell'Agenzia delle Entrate
-  - stati esteri (ANPR): codici Z, ISO 3166 e periodo di validità
+  - stati esteri (ANPR): codici Z, ISO 3166 e periodo di validità; il codice
+    ISO alpha-2 dalla tabella dei paesi di EU Vocabularies (Ufficio delle
+    pubblicazioni dell'UE)
   - classificazioni ATECO 2025 e ATECO 2007 agg. 2022 (ISTAT), con il
     raccordo 2022 -> 2025
 
@@ -69,6 +72,7 @@ Options:
                         (es. Anagrafica/Database/dati-riferimento.sql)
   --comuni=FILE|URL     archivio comuni (CSV ANPR)
   --stati=FILE|URL      tabella stati esteri (xlsx ANPR)
+  --iso=FILE|URL        corrispondenza ISO alpha-3 -> alpha-2 (CSV EU Vocabularies)
   --ateco2025=FILE|URL  struttura ATECO 2025 (xlsx ISTAT)
   --ateco2022=FILE|URL  tabella operativa di riclassificazione ATECO 2022 -> 2025 (xlsx ISTAT)
 OUTPUT;
@@ -98,7 +102,8 @@ OUTPUT;
         $comuni = $this->archivioComuni->leggi($this->scarica($this->getOption('comuni') ?? ArchivioComuniAnpr::URL));
         $this->output('  ' . count($comuni) . ' versioni di comuni, ' . count(array_filter($comuni, fn($comune) => $comune['valido_al'] === null)) . ' vigenti, ' . $this->archivioComuni->getEscluse() . ' escluse perché senza codice catastale');
         $this->output('Lettura stati esteri...');
-        $stati = $this->statiEsteri->leggi($this->scarica($this->getOption('stati') ?? StatiEsteriAnpr::URL), self::FILE_ISO);
+        $codiciIso = $this->codiciIso->leggi($this->scarica($this->getOption('iso') ?? CodiciIsoUe::url()));
+        $stati = $this->statiEsteri->leggi($this->scarica($this->getOption('stati') ?? StatiEsteriAnpr::URL), $codiciIso);
         $this->output('  ' . count($stati) . ' stati e territori');
         $this->output('Lettura classificazioni ATECO...');
         $ateco = $this->classificazioniAteco->leggi(
@@ -119,8 +124,8 @@ OUTPUT;
         if (preg_match('#^https?://#', $sorgente) !== 1) {
             return $sorgente;
         }
-        $this->output('  download ' . $sorgente);
-        $contesto = stream_context_create(['http' => ['timeout' => 120, 'user_agent' => 'Mozilla/5.0 (CommSuite tabelle-riferimento)']]);
+        $this->output('  download ' . strtok($sorgente, '?'));
+        $contesto = stream_context_create(['http' => ['timeout' => 120, 'user_agent' => 'Mozilla/5.0 (Telonio tabelle-riferimento)']]);
         $contenuto = file_get_contents($sorgente, false, $contesto);
         if ($contenuto === false) {
             throw new \RuntimeException('Download non riuscito: ' . $sorgente);
@@ -150,6 +155,9 @@ OUTPUT;
                 . "--   con codici catastali attribuiti dall'Agenzia delle Entrate\n"
                 . "--     " . ArchivioComuniAnpr::URL . "\n"
                 . "--     " . StatiEsteriAnpr::URL . "\n"
+                . "--   codici ISO alpha-2 degli stati esteri: EU Vocabularies, tabella \"Countries\n"
+                . "--   and territories\" (Ufficio delle pubblicazioni dell'UE, endpoint SPARQL)\n"
+                . "--     " . CodiciIsoUe::ENDPOINT . "\n"
                 . "--   classificazioni ATECO: ISTAT\n"
                 . "--     " . ClassificazioniAtecoIstat::URL_ATECO_2025 . "\n"
                 . "--     " . ClassificazioniAtecoIstat::URL_RICLASSIFICAZIONE_2022 . "\n"

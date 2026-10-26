@@ -5,8 +5,8 @@ namespace GestioneStudio\Application\Entities;
 use Anagrafica\Application\Entities\Soggetto;
 use Anagrafica\Application\Interfaces\Storicizzabile;
 use Anagrafica\Application\Traits\StoricizzabileTrait;
-use CommSuite\Application\Entities\Studio;
-use CommSuite\Application\Entities\Utente;
+use Telonio\Application\Entities\Studio;
+use Telonio\Application\Entities\Utente;
 use SismaFramework\Orm\BaseClasses\BaseEntity;
 use SismaFramework\Orm\CustomTypes\SismaDate;
 

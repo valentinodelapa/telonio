@@ -5,7 +5,7 @@ namespace Deleghe\Tests\Services;
 use Anagrafica\Application\Entities\Comune;
 use Anagrafica\Application\Entities\Soggetto;
 use Anagrafica\Application\Enumerations\TipoSoggetto;
-use CommSuite\Tests\SuiteTestCase;
+use Telonio\Tests\SuiteTestCase;
 use Deleghe\Application\Entities\CodiceTributo;
 use Deleghe\Application\Entities\Delega;
 use Deleghe\Application\Entities\Ravvedimento;

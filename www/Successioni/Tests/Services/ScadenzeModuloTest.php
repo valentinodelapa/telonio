@@ -2,9 +2,9 @@
 
 namespace Successioni\Tests\Services;
 
-use CommSuite\Application\Enumerations\ModuloSuite;
-use CommSuite\Tests\SuiteTestCase;
-use CommSuite\Tests\TestResultSet;
+use Telonio\Application\Enumerations\ModuloSuite;
+use Telonio\Tests\SuiteTestCase;
+use Telonio\Tests\TestResultSet;
 use Successioni\Application\Entities\DichiarazioneSuccessione;
 use Successioni\Application\Enumerations\StatoDichiarazioneSuccessione;
 use Successioni\Application\Services\ScadenzeModulo;

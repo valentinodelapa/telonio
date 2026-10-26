@@ -1,7 +1,7 @@
 -- =====================================================
 -- Deleghe - deleghe di pagamento F24
 -- =====================================================
--- Richiede le tabelle dei moduli CommSuite (studio) e Anagrafica (soggetto,
+-- Richiede le tabelle dei moduli Telonio (studio) e Anagrafica (soggetto,
 -- conto_corrente). Gli importi sono in euro con due decimali.
 
 -- -----------------------------------------------------

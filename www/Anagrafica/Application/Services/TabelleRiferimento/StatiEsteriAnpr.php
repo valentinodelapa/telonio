@@ -5,8 +5,8 @@ namespace Anagrafica\Application\Services\TabelleRiferimento;
 /**
  * Lettura della tabella ANPR degli stati esteri (tabella 02, xlsx): codice
  * catastale Z (colonna CODAT, attribuito dall'Agenzia delle Entrate), codice
- * ISO alpha-3 e periodo di validità. Il codice alpha-2 viene ricavato dal
- * file di corrispondenza ISO del modulo.
+ * ISO alpha-3 e periodo di validità. Il codice alpha-2 viene ricavato dalla
+ * corrispondenza ISO di EU Vocabularies (CodiciIsoUe).
  *
  * La tabella contiene gli stati attuali: gli stati cessati prima della sua
  * istituzione (es. Jugoslavia, URSS) non sono presenti.
@@ -28,11 +28,11 @@ class StatiEsteriAnpr
     }
 
     /**
+     * @param array<string, string> $iso codice alpha-2 indicizzato per alpha-3
      * @return array<int, array<string, string|int|null>> righe indicizzate per id_anpr
      */
-    public function leggi(string $percorsoXlsx, string $percorsoIso): array
+    public function leggi(string $percorsoXlsx, array $iso): array
     {
-        $iso = $this->leggiCorrispondenzaIso($percorsoIso);
         $righe = [];
         foreach ($this->lettoreXlsx->leggi($percorsoXlsx, null, self::COLONNE_FONTE) as $campi) {
             if (in_array($campi['TIPO'] ?? '', self::TIPI_IMPORTATI, true) === false) {
@@ -58,17 +58,6 @@ class StatiEsteriAnpr
             throw new \UnexpectedValueException('Tabella stati esteri incompleta: Italia non presente.');
         }
         return $righe;
-    }
-
-    private function leggiCorrispondenzaIso(string $percorso): array
-    {
-        $iso = [];
-        foreach (file($percorso, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $linea) {
-            if (preg_match('/^([A-Z]{3});([A-Z]{2})$/', $linea, $parti) === 1) {
-                $iso[$parti[1]] = $parti[2];
-            }
-        }
-        return $iso;
     }
 
     /**

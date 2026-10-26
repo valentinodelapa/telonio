@@ -24,7 +24,7 @@ THE SOFTWARE.
 -->
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          backupGlobals="false"
-         bootstrap="CommSuite/Tests/bootstrap.php"
+         bootstrap="Telonio/Tests/bootstrap.php"
          colors="true"
          recordTestRunHistory="true"
          processIsolation="false"
@@ -35,8 +35,8 @@ THE SOFTWARE.
          failOnWarning="true"
          displayDetailsOnAllIssues="true">
     <testsuites>
-        <testsuite name="CommSuite">
-            <directory suffix="Test.php">./CommSuite/Tests</directory>
+        <testsuite name="Telonio">
+            <directory suffix="Test.php">./Telonio/Tests</directory>
         </testsuite>
         <testsuite name="Anagrafica">
             <directory suffix="Test.php">./Anagrafica/Tests</directory>
@@ -65,8 +65,8 @@ THE SOFTWARE.
     </php>
     <source>
         <include>
-            <directory suffix=".php">./CommSuite/Application</directory>
-            <directory suffix=".php">./CommSuite/Console</directory>
+            <directory suffix=".php">./Telonio/Application</directory>
+            <directory suffix=".php">./Telonio/Console</directory>
             <directory suffix=".php">./Anagrafica/Application</directory>
             <directory suffix=".php">./Anagrafica/Console</directory>
             <directory suffix=".php">./Deleghe/Application</directory>
@@ -79,7 +79,7 @@ THE SOFTWARE.
             <directory suffix=".php">./GestioneStudio/Console</directory>
         </include>
         <exclude>
-            <directory>./CommSuite/Application/Views</directory>
+            <directory>./Telonio/Application/Views</directory>
             <directory>./Anagrafica/Application/Views</directory>
             <directory>./Deleghe/Application/Views</directory>
             <directory>./Imu/Application/Views</directory>

@@ -4,7 +4,7 @@ namespace Imu\Application\Services;
 
 use Anagrafica\Application\Enumerations\CategoriaCatastale;
 use Anagrafica\Application\Enumerations\UtilizzoImmobile;
-use CommSuite\Application\Entities\Studio;
+use Telonio\Application\Entities\Studio;
 use Imu\Application\Entities\AliquotaApplicata;
 use Imu\Application\Entities\AliquotaDifferenziata;
 use Imu\Application\Entities\ProspettoAliquote;

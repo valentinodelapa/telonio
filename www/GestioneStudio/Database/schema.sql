@@ -1,7 +1,7 @@
 -- =====================================================
 -- GestioneStudio - scadenzario e adempimenti dei clienti
 -- =====================================================
--- Richiede le tabelle dei moduli CommSuite (studio, utente) e Anagrafica
+-- Richiede le tabelle dei moduli Telonio (studio, utente) e Anagrafica
 -- (soggetto). Le scadenze degli altri moduli non sono copiate: si
 -- calcolano dai dati dei moduli (FonteScadenze) e qui se ne conserva solo
 -- lo stato di lavorazione.
@@ -106,7 +106,7 @@ COMMENT='Adempimenti dei clienti dello studio';
 CREATE TABLE IF NOT EXISTS `lavorazione_scadenza` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `studio_id` INT UNSIGNED NOT NULL,
-  `modulo` VARCHAR(30) NOT NULL COMMENT 'Modulo della scadenza (CommSuite\\Enumerations\\ModuloSuite)',
+  `modulo` VARCHAR(30) NOT NULL COMMENT 'Modulo della scadenza (Telonio\\Enumerations\\ModuloSuite)',
   `riferimento` VARCHAR(100) NOT NULL COMMENT 'Riferimento della scadenza nel modulo',
   `soggetto_id` INT UNSIGNED NULL,
   `data_scadenza` DATE NOT NULL COMMENT 'Termine alla registrazione dello stato',

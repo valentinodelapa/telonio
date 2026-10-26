@@ -2,6 +2,42 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.0-alpha] - 2026-10-26 - Telonio
+
+Ottava versione alpha: il progetto cambia nome da CommSuite a **Telonio** (dal latino *telonium*, il banco dell'esattore delle imposte), perché "CommSuite" è un marchio registrato di terzi nel settore del software; il modulo base `CommSuite` diventa `Telonio`. In `Anagrafica` i codici ISO degli stati esteri vengono da una fonte ufficiale compatibile con la licenza MIT. Nessuna modifica allo schema del database. Valgono le avvertenze della 0.1.0-alpha: la versione non è indicata per l'uso in produzione su dati reali.
+
+Versioni dei moduli: `Telonio` 0.4.0 (già `CommSuite` 0.3.0), `Anagrafica` 0.5.1, `Deleghe` 0.2.1, `Imu` 0.3.1, `Successioni` 0.3.1 e `GestioneStudio` 0.1.1 (richiedono `Telonio` 0.4.0).
+
+### 🔧 Modifiche
+
+#### Nome del progetto
+
+- **CommSuite diventa Telonio**: modulo base rinominato (cartella `www/Telonio`, namespace `Telonio\`, `PROJECT` e `MODULE_FOLDERS` in `configFramework.php`, nome nei titoli delle pagine), requisiti dei moduli (`"Telonio": ">=0.4.0"` in `module.json`), pacchetto Composer `valentinodelapa/telonio`, nome delle release. Nessun dato del database contiene il nome del modulo.
+- **nomi tecnici delle nuove installazioni**: in `.env.example` database `telonio`, utente `telonio_user`, prefisso dei container `telonio` (anche default in `docker-compose*.yml`), mittente `noreply@telonio.localhost`; in sviluppo `http://telonio.localhost` (phpMyAdmin e Mailpit su `db.` e `mail.telonio.localhost`).
+- **inizializzazione del database**: `comm_suite.sql`, con nome dello schema e utente scritti nel file, è sostituito da `db-init.sh`, che li legge da `.env` (`DATABASE_NAME`, `DATABASE_USERNAME`): un `.env` con i vecchi nomi funziona anche su un volume nuovo.
+
+### 🧩 Installazione
+
+- **`COMPOSE_PROJECT_NAME`** documentato in `.env.example` e nel README: il volume del database prende il nome del progetto Compose, che senza la variabile è quello della cartella, quindi una nuova versione estratta in un'altra cartella partirebbe da un database vuoto. In produzione va fissato alla prima installazione.
+- `.gitignore`: ignorate anche le copie di `.env` (`.env.*`, tranne `.env.example`), che contengono le credenziali.
+
+### 🔧 Modifiche ai dati di riferimento
+
+#### `Anagrafica`
+
+- **codici ISO alpha-2 degli stati esteri da EU Vocabularies**: la corrispondenza tra i codici ISO 3166-1 alpha-3 (riportati da ANPR) e alpha-2 non viene più da `Database/sorgenti/iso3166-1.csv`, estratto dal pacchetto Debian `iso-codes` sotto licenza LGPL-2.1+ e quindi non coperto dalla licenza MIT del progetto, ma dalla tabella di autorità "Countries and territories" dell'Ufficio delle pubblicazioni dell'Unione europea (CC BY 4.0), scaricata da `sisma tabelle-riferimento` dall'endpoint SPARQL pubblico come le altre fonti (nuova opzione `--iso=FILE|URL`, servizio `CodiciIsoUe`). Il file è eliminato; il Kosovo mantiene il codice `XK`. I codici risultano identici ai precedenti, salvo l'Atollo di Clipperton (cessato nel 2019), che ora ha i codici `CP`/`CPT`. `dati-riferimento.sql` rigenerato.
+
+### 🔄 Aggiornamento da 0.7.0-alpha
+
+Nessuna modifica allo schema. Le installazioni esistenti mantengono il proprio `.env`: database e utente (`comm_suite`, `comm_suite_user`) restano quelli, senza interventi sui dati. Prima di aggiornare eseguire un backup.
+
+1.  Aggiungere a `.env` `COMPOSE_PROJECT_NAME` con il nome attuale del progetto, cioè il prefisso del volume del database (`docker volume ls`, es. `comm-suite_db_data` → `COMPOSE_PROJECT_NAME=comm-suite`): così il nuovo codice usa lo stesso volume anche se estratto in un'altra cartella, dove vanno copiati `.env`, `backups/` e `rclone/`.
+2.  Per mantenere i nomi dei container (`comm_suite_*`), e quindi i comandi `docker exec` già in uso, impostare in `.env` `CONTAINER_PREFIX=comm_suite` (o il prefisso attuale); altrimenti al prossimo avvio i container si chiamano `telonio_*`, con gli stessi dati. Facoltativo: `MAIL_FROM_NAME=Telonio`.
+3.  Avviare la nuova versione con `--build` (es. `docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.backup.yml --profile internal-db up -d --build`) ed eliminare `www/Cache/referenceCache.json`, che contiene i vecchi nomi delle classi.
+4.  Facoltativo, per allineare le tabelle di riferimento: rieseguire `www/Anagrafica/Database/dati-riferimento.sql` o `sisma tabelle-riferimento`.
+
+Da una versione precedente alla 0.7.0-alpha applicare prima gli aggiornamenti delle versioni intermedie (per la 0.7.0-alpha anche lo schema e il calendario fiscale di `GestioneStudio`, senza i quali la scrivania non si apre).
+
 ## [0.7.0-alpha] - 2026-10-26 - Gestione dello Studio, Scadenzario e Regimi Fiscali
 
 Settima versione alpha: nuovo modulo `GestioneStudio`, con lo scadenzario dello studio (le scadenze di tutti gli applicativi), il calendario fiscale degli adempimenti (con le proroghe, anche riservate ai soggetti ISA) e gli adempimenti dei clienti. In `Anagrafica` il regime fiscale dei titolari di partita IVA. Le scadenze degli altri moduli arrivano da un contratto definito in `CommSuite`, senza che `GestioneStudio` dipenda da loro. Richiede l'aggiornamento del database. Valgono le avvertenze della 0.1.0-alpha: la versione non è indicata per l'uso in produzione su dati reali.

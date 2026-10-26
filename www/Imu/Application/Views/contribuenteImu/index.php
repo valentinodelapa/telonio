@@ -1,7 +1,7 @@
 <?php
 
-use CommSuite\Application\HelperClasses\Html;
-use CommSuite\Application\HelperClasses\Layout;
+use Telonio\Application\HelperClasses\Html;
+use Telonio\Application\HelperClasses\Layout;
 use Deleghe\Application\HelperClasses\Importo;
 
 $urlElenco = function (array $parametri) use ($testo, $inclusiTutti, $anno): string {

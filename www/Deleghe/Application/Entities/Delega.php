@@ -4,7 +4,7 @@ namespace Deleghe\Application\Entities;
 
 use Anagrafica\Application\Entities\ContoCorrente;
 use Anagrafica\Application\Entities\Soggetto;
-use CommSuite\Application\Entities\Studio;
+use Telonio\Application\Entities\Studio;
 use Deleghe\Application\Enumerations\CodiceIdentificativo;
 use Deleghe\Application\Enumerations\ModelloF24;
 use Deleghe\Application\Enumerations\StatoDelega;

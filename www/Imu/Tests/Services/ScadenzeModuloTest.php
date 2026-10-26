@@ -2,9 +2,9 @@
 
 namespace Imu\Tests\Services;
 
-use CommSuite\Application\Enumerations\ModuloSuite;
-use CommSuite\Tests\SuiteTestCase;
-use CommSuite\Tests\TestResultSet;
+use Telonio\Application\Enumerations\ModuloSuite;
+use Telonio\Tests\SuiteTestCase;
+use Telonio\Tests\TestResultSet;
 use Imu\Application\Entities\DichiarazioneImu;
 use Imu\Application\Enumerations\StatoDichiarazione;
 use Imu\Application\Services\ScadenzeModulo;

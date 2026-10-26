@@ -2,7 +2,7 @@
 
 namespace Successioni\Application\Services;
 
-use CommSuite\Application\Entities\Studio;
+use Telonio\Application\Entities\Studio;
 use Successioni\Application\Enumerations\StatoDichiarazioneSuccessione;
 use Successioni\Application\Models\DichiarazioneSuccessioneModel;
 use SismaFramework\Orm\HelperClasses\DataMapper;

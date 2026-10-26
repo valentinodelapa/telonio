@@ -1,6 +1,6 @@
 <?php
 
-use CommSuite\Application\HelperClasses\Html;
+use Telonio\Application\HelperClasses\Html;
 
 $righeEF = [
     ['EF1', 'Imposta ipotecaria proporzionale (2%) su € ' . $euroIntero($risultato->ipotecariaImponibile), $risultato->ipotecariaProporzionale],

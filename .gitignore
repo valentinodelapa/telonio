@@ -5,6 +5,8 @@ www/Logs/
 www/filesystemMedia/
 www/.phpunit.cache/
 .env
+.env.*
+!.env.example
 /backups/
 .claude/
 nbproject/

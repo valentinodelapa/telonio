@@ -3,7 +3,7 @@
 namespace Anagrafica\Application\Voters;
 
 use Anagrafica\Application\Entities\Soggetto;
-use CommSuite\Application\Entities\Utente;
+use Telonio\Application\Entities\Utente;
 use SismaFramework\Security\BaseClasses\BaseVoter;
 
 /**

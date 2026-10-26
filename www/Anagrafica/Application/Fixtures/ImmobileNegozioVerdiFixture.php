@@ -5,7 +5,7 @@ namespace Anagrafica\Application\Fixtures;
 use Anagrafica\Application\Entities\Immobile;
 use Anagrafica\Application\Enumerations\TipoCatasto;
 use Anagrafica\Application\Models\ComuneModel;
-use CommSuite\Application\Fixtures\StudioFixture;
+use Telonio\Application\Fixtures\StudioFixture;
 use SismaFramework\Core\BaseClasses\BaseFixture;
 
 /**

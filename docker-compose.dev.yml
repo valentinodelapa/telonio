@@ -5,8 +5,8 @@ services:
       - web_network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.comm_suite_app.rule=Host(`comm-suite.localhost`)"
-      - "traefik.http.services.comm_suite_app.loadbalancer.server.port=80"
+      - "traefik.http.routers.telonio_app.rule=Host(`telonio.localhost`)"
+      - "traefik.http.services.telonio_app.loadbalancer.server.port=80"
       - "traefik.docker.network=web_network"
 
   # --- PHP-FPM: immagine con Xdebug e pcov (stage "dev" del Dockerfile) ---
@@ -17,30 +17,30 @@ services:
   # --- PHPMYADMIN ---
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
-    container_name: ${CONTAINER_PREFIX:-comm_suite}_pma
+    container_name: ${CONTAINER_PREFIX:-telonio}_pma
     profiles:
       - internal-db
     environment:
-      PMA_HOST: ${CONTAINER_PREFIX:-comm_suite}_db
+      PMA_HOST: ${CONTAINER_PREFIX:-telonio}_db
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
     networks:
       - web_network
       - default
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.comm_suite_pma.rule=Host(`db.comm-suite.localhost`)"
-      - "traefik.http.services.comm_suite_pma.loadbalancer.server.port=80"
+      - "traefik.http.routers.telonio_pma.rule=Host(`db.telonio.localhost`)"
+      - "traefik.http.services.telonio_pma.loadbalancer.server.port=80"
       - "traefik.docker.network=web_network"
 
   # --- MOCK SMTP ---
   mailpit:
     image: axllent/mailpit
-    container_name: ${CONTAINER_PREFIX:-comm_suite}_mailpit
+    container_name: ${CONTAINER_PREFIX:-telonio}_mailpit
     networks:
       - web_network
       - default
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.comm_suite_mailpit.rule=Host(`mail.comm-suite.localhost`)"
-      - "traefik.http.services.comm_suite_mailpit.loadbalancer.server.port=8025"
+      - "traefik.http.routers.telonio_mailpit.rule=Host(`mail.telonio.localhost`)"
+      - "traefik.http.services.telonio_mailpit.loadbalancer.server.port=8025"
       - "traefik.docker.network=web_network"

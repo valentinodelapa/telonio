@@ -1,8 +1,8 @@
 <?php
 
-use CommSuite\Application\HelperClasses\Campo;
-use CommSuite\Application\HelperClasses\Html;
-use CommSuite\Application\HelperClasses\Layout;
+use Telonio\Application\HelperClasses\Campo;
+use Telonio\Application\HelperClasses\Html;
+use Telonio\Application\HelperClasses\Layout;
 
 $immobileFisso = isset($possesso->immobile);
 $soggettoFisso = isset($possesso->soggetto);

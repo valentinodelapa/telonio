@@ -70,7 +70,7 @@ Una dichiarazione presentata non si modifica; si può riportare in bozza.
 ## Installazione
 
 Il modulo è registrato in `MODULE_FOLDERS` e in `ModuloSuite`; richiede
-CommSuite, Anagrafica e Deleghe. Script da eseguire come root dopo quelli
+Telonio, Anagrafica e Deleghe. Script da eseguire come root dopo quelli
 di Deleghe:
 
 1. `Successioni/Database/schema.sql`
@@ -343,13 +343,13 @@ applicate.
 
 ```bash
 # aggiorna XSD e uffici di registrazione dalle specifiche dell'Agenzia
-docker exec comm_suite_php sh -c 'cd /var/www/html && sisma specifiche-successioni'
+docker exec telonio_php sh -c 'cd /var/www/html && sisma specifiche-successioni'
 
 # rigenera lo script SQL versionato nel modulo
-docker exec comm_suite_php sh -c 'cd /var/www/html && sisma specifiche-successioni --sql=Successioni/Database/dati-riferimento.sql'
+docker exec telonio_php sh -c 'cd /var/www/html && sisma specifiche-successioni --sql=Successioni/Database/dati-riferimento.sql'
 
 # confronta i codici degli enum con gli XSD del modulo
-docker exec comm_suite_php sh -c 'cd /var/www/html && sisma specifiche-successioni --solo-verifica'
+docker exec telonio_php sh -c 'cd /var/www/html && sisma specifiche-successioni --solo-verifica'
 ```
 
 Oltre agli uffici di registrazione il comando importa i servizi di

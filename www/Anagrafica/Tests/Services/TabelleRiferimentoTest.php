@@ -4,10 +4,11 @@ namespace Anagrafica\Tests\Services;
 
 use Anagrafica\Application\Services\TabelleRiferimento\ArchivioComuniAnpr;
 use Anagrafica\Application\Services\TabelleRiferimento\ClassificazioniAtecoIstat;
+use Anagrafica\Application\Services\TabelleRiferimento\CodiciIsoUe;
 use Anagrafica\Application\Services\TabelleRiferimento\GeneratoreSql;
 use Anagrafica\Application\Services\TabelleRiferimento\LettoreXlsx;
 use Anagrafica\Application\Services\TabelleRiferimento\StatiEsteriAnpr;
-use CommSuite\Tests\SuiteTestCase;
+use Telonio\Tests\SuiteTestCase;
 
 class TabelleRiferimentoTest extends SuiteTestCase
 {
@@ -182,7 +183,7 @@ class TabelleRiferimentoTest extends SuiteTestCase
 
     public function testStatiEsteriAnprLeggiConXlsxEIso(): void
     {
-        $iso = $this->creaFileTemporaneo("ITA;IT\nFRA;FR\n", '.csv');
+        $iso = ['ITA' => 'IT', 'FRA' => 'FR'];
         $xlsx = $this->creaXlsxTemporaneo('Stati', [
             ['ID', 'DENOMINAZIONE', 'DATAINIZIOVALIDITA', 'DATAFINEVALIDITA', 'CODISO3166_1_ALPHA3', 'CODAT', 'TIPO'],
             ['1', 'ITALIA', '01/01/1900 00:00:00', '31/12/9999 00:00:00', 'ITA', '', 'STATO'],
@@ -200,6 +201,49 @@ class TabelleRiferimentoTest extends SuiteTestCase
         $this->assertSame('FR', $righe[2]['codice_iso']);
         $this->assertSame('Z110', $righe[2]['codice_catastale']);
         $this->assertSame('2000-01-01', $righe[2]['valido_dal']);
+    }
+
+    private function creaCsvCodiciIso(int $paesi): string
+    {
+        $righe = ['"alpha3","alpha2"', '"ITA","IT"'];
+        for ($indice = 1; $indice < $paesi; $indice++) {
+            $righe[] = '"A' . $this->letteraColonna(intdiv($indice, 26) % 26) . $this->letteraColonna($indice % 26) . '","'
+                    . $this->letteraColonna(intdiv($indice, 26) % 26) . $this->letteraColonna($indice % 26) . '"';
+        }
+        return $this->creaFileTemporaneo(implode("\r\n", $righe) . "\r\n", '.csv');
+    }
+
+    public function testCodiciIsoUeLeggiEAggiungeKosovo(): void
+    {
+        $codici = (new CodiciIsoUe())->leggi($this->creaCsvCodiciIso(250));
+
+        $this->assertCount(251, $codici);
+        $this->assertSame('IT', $codici['ITA']);
+        $this->assertSame('XK', $codici['KOS']);
+    }
+
+    public function testCodiciIsoUeRifiutaIncompletoERigheNonValide(): void
+    {
+        $servizio = new CodiciIsoUe();
+        try {
+            $servizio->leggi($this->creaCsvCodiciIso(10));
+            $this->fail('Codici incompleti accettati');
+        } catch (\UnexpectedValueException $eccezione) {
+            $this->assertStringContainsString('Codici ISO incompleti', $eccezione->getMessage());
+        }
+        $this->expectException(\UnexpectedValueException::class);
+        $this->expectExceptionMessage('Riga non valida');
+        $servizio->leggi($this->creaFileTemporaneo("\"alpha3\",\"alpha2\"\n\"ITA\",\"ITA\"\n", '.csv'));
+    }
+
+    public function testCodiciIsoUeUrlInterrogaLEndpointInCsv(): void
+    {
+        $url = CodiciIsoUe::url();
+
+        $this->assertStringStartsWith(CodiciIsoUe::ENDPOINT . '?', $url);
+        parse_str(parse_url($url, PHP_URL_QUERY), $parametri);
+        $this->assertSame('text/csv', $parametri['format']);
+        $this->assertSame(CodiciIsoUe::QUERY, $parametri['query']);
     }
 
     public function testClassificazioniAtecoIstatLeggiConStubLettoreXlsx(): void

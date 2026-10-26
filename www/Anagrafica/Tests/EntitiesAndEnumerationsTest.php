@@ -30,7 +30,7 @@ use Anagrafica\Application\Enumerations\TipoRecapito;
 use Anagrafica\Application\Enumerations\TipoSoggetto;
 use Anagrafica\Application\Enumerations\TitoloPossesso;
 use Anagrafica\Application\Enumerations\UtilizzoImmobile;
-use CommSuite\Tests\SuiteTestCase;
+use Telonio\Tests\SuiteTestCase;
 use SismaFramework\Orm\CustomTypes\SismaDate;
 
 class EntitiesAndEnumerationsTest extends SuiteTestCase

@@ -2,10 +2,10 @@
 
 namespace GestioneStudio\Application\Services;
 
-use CommSuite\Application\Entities\Studio;
-use CommSuite\Application\Enumerations\ModuloSuite;
-use CommSuite\Application\Interfaces\FonteScadenze;
-use CommSuite\Application\Services\Scadenza;
+use Telonio\Application\Entities\Studio;
+use Telonio\Application\Enumerations\ModuloSuite;
+use Telonio\Application\Interfaces\FonteScadenze;
+use Telonio\Application\Services\Scadenza;
 use GestioneStudio\Application\Models\AssegnazioneAdempimentoModel;
 use SismaFramework\Orm\BaseClasses\BaseEntity;
 use SismaFramework\Orm\CustomTypes\SismaDate;

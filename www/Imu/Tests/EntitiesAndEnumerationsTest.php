@@ -7,7 +7,7 @@ use Anagrafica\Application\Entities\Soggetto;
 use Anagrafica\Application\Enumerations\CategoriaCatastale;
 use Anagrafica\Application\Enumerations\TitoloPossesso;
 use Anagrafica\Application\Enumerations\UtilizzoImmobile;
-use CommSuite\Tests\SuiteTestCase;
+use Telonio\Tests\SuiteTestCase;
 use Imu\Application\Entities\AccontoVersatoImu;
 use Imu\Application\Entities\AgevolazioneImu;
 use Imu\Application\Entities\AliquotaApplicata;

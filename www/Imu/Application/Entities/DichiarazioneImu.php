@@ -3,7 +3,7 @@
 namespace Imu\Application\Entities;
 
 use Anagrafica\Application\Entities\Soggetto;
-use CommSuite\Application\Entities\Studio;
+use Telonio\Application\Entities\Studio;
 use Deleghe\Application\Entities\Intermediario;
 use Imu\Application\Enumerations\CodiceCarica;
 use Imu\Application\Enumerations\ModelloDichiarazione;

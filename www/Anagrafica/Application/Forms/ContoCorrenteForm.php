@@ -3,7 +3,7 @@
 namespace Anagrafica\Application\Forms;
 
 use Anagrafica\Application\Entities\ContoCorrente;
-use CommSuite\Application\HelperClasses\Iban;
+use Telonio\Application\HelperClasses\Iban;
 use SismaFramework\Core\BaseClasses\BaseForm;
 use SismaFramework\Core\Enumerations\FilterType;
 

@@ -1,6 +1,6 @@
 <?php
 
-use CommSuite\Application\HelperClasses\Html;
+use Telonio\Application\HelperClasses\Html;
 
 /**
  * Prospetto della liquidazione da consegnare agli eredi: attivo e passivo,

@@ -40,7 +40,7 @@ const FORMS = "Forms";
 const LOGS = "Logs";
 const LOCALES = "Locales";
 const MODELS = "Models";
-const PROJECT = "CommSuite";
+const PROJECT = "Telonio";
 const SYSTEM = "SismaFramework";
 const STRUCTURAL = "Structural";
 const TEMPLATES = "Templates";
@@ -63,7 +63,7 @@ const STRUCTURAL_PATH = SYSTEM_PATH . STRUCTURAL;
 const STRUCTURAL_ASSETS_PATH = STRUCTURAL_PATH . DIRECTORY_SEPARATOR . ASSETS . DIRECTORY_SEPARATOR;
 define(__NAMESPACE__ . '\DEVELOPMENT_ENVIRONMENT', filter_var(getenv('DEVELOPMENT_ENVIRONMENT'), FILTER_VALIDATE_BOOLEAN));
 define(__NAMESPACE__ . '\HTTPS_IS_FORCED', filter_var(getenv('HTTPS_IS_FORCED'), FILTER_VALIDATE_BOOLEAN));
-const MODULE_FOLDERS = ['CommSuite', 'Anagrafica', 'Deleghe', 'Imu', 'Successioni', 'GestioneStudio'];
+const MODULE_FOLDERS = ['Telonio', 'Anagrafica', 'Deleghe', 'Imu', 'Successioni', 'GestioneStudio'];
 const AUTOLOAD_NAMESPACE_MAPPER = [];
 const AUTOLOAD_CLASS_MAPPER = [];
 

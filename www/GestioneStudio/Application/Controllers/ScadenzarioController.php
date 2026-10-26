@@ -4,8 +4,8 @@ namespace GestioneStudio\Application\Controllers;
 
 use Anagrafica\Application\Entities\Soggetto;
 use Anagrafica\Application\Models\SoggettoModel;
-use CommSuite\Application\Enumerations\ModuloSuite;
-use CommSuite\Application\Services\RaccoltaScadenze;
+use Telonio\Application\Enumerations\ModuloSuite;
+use Telonio\Application\Services\RaccoltaScadenze;
 use GestioneStudio\Application\BaseClasses\GestioneStudioController;
 use GestioneStudio\Application\Entities\AssegnazioneAdempimento;
 use GestioneStudio\Application\Enumerations\FiltroStato;

@@ -3,8 +3,8 @@
 namespace GestioneStudio\Application\Entities;
 
 use Anagrafica\Application\Entities\Soggetto;
-use CommSuite\Application\Entities\Studio;
-use CommSuite\Application\Entities\Utente;
+use Telonio\Application\Entities\Studio;
+use Telonio\Application\Entities\Utente;
 use GestioneStudio\Application\Enumerations\StatoLavorazione;
 use SismaFramework\Orm\BaseClasses\BaseEntity;
 use SismaFramework\Orm\CustomTypes\SismaDate;
@@ -12,7 +12,7 @@ use SismaFramework\Orm\CustomTypes\SismaDateTime;
 
 /**
  * Stato di lavorazione dello studio su una scadenza di qualsiasi modulo,
- * collegato a modulo e riferimento della scadenza (CommSuite Scadenza).
+ * collegato a modulo e riferimento della scadenza (Telonio Scadenza).
  * Data e descrizione sono quelle alla registrazione: la scadenza resta
  * calcolata dal modulo.
  */

@@ -1,8 +1,8 @@
 <?php
 
 use Anagrafica\Application\Enumerations\TipoCatasto;
-use CommSuite\Application\HelperClasses\Html;
-use CommSuite\Application\HelperClasses\Layout;
+use Telonio\Application\HelperClasses\Html;
+use Telonio\Application\HelperClasses\Layout;
 
 $id = $immobile->id;
 $fabbricato = $immobile->tipoCatasto === TipoCatasto::fabbricati;

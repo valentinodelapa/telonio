@@ -1,6 +1,6 @@
 <?php
 
-use CommSuite\Application\HelperClasses\Campo;
+use Telonio\Application\HelperClasses\Campo;
 
 /**
  * Campi del possesso. Variabili: $pEntity, $pErrors, $titoli (uno solo:
