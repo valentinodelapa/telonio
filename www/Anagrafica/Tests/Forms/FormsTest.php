@@ -201,9 +201,16 @@ class FormsTest extends SuiteTestCase
             'partitaIva' => 'IT 01114601006',
             'codiceAteco' => '20',
             'enteNonCommerciale' => '0',
+            'regimeFiscale' => 'ORD',
+            'periodicitaIva' => 'M',
+            'soggettoIsa' => '1',
+            'sostitutoImposta' => '1',
         ]));
         $this->assertTrue($form->isValid());
-        $this->assertSame('01114601006', $form->resolveEntity()->partitaIva);
+        $risolto = $form->resolveEntity();
+        $this->assertSame('01114601006', $risolto->partitaIva);
+        $this->assertSame(\Anagrafica\Application\Enumerations\RegimeFiscale::ordinario, $risolto->regimeFiscale);
+        $this->assertTrue($risolto->sostitutoImposta);
 
         // Invalido per persona fisica con denominazione senza tipoAttivita
         $pf = new Soggetto($this->dataMapper);
@@ -220,6 +227,66 @@ class FormsTest extends SuiteTestCase
         ]));
         $this->assertFalse($formPf->isValid());
         $this->assertNotEmpty($formPf->getFilterErrors()->denominazioneCustomMessage);
+    }
+
+    /**
+     * @return array<string, array{string, ?string, array, ?string}>
+     */
+    public static function regimiFiscali(): array
+    {
+        return [
+            'società di capitali senza regime' => ['SC', null, ['periodicitaIva' => 'M'], 'regimeFiscaleCustomMessage'],
+            'società di capitali forfetaria' => ['SC', null, ['regimeFiscale' => 'FOR'], 'regimeFiscaleCustomMessage'],
+            'periodicità mancante' => ['SP', null, ['regimeFiscale' => 'SEM'], 'periodicitaIvaCustomMessage'],
+            'forfetario con periodicità' => ['PF', 'LAV', ['regimeFiscale' => 'FOR', 'periodicitaIva' => 'T'], 'periodicitaIvaCustomMessage'],
+            'forfetario con ISA' => ['PF', 'LAV', ['regimeFiscale' => 'FOR', 'soggettoIsa' => '1'], 'soggettoIsaCustomMessage'],
+            'forfetario prima del 2015' => ['PF', 'IMP', ['regimeFiscale' => 'FOR', 'validoDal' => '2014-06-01'], 'regimeFiscaleCustomMessage'],
+            'regime degli enti per una società' => ['SP', null, ['regimeFiscale' => 'L398', 'periodicitaIva' => 'T'], 'regimeFiscaleCustomMessage'],
+            'L. 398/1991 mensile' => ['EN', null, ['regimeFiscale' => 'L398', 'periodicitaIva' => 'M', 'enteNonCommerciale' => '1'], 'periodicitaIvaCustomMessage'],
+            'forfetario valido' => ['PF', 'LAV', ['regimeFiscale' => 'FOR'], null],
+            'semplificato trimestrale' => ['PF', 'IMP', ['regimeFiscale' => 'SEM', 'periodicitaIva' => 'T', 'soggettoIsa' => '1'], null],
+            'L. 398/1991 trimestrale' => ['EN', null, ['regimeFiscale' => 'L398', 'periodicitaIva' => 'T', 'enteNonCommerciale' => '1'], null],
+        ];
+    }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('regimiFiscali')]
+    public function testRegimeFiscaleConPartitaIva(string $tipo, ?string $attivita, array $dati, ?string $errore): void
+    {
+        $soggetto = new Soggetto($this->dataMapper);
+        $soggetto->id = 7;
+        $soggetto->studio = $this->creaStudio(1);
+        $soggetto->tipoSoggetto = TipoSoggetto::from($tipo);
+        $df = new DatiFiscali($this->dataMapper);
+        $df->soggetto = $soggetto;
+        $this->testAdapter->impostaSelectCallback(fn() => new TestResultSet([]));
+        $form = new DatiFiscaliForm($df, $this->dataMapper);
+        $base = ['validoDal' => '2025-05-01', 'partitaIva' => '01114601006'] + ($tipo === 'PF' ? ['tipoAttivita' => $attivita] : ['denominazione' => 'Alfa', 'naturaGiuridica' => TipoSoggetto::from($tipo)->getNatureGiuridiche()[0]->value]);
+        $form->handleRequest($this->creaRequest($dati + $base));
+        $this->assertSame($errore === null, $form->isValid());
+        if ($errore !== null) {
+            $this->assertNotEmpty($form->getFilterErrors()->$errore);
+        }
+    }
+
+    public function testRegimeFiscaleSenzaPartitaIva(): void
+    {
+        $pf = new Soggetto($this->dataMapper);
+        $pf->id = 8;
+        $pf->studio = $this->creaStudio(1);
+        $pf->tipoSoggetto = TipoSoggetto::personaFisica;
+        $df = new DatiFiscali($this->dataMapper);
+        $df->soggetto = $pf;
+        $form = new DatiFiscaliForm($df, $this->dataMapper);
+        $form->handleRequest($this->creaRequest(['validoDal' => '2025-05-01', 'regimeFiscale' => 'FOR', 'sostitutoImposta' => '1']));
+        $this->assertFalse($form->isValid());
+        $this->assertNotEmpty($form->getFilterErrors()->regimeFiscaleCustomMessage);
+        // il sostituto d'imposta può non avere partita IVA (es. condominio, datore di lavoro privato)
+        $dfSostituto = new DatiFiscali($this->dataMapper);
+        $dfSostituto->soggetto = $pf;
+        $formSostituto = new DatiFiscaliForm($dfSostituto, $this->dataMapper);
+        $formSostituto->handleRequest($this->creaRequest(['validoDal' => '2025-05-01', 'sostitutoImposta' => '1']));
+        $this->assertTrue($formSostituto->isValid());
+        $this->assertTrue($formSostituto->resolveEntity()->sostitutoImposta);
     }
 
     public function testDatiCatastaliForm(): void

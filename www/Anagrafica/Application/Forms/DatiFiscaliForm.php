@@ -4,6 +4,7 @@ namespace Anagrafica\Application\Forms;
 
 use Anagrafica\Application\Entities\DatiFiscali;
 use Anagrafica\Application\Enumerations\ClassificazioneAteco;
+use Anagrafica\Application\Enumerations\TipoSoggetto;
 use Anagrafica\Application\Models\DatiFiscaliModel;
 use CommSuite\Application\HelperClasses\PartitaIva;
 use SismaFramework\Core\BaseClasses\BaseForm;
@@ -43,7 +44,14 @@ class DatiFiscaliForm extends BaseForm
                 ->addFilterFieldMode('denominazione', FilterType::isMaxLimitString, [255], $personaFisica)
                 ->addFilterFieldMode('partitaIva', FilterType::isString, [], true)
                 ->addFilterFieldMode('codiceAteco', FilterType::isEntity, [], true)
-                ->addFilterFieldMode('descrizioneAttivita', FilterType::isMaxLimitString, [255], true);
+                ->addFilterFieldMode('descrizioneAttivita', FilterType::isMaxLimitString, [255], true)
+                ->addFilterFieldMode('regimeFiscale', FilterType::isEnumeration, [], true)
+                ->addFilterFieldMode('periodicitaIva', FilterType::isEnumeration, [], true)
+                ->addFilterFieldMode('soggettoIsa', FilterType::isBoolean)
+                ->addFilterFieldMode('sostitutoImposta', FilterType::isBoolean);
+        if ($this->entity->soggetto->tipoSoggetto === TipoSoggetto::societaCapitali) {
+            $this->addFilterFieldMode('trasparenzaFiscale', FilterType::isBoolean);
+        }
         if ($personaFisica) {
             $this->addFilterFieldMode('tipoAttivita', FilterType::isEnumeration, [], true);
         } else {
@@ -77,7 +85,60 @@ class DatiFiscaliForm extends BaseForm
         if ($this->entity->soggetto->isPersonaFisica()) {
             $valido = $this->verificaAttivitaPersonaFisica() && $valido;
         }
+        $valido = $this->verificaRegime() && $valido;
         return $this->verificaCodiceAteco() && $valido;
+    }
+
+    /**
+     * Con la partita IVA si indica il regime ammesso per il soggetto e, se il
+     * regime prevede le liquidazioni dell'IVA, la periodicità; senza partita
+     * IVA regime, periodicità, ISA e trasparenza non sono previsti.
+     */
+    private function verificaRegime(): bool
+    {
+        $dati = $this->entityData;
+        $regime = $dati->regimeFiscale;
+        if ($dati->partitaIva === null) {
+            $valido = true;
+            foreach (['regimeFiscale' => $regime !== null, 'periodicitaIva' => $dati->periodicitaIva !== null, 'soggettoIsa' => (bool) $dati->soggettoIsa, 'trasparenzaFiscale' => (bool) ($dati->trasparenzaFiscale ?? false)] as $campo => $indicato) {
+                if ($indicato) {
+                    $this->formFilterError->{$campo . 'CustomMessage'} = 'Previsto solo con la partita IVA.';
+                    $valido = false;
+                }
+            }
+            return $valido;
+        }
+        $soggetto = $this->entity->soggetto;
+        if ($regime === null) {
+            $this->formFilterError->regimeFiscaleCustomMessage = 'Indicare il regime fiscale.';
+            return false;
+        }
+        if ($regime->isApplicabile($soggetto->tipoSoggetto, $dati->tipoAttivita ?? null, (bool) ($dati->enteNonCommerciale ?? false)) === false) {
+            $this->formFilterError->regimeFiscaleCustomMessage = 'Regime non previsto per questo soggetto.';
+            return false;
+        }
+        if (($regime->getDecorrenzaMinima() !== null) && ($dati->validoDal !== null) && ($dati->validoDal->format('Y-m-d') < $regime->getDecorrenzaMinima())) {
+            $this->formFilterError->regimeFiscaleCustomMessage = 'Regime previsto dal ' . (new \DateTimeImmutable($regime->getDecorrenzaMinima()))->format('d/m/Y') . '.';
+            return false;
+        }
+        $valido = true;
+        if ($regime->isLiquidazioneIva() === false) {
+            if ($dati->periodicitaIva !== null) {
+                $this->formFilterError->periodicitaIvaCustomMessage = 'Il regime non prevede le liquidazioni periodiche dell\'IVA.';
+                $valido = false;
+            }
+            if ($dati->soggettoIsa) {
+                $this->formFilterError->soggettoIsaCustomMessage = 'I contribuenti in questo regime sono esclusi dagli ISA.';
+                $valido = false;
+            }
+        } elseif ($dati->periodicitaIva === null) {
+            $this->formFilterError->periodicitaIvaCustomMessage = 'Indicare la periodicità delle liquidazioni IVA.';
+            $valido = false;
+        } elseif (($regime->getPeriodicitaObbligata() !== null) && ($dati->periodicitaIva !== $regime->getPeriodicitaObbligata())) {
+            $this->formFilterError->periodicitaIvaCustomMessage = 'Il regime prevede la liquidazione ' . mb_strtolower($regime->getPeriodicitaObbligata()->getLabel()) . '.';
+            $valido = false;
+        }
+        return $valido;
     }
 
     /**

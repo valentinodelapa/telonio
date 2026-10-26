@@ -91,12 +91,15 @@ class ControllersTest extends SuiteTestCase
     {
         $stato = $this->catturaRenderERouter();
         $utente = $this->autenticaUtente();
-        // Select per caricaUtente + 4 select di conteggio per i RiepilogoScrivania dei moduli
+        // Select per caricaUtente, conteggi dei RiepilogoScrivania dei moduli e scadenze (nessuna)
         $this->testAdapter->impostaSelectCallback(function (string $cmd) use ($utente) {
             if (str_contains($cmd, 'COUNT(')) {
                 return \CommSuite\Tests\TestResultSet::conteggio(0);
             }
-            return new \CommSuite\Tests\TestResultSet([$utente]);
+            if (str_contains($cmd, 'FROM `utente`')) {
+                return new \CommSuite\Tests\TestResultSet([$utente]);
+            }
+            return new \CommSuite\Tests\TestResultSet([]);
         });
 
         $controller = new HomeController($this->dataMapper);
@@ -105,6 +108,7 @@ class ControllersTest extends SuiteTestCase
         $this->assertSame('home/index', $stato->vista);
         $this->assertSame($utente, $stato->vars['utente']);
         $this->assertArrayHasKey('riepilogoModuli', $stato->vars);
+        $this->assertSame(['Scadute' => 0, 'Entro 7 giorni' => 0, 'Entro 30 giorni' => 0], $stato->vars['riepilogoModuli']['GestioneStudio']);
     }
 
     public function testProfiloControllerUpdatePasswordECsrfInvalido(): void

@@ -3,12 +3,16 @@
 namespace Deleghe\Application\Models;
 
 use Anagrafica\Application\Entities\Soggetto;
+use CommSuite\Application\Entities\Studio;
 use Deleghe\Application\Entities\Credito;
 use Deleghe\Application\Entities\Delega;
 use Deleghe\Application\Entities\Versamento;
 use Deleghe\Application\Enumerations\SezioneF24;
 use SismaFramework\Orm\CustomTypes\SismaCollection;
 use SismaFramework\Orm\CustomTypes\SismaDate;
+use SismaFramework\Orm\Enumerations\ComparisonOperator;
+use SismaFramework\Orm\Enumerations\DataType;
+use SismaFramework\Orm\Enumerations\Placeholder;
 use SismaFramework\Orm\ExtendedClasses\DependentModel;
 use SismaFramework\Orm\HelperClasses\Query;
 
@@ -97,5 +101,25 @@ class VersamentoModel extends DependentModel
     public function getUtilizzi(Credito $credito): SismaCollection
     {
         return $this->getByCredito($credito, null, ['scadenza' => 'ASC', 'id' => 'ASC']);
+    }
+
+    /**
+     * Versamenti dello studio (o del soggetto) con scadenza nel periodo,
+     * estremi inclusi, in qualunque delega o da versare.
+     *
+     * @return Versamento[] per scadenza
+     */
+    public function getPerPeriodo(Studio $studio, SismaDate $dal, SismaDate $al, ?Soggetto $soggetto = null): array
+    {
+        $query = $this->initQuery();
+        $query->setWhere()
+                ->appendCondition($soggetto === null ? 'studio' : 'soggetto', ComparisonOperator::equal, Placeholder::placeholder, true)
+                ->appendAnd()
+                ->appendCondition('scadenza', ComparisonOperator::greaterOrEqual, Placeholder::placeholder)
+                ->appendAnd()
+                ->appendCondition('scadenza', ComparisonOperator::lessOrEqual, Placeholder::placeholder);
+        $query->setOrderBy(['scadenza' => 'ASC', 'id' => 'ASC']);
+        $query->close();
+        return iterator_to_array($this->dataMapper->find($this->entityName, $query, [$soggetto ?? $studio, $dal, $al], [DataType::typeEntity, DataType::typeDate, DataType::typeDate]), false);
     }
 }

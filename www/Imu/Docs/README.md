@@ -338,6 +338,14 @@ trasmesso con Entratel o Fisconline. Una dichiarazione segnata come
 presentata (data e protocollo) non è più modificabile; per correggerla si
 crea la sostitutiva, che va trasmessa integralmente.
 
+## Scadenzario dello studio
+
+`Services\ScadenzeModulo` espone allo scadenzario del modulo
+`GestioneStudio` le dichiarazioni IMU registrate, con termine al 30
+giugno dell'anno successivo (art. 1, c. 769, L. 160/2019) spostato al
+primo giorno lavorativo, completate quando presentate. Acconto e saldo
+sono versamenti dell'archivio di `Deleghe` e compaiono da lì.
+
 ## Multi-studio
 
 Calcoli, scelte di aliquota, caratteristiche, agevolazioni, costi, utilizzi

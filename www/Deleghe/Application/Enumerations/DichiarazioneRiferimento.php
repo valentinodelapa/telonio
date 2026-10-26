@@ -2,7 +2,7 @@
 
 namespace Deleghe\Application\Enumerations;
 
-use Deleghe\Application\HelperClasses\Calendario;
+use CommSuite\Application\HelperClasses\Calendario;
 use SismaFramework\Orm\CustomTypes\SismaDate;
 
 /**

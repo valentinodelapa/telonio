@@ -1,0 +1,23 @@
+id;codice;denominazione;categoria;ambito;proroga_agosto;fonte
+1;IVA_MENSILE;Liquidazione e versamento IVA mensile;VER;IVM;1;art. 1, c. 1, D.P.R. 100/1998
+2;IVA_TRIMESTRALE;Liquidazione e versamento IVA trimestrale;VER;IVT;1;art. 7, c. 1, D.P.R. 542/1999
+3;IVA_ACCONTO;Acconto IVA;VER;IVO;1;art. 6, c. 2, L. 405/1990
+4;IVA_SALDO;Saldo IVA dell'anno;VER;IVO;1;art. 6, c. 1, D.P.R. 542/1999
+5;DICHIARAZIONE_IVA;Dichiarazione IVA annuale;DIC;IVO;1;art. 8, c. 1, D.P.R. 322/1998
+6;LIPE;Comunicazione delle liquidazioni periodiche IVA;COM;IVO;1;art. 21-bis, c. 1, D.L. 78/2010 (2° trimestre: art. 3, c. 1, D.L. 73/2022)
+7;RITENUTE;Versamento delle ritenute alla fonte;VER;SOS;1;"art. 18, D.Lgs. 241/1997; art. 8, D.P.R. 602/1973"
+8;CERTIFICAZIONE_UNICA;Certificazione Unica: trasmissione e consegna;COM;SOS;1;art. 4, c. 6-quater e 6-quinquies, D.P.R. 322/1998
+9;MODELLO_770;Dichiarazione dei sostituti d'imposta (770);DIC;SOS;1;art. 4, c. 4-bis, D.P.R. 322/1998
+10;REDDITI_PF;Dichiarazione dei redditi delle persone fisiche;DIC;PF;1;art. 2, c. 2, D.P.R. 322/1998
+11;REDDITI_SP;Dichiarazione dei redditi delle società di persone;DIC;SP;1;art. 2, c. 2, D.P.R. 322/1998
+12;REDDITI_SC;Dichiarazione dei redditi delle società di capitali (esercizio solare);DIC;SC;1;art. 2, c. 2, D.P.R. 322/1998
+13;REDDITI_ENC;Dichiarazione dei redditi degli enti non commerciali (esercizio solare);DIC;EN;1;art. 2, c. 2, D.P.R. 322/1998
+14;IRAP;Dichiarazione IRAP;DIC;SOE;1;"art. 19, D.Lgs. 446/1997; art. 2, c. 2, D.P.R. 322/1998"
+15;SALDO_PRIMO_ACCONTO;Saldo e primo acconto delle imposte sui redditi e dell'IRAP;VER;TUT;1;art. 17, c. 1, D.P.R. 435/2001
+16;SECONDO_ACCONTO;Secondo acconto delle imposte sui redditi e dell'IRAP;VER;TUT;1;art. 17, c. 3, D.P.R. 435/2001
+17;MODELLO_730;Dichiarazione dei redditi con il modello 730;DIC;PFP;1;art. 13, D.M. 164/1999 (art. 16-bis, D.L. 124/2019)
+18;INPS_IVS;Contributi IVS artigiani e commercianti: rate fisse;VER;ART;1;"art. 18, D.Lgs. 241/1997; circolare annuale INPS sui contributi IVS"
+19;BOLLO_FATTURE;Imposta di bollo sulle fatture elettroniche;VER;IVA;1;art. 6, c. 2, D.M. 17 giugno 2014
+20;INTRASTAT_MENSILE;Elenchi riepilogativi Intrastat mensili;COM;MAN;1;art. 6, D.M. 22 febbraio 2010
+21;LIBRI_SOCIALI;Tassa annuale di vidimazione dei libri sociali;VER;SC;1;art. 23 della Tariffa allegata al D.P.R. 641/1972 (versamento entro il termine del saldo IVA)
+22;DIRITTO_CAMERALE;Diritto annuale della Camera di commercio;VER;IMP;1;art. 8, D.M. 359/2001 (termine del primo acconto delle imposte sui redditi)

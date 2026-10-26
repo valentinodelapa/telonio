@@ -2,6 +2,67 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased] - Gestione dello Studio, Scadenzario e Regimi Fiscali
+
+Nuovo modulo `GestioneStudio`: scadenzario dello studio con le scadenze di tutti gli applicativi, calendario fiscale degli adempimenti (con le proroghe, anche riservate ai soggetti ISA) e adempimenti dei clienti. In `Anagrafica` il regime fiscale dei titolari di partita IVA. Le scadenze degli altri moduli arrivano da un contratto definito in `CommSuite`, senza che `GestioneStudio` dipenda da loro. Richiede l'aggiornamento del database. Valgono le avvertenze della 0.1.0-alpha: la versione non è indicata per l'uso in produzione su dati reali.
+
+Versioni dei moduli: `GestioneStudio` 0.1.0 (nuovo, richiede `CommSuite` 0.3.0 e `Anagrafica` 0.5.0), `CommSuite` 0.3.0, `Anagrafica` 0.5.0, `Deleghe` 0.2.0, `Imu` 0.3.0 e `Successioni` 0.3.0 (richiedono `CommSuite` 0.3.0).
+
+### ✨ Nuove Funzionalità
+
+#### `GestioneStudio` — scadenzario e adempimenti dei clienti
+
+- **scadenzario dello studio** (`/scadenzario/index`, ingresso del modulo): scadenze di tutti gli applicativi del periodo, raggruppate per mese, con filtri per stato (da fare e in lavorazione, completate e non dovute, tutte), responsabile (anche senza responsabile) e applicativo; le scadute aperte sono evidenziate. Da ogni riga si segna la scadenza come completata o la si riapre, oppure se ne registrano stato, responsabile e note (`LavorazioneScadenza`); per le scadenze che il modulo di origine considera eseguite lo stato si gestisce nel modulo;
+- **scheda del cliente** (`/scadenzario/soggetto`, elenco dei clienti in `/scadenzario/clienti`): adempimenti a cui il cliente è tenuto e scadenze dell'anno di tutti gli applicativi;
+- **calendario fiscale degli adempimenti** comune a tutti gli studi (22 adempimenti: versamenti IVA mensili, trimestrali, acconto e saldo, dichiarazione IVA, LIPE, ritenute, Certificazione Unica, 770, dichiarazioni dei redditi di persone fisiche, società ed enti, IRAP, saldo e acconti delle imposte, 730, contributi IVS, bollo sulle fatture elettroniche, Intrastat, tassa sui libri sociali, diritto camerale), con la norma per ogni adempimento, curato in `GestioneStudio/Database/sorgenti` e importato con il nuovo comando `sisma calendario-fiscale`: l'Agenzia delle Entrate non pubblica lo scadenzario in un formato importabile;
+- **termini effettivi**: termine ordinario dell'anno di riferimento, proroga dell'anno (dello studio, che prevale, o del calendario fiscale; per tutti o per i soli soggetti con i requisiti), differimento al 20 agosto dei termini dal 1° al 20 agosto e slittamento al primo giorno lavorativo; vista dei termini dell'anno nel calendario (`/adempimento/index`) e dei termini per anno di riferimento con le proroghe nella scheda dell'adempimento;
+- **proroghe condizionate** (`CondizioneProroga`, `Services\RequisitiProroga`): una proroga può valere solo per i soggetti ISA, i forfetari, i contribuenti in regime di vantaggio e chi partecipa a società trasparenti o imprese familiari con questi requisiti (artt. 5, 115 e 116 TUIR), verificati sui dati fiscali dell'Anagrafica. Nel calendario fiscale la proroga al 20 luglio 2026 (o al 20 agosto con lo 0,80%) dei versamenti del saldo 2025 e del primo acconto 2026 e del diritto camerale 2026 per questi soggetti (art. 1-sexies D.L. 63/2026, conv. L. 113/2026);
+- **adempimenti e proroghe dello studio**: adempimenti propri (es. scadenze interne) con i loro termini, proroghe inserite dallo studio anche sugli adempimenti del calendario fiscale;
+- **adempimenti dei clienti** (`AssegnazioneAdempimento`, storicizzata): assegnazione dalla scheda del cliente o a più clienti dall'adempimento, con i clienti proposti in base all'Anagrafica (tipo di soggetto e, dai dati fiscali in vigore, partita IVA, attività d'impresa, regime fiscale, periodicità IVA e sostituto d'imposta: es. IVA mensile ai soli mensili, LIPE e dichiarazione IVA non ai forfetari; esclusi deceduti e cessati; Intrastat a richiesta), responsabile, rettifica, variazione da una data e annullamento;
+- indicatori della scrivania: scadenze aperte scadute nell'ultimo anno, entro 7 ed entro 30 giorni;
+- fixture demo: adempimenti del calendario assegnati ai soggetti demo e un adempimento dello studio.
+
+#### `CommSuite`
+
+- **contratto delle scadenze dei moduli**: `Interfaces\FonteScadenze`, `Services\Scadenza` e `Services\RaccoltaScadenze`, che raccoglie le scadenze dalle classi `<Modulo>\Application\Services\ScadenzeModulo` dei moduli disponibili: un modulo futuro entra nello scadenzario dichiarando la sua fonte;
+- `HelperClasses\Calendario` (spostato da `Deleghe`, che lo usava insieme a `Imu` e `Successioni`) con `termineFiscale()`: differimento di agosto (art. 37, c. 11-bis, D.L. 223/2006) e primo giorno lavorativo;
+- `ModuloSuite::gestioneStudio` disponibile con indirizzo `/scadenzario/index`; in `suite.js` la casella "seleziona tutti" (`data-seleziona-tutti`).
+
+#### `Anagrafica`
+
+- **regime fiscale** nei dati fiscali storicizzati (`Enumerations\RegimeFiscale`): ordinario, semplificato, forfetario, di vantaggio, forfetario degli enti non commerciali (art. 145 TUIR) e L. 398/1991, con i regimi ammessi per tipo di soggetto (es. solo ordinario per le società di capitali, forfetario e vantaggio solo per le persone fisiche con attività) e le decorrenze di legge; **periodicità IVA** (`Enumerations\PeriodicitaIva`), obbligatoria se il regime prevede le liquidazioni ed esclusa per forfetario e vantaggio; **applicazione degli ISA**, **sostituto d'imposta** (anche senza partita IVA) e **trasparenza fiscale** delle società di capitali. Nei form dei dati fiscali e del nuovo soggetto, nella scheda e nello storico; fixture demo aggiornate;
+- pulsante "Scadenze" nella scheda del soggetto, verso la sua scheda dello scadenzario, se il modulo `GestioneStudio` è disponibile.
+
+#### `Deleghe`
+
+- scadenze per lo scadenzario (`Services\ScadenzeModulo`): versamenti dell'archivio, anche quelli registrati dagli altri moduli, raggruppati per contribuente e data, con saldo e stato delle deleghe; completati quando tutti in deleghe trasmesse o quietanzate o regolarizzati con ravvedimento. Nuovo `VersamentoModel::getPerPeriodo()`.
+
+#### `Imu`
+
+- scadenze per lo scadenzario: dichiarazioni IMU con termine al 30 giugno dell'anno successivo, completate quando presentate.
+
+#### `Successioni`
+
+- scadenze per lo scadenzario: termine di presentazione delle dichiarazioni (dodici mesi dall'apertura), riferito al defunto, completato quando presentata.
+
+### 🐛 Correzioni
+
+#### `CommSuite`, `Deleghe`, `Imu`, `Successioni`
+
+- **4 ottobre non festivo**: dal 2026 il 4 ottobre è festa nazionale (L. 151/2025), quindi i termini che vi cadono passano al primo giorno lavorativo successivo. Il calendario dei termini non lo considerava: dal 2027, primo anno in cui cade in un giorno feriale, scadenze, termini delle dichiarazioni nel ravvedimento, sanzioni civili, rate delle successioni e scadenze IMU calcolati per il 4 ottobre sarebbero risultati un giorno prima del dovuto.
+
+### 🔄 Aggiornamento da 0.6.0-alpha
+
+Sui database esistenti eseguire come root l'aggiornamento di `Anagrafica`, lo schema e il calendario fiscale del nuovo modulo, poi eliminare `www/Cache/referenceCache.json`:
+
+```bash
+docker exec -i comm_suite_db sh -c 'mariadb -uroot -p"$MARIADB_ROOT_PASSWORD" --table comm_suite' < www/Anagrafica/Database/aggiornamento-0.5.sql
+docker exec -i comm_suite_db sh -c 'mariadb -uroot -p"$MARIADB_ROOT_PASSWORD" comm_suite' < www/GestioneStudio/Database/schema.sql
+docker exec -i comm_suite_db sh -c 'mariadb -uroot -p"$MARIADB_ROOT_PASSWORD" comm_suite' < www/GestioneStudio/Database/dati-riferimento.sql
+```
+
+`aggiornamento-0.5.sql` (idempotente) aggiunge a `dati_fiscali` le colonne del regime fiscale, assegna il regime ordinario alle società di capitali con partita IVA ed elenca le versioni in vigore con partita IVA da completare (regime e periodicità IVA) con la rettifica dei dati fiscali: finché non sono completate, la rettifica le richiede e le proposte e le proroghe condizionate non le riconoscono. Lo schema di `GestioneStudio` crea solo tabelle nuove (`adempimento`, `termine_adempimento`, `proroga_adempimento`, `assegnazione_adempimento`, `lavorazione_scadenza`); il calendario fiscale è idempotente e va rieseguito (o aggiornato con `sisma calendario-fiscale`) a ogni nuova versione delle sorgenti. Il modulo è registrato in `MODULE_FOLDERS`: senza le sue tabelle la scrivania non si apre.
+
 ## [0.6.0-alpha] - 2026-10-25 - Variazione del Possesso
 
 Sesta versione alpha: in `Anagrafica` la variazione del possesso (quota o utilizzo) dalla scheda del soggetto o dell'immobile, con chiusura automatica della versione precedente. Valgono le avvertenze della 0.1.0-alpha: la versione non è indicata per l'uso in produzione su dati reali.

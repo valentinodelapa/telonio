@@ -67,6 +67,9 @@ require Layout::percorso('header');
         <?php endif; ?>
     </form>
     <div class="d-flex gap-2">
+        <?php if (ModuloSuite::gestioneStudio->isDisponibile()): ?>
+            <a href="/scadenzario/soggetto/soggetto/<?= Html::e($id) ?>" class="btn btn-outline-secondary" title="<?= Html::e(ModuloSuite::gestioneStudio->getLabel()) ?>"><i class="bi <?= Html::e(ModuloSuite::gestioneStudio->getIcona()) ?> me-1"></i><?= Html::e($scadenze) ?></a>
+        <?php endif; ?>
         <a href="/soggetto/update/soggetto/<?= Html::e($id) ?>" class="btn btn-outline-primary"><i class="bi bi-pencil me-1"></i><?= Html::e($azioni['modifica']) ?></a>
         <form method="post" action="/soggetto/delete/soggetto/<?= Html::e($id) ?>" data-conferma="<?= Html::e($confermaEliminaSoggetto) ?>">
             <input type="hidden" name="<?= Html::e(\Config\CSRF_TOKEN_KEY) ?>" value="<?= Html::e($csrfToken) ?>">
@@ -127,6 +130,18 @@ require Layout::percorso('header');
                             <dt class="col-sm-5"><?= Html::e($campi['naturaGiuridica']) ?></dt>
                             <dd class="col-sm-7"><?= Html::e($datiFiscaliVigenti->naturaGiuridica->getLabel()) ?><?php if ($datiFiscaliVigenti->enteNonCommerciale): ?> <span class="badge text-bg-light border"><?= Html::e($campi['enteNonCommerciale']) ?></span><?php endif; ?></dd>
                         <?php endif; ?>
+                        <?php if ($datiFiscaliVigenti->regimeFiscale !== null): ?>
+                            <dt class="col-sm-5"><?= Html::e($campi['regimeFiscale']) ?></dt>
+                            <dd class="col-sm-7"><?= Html::e($datiFiscaliVigenti->regimeFiscale->getLabel()) ?><?php if ($datiFiscaliVigenti->periodicitaIva !== null): ?> · <?= Html::e($campi['iva']) ?> <?= Html::e(mb_strtolower($datiFiscaliVigenti->periodicitaIva->getLabel())) ?><?php endif; ?></dd>
+                        <?php endif; ?>
+                        <?php if ($datiFiscaliVigenti->soggettoIsa || $datiFiscaliVigenti->sostitutoImposta || $datiFiscaliVigenti->trasparenzaFiscale): ?>
+                            <dt class="col-sm-5"></dt>
+                            <dd class="col-sm-7">
+                                <?php foreach (['soggettoIsa' => $etichettaIsa, 'sostitutoImposta' => $etichettaSostituto, 'trasparenzaFiscale' => $etichettaTrasparenza] as $proprieta => $etichetta): ?>
+                                    <?php if ($datiFiscaliVigenti->$proprieta): ?><span class="badge text-bg-light border me-1"><?= Html::e($etichetta) ?></span><?php endif; ?>
+                                <?php endforeach; ?>
+                            </dd>
+                        <?php endif; ?>
                         <?php if ($datiFiscaliVigenti->codiceAteco !== null): ?>
                             <dt class="col-sm-5"><?= Html::e($campi['codiceAteco']) ?></dt>
                             <dd class="col-sm-7"><?= Html::e($datiFiscaliVigenti->codiceAteco->getEtichetta()) ?> <span class="badge text-bg-light border"><?= Html::e($datiFiscaliVigenti->codiceAteco->classificazione->getLabel()) ?></span><?php if ($datiFiscaliVigenti->descrizioneAttivita !== null): ?><div class="small text-body-secondary"><?= Html::e($datiFiscaliVigenti->descrizioneAttivita) ?></div><?php endif; ?></dd>
@@ -179,7 +194,7 @@ require Layout::percorso('header');
         <?php else: ?>
             <div class="table-responsive">
                 <table class="table table-sm table-anagrafica mb-0">
-                    <thead><tr><th><?= Html::e($campi['validoDal']) ?></th><th><?= Html::e($personaFisica ? $campi['ditta'] : $campi['denominazione']) ?></th><th><?= Html::e($personaFisica ? $campi['tipoAttivita'] : $campi['naturaGiuridica']) ?></th><th><?= Html::e($campi['partitaIva']) ?></th><th><?= Html::e($campi['codiceAteco']) ?></th><th></th><th></th></tr></thead>
+                    <thead><tr><th><?= Html::e($campi['validoDal']) ?></th><th><?= Html::e($personaFisica ? $campi['ditta'] : $campi['denominazione']) ?></th><th><?= Html::e($personaFisica ? $campi['tipoAttivita'] : $campi['naturaGiuridica']) ?></th><th><?= Html::e($campi['partitaIva']) ?></th><th><?= Html::e($campi['regimeFiscale']) ?></th><th><?= Html::e($campi['codiceAteco']) ?></th><th></th><th></th></tr></thead>
                     <tbody>
                         <?php foreach ($datiFiscaliStorico as $versione): ?>
                             <tr class="<?= $classeRiga($versione) ?>">
@@ -187,6 +202,7 @@ require Layout::percorso('header');
                                 <td><?= Html::e($versione->denominazione ?? '') ?></td>
                                 <td><?= Html::e(($personaFisica ? $versione->tipoAttivita?->getLabel() : $versione->naturaGiuridica?->getLabel()) ?? ($personaFisica ? $nessunaAttivita : '')) ?></td>
                                 <td class="font-monospace"><?= Html::e($versione->partitaIva ?? '') ?></td>
+                                <td class="small"><?= Html::e($versione->regimeFiscale?->getLabel() ?? '') ?><?= $versione->periodicitaIva === null ? '' : ' · ' . Html::e(mb_strtolower($versione->periodicitaIva->getLabel())) ?></td>
                                 <td title="<?= Html::e($versione->codiceAteco?->titolo ?? '') ?>"><?= Html::e($versione->codiceAteco?->codice ?? '') ?></td>
                                 <td><?= $badgeVigente($versione) ?></td>
                                 <td class="text-end text-nowrap"><?= $pulsanteModifica('/dati-fiscali/update/dati-fiscali/' . $versione->id) ?> <?= $pulsanteElimina('/dati-fiscali/delete/dati-fiscali/' . $versione->id) ?></td>

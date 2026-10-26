@@ -72,6 +72,7 @@ enum ModuloSuite: string
             self::deleghe => '/contribuente/index',
             self::imu => '/contribuente-imu/index',
             self::successioni => '/defunto/index',
+            self::gestioneStudio => '/scadenzario/index',
             default => '#',
         };
     }

@@ -12,15 +12,15 @@ Ogni applicativo è un modulo `SismaFramework` all'interno di `www/` che condivi
 | Modulo | Stato | Descrizione | Documentazione |
 |---|---|---|---|
 | **`CommSuite`** | Disponibile | Modulo base: gestione studi (CLI e web), utenti e ruoli (`amministratore`, `operatore`), profilo e password, autenticazione, layout e validatori fiscali (Codice Fiscale, Partita IVA, IBAN) | [`www/CommSuite/Docs/README.md`](www/CommSuite/Docs/README.md) |
-| **`Anagrafica`** | Disponibile | Archivio unico storicizzato dei soggetti dello studio (persone fisiche, ditte individuali, società, enti), dati fiscali, indirizzi, legami/soci, conti correnti, immobili con storico catastale, identificativi graffati e quote di possesso, tabelle ANPR e ATECO | [`www/Anagrafica/Docs/README.md`](www/Anagrafica/Docs/README.md) |
+| **`Anagrafica`** | Disponibile | Archivio unico storicizzato dei soggetti dello studio (persone fisiche, ditte individuali, società, enti), dati fiscali e regime fiscale (ordinario, semplificato, forfetario, periodicità IVA, ISA, sostituto d'imposta), indirizzi, legami/soci, conti correnti, immobili con storico catastale, identificativi graffati e quote di possesso, tabelle ANPR e ATECO | [`www/Anagrafica/Docs/README.md`](www/Anagrafica/Docs/README.md) |
 | **`Deleghe`** | Disponibile | Deleghe di pagamento F24 (Ordinario, Semplificato, ELIDE, Accise): archivio versamenti e crediti in compensazione, controlli formali sulle tabelle dell'Agenzia delle Entrate, ripartizione su più modelli, ravvedimento operoso, sanzioni civili INPS/INAIL, stampa su modello ufficiale SVG e generazione del file telematico Entratel | [`www/Deleghe/Docs/README.md`](www/Deleghe/Docs/README.md) |
 | **`Imu`** | Disponibile | Calcolo dell'IMU sugli immobili in anagrafica: importazione dei prospetti comunali delle aliquote dal portale del Dipartimento delle Finanze, gestione caratteristiche e agevolazioni storicizzate, prospetto di calcolo e invio automatico dei versamenti di acconto e saldo all'archivio `Deleghe`, dichiarazione IMU/IMPi e IMU ENC con file telematico | [`www/Imu/Docs/README.md`](www/Imu/Docs/README.md) |
 | **`Successioni`** | Disponibile | Dichiarazione di successione e domanda di volture catastali: beneficiari (anche trust testamentario ed eredità giacente) e immobili dall'anagrafica (anche del catasto tavolare, graffati o all'estero), aziende, titoli, navi e aeromobili, quote di legge proposte, liquidazione del quadro EF con ravvedimento e autoliquidazione dell'imposta di successione, F24 dei beneficiari (anche a rate) nell'archivio `Deleghe`, allegati PDF/A, file telematico XML SUC13 validato sullo schema ufficiale, dichiarazione sostitutiva, volture riportate nell'anagrafica | [`www/Successioni/Docs/README.md`](www/Successioni/Docs/README.md) |
+| **`GestioneStudio`** | Disponibile | Scadenzario dello studio con le scadenze di tutti gli applicativi (adempimenti dei clienti, versamenti F24, dichiarazioni IMU e di successione) per periodo, stato e operatore; calendario fiscale degli adempimenti con termini, proroghe (anche riservate ai soggetti ISA), differimento di agosto e slittamento al primo giorno lavorativo; adempimenti dei clienti storicizzati con responsabile, proposti in base all'anagrafica e al regime fiscale; stato di lavorazione e note di ogni scadenza | [`www/GestioneStudio/Docs/README.md`](www/GestioneStudio/Docs/README.md) |
 | **`Contabilita`** | In arrivo | Contabilità ordinaria, semplificata e forfetaria, registri IVA e cespiti | — |
 | **`Dichiarativi`** | In arrivo | Redditi, IVA annuale, 770 e invii telematici | — |
 | **`Bilancio`** | In arrivo | Bilancio CEE, nota integrativa e analisi di bilancio | — |
 | **`Parcellazione`** | In arrivo | Parcelle, fatture elettroniche e incassi dello studio | — |
-| **`GestioneStudio`** | In arrivo | Scadenzario, pratiche, attività e controllo di gestione | — |
 
 ## Stack
 
@@ -47,7 +47,7 @@ Ogni applicativo è un modulo `SismaFramework` all'interno di `www/` che condivi
     cp .env.example .env
     make start-dev
     ```
-3.  Crea le tabelle dei moduli e importa i dati di riferimento (comuni, stati esteri, codici ATECO, tabelle F24 e tassi, coefficienti e comuni esenti IMU, uffici di registrazione):
+3.  Crea le tabelle dei moduli e importa i dati di riferimento (comuni, stati esteri, codici ATECO, tabelle F24 e tassi, coefficienti e comuni esenti IMU, uffici di registrazione, calendario fiscale degli adempimenti):
     ```bash
     docker exec -i comm_suite_db mariadb -uroot -pchange_me_root_password comm_suite < www/CommSuite/Database/schema.sql
     docker exec -i comm_suite_db mariadb -uroot -pchange_me_root_password comm_suite < www/Anagrafica/Database/schema.sql
@@ -58,6 +58,8 @@ Ogni applicativo è un modulo `SismaFramework` all'interno di `www/` che condivi
     docker exec -i comm_suite_db mariadb -uroot -pchange_me_root_password comm_suite < www/Imu/Database/dati-riferimento.sql
     docker exec -i comm_suite_db mariadb -uroot -pchange_me_root_password comm_suite < www/Successioni/Database/schema.sql
     docker exec -i comm_suite_db mariadb -uroot -pchange_me_root_password comm_suite < www/Successioni/Database/dati-riferimento.sql
+    docker exec -i comm_suite_db mariadb -uroot -pchange_me_root_password comm_suite < www/GestioneStudio/Database/schema.sql
+    docker exec -i comm_suite_db mariadb -uroot -pchange_me_root_password comm_suite < www/GestioneStudio/Database/dati-riferimento.sql
     ```
 4.  Crea uno studio e il primo utente amministratore (oppure, in sviluppo, carica i dati demo con utente `admin` / `admin`, soggetti con storico, immobili, deleghe, calcoli IMU e successione di esempio):
     ```bash
@@ -96,6 +98,9 @@ docker exec comm_suite_php sh -c 'cd /var/www/html && sisma aliquote-imu --anno=
 
 # Aggiorna gli XSD della dichiarazione di successione e gli uffici di registrazione (Agenzia delle Entrate)
 docker exec comm_suite_php sh -c 'cd /var/www/html && sisma specifiche-successioni'
+
+# Aggiorna il calendario fiscale degli adempimenti (termini e proroghe di legge) dalle sorgenti del modulo
+docker exec comm_suite_php sh -c 'cd /var/www/html && sisma calendario-fiscale'
 ```
 
 ## Ambienti: sviluppo e produzione

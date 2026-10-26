@@ -87,7 +87,13 @@
                 "quota": "Quota (%)",
                 "utilizzo": "Utilizzo",
                 "possessoDal": "Possesso dal",
-                "possessoAl": "Possesso fino al"
+                "possessoAl": "Possesso fino al",
+                "regimeFiscale": "Regime fiscale",
+                "periodicitaIva": "Periodicità IVA",
+                "iva": "IVA",
+                "soggettoIsa": "Applica gli ISA (anche con cause di esclusione)",
+                "sostitutoImposta": "Sostituto d'imposta",
+                "trasparenzaFiscale": "Opzione per la trasparenza fiscale (artt. 115-116 TUIR)"
             },
             "azioni": {
                 "salva": "Salva",
@@ -120,7 +126,14 @@
             "storicoAvviso": "Stai consultando la situazione storica al",
             "vigente": "Vigente",
             "confermaElimina": "Confermi l'eliminazione?",
-            "sezioneDatiCatastali": "Dati catastali"
+            "sezioneDatiCatastali": "Dati catastali",
+            "nessunRegime": "Seleziona (con partita IVA)",
+            "nessunaPeriodicita": "Nessuna",
+            "aiutoRegime": "Obbligatorio con la partita IVA; un cambio di regime è una nuova variazione dal 1° gennaio.",
+            "aiutoPeriodicita": "Non prevista nei regimi forfetario e di vantaggio.",
+            "etichettaIsa": "ISA",
+            "etichettaSostituto": "Sostituto d'imposta",
+            "etichettaTrasparenza": "Trasparenza fiscale"
         },
         "indirizzo": {
             "form": {
@@ -194,6 +207,7 @@
                 "aiutoDecesso": "Apre la successione: la pratica si gestisce nel modulo Successioni."
             },
             "show": {
+                "scadenze": "Scadenze",
                 "schedaGenerale": "Generale",
                 "schedaFiscali": "Dati fiscali",
                 "schedaIndirizzi": "Indirizzi",

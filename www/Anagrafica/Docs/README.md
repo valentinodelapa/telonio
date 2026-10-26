@@ -38,7 +38,7 @@ riferimento (punto 3). Ogni modulo registrato deve avere la cartella
 | Entità | Contenuto | Storicizzata |
 |---|---|---|
 | `Soggetto` | tipo (PF, società di persone, società di capitali, ente), codice fiscale, dati di nascita, data di decesso (persone fisiche: apre la successione nel modulo Successioni), cliente sì/no | no |
-| `DatiFiscali` | denominazione, natura giuridica (società/enti) o attività economica (persone fisiche), partita IVA, ATECO, ente non commerciale (art. 73, c. 1, lett. c, TUIR; solo enti) | sì |
+| `DatiFiscali` | denominazione, natura giuridica (società/enti) o attività economica (persone fisiche), partita IVA, ATECO, ente non commerciale (art. 73, c. 1, lett. c, TUIR; solo enti), regime fiscale e periodicità IVA, applicazione degli ISA, sostituto d'imposta, trasparenza fiscale (società di capitali) | sì |
 | `Indirizzo` | residenza, domicilio fiscale, sedi, ... (una versione vigente per tipo) | sì |
 | `Legame` | il soggetto collegato ricopre un ruolo presso il soggetto (socio con quota, amministratore, legale rappresentante, ...) | sì |
 | `Recapito` | telefono, e-mail, PEC, ... con recapito principale per tipo | no |
@@ -129,6 +129,41 @@ $classamento = (new DatiCatastaliModel($dataMapper))->getVigenteAl($immobile, ne
 $classamento = (new DatiCatastaliModel($dataMapper))->getVigenteOSuccessivo($immobile, new SismaDate('2010-01-01'));
 $possessori = (new PossessoModel($dataMapper))->getVigentiAl($immobile, new SismaDate('2025-12-31'));
 ```
+
+## Regime fiscale
+
+Con la partita IVA i dati fiscali indicano il regime
+(`Enumerations\RegimeFiscale`), storicizzato con gli altri dati: un cambio
+di regime è una nuova variazione (di norma dal 1° gennaio).
+
+| Regime | Soggetti | Liquidazioni IVA |
+|---|---|---|
+| ordinario | tutti; obbligatorio per le società di capitali | sì |
+| semplificato (imprese minori, art. 18 D.P.R. 600/1973; lavoratori autonomi, art. 3 D.P.R. 695/1996) | persone fisiche con attività, società di persone, enti | sì |
+| forfetario (L. 190/2014, commi 54-89; dal 2015) | persone fisiche con attività | no |
+| di vantaggio (art. 27 D.L. 98/2011; dal 2012) | persone fisiche con attività | no |
+| forfetario degli enti non commerciali (art. 145 TUIR) | enti non commerciali | sì |
+| L. 398/1991 | enti non commerciali (associazioni sportive e senza fine di lucro) | trimestrali |
+
+- **periodicità IVA** (`Enumerations\PeriodicitaIva`): mensile o
+  trimestrale, obbligatoria se il regime prevede le liquidazioni,
+  esclusa per forfetario e vantaggio;
+- **applica gli ISA**, anche con cause di esclusione e con ricavi o
+  compensi entro il limite del decreto di approvazione: esclusa per i
+  regimi forfetario e di vantaggio; serve, ad esempio, alle proroghe dei
+  versamenti riservate ai soggetti ISA;
+- **sostituto d'imposta**: anche senza partita IVA (es. condominio);
+- **trasparenza fiscale** (artt. 115-116 TUIR): solo società di capitali.
+
+Senza partita IVA regime, periodicità, ISA e trasparenza non sono
+previsti. Gli altri moduli leggono i dati in vigore con
+`DatiFiscaliModel::getVigenteAl` (es. `GestioneStudio` per proporre gli
+adempimenti e applicare le proroghe condizionate).
+
+Sui database creati con le versioni precedenti alla 0.5.0 eseguire
+`Anagrafica/Database/aggiornamento-0.5.sql`: aggiunge le colonne, assegna
+il regime ordinario alle società di capitali con partita IVA ed elenca le
+versioni in vigore da completare (regime e periodicità IVA).
 
 ## Ditte individuali e lavoratori autonomi
 

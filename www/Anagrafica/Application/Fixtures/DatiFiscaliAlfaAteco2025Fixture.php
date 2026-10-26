@@ -6,6 +6,8 @@ use Anagrafica\Application\Entities\DatiFiscali;
 use Anagrafica\Application\Enumerations\ClassificazioneAteco;
 use Anagrafica\Application\Enumerations\NaturaGiuridica;
 use Anagrafica\Application\Models\CodiceAtecoModel;
+use Anagrafica\Application\Enumerations\PeriodicitaIva;
+use Anagrafica\Application\Enumerations\RegimeFiscale;
 use SismaFramework\Core\BaseClasses\BaseFixture;
 use SismaFramework\Orm\CustomTypes\SismaDate;
 
@@ -32,6 +34,10 @@ class DatiFiscaliAlfaAteco2025Fixture extends BaseFixture
         $datiFiscali->denominazione = 'Alfa Consulting S.r.l.';
         $datiFiscali->naturaGiuridica = NaturaGiuridica::societaResponsabilitaLimitata;
         $datiFiscali->partitaIva = '01234567897';
+        $datiFiscali->regimeFiscale = RegimeFiscale::ordinario;
+        $datiFiscali->periodicitaIva = PeriodicitaIva::mensile;
+        $datiFiscali->soggettoIsa = true;
+        $datiFiscali->sostitutoImposta = true;
         $datiFiscali->codiceAteco = (new CodiceAtecoModel($this->dataMapper))->getByCodice(ClassificazioneAteco::ateco2025, '69.20.01');
         $datiFiscali->descrizioneAttivita = 'Servizi forniti da dottori commercialisti';
         $this->addEntity($datiFiscali);

@@ -249,7 +249,7 @@ data (se un calcolo non è possibile la data non cambia). `Services\CalcoloRavve
 
 Il termine della dichiarazione è proposto da `DichiarazioneRiferimento`
 (redditi, IRAP e 770: 31 ottobre; IVA: 30 aprile; IMU: 30 giugno dell'anno
-successivo; spostato al primo giorno lavorativo da `HelperClasses\Calendario`)
+successivo; spostato al primo giorno lavorativo da `CommSuite\HelperClasses\Calendario`)
 ed è modificabile per i termini prorogati.
 
 `Services\RavvedimentoService` genera i versamenti nella delega con origine
@@ -442,6 +442,18 @@ Alcune descrizioni delle tabelle dell'Agenzia sono corrotte da conversioni
 di codifica (es. "dï¿‚ï¾’imposta"): `LettoreFoglio` ricostruisce il testo
 originale; dove la fonte ha perso dei byte resta un carattere errato (es.
 "ANNUALITÎ").
+
+## Scadenzario dello studio
+
+`Services\ScadenzeModulo` espone allo scadenzario del modulo
+`GestioneStudio` (contratto `CommSuite\Interfaces\FonteScadenze`) i
+versamenti dell'archivio del contribuente raggruppati per data di
+scadenza, compresi quelli registrati dagli altri moduli: una scadenza per
+contribuente e data, con il saldo e lo stato delle deleghe. È completata
+quando tutti i versamenti sono in deleghe trasmesse o quietanzate, o se
+omessi regolarizzati con un ravvedimento. `VersamentoModel::getPerPeriodo`
+legge i versamenti dello studio (o del contribuente) con scadenza nel
+periodo.
 
 ## Multi-studio
 

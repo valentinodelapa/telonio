@@ -104,6 +104,16 @@ docker exec comm_suite_php sh -c 'cd /var/www/html && sisma studio attiva --stud
   disponibile quando è registrato in `Config\MODULE_FOLDERS`.
 - **Scrivania (`HomeController`)**: interroga automaticamente per ciascun
   modulo disponibile l'eventuale servizio `<Modulo>\Application\Services\RiepilogoScrivania::getIndicatori(Studio)`.
+- **Scadenze dei moduli (`Interfaces\FonteScadenze`, `Services\Scadenza`,
+  `Services\RaccoltaScadenze`)**: ogni modulo che ha scadenze le espone
+  con la classe `<Modulo>\Application\Services\ScadenzeModulo`, che
+  implementa `FonteScadenze::getScadenze(Studio, dal, al, ?soggetto)` e
+  restituisce oggetti `Scadenza` (modulo, riferimento stabile, termine
+  effettivo, descrizione, soggetto, importo, collegamento, completata);
+  `RaccoltaScadenze` le raccoglie dai moduli disponibili in ordine di
+  data. Lo scadenzario del modulo `GestioneStudio` le usa senza dipendere
+  dai moduli che le producono: un nuovo modulo vi entra dichiarando la
+  sua fonte.
 - **Helper di vista (`HelperClasses`)**:
   - `Layout::percorso`: inclusione di `header` e `footer` comuni da
     qualsiasi modulo;
@@ -119,3 +129,10 @@ docker exec comm_suite_php sh -c 'cd /var/www/html && sisma studio attiva --stud
   - `PartitaIva`: normalizzazione e controllo di validità a 11 cifre;
   - `Iban`: normalizzazione, formattazione, verifica modulo 97 (ISO 13616) e
     controllo del CIN nazionale per i conti italiani.
+- **Termini fiscali (`HelperClasses\Calendario`)**: giorni lavorativi con
+  le festività nazionali (art. 2 L. 260/1949, Lunedì dell'Angelo e, dal
+  2026, il 4 ottobre, L. 151/2025), primo giorno lavorativo per i termini
+  che cadono di sabato o in un giorno festivo (art. 7, c. 1, lett. h, D.L.
+  70/2011) e `termineFiscale`, che prima differisce al 20 agosto i termini
+  dal 1° al 20 agosto (art. 37, c. 11-bis, D.L. 223/2006); usato da tutti
+  i moduli che calcolano scadenze.

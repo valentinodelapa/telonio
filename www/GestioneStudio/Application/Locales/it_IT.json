@@ -1,0 +1,155 @@
+{
+    "pages": {
+        "common": {
+            "campi": {
+                "data": "Scadenza",
+                "cliente": "Cliente",
+                "soggetto": "Soggetto",
+                "adempimento": "Adempimento",
+                "descrizione": "Descrizione",
+                "modulo": "Applicativo",
+                "importo": "Importo",
+                "responsabile": "Responsabile",
+                "stato": "Stato",
+                "note": "Note",
+                "dal": "Dal",
+                "al": "Al",
+                "anno": "Anno",
+                "codice": "Codice",
+                "denominazione": "Denominazione",
+                "categoria": "Categoria",
+                "ambito": "Proposto a",
+                "fonte": "Fonte normativa",
+                "slittamentoFestivi": "Termine di sabato o festivo al primo giorno lavorativo successivo",
+                "prorogaAgosto": "Termini dal 1° al 20 agosto differiti al 20 agosto",
+                "attivo": "Adempimento attivo",
+                "periodo": "Periodo",
+                "ordine": "Ordine",
+                "mese": "Mese",
+                "giorno": "Giorno",
+                "anniSuccessivi": "Anni dopo l'anno di riferimento",
+                "termine": "Termine",
+                "termineOrdinario": "Termine ordinario",
+                "termineEffettivo": "Termine effettivo",
+                "proroga": "Proroga",
+                "provvedimento": "Provvedimento",
+                "validoDal": "Dovuto dal",
+                "validoAl": "Dovuto fino al",
+                "clienti": "Clienti",
+                "adempimenti": "Adempimenti in vigore",
+                "condizione": "Si applica a"
+            },
+            "azioni": {
+                "salva": "Salva",
+                "annulla": "Annulla",
+                "modifica": "Modifica",
+                "elimina": "Elimina",
+                "cerca": "Cerca",
+                "filtra": "Filtra",
+                "apri": "Apri",
+                "lavorazione": "Lavorazione",
+                "completa": "Segna completata",
+                "riapri": "Riapri",
+                "inLavorazione": "Prendi in lavorazione",
+                "nuovoAdempimento": "Nuovo adempimento dello studio",
+                "nuovoTermine": "Aggiungi termine",
+                "proroga": "Proroga",
+                "assegna": "Assegna ai clienti",
+                "assegnaCliente": "Aggiungi adempimento",
+                "nuovaVariazione": "Nuova variazione",
+                "vaiAlModulo": "Apri nel modulo",
+                "schedaCliente": "Scheda del cliente",
+                "schedaAnagrafica": "Scheda anagrafica"
+            },
+            "navScadenzario": "Scadenzario",
+            "navClienti": "Clienti",
+            "navAdempimenti": "Calendario degli adempimenti",
+            "campiObbligatori": "I campi contrassegnati con * sono obbligatori.",
+            "confermaElimina": "Confermi l'eliminazione?",
+            "sempre": "in corso",
+            "nessuno": "Nessuno",
+            "tutti": "Tutti",
+            "scaduta": "scaduta",
+            "calendarioFiscale": "Calendario fiscale",
+            "delloStudio": "Studio",
+            "completataDalModulo": "completata nel modulo"
+        },
+        "scadenzario": {
+            "index": {
+                "pageTitle": "Scadenzario",
+                "aiuto": "Scadenze di tutti gli applicativi: adempimenti assegnati ai clienti, versamenti F24 dell'archivio dei contribuenti, dichiarazioni IMU e di successione. Le scadenze si aggiornano dai dati degli applicativi; qui si registrano lo stato di lavorazione, il responsabile e le note.",
+                "nessunaScadenza": "Nessuna scadenza nel periodo con i filtri scelti.",
+                "nonAssegnate": "Senza responsabile",
+                "tuttiModuli": "Tutti gli applicativi",
+                "scadenze": "scadenze"
+            },
+            "clienti": {
+                "pageTitle": "Clienti",
+                "aiuto": "Scegli il cliente per vedere le sue scadenze dell'anno e gli adempimenti a cui è tenuto.",
+                "segnapostoRicerca": "Cerca per nominativo, codice fiscale o partita IVA",
+                "etichettaTutti": "Includi i soggetti non clienti",
+                "nessunRisultato": "Nessun soggetto trovato.",
+                "risultati": "soggetti"
+            },
+            "soggetto": {
+                "sezioneAdempimenti": "Adempimenti a cui è tenuto",
+                "aiutoAdempimenti": "Valgono i termini che cadono nel periodo in cui l'adempimento è dovuto. Un nuovo responsabile da una data è una variazione: la versione precedente si chiude il giorno prima.",
+                "nessunAdempimento": "Nessun adempimento assegnato.",
+                "sezioneScadenze": "Scadenze dell'anno",
+                "nessunaScadenza": "Nessuna scadenza nell'anno."
+            },
+            "lavorazione": {
+                "aiuto": "Lo stato registrato qui vale solo per lo scadenzario: i dati restano quelli dell'applicativo di origine.",
+                "aiutoCompletata": "L'applicativo di origine considera questa scadenza eseguita: lo stato si gestisce lì.",
+                "completataIl": "Completata il",
+                "da": "da"
+            }
+        },
+        "adempimento": {
+            "index": {
+                "pageTitle": "Calendario degli adempimenti",
+                "aiuto": "Adempimenti del calendario fiscale comune a tutti gli studi (aggiornato con il comando del modulo) e adempimenti propri dello studio, con i termini effettivi che cadono nell'anno: termine ordinario, proroghe, differimento di agosto e primo giorno lavorativo.",
+                "includiInattivi": "Includi gli adempimenti non attivi",
+                "nessunTermine": "Nessun termine nell'anno",
+                "nonAttivo": "non attivo"
+            },
+            "show": {
+                "sezioneTermini": "Termini per l'anno di riferimento",
+                "aiutoTermini": "L'anno di riferimento è il periodo a cui si riferisce l'adempimento (es. la dichiarazione dei redditi 2025 scade nel 2026). Una proroga dello studio prevale su quella del calendario fiscale. Il termine effettivo mostrato è quello generale: le proroghe condizionate (es. per i soggetti ISA) si applicano nelle scadenze dei clienti che hanno i requisiti.",
+                "nessunTermine": "Nessun termine: aggiungine almeno uno.",
+                "sezioneAssegnati": "Clienti a cui è assegnato",
+                "nessunAssegnato": "Non ancora assegnato a nessun cliente.",
+                "prorogheStudio": "Proroghe"
+            },
+            "form": {
+                "aiuto": "Adempimento proprio dello studio (es. una scadenza interna o un termine che il calendario fiscale non prevede). I termini si aggiungono dopo il salvataggio."
+            },
+            "assegna": {
+                "aiuto": "Sono selezionati i clienti a cui l'adempimento si propone in base ai dati dell'Anagrafica in vigore alla decorrenza (tipo di soggetto, partita IVA, attività d'impresa, regime fiscale, periodicità IVA, sostituto d'imposta): verifica la scelta prima di confermare.",
+                "giaAssegnati": "Clienti a cui è già assegnato dalla decorrenza in poi (esclusi dall'elenco):",
+                "etichettaProposto": "proposto",
+                "nessunCandidato": "Nessun altro cliente a cui assegnarlo.",
+                "seleziona": "Seleziona tutti"
+            }
+        },
+        "termineAdempimento": {
+            "form": {
+                "aiuto": "Il termine è per l'anno di riferimento A: giorno e mese dell'anno A più gli anni indicati. Giorno 0 = ultimo giorno del mese.",
+                "aiutoPeriodo": "Es. gennaio, 1° trimestre, anno."
+            }
+        },
+        "prorogaAdempimento": {
+            "form": {
+                "aiuto": "Nuovo termine per l'anno di riferimento, con il provvedimento che lo dispone. Il differimento di agosto e lo slittamento al primo giorno lavorativo si applicano anche alla data prorogata.",
+                "aiutoCondizione": "Per i soggetti ISA valgono i dati fiscali dell'Anagrafica alla fine dell'anno di riferimento: applicazione degli ISA, regime forfetario o di vantaggio, partecipazione a società trasparenti o imprese familiari con questi requisiti."
+            }
+        },
+        "assegnazioneAdempimento": {
+            "form": {
+                "aiuto": "L'adempimento è dovuto dal cliente nel periodo indicato: lo scadenzario mostra i termini che vi cadono.",
+                "titoloStorico": "Versioni",
+                "selezionare": "Seleziona l'adempimento"
+            }
+        }
+    }
+}

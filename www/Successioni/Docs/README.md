@@ -365,6 +365,15 @@ coincidono; altrimenti aggiorna gli XSD del modulo e la tabella degli
 uffici di registrazione (codici e descrizioni dalla documentazione
 dell'enumerazione `UfficiDiRegistrazione`). Lo script SQL è idempotente.
 
+## Scadenzario dello studio
+
+`Services\ScadenzeModulo` espone allo scadenzario del modulo
+`GestioneStudio` il termine di presentazione di ogni dichiarazione
+(dodici mesi dall'apertura o dalla decorrenza indicata, art. 31 TUS,
+spostato al primo giorno lavorativo), riferito al defunto e completato
+quando la dichiarazione è presentata. I versamenti dei beneficiari sono
+nell'archivio di `Deleghe` e compaiono da lì.
+
 ## Multi-studio
 
 Le dichiarazioni appartengono a uno studio; i controller verificano

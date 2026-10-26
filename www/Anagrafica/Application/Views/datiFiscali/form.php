@@ -33,6 +33,7 @@ require Layout::percorso('header');
             <?= Campo::testo('partitaIva', $campi['partitaIva'], $formEntity, $errors, ['colonna' => 'col-md-3', 'attributi' => 'maxlength="13"']) ?>
             <?= Campo::autocompleta('codiceAteco', $campi['codiceAteco'], $formEntity, $errors, '/tabelle/ateco', isset($formEntity->codiceAteco) ? $formEntity->codiceAteco->getEtichetta() : null, ['colonna' => 'col-md-9', 'campoData' => 'validoDal', 'segnaposto' => $segnapostoAteco, 'aiuto' => isset($atecoConvertitoDa) ? $atecoConvertitoDa->classificazione->getLabel() . ' ' . $atecoConvertitoDa->getEtichetta() . ': ' . ($atecoRaccordoTrovato ? $aiutoRaccordoAteco : $aiutoRaccordoAtecoAssente) : null]) ?>
             <?= Campo::testo('descrizioneAttivita', $campi['descrizioneAttivita'], $formEntity, $errors, ['colonna' => 'col-md-6', 'attributi' => 'maxlength="255"']) ?>
+            <?php $origineRegime = $formEntity; $erroriRegime = $errors; require __DIR__ . '/../commonParts/campiRegime.php'; ?>
         </div>
     </div>
     <?php require __DIR__ . '/../commonParts/pulsantiForm.php'; ?>

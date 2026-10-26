@@ -50,6 +50,9 @@ THE SOFTWARE.
         <testsuite name="Successioni">
             <directory suffix="Test.php">./Successioni/Tests</directory>
         </testsuite>
+        <testsuite name="GestioneStudio">
+            <directory suffix="Test.php">./GestioneStudio/Tests</directory>
+        </testsuite>
     </testsuites>
     <php>
         <server name="HTTP_USER_AGENT" value=""/>
@@ -72,6 +75,8 @@ THE SOFTWARE.
             <directory suffix=".php">./Imu/Console</directory>
             <directory suffix=".php">./Successioni/Application</directory>
             <directory suffix=".php">./Successioni/Console</directory>
+            <directory suffix=".php">./GestioneStudio/Application</directory>
+            <directory suffix=".php">./GestioneStudio/Console</directory>
         </include>
         <exclude>
             <directory>./CommSuite/Application/Views</directory>
@@ -79,6 +84,7 @@ THE SOFTWARE.
             <directory>./Deleghe/Application/Views</directory>
             <directory>./Imu/Application/Views</directory>
             <directory>./Successioni/Application/Views</directory>
+            <directory>./GestioneStudio/Application/Views</directory>
         </exclude>
     </source>
 </phpunit>

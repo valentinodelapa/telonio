@@ -107,12 +107,17 @@ CREATE TABLE IF NOT EXISTS `dati_fiscali` (
   `codice_ateco_id` INT UNSIGNED NULL,
   `descrizione_attivita` VARCHAR(255) NULL,
   `ente_non_commerciale` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Ente non commerciale (art. 73, c. 1, lett. c, TUIR)',
+  `regime_fiscale` VARCHAR(4) NULL COMMENT 'Con partita IVA: ORD ordinario, SEM semplificato, FOR forfetario, VAN vantaggio, ENC art. 145 TUIR, L398 L. 398/1991',
+  `periodicita_iva` CHAR(1) NULL COMMENT 'M mensile, T trimestrale; NULL se il regime non prevede liquidazioni IVA',
+  `soggetto_isa` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Applica gli ISA, anche con cause di esclusione',
+  `sostituto_imposta` TINYINT(1) NOT NULL DEFAULT 0,
+  `trasparenza_fiscale` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Società di capitali: opzione per la trasparenza (artt. 115-116 TUIR)',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_dati_fiscali_decorrenza` (`soggetto_id`, `valido_dal`),
   CONSTRAINT `fk_dati_fiscali_soggetto` FOREIGN KEY (`soggetto_id`) REFERENCES `soggetto` (`id`),
   CONSTRAINT `fk_dati_fiscali_codice_ateco` FOREIGN KEY (`codice_ateco_id`) REFERENCES `codice_ateco` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-COMMENT='Storico di denominazione, natura giuridica, partita IVA e attività';
+COMMENT='Storico di denominazione, natura giuridica, partita IVA, attività e regime fiscale';
 
 CREATE TABLE IF NOT EXISTS `indirizzo` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,

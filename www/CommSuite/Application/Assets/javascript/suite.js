@@ -80,3 +80,15 @@ document.querySelectorAll('form[data-conferma]').forEach(function (form) {
         }
     });
 });
+
+/*
+ * Casella che seleziona o deseleziona tutte quelle indicate dal selettore
+ * (data-seleziona-tutti="selettore CSS").
+ */
+document.querySelectorAll('input[data-seleziona-tutti]').forEach(function (casella) {
+    casella.addEventListener('change', function () {
+        document.querySelectorAll(casella.dataset.selezionaTutti).forEach(function (altra) {
+            altra.checked = casella.checked;
+        });
+    });
+});

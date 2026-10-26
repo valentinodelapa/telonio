@@ -66,6 +66,7 @@ require Layout::percorso('header');
                 <?php endif; ?>
                 <?= Campo::autocompleta('codiceAteco', $campi['codiceAteco'], $datiFiscaliEntity, $datiFiscaliErrors, '/tabelle/ateco', isset($datiFiscaliEntity->codiceAteco) ? $datiFiscaliEntity->codiceAteco->getEtichetta() : null, ['colonna' => 'col-12', 'campoData' => 'validoDal', 'segnaposto' => $segnapostoAteco]) ?>
                 <?= Campo::testo('descrizioneAttivita', $campi['descrizioneAttivita'], $datiFiscaliEntity, $datiFiscaliErrors, ['colonna' => 'col-12', 'aiuto' => $aiutoDatiFiscali]) ?>
+                <?php $origineRegime = $datiFiscaliEntity; $erroriRegime = $datiFiscaliErrors; require __DIR__ . '/../commonParts/campiRegime.php'; ?>
             </div>
         </div>
     <?php endif; ?>

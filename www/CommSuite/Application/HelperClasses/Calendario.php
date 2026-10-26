@@ -1,26 +1,35 @@
 <?php
 
-namespace Deleghe\Application\HelperClasses;
+namespace CommSuite\Application\HelperClasses;
 
 use SismaFramework\Orm\CustomTypes\SismaDate;
 
 /**
- * Giorni lavorativi ai fini dei termini fiscali: i termini che cadono di
- * sabato o in un giorno festivo sono prorogati al primo giorno lavorativo
- * successivo (art. 7, c. 1, lett. h, D.L. 70/2011; art. 6, c. 8, D.L.
- * 330/1994).
+ * Giorni lavorativi ai fini dei termini fiscali, comuni a tutti i moduli
+ * della suite: i termini che cadono di sabato o in un giorno festivo sono
+ * prorogati al primo giorno lavorativo successivo (art. 7, c. 1, lett. h,
+ * D.L. 70/2011; art. 6, c. 8, D.L. 330/1994).
+ *
+ * Festività nazionali: art. 2 L. 260/1949 e Lunedì dell'Angelo; il 4
+ * ottobre (festa nazionale di San Francesco d'Assisi) dal 2026, L.
+ * 151/2025.
  */
 class Calendario
 {
 
     private const FESTIVI_FISSI = ['01-01', '01-06', '04-25', '05-01', '06-02', '08-15', '11-01', '12-08', '12-25', '12-26'];
+    private const FESTIVI_DAL = ['10-04' => 2026];
 
     public static function isLavorativo(\DateTimeInterface $data): bool
     {
         if ((int) $data->format('N') >= 6) {
             return false;
         }
-        if (in_array($data->format('m-d'), self::FESTIVI_FISSI, true)) {
+        $giorno = $data->format('m-d');
+        if (in_array($giorno, self::FESTIVI_FISSI, true)) {
+            return false;
+        }
+        if (isset(self::FESTIVI_DAL[$giorno]) && ((int) $data->format('Y') >= self::FESTIVI_DAL[$giorno])) {
             return false;
         }
         return $data->format('Y-m-d') !== self::lunediDellAngelo((int) $data->format('Y'));
@@ -33,6 +42,22 @@ class Calendario
             $giorno = $giorno->modify('+1 day');
         }
         return new SismaDate($giorno->format('Y-m-d'));
+    }
+
+    /**
+     * Termine effettivo di un adempimento fiscale o di un versamento
+     * unitario: con $prorogaAgosto i termini dal 1° al 20 agosto sono
+     * differiti al 20 agosto (art. 37, c. 11-bis, D.L. 223/2006), poi il
+     * termine che cade di sabato o in un giorno festivo passa al primo
+     * giorno lavorativo successivo.
+     */
+    public static function termineFiscale(\DateTimeInterface $data, bool $prorogaAgosto = true): SismaDate
+    {
+        $giorno = new \DateTimeImmutable($data->format('Y-m-d'));
+        if ($prorogaAgosto && ($giorno->format('m') === '08') && ((int) $giorno->format('d') <= 20)) {
+            $giorno = $giorno->setDate((int) $giorno->format('Y'), 8, 20);
+        }
+        return self::primoGiornoLavorativo($giorno);
     }
 
     /**

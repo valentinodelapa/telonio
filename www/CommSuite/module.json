@@ -1,6 +1,6 @@
 {
   "name": "CommSuite",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "framework_version": "12.14.0",
   "description": "Modulo base della suite: studi, utenti, accesso, layout e componenti comuni",
   "authors": [

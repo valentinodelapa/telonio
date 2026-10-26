@@ -1,13 +1,12 @@
 <?php
 
-namespace Deleghe\Tests\HelperClasses;
+namespace CommSuite\Tests\Application\HelperClasses;
 
+use CommSuite\Application\HelperClasses\Calendario;
 use CommSuite\Tests\SuiteTestCase;
-use Deleghe\Application\HelperClasses\Calendario;
-use Deleghe\Application\HelperClasses\Importo;
 use SismaFramework\Orm\CustomTypes\SismaDate;
 
-class CalendarioAndImportoTest extends SuiteTestCase
+class CalendarioTest extends SuiteTestCase
 {
 
     public function testCalendarioGiorniFerialiEFestiviFissi(): void
@@ -86,17 +85,23 @@ class CalendarioAndImportoTest extends SuiteTestCase
         $this->assertSame(0, Calendario::giorniTra($da, $da));
     }
 
-    public function testImportoEuroENormalizza(): void
+    public function testQuattroOttobreFestivoDal2026(): void
     {
-        $this->assertSame('1.050,25', Importo::euro(1050.25));
-        $this->assertSame('0,00', Importo::euro(0.0, false));
-        $this->assertSame('', Importo::euro(0.0, true));
-        $this->assertSame('', Importo::euro(0.004, true));
-        $this->assertSame('12,30', Importo::euro(12.3, true));
+        // L. 151/2025: festa nazionale dal 2026 (04/10/2027 è lunedì)
+        $this->assertTrue(Calendario::isLavorativo(new \DateTimeImmutable('2024-10-04')));
+        $this->assertFalse(Calendario::isLavorativo(new \DateTimeImmutable('2027-10-04')));
+        $this->assertSame('2027-10-05', Calendario::primoGiornoLavorativo(new SismaDate('2027-10-04'))->format('Y-m-d'));
+    }
 
-        $this->assertSame('1050.25', Importo::normalizza('1.050,25'));
-        $this->assertSame('1050.25', Importo::normalizza(' € 1.050,25 '));
-        $this->assertSame('1050.25', Importo::normalizza('1050.25'));
-        $this->assertSame('', Importo::normalizza('   '));
+    public function testTermineFiscaleConProrogaDiAgosto(): void
+    {
+        // 16/08/2027 (lunedì) differito al 20/08/2027 (venerdì)
+        $this->assertSame('2027-08-20', Calendario::termineFiscale(new SismaDate('2027-08-16'))->format('Y-m-d'));
+        // 20/08/2022 è sabato: lunedì 22/08/2022
+        $this->assertSame('2022-08-22', Calendario::termineFiscale(new SismaDate('2022-08-16'))->format('Y-m-d'));
+        // senza proroga di agosto resta il 16/08/2027
+        $this->assertSame('2027-08-16', Calendario::termineFiscale(new SismaDate('2027-08-16'), false)->format('Y-m-d'));
+        // dopo il 20 agosto vale solo lo slittamento: 31/08/2025 domenica -> 01/09/2025
+        $this->assertSame('2025-09-01', Calendario::termineFiscale(new SismaDate('2025-08-31'))->format('Y-m-d'));
     }
 }
