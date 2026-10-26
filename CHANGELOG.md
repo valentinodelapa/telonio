@@ -2,9 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased] - Gestione dello Studio, Scadenzario e Regimi Fiscali
+## [0.7.0-alpha] - 2026-10-26 - Gestione dello Studio, Scadenzario e Regimi Fiscali
 
-Nuovo modulo `GestioneStudio`: scadenzario dello studio con le scadenze di tutti gli applicativi, calendario fiscale degli adempimenti (con le proroghe, anche riservate ai soggetti ISA) e adempimenti dei clienti. In `Anagrafica` il regime fiscale dei titolari di partita IVA. Le scadenze degli altri moduli arrivano da un contratto definito in `CommSuite`, senza che `GestioneStudio` dipenda da loro. Richiede l'aggiornamento del database. Valgono le avvertenze della 0.1.0-alpha: la versione non è indicata per l'uso in produzione su dati reali.
+Settima versione alpha: nuovo modulo `GestioneStudio`, con lo scadenzario dello studio (le scadenze di tutti gli applicativi), il calendario fiscale degli adempimenti (con le proroghe, anche riservate ai soggetti ISA) e gli adempimenti dei clienti. In `Anagrafica` il regime fiscale dei titolari di partita IVA. Le scadenze degli altri moduli arrivano da un contratto definito in `CommSuite`, senza che `GestioneStudio` dipenda da loro. Richiede l'aggiornamento del database. Valgono le avvertenze della 0.1.0-alpha: la versione non è indicata per l'uso in produzione su dati reali.
 
 Versioni dei moduli: `GestioneStudio` 0.1.0 (nuovo, richiede `CommSuite` 0.3.0 e `Anagrafica` 0.5.0), `CommSuite` 0.3.0, `Anagrafica` 0.5.0, `Deleghe` 0.2.0, `Imu` 0.3.0 e `Successioni` 0.3.0 (richiedono `CommSuite` 0.3.0).
 
