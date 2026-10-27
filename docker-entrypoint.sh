@@ -4,7 +4,12 @@ set -e
 # Sisma CLI
 chmod +x /var/www/html/SismaFramework/Console/sisma 2>/dev/null || true
 
-# Imposta i permessi sulle cartelle scrivibili
+# Crea le cartelle scrivibili se mancano (escluse da Git e dall'archivio di
+# rilascio) e ne imposta i permessi: PHP-FPM gira come www-data, che su un
+# host Linux non può crearle da sé in /var/www/html, montata dalla cartella
+# dell'utente; senza Cache il salvataggio delle entità fallisce, senza Logs
+# l'errore non viene nemmeno registrato.
+mkdir -p /var/www/html/Cache /var/www/html/Logs /var/www/html/filesystemMedia
 chown -R www-data:www-data /var/www/html/Cache /var/www/html/Logs /var/www/html/filesystemMedia 2>/dev/null || true
 chmod -R 775 /var/www/html/Cache /var/www/html/Logs /var/www/html/filesystemMedia 2>/dev/null || true
 

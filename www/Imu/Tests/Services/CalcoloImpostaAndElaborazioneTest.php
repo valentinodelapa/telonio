@@ -179,6 +179,60 @@ class CalcoloImpostaAndElaborazioneTest extends SuiteTestCase
         $this->assertSame(0.86, $esitoBase['aliquota']);
     }
 
+    /**
+     * Comma 767: senza prospetto per l'anno valgono le aliquote dell'ultimo
+     * prospetto pubblicato dal 2025; le aliquote di base solo se il comune
+     * non ne ha mai pubblicato uno (i prospetti anteriori al 2025 non contano).
+     */
+    public function testAliquoteComuneSenzaProspettoDellAnno(): void
+    {
+        $prospetto2025 = new ProspettoAliquote($this->dataMapper);
+        $prospetto2025->id = 30;
+        $prospetto2025->codiceCatastale = 'H501';
+        $prospetto2025->denominazioneComune = 'Roma';
+        $prospetto2025->anno = 2025;
+        $prospetto2025->aliquotaAltriFabbricati = 1.06;
+        $differenziata = new AliquotaDifferenziata($this->dataMapper);
+        $differenziata->id = 31;
+        $differenziata->prospettoAliquote = $prospetto2025;
+        $differenziata->fattispecie = FattispecieImu::altriFabbricati;
+        $differenziata->aliquota = 0.96;
+        $differenziata->descrizione = 'Immobili locati a studenti universitari';
+
+        // 2027 senza prospetto, 2026 senza prospetto, 2025 pubblicato: valgono le aliquote 2025
+        $aliquote = new AliquoteComune($this->studioPredefinito, $this->dataMapper);
+        $this->testAdapter->accodaSelect(
+            new TestResultSet([]), new TestResultSet([]), // 2027: studio, pubblicati
+            new TestResultSet([]), new TestResultSet([]), // 2026
+            new TestResultSet([]), new TestResultSet([$prospetto2025]), // 2025
+            new TestResultSet([$differenziata]) // differenziate del prospetto 2025
+        );
+        $esito = $aliquote->getAliquota('H501', 2027, FattispecieImu::altriFabbricati, null);
+        $this->assertSame(1.06, $esito['aliquota']);
+        $this->assertStringContainsString('aliquote 2025 (nessuna delibera per il 2027, comma 767)', $esito['origine']);
+        $this->assertSame($prospetto2025, $aliquote->getProspetto('H501', 2027)['prospetto']);
+
+        // la differenziata scelta per il 2025 vale anche per il 2027 (stesso prospetto)
+        $scelta2025 = new AliquotaApplicata($this->dataMapper);
+        $scelta2025->anno = 2025;
+        $scelta2025->aliquotaDifferenziata = $differenziata;
+        $esitoScelta = $aliquote->getAliquota('H501', 2027, FattispecieImu::altriFabbricati, null, $scelta2025);
+        $this->assertSame(0.96, $esitoScelta['aliquota']);
+        $this->assertSame($differenziata, $esitoScelta['differenziata']);
+        $this->assertTrue($esitoScelta['proposta']);
+
+        // nessun prospetto dal 2025: aliquote di base (senza cercare prima del 2025)
+        $aliquoteBase = new AliquoteComune($this->studioPredefinito, $this->dataMapper);
+        $this->testAdapter->accodaSelect(
+            new TestResultSet([]), new TestResultSet([]), // 2026
+            new TestResultSet([]), new TestResultSet([]), // 2025
+            new TestResultSet([]), new TestResultSet([$prospetto2025]) // non deve essere letto
+        );
+        $esitoBase = $aliquoteBase->getAliquota('F205', 2026, FattispecieImu::altriFabbricati, null);
+        $this->assertSame(0.86, $esitoBase['aliquota']);
+        $this->assertStringContainsString('nessun prospetto per il 2026 né dal 2025', $esitoBase['origine']);
+    }
+
     public function testCalcoloImpostaAbPrincipalePertinenzeEAltriFabbricati(): void
     {
         $this->assertTrue(CalcoloImposta::isSoggettoPassivo(TitoloPossesso::proprieta));

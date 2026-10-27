@@ -16,10 +16,14 @@ use SismaFramework\Orm\HelperClasses\DataMapper;
 /**
  * Aliquote di un comune per un anno, nell'ordine: aliquote inserite dallo
  * studio, prospetto pubblicato dal Dipartimento delle Finanze, e in
- * mancanza (art. 1, comma 767, L. 160/2019, testo vigente):
- * - fino al 2024 le aliquote dell'anno precedente (terzo periodo);
- * - dal 2025, primo anno di obbligo del prospetto (comma 757), le aliquote
- *   di base dei commi 748-755 (quarto periodo).
+ * mancanza (art. 1, comma 767, L. 160/2019, testo vigente) le aliquote
+ * vigenti nell'anno precedente (terzo periodo; art. 1, c. 169, L.
+ * 296/2006). Dal 2025, primo anno di obbligo del prospetto (comma 757),
+ * valgono solo le aliquote approvate con il prospetto: finché il comune non
+ * ne pubblica un primo si applicano le aliquote di base dei commi 748-755
+ * (quarto periodo), poi in mancanza del prospetto dell'anno quelle
+ * dell'ultimo pubblicato (Dipartimento delle Finanze, decreto 6 novembre
+ * 2025 e linee guida per il prospetto 2026).
  *
  * Nei comuni nati da fusione che applicano aliquote differenziate negli ex
  * comuni c'è un prospetto per ex comune: vale quello dell'ex comune
@@ -65,15 +69,16 @@ class AliquoteComune
         if ($prospetto !== null) {
             return ['prospetto' => $prospetto, 'origine' => $prospetto->getOrigine()];
         }
-        if ($anno < self::PRIMO_ANNO_PROSPETTO) {
-            for ($precedente = $anno - 1; $precedente >= $anno - self::ANNI_RIPIEGO; $precedente--) {
-                $prospetto = $this->getDellAnno($codiceCatastale, $precedente, $exComune);
-                if ($prospetto !== null) {
-                    return ['prospetto' => $prospetto, 'origine' => 'aliquote ' . $precedente . ' (nessuna delibera per il ' . $anno . ', comma 767)'];
-                }
+        // dal 2025 contano solo i prospetti: non si risale oltre il primo anno di obbligo
+        $primo = $anno < self::PRIMO_ANNO_PROSPETTO ? $anno - self::ANNI_RIPIEGO : self::PRIMO_ANNO_PROSPETTO;
+        for ($precedente = $anno - 1; $precedente >= $primo; $precedente--) {
+            $prospetto = $this->getDellAnno($codiceCatastale, $precedente, $exComune);
+            if ($prospetto !== null) {
+                return ['prospetto' => $prospetto, 'origine' => 'aliquote ' . $precedente . ' (nessuna delibera per il ' . $anno . ', comma 767)'];
             }
         }
-        return ['prospetto' => null, 'origine' => 'aliquote di base di legge (nessun prospetto per il ' . $anno . ', comma 767)'];
+        return ['prospetto' => null, 'origine' => 'aliquote di base di legge (nessun prospetto per il ' . $anno
+            . ($anno > self::PRIMO_ANNO_PROSPETTO ? ' né dal ' . self::PRIMO_ANNO_PROSPETTO : '') . ', comma 767)'];
     }
 
     /**
@@ -187,13 +192,17 @@ class AliquoteComune
 
     /**
      * Aliquota differenziata del prospetto con la stessa fattispecie e
-     * descrizione di quella scelta per un altro anno.
+     * descrizione di quella scelta per un altro anno; se per l'anno vale lo
+     * stesso prospetto (comma 767, nessuna nuova delibera) la stessa.
      */
     private function trovaCorrispondente(?ProspettoAliquote $prospetto, AliquotaApplicata $sceltaAltroAnno): ?AliquotaDifferenziata
     {
         $riferimento = $sceltaAltroAnno->aliquotaDifferenziata;
-        if (($prospetto === null) || ($riferimento === null) || ($riferimento->prospettoAliquote->id === $prospetto->id)) {
+        if (($prospetto === null) || ($riferimento === null)) {
             return null;
+        }
+        if ($riferimento->prospettoAliquote->id === $prospetto->id) {
+            return $riferimento;
         }
         foreach ($this->getDifferenziate($prospetto) as $differenziata) {
             if (($differenziata->fattispecie === $riferimento->fattispecie) && (self::normalizza($differenziata->descrizione) === self::normalizza($riferimento->descrizione))) {

@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.1-alpha] - 2026-10-27 - Cartelle Scrivibili e Aliquote IMU senza Prospetto
+
+Versione di correzione: le cartelle scrivibili vengono create all'avvio del container `php` (errore 500 su host Linux) e in `Imu` le aliquote di un comune senza prospetto per l'anno sono quelle dell'ultimo prospetto pubblicato (art. 1, comma 767, L. 160/2019). Valgono le avvertenze della 0.1.0-alpha: la versione non è indicata per l'uso in produzione su dati reali.
+
+Versioni dei moduli: `Imu` 0.3.2; `Telonio` 0.4.0, `Anagrafica` 0.5.1, `Deleghe` 0.2.1, `Successioni` 0.3.1 e `GestioneStudio` 0.1.1 invariati.
+
+### 🐛 Correzioni
+
+- **errore 500 al salvataggio su host Linux** (es. creazione di un soggetto): le cartelle scrivibili `www/Cache`, `www/Logs` e `www/filesystemMedia`, escluse da Git e dall'archivio di rilascio, non venivano create. PHP-FPM gira come `www-data`, che non può crearle nella cartella del progetto montata dall'host (di proprietà dell'utente), e `docker-entrypoint.sh` ne impostava i permessi solo se già presenti: senza `Cache` il salvataggio delle entità falliva e senza `Logs` l'errore non veniva registrato. Ora l'entrypoint le crea all'avvio del container. Con Docker Desktop su Windows il problema non si presentava, perché le cartelle condivise non applicano questi permessi.
+
+#### `Imu`
+
+- **aliquote di un comune senza prospetto per l'anno** (art. 1, comma 767, L. 160/2019): dal 2025 il calcolo applicava le aliquote di base di legge a ogni anno senza prospetto pubblicato, anche se il comune ne aveva pubblicato uno negli anni precedenti. Le aliquote di base valgono solo finché il comune non pubblica un primo prospetto; dopo, in mancanza del prospetto dell'anno, si applicano quelle dell'ultimo prospetto pubblicato (aliquote vigenti nell'anno precedente, come chiarito dal Dipartimento delle Finanze per il 2026). Il calcolo segnala quando l'anno, o l'acconto, usa il prospetto di un anno precedente, e la differenziata scelta per l'anno di quel prospetto continua a valere. Ricalcolare gli anni dal 2026 dei comuni senza prospetto dell'anno.
+
+### 🔄 Aggiornamento da 0.8.0-alpha
+
+Nessuna modifica al database. Ricostruire l'immagine `php` (`--build`); in alternativa, sulle installazioni esistenti creare le cartelle a mano nella cartella del progetto (`mkdir -p www/Cache www/Logs www/filesystemMedia`) e riavviare il container `php`.
+
 ## [0.8.0-alpha] - 2026-10-26 - Telonio
 
 Ottava versione alpha: il progetto cambia nome da CommSuite a **Telonio** (dal latino *telonium*, il banco dell'esattore delle imposte), perché "CommSuite" è un marchio registrato di terzi nel settore del software; il modulo base `CommSuite` diventa `Telonio`. In `Anagrafica` i codici ISO degli stati esteri vengono da una fonte ufficiale compatibile con la licenza MIT. Nessuna modifica allo schema del database. Valgono le avvertenze della 0.1.0-alpha: la versione non è indicata per l'uso in produzione su dati reali.

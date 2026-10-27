@@ -556,14 +556,14 @@ class CalcoloImposta
         $annua = $this->aliquote->getAliquota($comune, $anno, $rigo->fattispecie, $scelta, $sceltaPrecedente, $rigo->categoria, $rigo->utilizzo, $exComune, $ente, $inagibile);
         $acconto = $this->aliquote->getAliquota($comune, $anno - 1, $rigo->fattispecie, $sceltaPrecedente, $scelta, $rigo->categoria, $rigo->utilizzo, $exComune, $ente, $inagibile);
         $prospetto = $this->aliquote->getProspetto($comune, $anno, $exComune);
-        if ($prospetto['prospetto'] === null) {
-            $this->risultato->avviso($this->risultato->comuni[$comune] . ' ' . $anno . ': ' . $prospetto['origine'] . '; importa il prospetto o inserisci le aliquote del comune.');
+        if (($prospetto['prospetto'] === null) || ($prospetto['prospetto']->anno !== $anno)) {
+            $this->risultato->avviso($this->risultato->comuni[$comune] . ' ' . $anno . ': ' . $prospetto['origine'] . '; se il comune ha pubblicato il prospetto ' . $anno . ' importalo, o inserisci le aliquote del comune.');
         } elseif ($prospetto['prospetto']->isPubblicato() && ($prospetto['prospetto']->dataPubblicazione !== null) && ($prospetto['prospetto']->dataPubblicazione->format('Y-m-d') > $anno . '-10-28')) {
             $this->risultato->avviso($this->risultato->comuni[$comune] . ' ' . $anno . ': prospetto pubblicato il ' . $prospetto['prospetto']->dataPubblicazione->format('d/m/Y') . ', dopo il 28 ottobre: verificare se è applicabile (comma 767).');
         }
         // l'acconto si calcola con le aliquote dell'anno precedente (comma 762): segnalarne il prospetto mancante (il 2020 ha il suo avviso)
         $prospettoPrecedente = $this->aliquote->getProspetto($comune, $anno - 1, $exComune);
-        if (($anno > 2020) && ($prospettoPrecedente['prospetto'] === null)) {
+        if (($anno > 2020) && (($prospettoPrecedente['prospetto'] === null) || ($prospettoPrecedente['prospetto']->anno !== $anno - 1))) {
             $this->risultato->avviso($this->risultato->comuni[$comune] . ' ' . $anno . ': acconto con le aliquote del ' . ($anno - 1) . ', ' . $prospettoPrecedente['origine']
                     . '; importa il prospetto ' . ($anno - 1) . ' o inserisci le aliquote del comune.');
         }

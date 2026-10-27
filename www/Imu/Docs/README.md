@@ -219,10 +219,19 @@ Dal 2025 le aliquote sono quelle del prospetto approvato con il modello
 ministeriale (D.M. 7 luglio 2023, allegato A, e successivi) e pubblicato
 dal Dipartimento delle Finanze entro il 28 ottobre (commi 757 e 767). Ordine
 di applicazione (`Services\AliquoteComune`): aliquote dello studio,
-prospetto pubblicato, poi in mancanza (comma 767, testo vigente verificato
-su Normattiva) le aliquote di base di legge dal 2025, primo anno di obbligo
-del prospetto, e fino al 2024 quelle dell'anno precedente. Un prospetto
-pubblicato dopo il 28 ottobre è segnalato (non è efficace per l'anno).
+prospetto pubblicato, poi in mancanza le aliquote vigenti nell'anno
+precedente (comma 767, terzo periodo; art. 1, c. 169, L. 296/2006). Dal
+2025, primo anno di obbligo del prospetto, valgono solo le aliquote
+approvate con il prospetto: un comune senza prospetto per l'anno applica
+quelle dell'ultimo prospetto pubblicato dal 2025, e le aliquote di base di
+legge solo finché non ne ha pubblicato un primo (comma 767, quarto periodo;
+Dipartimento delle Finanze, decreto 6 novembre 2025 e linee guida per il
+prospetto 2026). Fino al 2024 si risale alle aliquote degli anni
+precedenti. Quando l'anno usa il prospetto di un anno precedente, o le
+aliquote di base, il calcolo lo segnala (anche per l'acconto, calcolato con
+le aliquote dell'anno precedente); una differenziata scelta per l'anno del
+prospetto continua a valere. Un prospetto pubblicato dopo il 28 ottobre è
+segnalato (non è efficace per l'anno).
 
 ```bash
 # importa i prospetti dell'anno per i comuni degli immobili di tutti gli studi
