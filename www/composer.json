@@ -2,7 +2,7 @@
     "name": "valentinodelapa/telonio",
     "description": "Suite gestionale multi-studio per studi commerciali e tributari su SismaFramework",
     "type": "project",
-    "version": "0.10.0-alpha",
+    "version": "0.10.1-alpha",
     "license": "MIT",
     "authors": [
         {

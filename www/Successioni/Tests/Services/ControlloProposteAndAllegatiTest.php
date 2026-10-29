@@ -96,6 +96,30 @@ class ControlloProposteAndAllegatiTest extends SuiteTestCase
         $this->assertStringContainsString('CCITT Group IV', (string) $esitoTiffErr['errore']);
     }
 
+    public function testVerificaAllegatoTiffMultipaginaAndDanneggiato(): void
+    {
+        $servizio = new VerificaAllegato();
+        $pagina = fn(int $compressione, int $successiva) => pack('v', 2)
+                . pack('vvVV', 258, 3, 1, 1)
+                . pack('vvVV', 259, 3, 1, $compressione)
+                . pack('V', $successiva);
+
+        // Due pagine conformi: IFD a 8 (30 byte) e a 38
+        $this->assertNull($servizio->verifica("II*\0" . pack('V', 8) . $pagina(4, 38) . $pagina(4, 0), 'due.tif')['errore']);
+
+        // Seconda pagina non compressa CCITT Group IV
+        $errore = $servizio->verifica("II*\0" . pack('V', 8) . $pagina(4, 38) . $pagina(1, 0), 'due.tif')['errore'];
+        $this->assertSame('Il TIFF deve avere compressione CCITT Group IV (modalità fax) (pagina 2).', $errore);
+
+        // Pagine che si richiamano a vicenda
+        $this->assertStringContainsString('non è leggibile', (string) $servizio->verifica("II*\0" . pack('V', 8) . $pagina(4, 8), 'ciclo.tif')['errore']);
+
+        // File troncati o con riferimenti fuori dal file
+        foreach (["II*\0", "II*\0" . pack('V', 999), "MM\0*" . pack('N', 8) . pack('n', 3)] as $troncato) {
+            $this->assertSame('Il TIFF non è leggibile (file troncato o danneggiato).', $servizio->verifica($troncato, 'rotto.tif')['errore']);
+        }
+    }
+
     public function testPropostaAttivoAndPropostaVoltureAndCopiaDichiarazione(): void
     {
         $comune = new Comune($this->dataMapper);

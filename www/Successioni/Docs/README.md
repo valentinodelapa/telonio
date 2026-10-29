@@ -313,15 +313,20 @@ rendite, tre passività per modulo; oltre tre beneficiari di un bene la
 devoluzione continua nel rigo successivo).
 
 Prima dello scaricamento il file è **validato sullo schema ufficiale**
-(XSD del modulo in `Application/Assets/xsd`); va poi controllato con il
-software dell'Agenzia, che applica anche i controlli sull'Anagrafe
-tributaria, e trasmesso con Entratel o Fisconline.
+(XSD del modulo in `Application/Assets/xsd`). Si scarica come
+`<codice fiscale del defunto>_SUC13.suc`, il nome e l'estensione del
+software di compilazione dell'Agenzia (il contenuto è l'XML delle
+specifiche): va poi controllato con il modulo di controllo SUC di Desktop
+Telematico (Entratel, Documenti, Controlla), che applica anche i controlli
+sull'Anagrafe tributaria e produce il file `_dcm`, autenticato e trasmesso
+dall'area riservata Entratel o Fisconline.
 
 Allegati: PDF/A-1a o PDF/A-1b (si verifica la dichiarazione di conformità
 nei metadati), TIFF in bianco e nero con compressione CCITT Group IV fino a
-300 DPI, massimo 5 MB per file (`Services\VerificaAllegato`). La piena
-conformità PDF/A si verifica con il servizio di validazione e conversione
-dell'Agenzia.
+300 DPI su tutte le pagine, massimo 5 MB per file
+(`Services\VerificaAllegato`); i file troncati o danneggiati sono
+rifiutati. La piena conformità PDF/A si verifica con il servizio di
+validazione e conversione dell'Agenzia.
 
 ## Volture
 

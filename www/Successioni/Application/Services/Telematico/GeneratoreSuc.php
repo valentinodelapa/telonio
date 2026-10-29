@@ -126,9 +126,15 @@ class GeneratoreSuc
         return $errori;
     }
 
+    /**
+     * Nome del file come lo salva il software di compilazione dell'Agenzia
+     * (codice fiscale del defunto, codice della fornitura, estensione .suc),
+     * da aprire con il modulo di controllo di Desktop Telematico. Il
+     * contenuto resta il documento XML delle specifiche.
+     */
     public static function getNomeFile(DatiDichiarazione $dati): string
     {
-        return 'SUC13_' . $dati->dichiarazione->defunto->codiceFiscale . '_' . $dati->dichiarazione->id . '.xml';
+        return $dati->dichiarazione->defunto->codiceFiscale . '_SUC13.suc';
     }
 
     private function getFornitore(): Soggetto

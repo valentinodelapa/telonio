@@ -9,7 +9,7 @@ use Successioni\Application\Entities\AllegatoSuccessione;
  * - PDF/A-1a o PDF/A-1b: si verifica la dichiarazione di conformità nei
  *   metadati XMP (pdfaid:part = 1, pdfaid:conformance = A o B);
  * - TIFF: bianco e nero (1 bit per campione), compressione CCITT Group IV
- *   (codice 4), risoluzione non superiore a 300 DPI;
+ *   (codice 4), risoluzione non superiore a 300 DPI, su tutte le pagine;
  * - dimensione massima 5 MB per file.
  *
  * È un controllo preliminare: la conformità piena al PDF/A si verifica con
@@ -18,6 +18,8 @@ use Successioni\Application\Entities\AllegatoSuccessione;
  */
 class VerificaAllegato
 {
+
+    public const MASSIMO_PAGINE_TIFF = 1000;
 
     /**
      * @return array{tipoMime: ?string, errore: ?string}
@@ -48,25 +50,61 @@ class VerificaAllegato
         return null;
     }
 
+    /**
+     * Controlla tutte le pagine (directory IFD) del TIFF; un file troncato o
+     * con riferimenti fuori dal file è rifiutato come non leggibile.
+     */
     private function verificaTiff(string $contenuto): ?string
     {
         $littleEndian = $contenuto[0] === 'I';
-        $leggi16 = fn(int $posizione) => unpack($littleEndian ? 'v' : 'n', substr($contenuto, $posizione, 2))[1];
-        $leggi32 = fn(int $posizione) => unpack($littleEndian ? 'V' : 'N', substr($contenuto, $posizione, 4))[1];
-        $directory = $leggi32(4);
-        $voci = $leggi16($directory);
-        $tag = [];
-        for ($indice = 0; $indice < $voci; $indice++) {
-            $posizione = $directory + 2 + $indice * 12;
-            $codice = $leggi16($posizione);
-            $tipo = $leggi16($posizione + 2);
-            $valore = $tipo === 3 ? $leggi16($posizione + 8) : $leggi32($posizione + 8);
-            if (in_array($codice, [282, 283], true)) {
-                $offset = $leggi32($posizione + 8);
-                $valore = $leggi32($offset) / max(1, $leggi32($offset + 4));
+        $lunghezza = strlen($contenuto);
+        $leggi = function (int $posizione, int $byte) use ($contenuto, $lunghezza, $littleEndian): int {
+            if (($posizione < 0) || ($posizione + $byte > $lunghezza)) {
+                throw new \OutOfBoundsException();
             }
-            $tag[$codice] = $valore;
+            $formato = $byte === 2 ? ($littleEndian ? 'v' : 'n') : ($littleEndian ? 'V' : 'N');
+            return unpack($formato, substr($contenuto, $posizione, $byte))[1];
+        };
+        try {
+            $directory = $leggi(4, 4);
+            $visitate = [];
+            $pagina = 0;
+            while ($directory !== 0) {
+                if (isset($visitate[$directory]) || (count($visitate) >= self::MASSIMO_PAGINE_TIFF)) {
+                    return 'Il TIFF non è leggibile (struttura delle pagine non valida).';
+                }
+                $visitate[$directory] = true;
+                $pagina++;
+                $tag = [];
+                $voci = $leggi($directory, 2);
+                for ($indice = 0; $indice < $voci; $indice++) {
+                    $posizione = $directory + 2 + $indice * 12;
+                    $codice = $leggi($posizione, 2);
+                    $tipo = $leggi($posizione + 2, 2);
+                    $valore = $tipo === 3 ? $leggi($posizione + 8, 2) : $leggi($posizione + 8, 4);
+                    if (in_array($codice, [282, 283], true)) {
+                        $offset = $leggi($posizione + 8, 4);
+                        $valore = $leggi($offset, 4) / max(1, $leggi($offset + 4, 4));
+                    }
+                    $tag[$codice] = $valore;
+                }
+                $errore = $this->verificaPaginaTiff($tag);
+                if ($errore !== null) {
+                    return $pagina > 1 ? rtrim($errore, '.') . ' (pagina ' . $pagina . ').' : $errore;
+                }
+                $directory = $leggi($directory + 2 + $voci * 12, 4);
+            }
+        } catch (\OutOfBoundsException) {
+            return 'Il TIFF non è leggibile (file troncato o danneggiato).';
         }
+        return null;
+    }
+
+    /**
+     * @param array<int, int|float> $tag
+     */
+    private function verificaPaginaTiff(array $tag): ?string
+    {
         if (($tag[259] ?? null) !== 4) {
             return 'Il TIFF deve avere compressione CCITT Group IV (modalità fax).';
         }

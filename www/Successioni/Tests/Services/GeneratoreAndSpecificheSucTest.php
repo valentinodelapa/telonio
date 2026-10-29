@@ -234,7 +234,7 @@ class GeneratoreAndSpecificheSucTest extends SuiteTestCase
         $erroriXsd = GeneratoreSuc::valida($xml);
         $this->assertEmpty($erroriXsd, 'Errori XSD: ' . implode('; ', $erroriXsd));
 
-        $this->assertSame('SUC13_RSSMRA50A01H501U_1.xml', GeneratoreSuc::getNomeFile($dati));
+        $this->assertSame('RSSMRA50A01H501U_SUC13.suc', GeneratoreSuc::getNomeFile($dati));
         $this->assertSame('ROSSI MARIO', GeneratoreSuc::testo('  Rossi   Mario  ', 50));
     }
 

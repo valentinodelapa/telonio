@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.10.1-alpha] - 2026-10-29 - File Telematico delle Successioni e Allegati TIFF
+
+Versione di correzione: in `Successioni` il file telematico si scarica con il nome e l'estensione `.suc` del software dell'Agenzia e il controllo degli allegati TIFF riguarda tutte le pagine e non si interrompe sui file danneggiati. Valgono le avvertenze della 0.1.0-alpha: la versione non è indicata per l'uso in produzione su dati reali.
+
+Versioni dei moduli: `Successioni` 0.3.2; `Telonio` 0.5.0, `Anagrafica` 0.5.1, `Deleghe` 0.3.0, `Imu` 0.3.2 e `GestioneStudio` 0.1.1 invariati.
+
+### 🐛 Correzioni
+
+#### `Successioni`
+
+- **nome del file telematico**: il file si scarica come `<codice fiscale del defunto>_SUC13.suc`, il nome e l'estensione con cui lo salva il software di compilazione dell'Agenzia e che si apre con il modulo di controllo di Desktop Telematico (prima `SUC13_<codice fiscale>_<id>.xml`); il contenuto, il documento XML delle specifiche SUC13, non cambia.
+- **allegati TIFF di più pagine**: compressione CCITT Group IV, bianco e nero e risoluzione fino a 300 DPI si controllano su tutte le pagine, non solo sulla prima.
+- **allegati TIFF danneggiati o troncati**: il caricamento si fermava con un errore dell'applicazione; ora sono rifiutati con il messaggio "Il TIFF non è leggibile".
+
+### 🔄 Aggiornamento da 0.10.0-alpha
+
+Nessuna modifica al database: `sh aggiorna.sh`.
+
 ## [0.10.0-alpha] - 2026-10-29 - Aggiornamento Automatico
 
 Decima versione alpha: l'installazione si aggiorna con un comando (`sh aggiorna.sh`), che scarica e verifica la release del canale scelto, esegue il backup, sostituisce il codice, aggiorna il database e, se qualcosa non va, torna alla versione precedente. Il database si porta alla versione del codice con `sisma aggiorna-database`, che sostituisce gli script SQL da eseguire a mano, anche nella prima installazione. Gli amministratori vedono in scrivania l'avviso delle nuove versioni. Valgono le avvertenze della 0.1.0-alpha: la versione non è indicata per l'uso in produzione su dati reali.
