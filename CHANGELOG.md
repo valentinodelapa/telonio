@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.11.0-alpha] - 2026-10-29 - Versioni nell'Interfaccia e Aggiornamento più Robusto
+
+Undicesima versione alpha: la versione installata della suite e dei moduli è visibile nell'interfaccia; lo script di aggiornamento segnala i permessi insufficienti, riconosce i blocchi lasciati dagli aggiornamenti interrotti e non si ferma se la sessione si chiude. Valgono le avvertenze della 0.1.0-alpha: la versione non è indicata per l'uso in produzione su dati reali.
+
+Versioni dei moduli: `Telonio` 0.6.0; `Anagrafica` 0.5.1, `Deleghe` 0.3.0, `Imu` 0.3.2, `Successioni` 0.3.2 e `GestioneStudio` 0.1.1 invariati.
+
+### ✨ Nuove Funzionalità
+
+#### `Telonio`
+
+- **versione installata nell'interfaccia**: nel piè di pagina di ogni pagina la versione della suite (`www/composer.json`) e, nelle pagine di un applicativo, quella del suo modulo (`module.json`); in scrivania ogni applicativo disponibile riporta la propria versione (`HelperClasses\Versioni`, `ModuloSuite::getVersione()`).
+
+### 🐛 Correzioni
+
+#### Aggiornamento dell'installazione (`aggiorna.sh`)
+
+- **permessi insufficienti segnalati come aggiornamento in corso**: senza i permessi di scrittura sulla cartella dell'installazione (es. `/opt/telonio` di root lanciato senza `sudo`) la creazione del blocco falliva e lo script rispondeva "un altro aggiornamento è in corso". Ora, prima di modificare qualcosa, verifica i permessi sulle cartelle da spostare e indica di usare `sudo`; "aggiornamento in corso" solo se il blocco esiste davvero, altrimenti l'errore effettivo. Il solo controllo (`--controlla`) non richiede più di poter scrivere nella cartella;
+- **blocco rimasto dopo un'interruzione**: il blocco `.aggiornamenti/in-corso` contiene il numero del processo; quello di un processo non più attivo viene rimosso da solo. Se l'interruzione è avvenuta durante la sostituzione del codice, lo script si ferma e indica dove si trova il codice della versione precedente, da controllare prima di eliminare il blocco;
+- **chiusura della sessione durante l'aggiornamento**: la chiusura del terminale (es. disconnessione SSH) terminava lo script anche a metà della sostituzione del codice, senza il ritorno alla versione precedente. Ora la chiusura è ignorata, un terminale non più disponibile non interrompe lo script e messaggi, output di Docker e di `sisma aggiorna-database` sono anche in `.aggiornamenti/aggiornamento.log`.
+
+### 🔄 Aggiornamento da 0.10.1-alpha
+
+Nessuna modifica al database: `sh aggiorna.sh` (con `sudo` se la cartella dell'installazione appartiene a root). Lo script in uso è quello della versione installata: le correzioni valgono dal prossimo aggiornamento.
+
 ## [0.10.1-alpha] - 2026-10-29 - File Telematico delle Successioni e Allegati TIFF
 
 Versione di correzione: in `Successioni` il file telematico si scarica con il nome e l'estensione `.suc` del software dell'Agenzia e il controllo degli allegati TIFF riguarda tutte le pagine e non si interrompe sui file danneggiati. Valgono le avvertenze della 0.1.0-alpha: la versione non è indicata per l'uso in produzione su dati reali.

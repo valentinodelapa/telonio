@@ -2,6 +2,8 @@
 
 namespace Telonio\Application\Enumerations;
 
+use Telonio\Application\HelperClasses\Versioni;
+
 /**
  * Applicativi della suite. Ciascuno corrisponde a un modulo SismaFramework
  * registrato in MODULE_FOLDERS; quelli non ancora disponibili compaiono
@@ -80,5 +82,13 @@ enum ModuloSuite: string
     public function isDisponibile(): bool
     {
         return in_array($this->value, \Config\MODULE_FOLDERS, true);
+    }
+
+    /**
+     * Versione installata del modulo (module.json); null se non disponibile.
+     */
+    public function getVersione(): ?string
+    {
+        return $this->isDisponibile() ? Versioni::getModulo($this->value) : null;
     }
 }

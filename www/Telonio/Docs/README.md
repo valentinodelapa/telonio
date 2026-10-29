@@ -133,6 +133,10 @@ della versione installata. `sisma aggiornamenti` interroga sempre GitHub
 amministratori, usa la cache `Cache/aggiornamenti.json` (12 ore, un'ora
 dopo un errore di rete, timeout di 5 secondi) e si disattiva con
 `CONTROLLO_AGGIORNAMENTI=false` o con una configurazione non valida.
+Le versioni installate (suite da `www/composer.json`, moduli da
+`module.json`, lette una volta per richiesta da `HelperClasses\Versioni`;
+`ModuloSuite::getVersione()`) sono nel piè di pagina comune e nei riquadri
+della scrivania.
 L'installazione dell'aggiornamento è a cura di `aggiorna.sh` nella radice
 del progetto (vedi il README principale, "Aggiornamento").
 

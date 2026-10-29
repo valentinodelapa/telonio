@@ -19,9 +19,17 @@
 # (sisma aggiorna-database) e controlla che l'applicazione risponda. Se un
 # passo fallisce rimette il codice precedente e ripristina il dump.
 #
+# Per aggiornare servono i permessi di scrittura sulla cartella
+# dell'installazione (se appartiene a root: sudo sh aggiorna.sh). La
+# chiusura della sessione (es. SSH) non interrompe l'aggiornamento; i
+# messaggi e l'output di Docker sono anche in .aggiornamenti/aggiornamento.log.
+#
 # Richiede docker compose, curl, unzip e sha256sum (Debian: apt install curl unzip).
 
 set -eu
+
+# La chiusura del terminale non deve interrompere l'aggiornamento a metà.
+trap '' HUP
 
 # Durante l'aggiornamento questo file viene spostato e sostituito: lo script
 # prosegue da una copia temporanea.
@@ -37,10 +45,15 @@ trap 'rm -f "$0"' EXIT
 cd "$CARTELLA"
 
 LAVORO=.aggiornamenti
+BLOCCO="$LAVORO/in-corso"
+REGISTRO=""
 SORGENTE_RELEASE=github.com/valentinodelapa/telonio
 
-messaggio() { printf '%s\n' "$*"; }
-errore() { printf 'Errore: %s\n' "$*" >&2; exit 1; }
+# I messaggi vanno anche nel registro (attivo dopo l'acquisizione del blocco);
+# un terminale non più disponibile non deve fermare lo script.
+registra() { [ -z "$REGISTRO" ] || printf '%s %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*" >> "$REGISTRO" 2>/dev/null || true; }
+messaggio() { registra "$*"; printf '%s\n' "$*" 2>/dev/null || true; }
+errore() { registra "Errore: $*"; printf 'Errore: %s\n' "$*" >&2 || true; exit 1; }
 
 CONTROLLA=0; CONFERMA=1; CANALE=""; ARCHIVIO_LOCALE=""; BACKUP=1
 for opzione in "$@"; do
@@ -50,7 +63,7 @@ for opzione in "$@"; do
         --canale=*) CANALE=${opzione#--canale=} ;;
         --archivio=*) ARCHIVIO_LOCALE=${opzione#--archivio=} ;;
         --senza-backup) BACKUP=0 ;;
-        --help|-h) sed -n '2,24p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+        --help|-h) sed -n '2,28p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
         *) errore "opzione non riconosciuta: $opzione (sh aggiorna.sh --help)" ;;
     esac
 done
@@ -84,7 +97,6 @@ servizio_attivo() { dc ps --status running --services 2>/dev/null | grep -qx "$1
 sisma() { dc exec -T php sh -c "cd /var/www/html && sisma $*"; }
 
 INSTALLATA=$(versione_di www/composer.json)
-mkdir -p "$LAVORO"
 
 # --- Versione da installare ---
 if [ -n "$ARCHIVIO_LOCALE" ]; then
@@ -115,14 +127,44 @@ else
 fi
 [ "$CONTROLLA" -eq 1 ] && exit 0
 
+# --- Permessi: il codice da spostare deve essere scrivibile ---
+for percorso in . www "$LAVORO" ./*/ www/*/; do
+    [ -e "$percorso" ] || continue
+    case "$(basename "$percorso")" in backups|rclone|filesystemMedia|Logs) continue ;; esac
+    [ -w "$percorso" ] || errore "permessi insufficienti su $percorso: lanciare lo script con sudo (o come proprietario della cartella dell'installazione)"
+done
+
 if [ "$CONFERMA" -eq 1 ]; then
     printf 'Aggiornare a %s? Le note di rilascio indicano eventuali passi manuali. [s/N] ' "$VERSIONE"
     read -r risposta < /dev/tty || risposta=""
     case "$risposta" in s|S|si|SI|sì|Si) ;; *) messaggio "Aggiornamento annullato."; exit 0 ;; esac
 fi
 
-mkdir "$LAVORO/in-corso" 2>/dev/null || errore "un altro aggiornamento è in corso (se non è così, eliminare $LAVORO/in-corso)"
-trap 'rmdir "$CARTELLA/$LAVORO/in-corso" 2>/dev/null; rm -f "$0"' EXIT
+# --- Blocco: un solo aggiornamento alla volta ---
+# Il blocco contiene il numero del processo; quello di un processo non più
+# attivo è rimasto da un aggiornamento interrotto e si rimuove, a meno che
+# l'interruzione sia avvenuta durante la sostituzione del codice.
+mkdir -p "$LAVORO"
+BLOCCO_RIMOSSO=""
+if ! mkdir "$BLOCCO" 2>/dev/null; then
+    [ -d "$BLOCCO" ] || errore "impossibile creare $BLOCCO: $(mkdir "$BLOCCO" 2>&1 || true)"
+    PROCESSO=$(cat "$BLOCCO/processo" 2>/dev/null || true)
+    if [ -n "$PROCESSO" ] && kill -0 "$PROCESSO" 2>/dev/null; then
+        errore "un altro aggiornamento è in corso (processo $PROCESSO)"
+    fi
+    if [ -f "$BLOCCO/sostituzione" ]; then
+        errore "un aggiornamento si è interrotto durante la sostituzione del codice: il codice della versione precedente è in $(cat "$BLOCCO/sostituzione"). Controllare l'installazione ($LAVORO/aggiornamento.log), poi eliminare $BLOCCO e riprovare"
+    fi
+    BLOCCO_RIMOSSO="processo $PROCESSO non più attivo"
+    rm -rf "$BLOCCO"
+    mkdir "$BLOCCO"
+fi
+printf '%s\n' "$$" > "$BLOCCO/processo"
+trap 'rm -rf "$CARTELLA/$BLOCCO"; rm -f "$0"' EXIT
+REGISTRO="$LAVORO/aggiornamento.log"
+registra "--- Aggiornamento da $INSTALLATA a $VERSIONE ---"
+messaggio "Registro dell'aggiornamento: $REGISTRO"
+[ -z "$BLOCCO_RIMOSSO" ] || messaggio "Rimosso il blocco di un aggiornamento interrotto prima della sostituzione del codice ($BLOCCO_RIMOSSO)."
 
 # --- Download e verifica ---
 if [ -n "$ARCHIVIO_LOCALE" ]; then
@@ -160,7 +202,7 @@ if [ "$BACKUP" -eq 1 ]; then
     mkdir -p backups
     DUMP="backups/$(leggi_env DATABASE_NAME)_$(date +%Y%m%d_%H%M%S)_prima-di-$VERSIONE.sql.gz"
     messaggio "Backup del database in $DUMP..."
-    dc exec -T db sh -c 'mariadb-dump -uroot -p"$MARIADB_ROOT_PASSWORD" --single-transaction --routines --events "$MARIADB_DATABASE"' | gzip > "$DUMP"
+    dc exec -T db sh -c 'mariadb-dump -uroot -p"$MARIADB_ROOT_PASSWORD" --single-transaction --routines --events "$MARIADB_DATABASE"' 2>> "$REGISTRO" | gzip > "$DUMP"
     gzip -cd "$DUMP" | tail -n 1 | grep -q 'Dump completed' || { rm -f "$DUMP"; errore "backup del database non riuscito"; }
 fi
 
@@ -196,7 +238,7 @@ ripristina() {
     set +e
     messaggio ""
     messaggio "Aggiornamento non riuscito: ripristino della versione $INSTALLATA..."
-    dc stop php nginx >/dev/null 2>&1 || true
+    dc stop php nginx >> "$REGISTRO" 2>&1
     if [ "$CODICE_SOSTITUITO" -eq 1 ]; then
         sposta_codice . "$LAVORO/non-riuscita-$VERSIONE-$(date +%Y%m%d%H%M%S)"
         sposta_codice "$PRECEDENTE" .
@@ -204,18 +246,19 @@ ripristina() {
     fi
     if [ -n "$DUMP" ] && servizio_attivo db; then
         messaggio "Ripristino del database da $DUMP..."
-        dc exec -T db sh -c 'mariadb -uroot -p"$MARIADB_ROOT_PASSWORD" -e "DROP DATABASE IF EXISTS \`$MARIADB_DATABASE\`; CREATE DATABASE \`$MARIADB_DATABASE\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"'
-        gzip -cd "$DUMP" | dc exec -T db sh -c 'mariadb -uroot -p"$MARIADB_ROOT_PASSWORD" "$MARIADB_DATABASE"'
+        dc exec -T db sh -c 'mariadb -uroot -p"$MARIADB_ROOT_PASSWORD" -e "DROP DATABASE IF EXISTS \`$MARIADB_DATABASE\`; CREATE DATABASE \`$MARIADB_DATABASE\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"' >> "$REGISTRO" 2>&1
+        gzip -cd "$DUMP" | dc exec -T db sh -c 'mariadb -uroot -p"$MARIADB_ROOT_PASSWORD" "$MARIADB_DATABASE"' >> "$REGISTRO" 2>&1
     fi
     rm -f www/Cache/referenceCache.json
-    dc up -d --build --remove-orphans
-    messaggio "Ripristinata la versione $INSTALLATA. Il codice della versione non riuscita è in $LAVORO/."
+    dc up -d --build --remove-orphans >> "$REGISTRO" 2>&1
+    messaggio "Ripristinata la versione $INSTALLATA. Il codice della versione non riuscita è in $LAVORO/, i dettagli in $REGISTRO."
     exit 1
 }
 
 messaggio "Arresto dell'applicazione..."
-dc stop php nginx
+dc stop php nginx >> "$REGISTRO" 2>&1
 trap 'ripristina' INT TERM
+printf '%s\n' "$PRECEDENTE" > "$BLOCCO/sostituzione"
 mkdir -p "$PRECEDENTE"
 sposta_codice . "$PRECEDENTE"
 CODICE_SOSTITUITO=1
@@ -223,11 +266,16 @@ sposta_codice "$NUOVA" . || ripristina
 rm -rf "$NUOVA"
 mkdir -p www/Cache www/Logs www/filesystemMedia
 
-messaggio "Avvio della versione $VERSIONE..."
-dc up -d --build --remove-orphans || ripristina
+messaggio "Avvio della versione $VERSIONE (ricostruzione delle immagini)..."
+dc up -d --build --remove-orphans >> "$REGISTRO" 2>&1 || ripristina
 
 messaggio "Aggiornamento del database..."
-sisma aggiorna-database || ripristina
+USCITA=$(mktemp)
+if sisma aggiorna-database > "$USCITA" 2>&1; then ESITO=0; else ESITO=1; fi
+cat "$USCITA" >> "$REGISTRO" 2>/dev/null || true
+cat "$USCITA" 2>/dev/null || true
+rm -f "$USCITA"
+[ "$ESITO" -eq 0 ] || ripristina
 
 # --- Verifica ---
 INDIRIZZO=$(leggi_env HTTP_BIND); INDIRIZZO=${INDIRIZZO:-127.0.0.1}

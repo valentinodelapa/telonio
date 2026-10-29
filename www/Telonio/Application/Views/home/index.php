@@ -35,6 +35,8 @@ require Layout::percorso('header');
                             <?= Html::e($modulo->getLabel()) ?>
                             <?php if ($modulo->isDisponibile() === false): ?>
                                 <span class="badge text-bg-secondary align-middle ms-1 fs-6 fw-normal"><?= Html::e($inArrivo) ?></span>
+                            <?php elseif ($modulo->getVersione() !== null): ?>
+                                <span class="small fw-normal text-body-secondary ms-1"><?= Html::e($modulo->getVersione()) ?></span>
                             <?php endif; ?>
                         </h2>
                         <p class="card-text small text-body-secondary mb-2"><?= Html::e($modulo->getDescrizione()) ?></p>

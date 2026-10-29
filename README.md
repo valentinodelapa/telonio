@@ -232,7 +232,7 @@ Il file arriva già decifrato in `./backups` e si importa come sopra. Su una mac
 
 ### Aggiornamento
 
-Dalla cartella dell'installazione (servono `curl`, `unzip` e `sha256sum`: su Debian `apt install curl unzip`):
+Dalla cartella dell'installazione (servono `curl`, `unzip` e `sha256sum`: su Debian `apt install curl unzip`). Per aggiornare serve poter scrivere nella cartella: se appartiene a root, `sudo sh aggiorna.sh`; il solo controllo (`--controlla`) non scrive nulla:
 
 ```bash
 sh aggiorna.sh --controlla   # c'è una versione più recente?
@@ -249,7 +249,9 @@ Lo script cerca su GitHub l'ultima release del canale (`CANALE_AGGIORNAMENTI` in
 
 Se un passo fallisce rimette il codice precedente e ripristina il database dal dump; la versione non riuscita resta in `.aggiornamenti/` per l'analisi. Restano le due versioni precedenti e gli ultimi due archivi scaricati. Opzioni: `--si` (senza conferma), `--canale=` (canale diverso), `--archivio=FILE` (archivio già scaricato), `--senza-backup` (database esterno: backup a cura propria). I file di Compose sono quelli di `COMPOSE_FILE` e `COMPOSE_PROFILES` in `.env` o, se assenti, produzione con database interno e backup.
 
-Gli amministratori vedono in scrivania l'avviso delle nuove versioni del canale (GitHub interrogato al massimo ogni 12 ore; `CONTROLLO_AGGIORNAMENTI=false` lo disattiva). Leggere sempre le note di rilascio: indicano gli eventuali passi manuali. Le installazioni da `git clone` si aggiornano con `git pull` su un tag, `docker compose ... up -d --build` e `sisma aggiorna-database`. L'immagine di MariaDB è fissata a una versione (`docker-compose.yml`): passare alla successiva a mano, dopo un backup (MariaDB non supporta il ritorno a una versione precedente).
+I messaggi e l'output di Docker sono anche in `.aggiornamenti/aggiornamento.log`; la chiusura della sessione (es. SSH) non interrompe l'aggiornamento. Un solo aggiornamento alla volta: il blocco `.aggiornamenti/in-corso` contiene il numero del processo; quello lasciato da un aggiornamento interrotto prima della sostituzione del codice viene rimosso da solo, mentre se l'interruzione è avvenuta durante la sostituzione lo script si ferma e indica dove si trova il codice precedente, da controllare prima di eliminare il blocco.
+
+La versione installata della suite è nel piè di pagina di ogni pagina, con quella del modulo nelle sue pagine; in scrivania ogni applicativo riporta la propria. Gli amministratori vedono in scrivania l'avviso delle nuove versioni del canale (GitHub interrogato al massimo ogni 12 ore; `CONTROLLO_AGGIORNAMENTI=false` lo disattiva). Leggere sempre le note di rilascio: indicano gli eventuali passi manuali. Le installazioni da `git clone` si aggiornano con `git pull` su un tag, `docker compose ... up -d --build` e `sisma aggiorna-database`. L'immagine di MariaDB è fissata a una versione (`docker-compose.yml`): passare alla successiva a mano, dopo un backup (MariaDB non supporta il ritorno a una versione precedente).
 
 ## Configurazione SMTP e limiti PHP
 
