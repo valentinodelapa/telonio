@@ -5,10 +5,12 @@ namespace Deleghe\Application\Controllers;
 use Deleghe\Application\BaseClasses\DelegheController;
 use Deleghe\Application\Entities\Delega;
 use Deleghe\Application\Entities\SanzioneCivile;
+use Deleghe\Application\Entities\Versamento;
 use Deleghe\Application\Enumerations\RegimeSanzioneCivile;
 use Deleghe\Application\Enumerations\SezioneF24;
 use Deleghe\Application\Exceptions\DelegaNonModificabileException;
 use Deleghe\Application\Forms\SanzioneCivileForm;
+use Deleghe\Application\Services\GenerazioneDeleghe;
 use Deleghe\Application\Services\SanzioniCiviliService;
 use SismaFramework\Core\HttpClasses\Request;
 use SismaFramework\Core\HttpClasses\Response;
@@ -22,7 +24,11 @@ class SanzioneCivileController extends DelegheController
 
     private const SEZIONI = [SezioneF24::inps, SezioneF24::inail];
 
-    public function create(Request $request, Delega $delega, SezioneF24 $sezione = SezioneF24::inps): Response
+    /**
+     * Con $versamento i contributi sono un versamento scaduto dell'archivio
+     * (es. una rata INPS non pagata), che passa nella delega con il calcolo.
+     */
+    public function create(Request $request, Delega $delega, SezioneF24 $sezione = SezioneF24::inps, ?Versamento $versamento = null): Response
     {
         $this->autorizza($delega);
         if (($bloccata = $this->verificaModificabile($delega)) !== null) {
@@ -35,7 +41,35 @@ class SanzioneCivileController extends DelegheController
         $sanzioneCivile = new SanzioneCivile($this->dataMapper);
         $sanzioneCivile->delega = $delega;
         $sanzioneCivile->sezione = $sezione;
+        if (($versamento !== null) && $versamento->isDaVersare() && ($versamento->soggetto->id === $delega->soggetto->id) && ($versamento->sezione === $sezione)) {
+            $sanzioneCivile->versamentoTardivo = $versamento;
+            $sanzioneCivile->riferimento = mb_substr($versamento->descrizione ?? ($versamento->getCodice() . ' ' . ($versamento->periodoDa ?? '')), 0, 100);
+            $sanzioneCivile->importoContributi = $versamento->importoDebito;
+            $sanzioneCivile->scadenzaOriginale = $versamento->scadenza;
+        }
         return $this->gestisci($request, $sanzioneCivile, 'Sanzioni civili: ' . $sezione->getLabel());
+    }
+
+    /**
+     * Contributi scaduti dell'archivio (INPS o INAIL) versati in ritardo: con
+     * la data di versamento scelta apre la delega in bozza di quella data
+     * (creata se manca) e il calcolo delle sanzioni civili sui contributi.
+     */
+    public function daVersamento(Request $request, Versamento $versamento): Response
+    {
+        $this->autorizzaSoggetto($versamento->soggetto);
+        $this->verificaCsrf($request);
+        $data = self::leggiData((string) ($request->input['scadenza'] ?? ''));
+        if (($versamento->isDaVersare() === false) || (in_array($versamento->sezione, self::SEZIONI, true) === false) || ($versamento->importoDebito <= 0)) {
+            $this->aggiungiMessaggio('Il versamento tardivo con le sanzioni civili riguarda i contributi INPS e i premi INAIL da versare.', 'warning');
+            return $this->vaiAlContribuente($versamento->soggetto);
+        }
+        if (($data === null) || ($data->format('Y-m-d') <= $versamento->scadenza->format('Y-m-d'))) {
+            $this->aggiungiMessaggio('Indicare una data di versamento successiva alla scadenza originale.', 'danger');
+            return $this->vaiAlContribuente($versamento->soggetto);
+        }
+        $delega = (new GenerazioneDeleghe($this->dataMapper))->trovaOCreaBozza($versamento, $data);
+        return $this->router->redirect('sanzione-civile/create/delega/' . $delega->id . '/sezione/' . $versamento->sezione->value . '/versamento/' . $versamento->id);
     }
 
     public function update(Request $request, SanzioneCivile $sanzioneCivile): Response

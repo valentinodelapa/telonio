@@ -4,6 +4,7 @@ namespace Deleghe\Application\Services;
 
 use Deleghe\Application\Entities\Versamento;
 use Deleghe\Application\Entities\SanzioneCivile;
+use Deleghe\Application\Models\VersamentoModel;
 use SismaFramework\Orm\HelperClasses\DataMapper;
 
 /**
@@ -45,6 +46,7 @@ class SanzioniCiviliService
             $righe[] = $riga;
         }
         (new ArchivioVersamenti($this->dataMapper))->registra($delega->soggetto, SanzioneCivile::ORIGINE, $sanzioneCivile->getRiferimentoOrigine(), $righe, $delega);
+        $this->spostaVersamentoTardivo($sanzioneCivile, true);
         $this->dataMapper->commitTransaction($primaTransazione);
     }
 
@@ -52,8 +54,34 @@ class SanzioniCiviliService
     {
         $delega = $sanzioneCivile->delega;
         $primaTransazione = $this->dataMapper->startTransaction();
+        $this->spostaVersamentoTardivo($sanzioneCivile, false);
         (new ArchivioVersamenti($this->dataMapper))->registra($delega->soggetto, SanzioneCivile::ORIGINE, $sanzioneCivile->getRiferimentoOrigine(), [], $delega);
         $this->dataMapper->delete($sanzioneCivile);
         $this->dataMapper->commitTransaction($primaTransazione);
+    }
+
+    /**
+     * Contributi scaduti dell'archivio pagati in ritardo: il versamento (e,
+     * se è una rata di un piano, il rigo degli interessi della rata) passa
+     * nella delega delle sanzioni civili e torna alla scadenza originale se
+     * il calcolo viene eliminato.
+     */
+    private function spostaVersamentoTardivo(SanzioneCivile $sanzioneCivile, bool $nellaDelega): void
+    {
+        $versamento = $sanzioneCivile->versamentoTardivo;
+        $delega = $sanzioneCivile->delega;
+        if (($versamento === null) || (($nellaDelega ? null : $delega->id) !== $versamento->delega?->id)) {
+            return;
+        }
+        $versamentoModel = new VersamentoModel($this->dataMapper);
+        $daSpostare = array_merge([$versamento], (new RateazioneService($this->dataMapper))->getInteressiRata($versamento, $nellaDelega ? null : $delega));
+        foreach ($daSpostare as $rigo) {
+            $rigo->delega = $nellaDelega ? $delega : null;
+            $rigo->scadenza = $nellaDelega ? $delega->scadenza : $sanzioneCivile->scadenzaOriginale;
+            if ($nellaDelega) {
+                $rigo->ordine = $versamentoModel->getProssimoOrdine($delega, $rigo->sezione);
+            }
+            $this->dataMapper->save($rigo);
+        }
     }
 }

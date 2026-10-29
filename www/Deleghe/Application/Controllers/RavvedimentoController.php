@@ -2,7 +2,6 @@
 
 namespace Deleghe\Application\Controllers;
 
-use Anagrafica\Application\Models\ContoCorrenteModel;
 use Deleghe\Application\BaseClasses\DelegheController;
 use Deleghe\Application\Entities\Delega;
 use Deleghe\Application\Entities\Ravvedimento;
@@ -13,9 +12,10 @@ use Deleghe\Application\Enumerations\SezioneF24;
 use Deleghe\Application\Exceptions\DelegaNonModificabileException;
 use Deleghe\Application\Forms\RavvedimentoForm;
 use Deleghe\Application\Models\CodiceTributoModel;
-use Deleghe\Application\Models\DelegaModel;
+use Deleghe\Application\Models\RavvedimentoModel;
 use Deleghe\Application\Models\RegolaRavvedimentoModel;
 use Deleghe\Application\Services\CalcoloRavvedimento;
+use Deleghe\Application\Services\GenerazioneDeleghe;
 use Deleghe\Application\Services\RavvedimentoService;
 use SismaFramework\Core\HttpClasses\Request;
 use SismaFramework\Core\HttpClasses\Response;
@@ -52,7 +52,8 @@ class RavvedimentoController extends DelegheController
             foreach (['codiceTributo', 'codiceEnte', 'rateazione', 'annoRiferimento', 'acconto', 'saldo', 'numeroImmobili'] as $campo) {
                 $ravvedimento->$campo = $versamento->$campo;
             }
-            $ravvedimento->importoTributo = $versamento->importoDebito;
+            // con il ravvedimento frazionato si propone la parte non ancora regolarizzata
+            $ravvedimento->importoTributo = (new RavvedimentoModel($this->dataMapper))->getResiduo($versamento) / 100;
             $ravvedimento->scadenzaOriginale = $versamento->scadenza;
         }
         return $this->gestisci($request, $ravvedimento, 'Ravvedimento operoso: ' . $sezione->getLabel());
@@ -76,21 +77,7 @@ class RavvedimentoController extends DelegheController
             $this->aggiungiMessaggio('Indicare una data di versamento successiva alla scadenza originale.', 'danger');
             return $this->vaiAlContribuente($versamento->soggetto);
         }
-        $delega = null;
-        foreach ((new DelegaModel($this->dataMapper))->getPerScadenza($versamento->soggetto, $data) as $esistente) {
-            if ($esistente->isModificabile() && $esistente->modello->ammetteSezione($versamento->sezione)) {
-                $delega = $esistente;
-                break;
-            }
-        }
-        if ($delega === null) {
-            $delega = new Delega($this->dataMapper);
-            $delega->studio = $versamento->studio;
-            $delega->soggetto = $versamento->soggetto;
-            $delega->scadenza = $data;
-            $delega->contoAddebito = (new ContoCorrenteModel($this->dataMapper))->getPredefinito($versamento->soggetto);
-            $this->dataMapper->save($delega);
-        }
+        $delega = (new GenerazioneDeleghe($this->dataMapper))->trovaOCreaBozza($versamento, $data);
         return $this->router->redirect('ravvedimento/create/delega/' . $delega->id . '/sezione/' . $versamento->sezione->value . '/versamento/' . $versamento->id);
     }
 
@@ -122,6 +109,7 @@ class RavvedimentoController extends DelegheController
         $delega = $ravvedimento->delega;
         $this->vars['delega'] = $delega;
         $this->vars['sezione'] = $ravvedimento->sezione;
+        $this->vars['frazionabile'] = $ravvedimento->versamentoOmesso !== null;
         $dati = $this->vars['formEntity'];
         $this->vars['etichette'] = [];
         foreach (['codiceTributo', 'codiceSanzione', 'codiceInteressi'] as $campo) {

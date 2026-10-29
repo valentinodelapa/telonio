@@ -18,6 +18,11 @@ use SismaFramework\Orm\CustomTypes\SismaDate;
  * SLAA/SLAS per lavoratori autonomi e aziende agricole, dalla tabella delle
  * causali INPS) la sanzione diventa un rigo della delega con origine
  * "SanzioniCivili".
+ *
+ * Se i contributi sono un versamento scaduto dell'archivio (es. una rata
+ * INPS non pagata) il versamento è collegato (versamentoTardivo) e passa
+ * nella delega insieme al calcolo; torna alla sua data se il calcolo viene
+ * eliminato.
  */
 class SanzioneCivile extends BaseEntity
 {
@@ -26,6 +31,7 @@ class SanzioneCivile extends BaseEntity
 
     protected int $id;
     protected Delega $delega;
+    protected ?Versamento $versamentoTardivo = null;
     protected SezioneF24 $sezione;
     protected string $riferimento;
     protected float $importoContributi;

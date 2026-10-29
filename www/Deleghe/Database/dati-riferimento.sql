@@ -6,9 +6,9 @@
 --   archivio delle tabelle F24 dell'Agenzia delle Entrate aggiornato al 19/10/2026
 --     https://www.agenziaentrate.gov.it/portale/strumenti/codici-attivita-e-tributo/f24-codici-tributo-per-i-versamenti/tabelle-dei-codici-tributo-e-altri-codici-per-il-modello-f24/riepilogo-tabelle
 --   codici degli uffici: https://www1.agenziaentrate.gov.it/servizi/codici/ricerca/VisualizzaTabella.php?ArcName=UFFICI
---   tassi di interesse legale e codici del ravvedimento: Deleghe/Database/sorgenti
+--   tassi di interesse legale, codici del ravvedimento e rateazioni del secondo acconto: Deleghe/Database/sorgenti
 --   tasso di riferimento BCE: https://data-api.ecb.europa.eu/service/data/FM/B.U2.EUR.4F.KR.MRR_FR.LEV?format=csvdata&startPeriod=2008-01-01
--- Righe: codice_tributo 2551, codice_tabella_f24 1362, causale_contributo 682, tasso_interesse_legale 17, regola_ravvedimento 55, tasso_riferimento 37.
+-- Righe: codice_tributo 2551, codice_tabella_f24 1362, causale_contributo 682, tasso_interesse_legale 17, regola_ravvedimento 55, rateazione_secondo_acconto 2, tasso_riferimento 37.
 -- Idempotente: eseguibile anche su tabelle già popolate per aggiornarle; le
 -- righe non più presenti nelle fonti restano con in_uso = 0.
 -- Da eseguire dopo schema.sql e prima delle fixture.
@@ -4728,6 +4728,13 @@ INSERT INTO `regola_ravvedimento` (`sezione`, `codice`, `codice_sanzione`, `codi
 ('L', '3930', NULL, NULL, 'imu', 'Ris. 35/E/2012 (IMU: sanzioni e interessi sommati all''imposta, barrando Ravv.)'),
 ('L', '3939', NULL, NULL, 'imu', 'Ris. 35/E/2012 (IMU: sanzioni e interessi sommati all''imposta, barrando Ravv.)')
 ON DUPLICATE KEY UPDATE `codice` = VALUES(`codice`), `codice_sanzione` = VALUES(`codice_sanzione`), `codice_interessi` = VALUES(`codice_interessi`), `dichiarazione` = VALUES(`dichiarazione`), `fonte` = VALUES(`fonte`);
+
+DELETE FROM `rateazione_secondo_acconto`;
+
+INSERT INTO `rateazione_secondo_acconto` (`periodo_imposta`, `prima_rata`, `numero_rate`, `codici`, `norma`) VALUES
+('2023', '2024-01-16', '5', '4034 1791 1794 1841 4045 4048', 'Art. 4, c. 2, D.L. 145/2023 (circolare n. 31/E del 2023): persone fisiche titolari di partita IVA con ricavi o compensi 2022 non superiori a 170.000 euro'),
+('2024', '2025-01-16', '5', '4034 1791 1794 1841 4045 4048', 'Art. 7-quater D.L. 155/2024, conv. L. 189/2024: persone fisiche titolari di partita IVA con ricavi o compensi 2023 non superiori a 170.000 euro')
+ON DUPLICATE KEY UPDATE `prima_rata` = VALUES(`prima_rata`), `numero_rate` = VALUES(`numero_rate`), `codici` = VALUES(`codici`), `norma` = VALUES(`norma`);
 
 INSERT INTO `tasso_riferimento` (`valido_dal`, `tasso`) VALUES
 ('2008-10-15', '3.75'),

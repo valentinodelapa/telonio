@@ -35,7 +35,8 @@ require Layout::percorso('header');
                 <?= Campo::testo('numeroImmobili', $campi['numeroImmobili'], $formEntity, $errors, ['colonna' => 'col-md-2', 'attributi' => 'maxlength="3" inputmode="numeric"']) ?>
             <?php endif; ?>
             <div class="w-100 m-0"></div>
-            <?= Campo::testo('importoTributo', $campi['importoTributo'], $formEntity, $errors, ['richiesto' => true, 'colonna' => 'col-md-4', 'attributi' => 'inputmode="decimal"']) ?>
+            <?= Campo::testo('importoTributo', $campi['importoTributo'], $formEntity, $errors, ['richiesto' => true, 'colonna' => 'col-md-4', 'attributi' => 'inputmode="decimal"',
+                'aiuto' => $frazionabile ? $aiutoFrazionato : null]) ?>
             <?= Campo::data('scadenzaOriginale', $campi['scadenzaOriginale'], $formEntity, $errors, ['richiesto' => true, 'colonna' => 'col-md-4']) ?>
             <div class="col-md-4 small text-body-secondary align-self-center"><?= Html::e($campi['scadenza']) ?>: <strong><?= Html::data($delega->scadenza) ?></strong></div>
         </div>

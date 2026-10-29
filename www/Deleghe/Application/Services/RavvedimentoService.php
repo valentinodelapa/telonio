@@ -3,9 +3,12 @@
 namespace Deleghe\Application\Services;
 
 use Deleghe\Application\Entities\CodiceTributo;
+use Deleghe\Application\Entities\PianoRateazione;
 use Deleghe\Application\Entities\Ravvedimento;
 use Deleghe\Application\Entities\Versamento;
 use Deleghe\Application\Enumerations\SezioneF24;
+use Deleghe\Application\Models\RavvedimentoModel;
+use Deleghe\Application\Models\VersamentoModel;
 use SismaFramework\Orm\HelperClasses\DataMapper;
 
 /**
@@ -40,6 +43,7 @@ class RavvedimentoService
         $primaTransazione = $this->dataMapper->startTransaction();
         $this->dataMapper->save($ravvedimento);
         (new ArchivioVersamenti($this->dataMapper))->registra($delega->soggetto, Ravvedimento::ORIGINE, $ravvedimento->getRiferimentoOrigine(), $this->generaRighe($ravvedimento), $delega);
+        $this->spostaInteressiRata($ravvedimento, true);
         $this->dataMapper->commitTransaction($primaTransazione);
     }
 
@@ -47,9 +51,64 @@ class RavvedimentoService
     {
         $delega = $ravvedimento->delega;
         $primaTransazione = $this->dataMapper->startTransaction();
+        $this->spostaInteressiRata($ravvedimento, false);
         (new ArchivioVersamenti($this->dataMapper))->registra($delega->soggetto, Ravvedimento::ORIGINE, $ravvedimento->getRiferimentoOrigine(), [], $delega);
         $this->dataMapper->delete($ravvedimento);
         $this->dataMapper->commitTransaction($primaTransazione);
+    }
+
+    /**
+     * Ravvedimento di una rata non pagata di un piano di rateazione: gli
+     * interessi di dilazione della stessa rata si versano nella delega del
+     * ravvedimento (senza sanzione) e tornano alla data della rata se il
+     * ravvedimento viene eliminato.
+     */
+    private function spostaInteressiRata(Ravvedimento $ravvedimento, bool $nellaDelega): void
+    {
+        $quota = $ravvedimento->versamentoOmesso;
+        if (($quota === null) || ($quota->origine !== PianoRateazione::ORIGINE)) {
+            // solo le rate di un piano hanno righi di interessi da spostare
+            return;
+        }
+        $delega = $ravvedimento->delega;
+        // eliminando un ravvedimento, se la stessa rata è regolarizzata da un altro (altra quota del
+        // rigo di interessi o altra frazione) gli interessi seguono quello invece di tornare alla data della rata
+        $altro = $nellaDelega ? null : $this->getAltroRavvedimentoRata($ravvedimento);
+        if (($altro !== null) && ($altro->delega->id === $delega->id)) {
+            return;
+        }
+        $destinazione = $nellaDelega ? $delega : $altro?->delega;
+        $versamentoModel = new VersamentoModel($this->dataMapper);
+        foreach ((new RateazioneService($this->dataMapper))->getInteressiRata($quota, $nellaDelega ? null : $delega) as $interessi) {
+            $interessi->delega = $destinazione;
+            $interessi->scadenza = $destinazione?->scadenza ?? $quota->scadenza;
+            if ($destinazione !== null) {
+                $interessi->ordine = $versamentoModel->getProssimoOrdine($destinazione, $interessi->sezione);
+            }
+            $this->dataMapper->save($interessi);
+        }
+    }
+
+    /**
+     * Altro ravvedimento della stessa rata e dello stesso rigo di interessi
+     * (un'altra quota o un'altra frazione della stessa quota), o null.
+     */
+    private function getAltroRavvedimentoRata(Ravvedimento $ravvedimento): ?Ravvedimento
+    {
+        $quota = $ravvedimento->versamentoOmesso;
+        $ravvedimentoModel = new RavvedimentoModel($this->dataMapper);
+        foreach ((new VersamentoModel($this->dataMapper))->getGenerati($quota->soggetto, $quota->origine, $quota->riferimentoOrigine) as $altraQuota) {
+            if (CalcoloRateazione::isInteresse($altraQuota) || (CalcoloRateazione::getNumeroRata($altraQuota) !== CalcoloRateazione::getNumeroRata($quota))
+                    || (CalcoloRateazione::getChiaveInteressi($altraQuota) !== CalcoloRateazione::getChiaveInteressi($quota))) {
+                continue;
+            }
+            foreach ($ravvedimentoModel->getByVersamentoOmesso($altraQuota) as $altro) {
+                if ($altro->id !== $ravvedimento->id) {
+                    return $altro;
+                }
+            }
+        }
+        return null;
     }
 
     /**

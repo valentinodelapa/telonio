@@ -4,6 +4,7 @@ use Telonio\Application\HelperClasses\Html;
 use Telonio\Application\HelperClasses\Layout;
 use Deleghe\Application\Enumerations\SezioneF24;
 use Deleghe\Application\HelperClasses\Importo;
+use Deleghe\Application\Services\CalcoloRateazione;
 use Deleghe\Application\Services\EsitoControllo;
 
 $id = $soggetto->id;
@@ -80,6 +81,25 @@ require Layout::percorso('header');
             </div>
         </div>
     <?php endif; ?>
+    <?php if (count($piani) > 0): ?>
+        <div class="card shadow-sm mb-3">
+            <div class="card-header bg-white fw-semibold"><i class="bi bi-calendar3 me-2 text-primary"></i><?= Html::e($sezionePiani) ?></div>
+            <div class="table-responsive">
+                <table class="table table-sm table-anagrafica mb-0">
+                    <tbody>
+                        <?php foreach ($piani as $piano): ?>
+                            <?php $datePiano = $piano->getDate(); ?>
+                            <tr>
+                                <td class="text-nowrap"><a href="/rateazione/update/piano/<?= Html::e($piano->id) ?>" class="fw-semibold text-decoration-none"><?= Html::e($piano->descrizione ?? $pianoDel . ' ' . Html::data($piano->scadenza)) ?></a></td>
+                                <td class="small"><?= Html::e($piano->numeroRate) ?> <?= Html::e($etichettaRate) ?>: <?= Html::data($datePiano[0]) ?> - <?= Html::data(end($datePiano)) ?></td>
+                                <td class="text-end"><a href="/rateazione/update/piano/<?= Html::e($piano->id) ?>" class="btn btn-sm btn-outline-secondary"><i class="bi bi-chevron-right"></i></a></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    <?php endif; ?>
     <?php if (count($daVersare) === 0): ?>
         <div class="card shadow-sm"><div class="card-body text-center text-body-secondary py-5"><i class="bi bi-check2-circle fs-1 d-block mb-2"></i><?= Html::e($nessunVersamento) ?></div></div>
     <?php endif; ?>
@@ -95,6 +115,9 @@ require Layout::percorso('header');
                     <?php if ($scaduto): ?><span class="badge text-bg-danger ms-1"><?= Html::e($etichettaScaduto) ?></span><?php endif; ?>
                     <span class="text-body-secondary fw-normal ms-2">€ <?= EsitoControllo::euro($totale) ?></span>
                 </span>
+                <?php if (isset($dateRateizzabili[$data])): ?>
+                    <a href="/rateazione/create/soggetto/<?= Html::e($id) ?>/scadenza/<?= Html::e($data) ?>" class="btn btn-sm btn-outline-primary"><i class="bi bi-calendar3 me-1"></i><?= Html::e($azioni['rateizza']) ?></a>
+                <?php endif; ?>
                 <?php if ($scaduto === false): ?>
                     <form method="post" action="/delega/genera/soggetto/<?= Html::e($id) ?>" class="d-flex align-items-center gap-2">
                         <?= $campoCsrf ?>
@@ -123,14 +146,27 @@ require Layout::percorso('header');
                                     <div class="text-body-secondary"><?= Html::e($riferimenti($versamento)) ?></div>
                                     <?php if ($versamento->isGenerata()): ?><span class="badge text-bg-light border"><i class="bi bi-gear me-1"></i><?= Html::e($versamento->origine) ?></span><?php endif; ?>
                                 </td>
-                                <td class="text-end text-nowrap"><?= Html::e(Importo::euro($versamento->importoDebito, true)) ?></td>
+                                <td class="text-end text-nowrap">
+                                    <?= Html::e(Importo::euro($versamento->importoDebito, true)) ?>
+                                    <?php if (($ravveduti[$versamento->id] ?? 0) > 0): ?>
+                                        <div class="small text-body-secondary"><?= Html::e($etichettaRavveduto) ?> € <?= EsitoControllo::euro($ravveduti[$versamento->id]) ?></div>
+                                        <div class="small fw-semibold text-danger"><?= Html::e($colonnaResiduo) ?> € <?= EsitoControllo::euro(EsitoControllo::centesimi($versamento->importoDebito) - $ravveduti[$versamento->id]) ?></div>
+                                    <?php endif; ?>
+                                </td>
                                 <td class="text-end text-nowrap"><?= Html::e(Importo::euro($versamento->importoCredito, true)) ?></td>
                                 <td class="text-end text-nowrap">
-                                    <?php if ($scaduto && in_array($versamento->sezione, $sezioniRavvedimento, true) && ($versamento->importoDebito > 0)): ?>
+                                    <?php $regolarizzabile = $scaduto && ($versamento->importoDebito > 0) && (CalcoloRateazione::isInteresse($versamento) === false); ?>
+                                    <?php if ($regolarizzabile && in_array($versamento->sezione, $sezioniRavvedimento, true)): ?>
                                         <form method="post" action="/ravvedimento/da-versamento/versamento/<?= Html::e($versamento->id) ?>" class="d-inline-flex align-items-center gap-1">
                                             <?= $campoCsrf ?>
                                             <input type="date" class="form-control form-control-sm" name="scadenza" value="<?= Html::data($prossimaScadenza, 'Y-m-d') ?>" required aria-label="<?= Html::e($campi['scadenza']) ?>" title="<?= Html::e($campi['scadenza']) ?>">
                                             <button type="submit" class="btn btn-sm btn-outline-danger text-nowrap"><i class="bi bi-clock-history me-1"></i><?= Html::e($azioni['ravvedi']) ?></button>
+                                        </form>
+                                    <?php elseif ($regolarizzabile && in_array($versamento->sezione, [SezioneF24::inps, SezioneF24::inail], true)): ?>
+                                        <form method="post" action="/sanzione-civile/da-versamento/versamento/<?= Html::e($versamento->id) ?>" class="d-inline-flex align-items-center gap-1">
+                                            <?= $campoCsrf ?>
+                                            <input type="date" class="form-control form-control-sm" name="scadenza" value="<?= Html::data($prossimaScadenza, 'Y-m-d') ?>" required aria-label="<?= Html::e($campi['scadenza']) ?>" title="<?= Html::e($campi['scadenza']) ?>">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger text-nowrap" title="<?= Html::e($aiutoVersaInRitardo) ?>"><i class="bi bi-clock-history me-1"></i><?= Html::e($azioni['versaInRitardo']) ?></button>
                                         </form>
                                     <?php endif; ?>
                                     <?php $riga = $versamento; require __DIR__ . '/../commonParts/pulsantiCopia.php'; ?>

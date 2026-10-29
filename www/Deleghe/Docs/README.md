@@ -73,13 +73,14 @@ ravvedere).
 |---|---|
 | `Delega` | contribuente (`Soggetto`), modello (ordinario, semplificato, ELIDE, accise), data di versamento, stato, secondo codice fiscale con codice identificativo, conto di addebito (`ContoCorrente`), codice ufficio e atto, identificativo operazione, detrazione IMU, invio telematico, quietanza |
 | `Versamento` | versamento del contribuente con la sua data, da versare (senza delega) o in una delega, con l'eventuale secondo codice fiscale richiesto: è il rigo di una sezione del modello (codice tributo o causale, riferimenti dell'ente, rateazione, anno o periodo, flag IMU e detrazione dell'abitazione principale, tipo ed elementi identificativi ELIDE, provincia, codice identificativo e mese accise, numero di certificazione crediti PA, importo a debito o a credito), con descrizione, origine e credito utilizzato |
+| `PianoRateazione` | pagamento rateale del saldo e del primo acconto: date delle rate; i versamenti originari sono collegati al piano, le rate sono versamenti generati con origine `Rateazione` |
 | `Credito` | credito del contribuente da compensare: dati del rigo a credito, importo, data da cui è utilizzabile, origine; il residuo è l'importo meno gli utilizzi (versamenti collegati) |
 | `Ravvedimento` | versamento omesso regolarizzato nella delega: tributo, importo, scadenza originale, termini, circostanza, codici di sanzione e interessi, calcolo, versamento omesso dell'archivio |
 | `SanzioneCivile` | contributi INPS o premi INAIL versati in ritardo: importo, scadenza, regime, calcolo per periodi di tasso, causale facoltativa per il rigo |
 | `Intermediario`, `InvioTelematico` | intermediari Entratel dello studio; file generati con le deleghe incluse |
 | `CodiceTributo`, `CodiceTabellaF24`, `CausaleContributo` | tabelle dell'Agenzia delle Entrate, comuni a tutti gli studi |
 | `TassoRiferimento` | tasso delle operazioni di rifinanziamento principali della BCE (ex TUR), dalla fonte BCE |
-| `TassoInteresseLegale`, `RegolaRavvedimento` | dati di riferimento curati nel modulo (`Database/sorgenti`) |
+| `TassoInteresseLegale`, `RegolaRavvedimento`, `RateazioneSecondoAcconto` | dati di riferimento curati nel modulo (`Database/sorgenti`) |
 
 Le sezioni sono l'enum `SezioneF24` (Erario, INPS, Regioni, IMU e altri
 tributi locali, INAIL, altri enti previdenziali, ELIDE, accise), con i
@@ -134,6 +135,83 @@ l'anno di riferimento avanza degli anni interi (IMU da un anno all'altro).
 La data parte dalla scadenza nominale (un 17-19 preceduto solo da giorni
 non lavorativi dal 16 è il 16 slittato) ed è spostata al primo giorno
 lavorativo. Importi e altri dati restano quelli dell'originale.
+
+## Pagamento rateale del saldo e del primo acconto
+
+Il saldo e il primo acconto di imposte e contributi si possono versare in
+rate mensili di pari importo (art. 20, c. 1, D.Lgs. 241/1997, nel testo
+modificato dall'art. 8 del D.Lgs. 1/2024; circolare n. 9/E del 2024): la
+prima alla scadenza ordinaria, le altre entro il 16 di ciascun mese, non
+oltre il 16 dicembre. È utile anche quando la dichiarazione è fatta fuori
+dalla suite e nell'archivio si caricano solo i tributi da versare.
+
+Nella scheda del contribuente, "Rateizza" su una data dei versamenti da
+versare apre il piano (`RateazioneController`):
+
+- si scelgono i versamenti rateizzabili (`CalcoloRateazione::isRateizzabile`):
+  codici tributo con rateazione `NNRR` (saldo e primo acconto di IRPEF,
+  IRES, IRAP, addizionali, IVA, cedolare...; non il secondo acconto, che ha
+  `0000`, né l'IMU) e contributi INPS con causali AP, CP, P10, PXX;
+- si sceglie il numero di rate (al massimo una al mese fino a dicembre); le
+  date proposte (il 16) sono modificabili; il versamento slitta al primo
+  giorno lavorativo e dal 1° al 20 agosto al 20 agosto
+  (`Calendario::termineFiscale`);
+- l'anteprima mostra per rata quota, percentuale e interessi.
+
+**Secondo acconto differito da una norma straordinaria.** Il secondo
+acconto (codici con rateazione `0000`) non rientra nell'art. 20, ma per i
+periodi d'imposta 2023 (art. 4, c. 2, D.L. 145/2023; circolare n. 31/E del
+2023) e 2024 (art. 7-quater D.L. 155/2024, conv. L. 189/2024) le persone
+fisiche titolari di partita IVA con ricavi o compensi fino a 170.000 euro
+hanno potuto versarlo entro il 16 gennaio dell'anno successivo, o in rate
+mensili di pari importo il 16 di ogni mese fino a maggio, con gli interessi
+dell'art. 20, c. 2 (4% annuo) dalla seconda rata. Le norme sono in
+`Database/sorgenti/rateazione-secondo-acconto.csv`
+(`Entities\RateazioneSecondoAcconto`: periodo, termine differito, numero
+massimo di rate, codici del secondo acconto: IRPEF 4034, forfetario 1791,
+regime di vantaggio 1794, cedolare 1841, IVIE 4045, IVAFE 4048): se il
+legislatore ripropone la misura basta aggiungere una riga. Per un secondo
+acconto di una persona fisica di quei periodi "Rateizza" compare anche dopo
+la scadenza ordinaria (per registrare i versamenti fatti) e propone da una
+rata (unica soluzione al 16 gennaio) al massimo della norma; il secondo
+acconto si rateizza separatamente dagli altri versamenti della data. Il
+campo rateazione delle quote e degli interessi (1668) resta vuoto, come
+richiede il formato `0000` dei codici. La soglia di ricavi o compensi non è
+verificabile dai dati del modulo e resta a carico dell'utente.
+
+Fuori da queste norme, un secondo acconto versato dopo la scadenza in più
+versamenti (es. a gennaio e febbraio, senza rateazione) è un ravvedimento
+frazionato: "Ravvedi" sul versamento scaduto per la parte versata a ogni
+data, con sanzione e interessi (per il forfetario 8944 e 1944).
+
+`Services\CalcoloRateazione` divide ogni versamento in quote di pari importo
+(i centesimi residui sulla prima) con la rateazione `NNRR` (per l'INPS
+tutte le rate con la causale del pagamento rateale APR, CPR, P10R o PXXR) e
+calcola gli interessi
+del 4% annuo sulle rate successive alla prima con il metodo delle tabelle
+delle istruzioni: la frazione dalla prima alla seconda rata in giorni
+commerciali (30/360), arrotondata al centesimo, più 0,33% per ogni mese
+(prima rata 30/06: 0,18 - 0,51 - 0,84 - 1,17 - 1,50%). Gli interessi vanno
+su righi separati: 1668 per l'Erario (uno per anno di riferimento), 3805 per
+le Regioni (per codice regione), 3857 per l'addizionale comunale (per
+comune, con la rata), API, CPI e DPPI per l'INPS (per posizione; circolare
+INPS n. 105 del 2025).
+
+`Services\RateazioneService` registra le rate con `ArchivioVersamenti`
+(origine `Rateazione`, riferimento `rateazione-<id>`) e collega i versamenti
+originari al piano: non sono più da versare. Il piano si modifica (le rate
+vengono ricalcolate) o si elimina (i versamenti originari tornano da
+versare) finché nessuna rata è in una delega confermata, trasmessa o
+quietanzata, è regolarizzata con un ravvedimento o è versata in ritardo con
+le sanzioni civili.
+
+Una rata non pagata si regolarizza come ogni versamento scaduto: "Ravvedi"
+per i tributi, "Versa in ritardo" (sanzioni civili) per i contributi INPS.
+Con la quota passa nella stessa delega il rigo degli interessi di dilazione
+della rata a cui appartiene (stessa sezione, ente e anno; per l'INPS stessa
+posizione), che non è soggetto a sanzione; torna alla data della rata se il
+calcolo viene eliminato, o segue un altro ravvedimento della stessa rata (es.
+un'altra frazione).
 
 ## Crediti e compensazioni
 
@@ -226,7 +304,15 @@ superata, "Ravvedi" nella scheda del contribuente apre lo stesso calcolo
 nella delega in bozza della data scelta (creata se manca) con i dati del
 versamento, collegato al ravvedimento (`versamentoOmesso`): non risulta più
 da versare, e torna tale se il ravvedimento (o la sua delega) viene
-eliminato, pronto per un nuovo ravvedimento a un'altra data. Cambiando la
+eliminato, pronto per un nuovo ravvedimento a un'altra data.
+
+**Ravvedimento frazionato** (circolari n. 27/E del 2013 e n. 42/E del
+2016): l'importo del ravvedimento può essere una parte del versamento
+omesso; sanzione e interessi si calcolano su quella parte alla sua data. Il
+versamento resta da versare con il residuo (la scheda del contribuente
+mostra la parte ravveduta e il residuo) per un ravvedimento successivo, che
+propone il residuo e non lo può superare; non entra nelle deleghe generate
+dall'archivio, solo nei ravvedimenti. Cambiando la
 data della delega, ravvedimenti e sanzioni civili si ricalcolano alla nuova
 data (se un calcolo non è possibile la data non cambia). `Services\CalcoloRavvedimento` applica
 (testi vigenti su Normattiva):
@@ -282,6 +368,13 @@ genera il rigo INPS con origine `SanzioniCivili` tramite
 `ArchivioVersamenti`. Per l'INAIL le sanzioni sono richieste dall'istituto e
 non si versano con una causale: solo prospetto. Le casse professionali
 (sezione altri enti) hanno regolamenti propri e non sono gestite.
+
+Per i contributi INPS e i premi INAIL scaduti dell'archivio (es. una rata
+INPS non pagata), "Versa in ritardo" nella scheda del contribuente apre la
+delega in bozza della data scelta (creata se manca) e il calcolo con
+contributi e scadenza del versamento, che resta collegato
+(`versamentoTardivo`): al salvataggio il versamento passa nella delega, ed
+eliminando il calcolo torna alla sua scadenza.
 
 ## Stampa
 
@@ -429,9 +522,10 @@ Fonti:
 - **Database/sorgenti** (nessuna fonte leggibile da programma):
   `tassi-interesse-legale.csv` (decreti annuali del MEF, art. 1284 c.c.) e
   `regole-ravvedimento.csv` (codici di sanzione e interessi per tributo,
-  con la risoluzione di riferimento); il comando verifica che i codici
-  esistano nelle tabelle dell'Agenzia. Vanno aggiornati a ogni nuovo
-  decreto o risoluzione.
+  con la risoluzione di riferimento) e `rateazione-secondo-acconto.csv`
+  (norme straordinarie sul secondo acconto differito o rateale); il comando
+  verifica che i codici esistano nelle tabelle dell'Agenzia. Vanno
+  aggiornati a ogni nuovo decreto, norma o risoluzione.
 
 `--archivio=CARTELLA|FILE|URL` usa un archivio già scaricato. Il comando si
 ferma senza modificare nulla se nomi dei file, intestazioni o formalismi
@@ -463,6 +557,13 @@ studio; i controller verificano l'accesso (`DelegaPermission`,
 dello studio per intermediari e invii).
 
 ## Da completare
+
+- pagamento rateale: tasso degli interessi sulle rate dei contributi INPS
+  (la circolare INPS indica le causali ma non il tasso; si applica il 4%
+  dell'art. 20) da verificare; secondo acconto differito (norme del 2023
+  e 2024): la compilazione del campo rateazione delle rate non è indicata
+  da una risoluzione dell'Agenzia (si lascia vuoto come richiede il formato
+  dei codici) e la soglia dei ricavi non è verificata;
 
 - limiti alle compensazioni (tetto annuo, visto di conformità oltre le
   soglie): oggi non verificati, solo la data da cui il credito è

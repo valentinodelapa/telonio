@@ -10,7 +10,9 @@ use Deleghe\Application\Enumerations\DichiarazioneRiferimento;
  * - saggio degli interessi legali (decreti annuali del Ministro
  *   dell'economia e delle finanze, art. 1284 c.c.);
  * - codici di sanzione e interessi del ravvedimento per tributo
- *   (risoluzioni dell'Agenzia delle Entrate).
+ *   (risoluzioni dell'Agenzia delle Entrate);
+ * - periodi d'imposta per cui una norma straordinaria ha consentito il
+ *   versamento del secondo acconto dal 16 gennaio, anche a rate.
  */
 class SorgentiModulo
 {
@@ -18,6 +20,7 @@ class SorgentiModulo
     public const CARTELLA = __DIR__ . '/../../../Database/sorgenti/';
     public const COLONNE_TASSI = ['valido_dal', 'tasso', 'provvedimento'];
     public const COLONNE_REGOLE = ['sezione', 'codice', 'codice_sanzione', 'codice_interessi', 'dichiarazione', 'fonte'];
+    public const COLONNE_SECONDO_ACCONTO = ['periodo_imposta', 'prima_rata', 'numero_rate', 'codici', 'norma'];
 
     /**
      * @return array<array<string, string|null>>
@@ -51,6 +54,29 @@ class SorgentiModulo
             }
         }
         return $regole;
+    }
+
+    /**
+     * @param array<string, true> $codiciEsistenti chiavi "sezione|codice" dei codici tributo
+     * @return array<array<string, string|null>>
+     */
+    public function leggiRateazioniSecondoAcconto(array $codiciEsistenti): array
+    {
+        $righe = $this->leggiCsv('rateazione-secondo-acconto.csv', self::COLONNE_SECONDO_ACCONTO);
+        foreach ($righe as $riga) {
+            $primaRata = \DateTimeImmutable::createFromFormat('!Y-m-d', (string) $riga['prima_rata']);
+            if ((preg_match('/^\d{4}$/', (string) $riga['periodo_imposta']) !== 1) || ($primaRata === false)
+                    || ((int) $primaRata->format('Y') !== (int) $riga['periodo_imposta'] + 1) || (preg_match('/^[1-9]$/', (string) $riga['numero_rate']) !== 1)
+                    || ($riga['codici'] === null) || ($riga['norma'] === null)) {
+                throw new \UnexpectedValueException('Riga non valida in rateazione-secondo-acconto.csv: ' . implode(';', $riga));
+            }
+            foreach (preg_split('/\s+/', $riga['codici'], -1, PREG_SPLIT_NO_EMPTY) as $codice) {
+                if (isset($codiciEsistenti['E|' . $codice]) === false) {
+                    throw new \UnexpectedValueException(sprintf('rateazione-secondo-acconto.csv: il codice %s non esiste nella sezione erario delle tabelle dell\'Agenzia.', $codice));
+                }
+            }
+        }
+        return $righe;
     }
 
     private function leggiCsv(string $nome, array $colonne): array

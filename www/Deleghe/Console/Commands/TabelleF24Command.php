@@ -19,8 +19,8 @@ use SismaFramework\Console\BaseClasses\BaseCommand;
  *   formati della matricola INPS;
  * - dal servizio "Ricerca codici tributo": codici degli uffici;
  * - dal servizio dati della BCE: tasso di riferimento per le sanzioni civili;
- * - dalle sorgenti del modulo: tassi di interesse legale e codici del
- *   ravvedimento.
+ * - dalle sorgenti del modulo: tassi di interesse legale, codici del
+ *   ravvedimento e rateazioni straordinarie del secondo acconto.
  *
  * Uso:
  *   sisma tabelle-f24                 aggiorna il database
@@ -55,8 +55,8 @@ Importa o aggiorna le tabelle di riferimento del modulo Deleghe:
     altri enti, tipi ELIDE, formati della matricola INPS
   - codici degli uffici (servizio "Ricerca codici tributo")
   - tasso di riferimento BCE per le sanzioni civili INPS e INAIL
-  - tassi di interesse legale e codici del ravvedimento
-    (Deleghe/Database/sorgenti)
+  - tassi di interesse legale, codici del ravvedimento e rateazioni
+    straordinarie del secondo acconto (Deleghe/Database/sorgenti)
 
 Le righe esistenti vengono aggiornate, le nuove inserite; i codici non più
 presenti nelle fonti restano (sono referenziati) con in_uso = 0.
@@ -123,13 +123,16 @@ OUTPUT;
         $tassi = $sorgenti->leggiTassi();
         $esistenti = array_fill_keys(array_map(fn($codice) => $codice['sezione'] . '|' . $codice['codice'], $codici), true);
         $regole = $sorgenti->leggiRegoleRavvedimento($esistenti);
-        $this->output(sprintf('Sorgenti del modulo: %d tassi di interesse legale, %d regole di ravvedimento', count($tassi), count($regole)));
+        $secondoAcconto = $sorgenti->leggiRateazioniSecondoAcconto($esistenti);
+        $this->output(sprintf('Sorgenti del modulo: %d tassi di interesse legale, %d regole di ravvedimento, %d rateazioni del secondo acconto',
+                        count($tassi), count($regole), count($secondoAcconto)));
         return [
             'codice_tributo' => ['colonne' => TabelleF24Agenzia::COLONNE_CODICI, 'righe' => $codici],
             'codice_tabella_f24' => ['colonne' => TabelleF24Agenzia::COLONNE_TABELLE, 'righe' => $voci],
             'causale_contributo' => ['colonne' => TabelleF24Agenzia::COLONNE_CAUSALI, 'righe' => $causali],
             'tasso_interesse_legale' => ['colonne' => SorgentiModulo::COLONNE_TASSI, 'righe' => $tassi],
             'regola_ravvedimento' => ['colonne' => SorgentiModulo::COLONNE_REGOLE, 'righe' => $regole],
+            'rateazione_secondo_acconto' => ['colonne' => SorgentiModulo::COLONNE_SECONDO_ACCONTO, 'righe' => $secondoAcconto],
             'tasso_riferimento' => ['colonne' => TassiRiferimentoBce::COLONNE, 'righe' => $tassiBce],
         ];
     }
@@ -140,9 +143,9 @@ OUTPUT;
         foreach ($tabelle as $tabella => $dati) {
             if (in_array($tabella, self::TABELLE_IN_USO, true)) {
                 yield 'UPDATE `' . $tabella . '` SET `in_uso` = 0;';
-            } elseif ($tabella === 'regola_ravvedimento') {
-                // regole curate nel modulo, non referenziate: si sostituiscono
-                yield 'DELETE FROM `regola_ravvedimento`;';
+            } elseif (in_array($tabella, ['regola_ravvedimento', 'rateazione_secondo_acconto'], true)) {
+                // dati curati nel modulo, non referenziati: si sostituiscono
+                yield 'DELETE FROM `' . $tabella . '`;';
             }
             yield from $generatoreSql->generaUpsert($tabella, $dati['colonne'], $dati['righe']);
         }
@@ -160,7 +163,7 @@ OUTPUT;
                 . ($archivio->getData() === null ? '' : ' aggiornato al ' . \DateTimeImmutable::createFromFormat('Ymd', $archivio->getData())->format('d/m/Y')) . "\n"
                 . "--     " . ArchivioTabelleF24::URL_RIEPILOGO . "\n"
                 . "--   codici degli uffici: " . FonteAgenzia::URL . "VisualizzaTabella.php?ArcName=UFFICI\n"
-                . "--   tassi di interesse legale e codici del ravvedimento: Deleghe/Database/sorgenti\n"
+                . "--   tassi di interesse legale, codici del ravvedimento e rateazioni del secondo acconto: Deleghe/Database/sorgenti\n"
                 . "--   tasso di riferimento BCE: " . TassiRiferimentoBce::URL . "\n"
                 . "-- Righe: " . implode(', ', array_map(fn($tabella, $dati) => $tabella . ' ' . count($dati['righe']), array_keys($tabelle), $tabelle)) . ".\n"
                 . "-- Idempotente: eseguibile anche su tabelle già popolate per aggiornarle; le\n"

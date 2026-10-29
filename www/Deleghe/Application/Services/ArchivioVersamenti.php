@@ -7,6 +7,7 @@ use Deleghe\Application\Entities\Delega;
 use Deleghe\Application\Entities\Versamento;
 use Deleghe\Application\Exceptions\DelegaNonModificabileException;
 use Deleghe\Application\Models\RavvedimentoModel;
+use Deleghe\Application\Models\SanzioneCivileModel;
 use Deleghe\Application\Models\VersamentoModel;
 use SismaFramework\Orm\CustomTypes\SismaDateTime;
 use SismaFramework\Orm\HelperClasses\DataMapper;
@@ -90,12 +91,11 @@ class ArchivioVersamenti
             $esito->versamenti[] = $versamento;
         }
         $this->aggiornaDetrazioni(array_merge(array_values($deleghePerScadenza), array_filter(array_map(fn(Versamento $versamento) => $versamento->delega, $esito->versamenti))), $conDetrazione);
-        foreach ($bloccati as $scadenza => ['delega' => $delega, 'ravvedimento' => $ravveduto, 'importo' => $importo]) {
+        foreach ($bloccati as $scadenza => ['motivo' => $motivo, 'importo' => $importo]) {
             $nuovo = $nuoviBloccati[$scadenza] ?? 0;
             if ($nuovo !== $importo) {
                 $esito->differenze[] = sprintf('Versamento del %s già %s: registrato € %s, ricalcolato € %s.', (new \DateTimeImmutable($scadenza))->format('d/m/Y'),
-                        $ravveduto ? 'regolarizzato con il ravvedimento nella delega del ' . $delega->scadenza->format('d/m/Y') : 'nella delega ' . mb_strtolower($delega->stato->getLabel()),
-                        EsitoControllo::euro($importo), EsitoControllo::euro($nuovo));
+                        $motivo, EsitoControllo::euro($importo), EsitoControllo::euro($nuovo));
             }
         }
         $this->dataMapper->commitTransaction($primaTransazione);
@@ -123,10 +123,11 @@ class ArchivioVersamenti
      * Elimina i versamenti registrati in precedenza che si possono ancora
      * sostituire.
      *
-     * @return array{0: array<string, Delega>, 1: array<string, array{delega: Delega, ravvedimento: bool, importo: int}>, 2: bool}
+     * @return array{0: array<string, Delega>, 1: array<string, array{motivo: string, importo: int}>, 2: bool}
      *         deleghe in bozza che li contenevano e versamenti non più
-     *         sostituibili (in deleghe non modificabili o regolarizzati con un
-     *         ravvedimento; importo netto in centesimi), per scadenza; se tra
+     *         sostituibili (in deleghe non modificabili, regolarizzati con un
+     *         ravvedimento o pagati in ritardo con le sanzioni civili; importo
+     *         netto in centesimi), per scadenza; se tra
      *         gli eliminati c'erano righi con la detrazione IMU
      */
     private function rimuoviPrecedenti(Soggetto $soggetto, string $origine, string $riferimento): array
@@ -134,16 +135,33 @@ class ArchivioVersamenti
         $deleghePerScadenza = $bloccati = [];
         $conDetrazione = false;
         $ravvedimentoModel = new RavvedimentoModel($this->dataMapper);
+        $sanzioneCivileModel = new SanzioneCivileModel($this->dataMapper);
         $precedenti = iterator_to_array((new VersamentoModel($this->dataMapper))->getGenerati($soggetto, $origine, $riferimento), false);
+        // versamenti spostati nella delega di un ravvedimento o delle sanzioni civili (con gli interessi
+        // della rata): delega e data della delega => scadenza originale, a cui si confrontano
+        $spostati = [];
         foreach ($precedenti as $precedente) {
-            // in una delega non modificabile o regolarizzato con un ravvedimento (che lo referenzia)
+            // in una delega non modificabile, regolarizzato con un ravvedimento o pagato in ritardo con le sanzioni civili (che lo referenziano)
             $ravvedimento = $ravvedimentoModel->getByVersamentoOmesso($precedente)[0] ?? null;
-            if (($precedente->isModificabile() === false) || ($ravvedimento !== null)) {
-                $bloccati[$precedente->scadenza->format('Y-m-d')] ??= ['delega' => $precedente->delega ?? $ravvedimento->delega, 'ravvedimento' => $ravvedimento !== null, 'importo' => 0];
+            $sanzioneCivile = $sanzioneCivileModel->getByVersamentoTardivo($precedente)[0] ?? null;
+            $motivo = match (true) {
+                $ravvedimento !== null => 'regolarizzato con il ravvedimento nella delega del ' . $ravvedimento->delega->scadenza->format('d/m/Y'),
+                $sanzioneCivile !== null => 'versato in ritardo con le sanzioni civili nella delega del ' . $sanzioneCivile->delega->scadenza->format('d/m/Y'),
+                $precedente->isModificabile() === false => 'nella delega ' . mb_strtolower($precedente->delega->stato->getLabel()),
+                default => null,
+            };
+            if ($motivo === null) {
+                continue;
+            }
+            $data = $sanzioneCivile?->scadenzaOriginale->format('Y-m-d') ?? $precedente->scadenza->format('Y-m-d');
+            $bloccati[$data] ??= ['motivo' => $motivo, 'importo' => 0];
+            $delegaSpostamento = $ravvedimento?->delega ?? $sanzioneCivile?->delega;
+            if ($delegaSpostamento !== null) {
+                $spostati[$delegaSpostamento->id . '|' . $delegaSpostamento->scadenza->format('Y-m-d')] = $data;
             }
         }
         foreach ($precedenti as $precedente) {
-            $scadenza = $precedente->scadenza->format('Y-m-d');
+            $scadenza = $spostati[($precedente->delega?->id ?? '') . '|' . $precedente->scadenza->format('Y-m-d')] ?? $precedente->scadenza->format('Y-m-d');
             if (isset($bloccati[$scadenza])) {
                 // la data resta com'è per intero: il confronto è sul totale della data
                 $bloccati[$scadenza]['importo'] += EsitoControllo::centesimi($precedente->importoDebito - $precedente->importoCredito);

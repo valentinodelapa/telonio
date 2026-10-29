@@ -41,6 +41,9 @@ use SismaFramework\Orm\CustomTypes\SismaDate;
  * 08, risoluzione n. 2/E del 2025). Il versamento lo indica in
  * codiceFiscaleCoobbligato e codiceIdentificativo e va solo in deleghe con
  * lo stesso secondo soggetto (Services\GenerazioneDeleghe::isCompatibile).
+ *
+ * pianoRateazione è valorizzato sul versamento originario pagato a rate:
+ * non è più da versare, al suo posto ci sono le rate generate dal piano.
  */
 class Versamento extends ReferencedEntity
 {
@@ -83,6 +86,7 @@ class Versamento extends ReferencedEntity
     protected ?string $riferimentoOrigine = null;
     protected ?string $codiceFiscaleCoobbligato = null;
     protected ?CodiceIdentificativo $codiceIdentificativo = null;
+    protected ?PianoRateazione $pianoRateazione = null;
 
     #[\Override]
     protected function setEncryptedProperties(): void

@@ -490,13 +490,15 @@ class ControlloDelegaAndCompensazioniTest extends SuiteTestCase
 
         // getDaVersare -> getBySoggettoAndScadenzaAndDelega, countByVersamentoOmesso(0)
         // trovaBozza -> getPerScadenza([$delega]), isCompatibile -> getByDelega([])
-        // aggiungi -> isCompatibile -> getByDelega([]), getProssimoOrdine -> getByDelegaAndSezione([]), aggiornaDetrazioneImu -> getByDelega([$daVersare])
+        // aggiungi -> isCompatibile -> getByDelega([]), countByVersamentoOmesso(0) (non ravveduto in parte),
+        // getProssimoOrdine -> getByDelegaAndSezione([]), aggiornaDetrazioneImu -> getByDelega([$daVersare])
         $this->testAdapter->accodaSelect(
                 new TestResultSet([$daVersare]),
                 TestResultSet::conteggio(0),
                 new TestResultSet([$delega]),
                 new TestResultSet([]),
                 new TestResultSet([]),
+                TestResultSet::conteggio(0),
                 new TestResultSet([]),
                 new TestResultSet([$daVersare]),
         );

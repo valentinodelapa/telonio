@@ -9,6 +9,7 @@ use Deleghe\Application\Entities\Versamento;
 use Deleghe\Application\Enumerations\ModelloF24;
 use Deleghe\Application\Enumerations\SezioneF24;
 use Deleghe\Application\Models\DelegaModel;
+use Deleghe\Application\Models\RavvedimentoModel;
 use Deleghe\Application\Models\VersamentoModel;
 use SismaFramework\Orm\CustomTypes\SismaDate;
 use SismaFramework\Orm\CustomTypes\SismaDateTime;
@@ -58,15 +59,18 @@ class GenerazioneDeleghe
     /**
      * Inserisce nella delega versamenti da versare con la stessa data; quelli
      * con un secondo codice fiscale diverso da quello della delega restano
-     * da versare (vedi isCompatibile).
+     * da versare (vedi isCompatibile), quelli ravveduti in parte (ravvedimento
+     * frazionato) si completano solo con un altro ravvedimento.
      *
      * @param Versamento[] $versamenti
      */
     public function aggiungi(Delega $delega, array $versamenti): void
     {
         $versamentoModel = new VersamentoModel($this->dataMapper);
+        $ravvedimentoModel = new RavvedimentoModel($this->dataMapper);
         foreach ($versamenti as $versamento) {
-            if (($versamento->isDaVersare() === false) || ($versamento->soggetto->id !== $delega->soggetto->id) || ($this->isCompatibile($delega, $versamento) === false)) {
+            if (($versamento->isDaVersare() === false) || ($versamento->soggetto->id !== $delega->soggetto->id) || ($this->isCompatibile($delega, $versamento) === false)
+                    || ($ravvedimentoModel->countByVersamentoOmesso($versamento) > 0)) {
                 continue;
             }
             $versamento->delega = $delega;
@@ -118,6 +122,17 @@ class GenerazioneDeleghe
             }
         }
         return true;
+    }
+
+    /**
+     * Delega in bozza del contribuente alla data adatta al versamento (es. per
+     * il ravvedimento o il versamento tardivo di un versamento scaduto),
+     * creata se manca.
+     */
+    public function trovaOCreaBozza(Versamento $versamento, SismaDate $data): Delega
+    {
+        $modello = self::getModello($versamento->sezione);
+        return $this->trovaBozza($versamento->soggetto, $data, $modello, [$versamento]) ?? $this->creaDelega($versamento->soggetto, $data, $modello, $versamento);
     }
 
     public static function getModello(SezioneF24 $sezione): ModelloF24

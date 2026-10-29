@@ -401,6 +401,14 @@ class DelegaController extends DelegheController
         $soggetto = $delega->soggetto;
         $tornati = 0;
         $primaTransazione = $this->dataMapper->startTransaction();
+        // i calcoli puntano alla delega (il framework ne impedisce l'eliminazione finché esistono):
+        // si eliminano con i loro servizi, che tolgono i righi generati e riportano gli interessi delle rate rateizzate
+        foreach ((new RavvedimentoModel($this->dataMapper))->getElenco($delega) as $ravvedimento) {
+            (new RavvedimentoService($this->dataMapper))->elimina($ravvedimento);
+        }
+        foreach ((new SanzioneCivileModel($this->dataMapper))->getElenco($delega) as $sanzioneCivile) {
+            (new SanzioniCiviliService($this->dataMapper))->elimina($sanzioneCivile);
+        }
         foreach ((new VersamentoModel($this->dataMapper))->getElenco($delega) as $versamento) {
             if (($versamento->credito !== null) || in_array($versamento->origine, self::ORIGINI_DELEGA, true)) {
                 $this->dataMapper->delete($versamento);
@@ -409,13 +417,6 @@ class DelegaController extends DelegheController
                 $this->dataMapper->save($versamento);
                 $tornati++;
             }
-        }
-        // i calcoli puntano alla delega: il framework ne impedisce l'eliminazione finché esistono
-        foreach ((new RavvedimentoModel($this->dataMapper))->getElenco($delega) as $ravvedimento) {
-            $this->dataMapper->delete($ravvedimento);
-        }
-        foreach ((new SanzioneCivileModel($this->dataMapper))->getElenco($delega) as $sanzioneCivile) {
-            $this->dataMapper->delete($sanzioneCivile);
         }
         $this->dataMapper->delete($delega);
         $this->dataMapper->commitTransaction($primaTransazione);

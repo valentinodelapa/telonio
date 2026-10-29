@@ -77,16 +77,18 @@ class VersamentoModel extends DependentModel
 
     /**
      * Versamenti non ancora in una delega, per scadenza, esclusi quelli
-     * omessi già regolarizzati con un ravvedimento.
+     * omessi già regolarizzati per intero con il ravvedimento (con il
+     * ravvedimento frazionato resta il residuo) e quelli pagati a rate.
      *
      * @return Versamento[]
      */
     public function getDaVersare(Soggetto $soggetto, ?SismaDate $scadenza = null): array
     {
-        $versamenti = $scadenza === null ? $this->getBySoggettoAndDelega($soggetto, null, null, ['scadenza' => 'ASC', 'sezione' => 'ASC', 'id' => 'ASC'])
-                : $this->getBySoggettoAndScadenzaAndDelega($soggetto, $scadenza, null, null, ['sezione' => 'ASC', 'id' => 'ASC']);
+        $versamenti = $scadenza === null ? $this->getBySoggettoAndDelegaAndPianoRateazione($soggetto, null, null, null, ['scadenza' => 'ASC', 'sezione' => 'ASC', 'id' => 'ASC'])
+                : $this->getBySoggettoAndScadenzaAndDelegaAndPianoRateazione($soggetto, $scadenza, null, null, null, ['sezione' => 'ASC', 'id' => 'ASC']);
         $ravvedimentoModel = new RavvedimentoModel($this->dataMapper);
-        return array_values(array_filter(iterator_to_array($versamenti, false), fn(Versamento $versamento) => $ravvedimentoModel->countByVersamentoOmesso($versamento) === 0));
+        return array_values(array_filter(iterator_to_array($versamenti, false), fn(Versamento $versamento) => ($ravvedimentoModel->countByVersamentoOmesso($versamento) === 0)
+                        || ($ravvedimentoModel->getResiduo($versamento) > 0)));
     }
 
     /**

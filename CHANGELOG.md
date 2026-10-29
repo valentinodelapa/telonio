@@ -2,6 +2,41 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.0-alpha] - 2026-10-29 - Pagamento Rateale e Ravvedimento Frazionato
+
+In `Deleghe` il pagamento rateale del saldo e del primo acconto (art. 20 D.Lgs. 241/1997) e del secondo acconto differito dalle norme straordinarie del 2023 e del 2024, il versamento tardivo dei contributi INPS e INAIL con le sanzioni civili e il ravvedimento frazionato. Valgono le avvertenze della 0.1.0-alpha: la versione non è indicata per l'uso in produzione su dati reali.
+
+Versioni dei moduli: `Deleghe` 0.3.0; `Telonio` 0.4.0, `Anagrafica` 0.5.1, `Imu` 0.3.2, `Successioni` 0.3.1 e `GestioneStudio` 0.1.1 invariati.
+
+### ✨ Nuove Funzionalità
+
+#### `Deleghe` — pagamento rateale del saldo e del primo acconto
+
+- **piani di rateazione** (`Entities\PianoRateazione`, `Services\CalcoloRateazione`, `Services\RateazioneService`, `RateazioneController`) secondo l'art. 20, c. 1, D.Lgs. 241/1997 nel testo del D.Lgs. 1/2024 (circolare n. 9/E del 2024): dalla scheda del contribuente, "Rateizza" sui versamenti da versare di una data sceglie i versamenti rateizzabili (codici con rateazione `NNRR`, esclusi secondo acconto e IMU; contributi INPS con causali AP, CP, P10, PXX) e il numero di rate, fino al 16 dicembre;
+- **date proposte e modificabili**: prima rata alla scadenza, le altre il 16 di ogni mese; versamento al primo giorno lavorativo e, dal 1° al 20 agosto, al 20 agosto;
+- **rate di pari importo** (centesimi residui sulla prima) con la rateazione `NNRR`; per l'INPS tutte le rate con la causale del pagamento rateale APR, CPR, P10R, PXXR (circolare INPS n. 105 del 2025);
+- **interessi del 4% annuo** dalla seconda rata come nelle tabelle delle istruzioni (frazione fino alla seconda rata, poi 0,33% al mese: 0,18 - 0,51 - 0,84 - 1,17%...), su righi separati: 1668 per l'Erario (per anno di riferimento), 3805 per le Regioni (per codice regione), 3857 per l'addizionale comunale, API, CPI e DPPI per l'INPS; anteprima di quote e interessi per rata prima della registrazione;
+- le rate sono versamenti generati (origine `Rateazione`) nell'archivio; i versamenti originari restano collegati al piano e non sono più da versare. Il piano si modifica (rate ricalcolate) o si elimina, con ritorno dei versamenti originari, finché nessuna rata è in una delega confermata, regolarizzata con un ravvedimento o versata in ritardo con le sanzioni civili;
+- **rata non pagata**: si regolarizza con "Ravvedi" (tributi) o "Versa in ritardo" (contributi INPS), come gli altri versamenti scaduti; il rigo degli interessi di dilazione a cui appartiene la quota passa nella stessa delega (senza sanzione) e torna alla data della rata se il calcolo viene eliminato. Anche eliminando la delega i ravvedimenti e le sanzioni civili passano dai loro servizi, che riportano versamenti e interessi.
+
+- **secondo acconto differito da una norma straordinaria** (`Entities\RateazioneSecondoAcconto`, dati in `Database/sorgenti/rateazione-secondo-acconto.csv`: art. 4, c. 2, D.L. 145/2023 per il periodo 2023 e art. 7-quater D.L. 155/2024 per il 2024): per le persone fisiche, il secondo acconto dei codici della norma (IRPEF 4034, forfetario 1791, regime di vantaggio 1794, cedolare 1841, IVIE 4045, IVAFE 4048) si rateizza separatamente dagli altri versamenti, in unica soluzione al 16 gennaio o fino a cinque rate il 16 di ogni mese, con gli interessi del 4% dalla seconda rata (0,33% al mese) sul 1668; il campo rateazione resta vuoto come richiede il formato `0000` dei codici. "Rateizza" compare anche dopo la scadenza ordinaria. Una nuova norma si aggiunge con una riga del file e `sisma tabelle-f24`.
+
+#### `Deleghe` — versamento tardivo dei contributi e ravvedimento frazionato
+
+- **contributi INPS e premi INAIL scaduti**: "Versa in ritardo" nella scheda del contribuente apre la delega in bozza della data scelta e il calcolo delle sanzioni civili con contributi e scadenza del versamento, collegato alla sanzione (`SanzioneCivile::$versamentoTardivo`): il versamento passa nella delega e torna alla sua scadenza se il calcolo viene eliminato; i moduli che lo hanno generato non lo sostituiscono al ricalcolo e ne segnalano la differenza;
+- **ravvedimento frazionato** (circolari n. 27/E del 2013 e n. 42/E del 2016): il ravvedimento di un versamento dell'archivio può riguardarne solo una parte, con sanzione e interessi su quella parte; il versamento resta da versare con il residuo (mostrato nella scheda del contribuente) per i ravvedimenti successivi, che lo propongono e non lo possono superare;
+- la delega in bozza del ravvedimento e del versamento tardivo è scelta con le stesse regole della generazione (modello e secondo codice fiscale compatibili).
+
+### 🔄 Aggiornamento da 0.8.1-alpha
+
+Sui database esistenti eseguire come root l'aggiornamento di `Deleghe`, poi eliminare `www/Cache/referenceCache.json`:
+
+```bash
+docker exec -i telonio_db sh -c 'mariadb -uroot -p"$MARIADB_ROOT_PASSWORD" telonio' < www/Deleghe/Database/aggiornamento-0.3.sql
+```
+
+`aggiornamento-0.3.sql` (idempotente) crea le tabelle `piano_rateazione` e `rateazione_secondo_acconto` (con le norme del 2023 e del 2024, le stesse di `dati-riferimento.sql`) e aggiunge le colonne `versamento.piano_rateazione_id` e `sanzione_civile.versamento_tardivo_id`.
+
 ## [0.8.1-alpha] - 2026-10-27 - Cartelle Scrivibili e Aliquote IMU senza Prospetto
 
 Versione di correzione: le cartelle scrivibili vengono create all'avvio del container `php` (errore 500 su host Linux) e in `Imu` le aliquote di un comune senza prospetto per l'anno sono quelle dell'ultimo prospetto pubblicato (art. 1, comma 767, L. 160/2019). Valgono le avvertenze della 0.1.0-alpha: la versione non è indicata per l'uso in produzione su dati reali.

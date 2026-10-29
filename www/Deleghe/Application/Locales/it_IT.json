@@ -108,7 +108,11 @@
                 "copia": "Copia in una nuova data",
                 "ripeti": "Ripeti nel tempo",
                 "anteprima": "Aggiorna anteprima",
-                "creaCopie": "Crea i versamenti"
+                "creaCopie": "Crea i versamenti",
+                "rateizza": "Rateizza",
+                "creaPiano": "Crea il piano e le rate",
+                "eliminaPiano": "Elimina il piano",
+                "versaInRitardo": "Versa in ritardo"
             },
             "navCodiciTributo": "Codici tributo",
             "navInvii": "Invii telematici",
@@ -208,7 +212,8 @@
                 "titoloRegole": "Tributi con codici di sanzione e interessi già noti",
                 "aiutoNormativa": "Sanzione 25% (30% per violazioni fino al 31/08/2024), dimezzata entro 90 giorni e ridotta di 1/15 per giorno entro 15 giorni; riduzione 1/10 entro 30 giorni, 1/9 entro 90, 1/8 entro il termine della dichiarazione, poi 1/7 (1/6 oltre il termine dell'anno successivo per le violazioni precedenti); interessi al tasso legale giorno per giorno.",
                 "erroreCalcoloTitolo": "Calcolo non riuscito",
-                "aiutoCircostanza": "Dopo uno schema d'atto o un verbale di constatazione la riduzione è fissa (art. 13, c. 1, lett. b-ter, b-quater, b-quinquies, D.Lgs. 472/1997); per le violazioni fino al 31/08/2024 solo 1/5 dopo il verbale."
+                "aiutoCircostanza": "Dopo uno schema d'atto o un verbale di constatazione la riduzione è fissa (art. 13, c. 1, lett. b-ter, b-quater, b-quinquies, D.Lgs. 472/1997); per le violazioni fino al 31/08/2024 solo 1/5 dopo il verbale.",
+                "aiutoFrazionato": "Ravvedimento frazionato: si può regolarizzare anche solo una parte del versamento omesso; il resto rimane da versare per un ravvedimento successivo."
             }
         },
         "intermediario": {
@@ -294,7 +299,12 @@
                 "nessunCredito": "Nessun credito.",
                 "colonnaUtilizzato": "Utilizzato",
                 "sezioneCreditiDisponibili": "Crediti da compensare",
-                "aiutoCreditiDisponibili": "Generando la delega si compensano fino al saldo dei versamenti, se utilizzabili alla data."
+                "aiutoCreditiDisponibili": "Generando la delega si compensano fino al saldo dei versamenti, se utilizzabili alla data.",
+                "sezionePiani": "Piani di rateazione",
+                "pianoDel": "Piano del",
+                "etichettaRate": "rate",
+                "aiutoVersaInRitardo": "Contributi versati dopo la scadenza: il versamento va nella delega della data scelta con il calcolo delle sanzioni civili",
+                "etichettaRavveduto": "ravveduto"
             }
         },
         "credito": {
@@ -305,6 +315,28 @@
                 "giaUtilizzato": "Già utilizzato:",
                 "aiutoUtilizzabile": "Prima data di versamento in cui si può compensare (es. per il credito IVA annuale oltre 5.000 € il decimo giorno dopo la presentazione della dichiarazione).",
                 "aiutoDescrizione": "Es. Credito IVA 2025 da dichiarazione annuale."
+            }
+        },
+        "rateazione": {
+            "form": {
+                "scadenzaDeiVersamenti": "scadenza dei versamenti",
+                "aiutoRateazione": "Saldo e primo acconto in rate mensili di pari importo (art. 20, c. 1, D.Lgs. 241/1997): la prima alla scadenza, le altre entro il 16 di ciascun mese, non oltre il 16 dicembre; sulle rate successive alla prima interessi del 4% annuo (metodo commerciale) su righi separati. Una rata non pagata si regolarizza con il ravvedimento della rata.",
+                "aiutoSecondoAcconto": "Secondo acconto del periodo d'imposta %d differito da una norma straordinaria: in unica soluzione entro il %s o fino a %d rate mensili di pari importo, il 16 di ogni mese, con gli interessi del 4%% annuo dalla seconda rata (codice 1668). Il campo rateazione resta vuoto, come richiede il formato dei codici (0000). Verificare i requisiti della norma: la soglia di ricavi o compensi non è controllata.",
+                "etichettaNorma": "Norma",
+                "unicaSoluzione": "1 (unica soluzione)",
+                "pianoBloccato": "Il piano non si può più modificare",
+                "sezioneVersamenti": "Versamenti da rateizzare",
+                "sezioneRate": "Rate",
+                "etichettaNumeroRate": "Numero di rate",
+                "segnapostoDescrizione": "Es. Saldo 2025 e primo acconto 2026",
+                "colonnaRata": "Rata",
+                "colonnaScadenza": "Scadenza",
+                "colonnaQuota": "Quota",
+                "colonnaPercentuale": "Interessi %",
+                "colonnaInteressi": "Interessi",
+                "colonnaTotale": "Totale",
+                "versamentoIl": "versamento il",
+                "confermaEliminaPiano": "Eliminare il piano? Le rate vengono eliminate e i versamenti originari tornano da versare."
             }
         }
     }

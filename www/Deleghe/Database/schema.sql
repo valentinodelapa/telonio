@@ -102,6 +102,18 @@ CREATE TABLE IF NOT EXISTS `regola_ravvedimento` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Codici di sanzione e interessi per il ravvedimento, da Database/sorgenti';
 
+CREATE TABLE IF NOT EXISTS `rateazione_secondo_acconto` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `periodo_imposta` SMALLINT UNSIGNED NOT NULL,
+  `prima_rata` DATE NOT NULL COMMENT 'Termine differito del versamento in unica soluzione o della prima rata',
+  `numero_rate` TINYINT UNSIGNED NOT NULL COMMENT 'Numero massimo di rate mensili',
+  `codici` VARCHAR(255) NOT NULL COMMENT 'Codici tributo del secondo acconto (sezione erario), separati da spazi',
+  `norma` VARCHAR(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_rateazione_secondo_acconto` (`periodo_imposta`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Norme straordinarie sul versamento differito o rateale del secondo acconto, da Database/sorgenti';
+
 -- -----------------------------------------------------
 -- Intermediari e invii telematici
 -- -----------------------------------------------------
@@ -204,6 +216,25 @@ CREATE TABLE IF NOT EXISTS `credito` (
   CONSTRAINT `fk_credito_codice_tributo` FOREIGN KEY (`codice_tributo_id`) REFERENCES `codice_tributo` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Pagamento rateale del saldo e del primo acconto (art. 20, c. 1, D.Lgs.
+-- 241/1997): i versamenti originari hanno piano_rateazione_id e non sono più
+-- da versare; le rate (quote e interessi) sono versamenti con origine
+-- "Rateazione" e riferimento "rateazione-<id>".
+CREATE TABLE IF NOT EXISTS `piano_rateazione` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `studio_id` INT UNSIGNED NOT NULL,
+  `soggetto_id` INT UNSIGNED NOT NULL,
+  `scadenza` DATE NOT NULL COMMENT 'Scadenza dei versamenti originari (prima rata)',
+  `numero_rate` TINYINT UNSIGNED NOT NULL,
+  `date_rate` TEXT NOT NULL COMMENT 'JSON: date delle rate (Y-m-d)',
+  `descrizione` VARCHAR(100) NULL,
+  `data_inserimento` DATETIME NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_piano_rateazione_soggetto` (`soggetto_id`),
+  CONSTRAINT `fk_piano_rateazione_studio` FOREIGN KEY (`studio_id`) REFERENCES `studio` (`id`),
+  CONSTRAINT `fk_piano_rateazione_soggetto` FOREIGN KEY (`soggetto_id`) REFERENCES `soggetto` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Archivio dei versamenti del contribuente: ogni riga è un rigo del modello
 -- F24 con la sua data di versamento. Senza delega è "da versare"; la
 -- generazione delle deleghe la colloca nella delega della sua scadenza.
@@ -261,6 +292,7 @@ CREATE TABLE IF NOT EXISTS `versamento` (
   `riferimento_origine` VARCHAR(50) NULL COMMENT 'Riferimento nel modulo di origine',
   `codice_fiscale_coobbligato` VARCHAR(16) NULL COMMENT 'Secondo codice fiscale richiesto nella delega (es. defunto per l''imposta di successione)',
   `codice_identificativo` CHAR(2) NULL COMMENT 'Codice identificativo del secondo codice fiscale richiesto',
+  `piano_rateazione_id` INT UNSIGNED NULL COMMENT 'Versamento originario pagato a rate: non più da versare',
   PRIMARY KEY (`id`),
   KEY `idx_versamento_soggetto_scadenza` (`soggetto_id`, `scadenza`),
   KEY `idx_versamento_delega` (`delega_id`, `sezione`, `ordine`),
@@ -269,7 +301,8 @@ CREATE TABLE IF NOT EXISTS `versamento` (
   CONSTRAINT `fk_versamento_soggetto` FOREIGN KEY (`soggetto_id`) REFERENCES `soggetto` (`id`),
   CONSTRAINT `fk_versamento_delega` FOREIGN KEY (`delega_id`) REFERENCES `delega` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_versamento_codice_tributo` FOREIGN KEY (`codice_tributo_id`) REFERENCES `codice_tributo` (`id`),
-  CONSTRAINT `fk_versamento_credito` FOREIGN KEY (`credito_id`) REFERENCES `credito` (`id`)
+  CONSTRAINT `fk_versamento_credito` FOREIGN KEY (`credito_id`) REFERENCES `credito` (`id`),
+  CONSTRAINT `fk_versamento_piano_rateazione` FOREIGN KEY (`piano_rateazione_id`) REFERENCES `piano_rateazione` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Calcolo del ravvedimento operoso di un versamento omesso o tardivo: i
@@ -318,6 +351,7 @@ CREATE TABLE IF NOT EXISTS `ravvedimento` (
 CREATE TABLE IF NOT EXISTS `sanzione_civile` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `delega_id` INT UNSIGNED NOT NULL,
+  `versamento_tardivo_id` INT UNSIGNED NULL COMMENT 'Versamento scaduto dell''archivio pagato in ritardo con la delega',
   `sezione` CHAR(3) NOT NULL COMMENT 'INP o INA',
   `riferimento` VARCHAR(100) NOT NULL COMMENT 'Contributi a cui si riferisce (causale, periodo, ...)',
   `importo_contributi` DECIMAL(13,2) NOT NULL,
@@ -335,5 +369,6 @@ CREATE TABLE IF NOT EXISTS `sanzione_civile` (
   `dettaglio` TEXT NOT NULL COMMENT 'JSON: periodi, giorni, tasso annuo, importo',
   PRIMARY KEY (`id`),
   KEY `idx_sanzione_civile_delega` (`delega_id`),
-  CONSTRAINT `fk_sanzione_civile_delega` FOREIGN KEY (`delega_id`) REFERENCES `delega` (`id`) ON DELETE CASCADE
+  CONSTRAINT `fk_sanzione_civile_delega` FOREIGN KEY (`delega_id`) REFERENCES `delega` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_sanzione_civile_versamento_tardivo` FOREIGN KEY (`versamento_tardivo_id`) REFERENCES `versamento` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -4,6 +4,7 @@ namespace Deleghe\Application\Forms;
 
 use Deleghe\Application\Entities\Ravvedimento;
 use Deleghe\Application\HelperClasses\Importo;
+use Deleghe\Application\Models\RavvedimentoModel;
 use Deleghe\Application\Services\CalcoloRavvedimento;
 use Deleghe\Application\Services\ControlloDelega;
 use SismaFramework\Core\BaseClasses\BaseForm;
@@ -84,6 +85,14 @@ class RavvedimentoForm extends BaseForm
         }
         if (($dati->importoTributo !== null) && ($dati->importoTributo <= 0)) {
             $errori['importoTributo'] = 'Indicare l\'importo non versato.';
+        }
+        $omesso = $this->entity->versamentoOmesso;
+        if (($omesso !== null) && ($dati->importoTributo !== null) && (isset($errori['importoTributo']) === false)) {
+            // ravvedimento frazionato: al più la parte del versamento omesso non ancora regolarizzata
+            $residuo = (new RavvedimentoModel())->getResiduo($omesso, isset($this->entity->id) ? $this->entity->id : null);
+            if ((int) round($dati->importoTributo * 100) > $residuo) {
+                $errori['importoTributo'] = 'L\'importo supera la parte del versamento ancora da regolarizzare (€ ' . Importo::euro($residuo / 100) . ').';
+            }
         }
         if (($dati->scadenzaOriginale !== null) && ($dati->scadenzaOriginale->format('Y-m-d') >= $delega->scadenza->format('Y-m-d'))) {
             $errori['scadenzaOriginale'] = 'La scadenza originale deve precedere la data di versamento della delega (' . $delega->scadenza->format('d/m/Y') . ').';
