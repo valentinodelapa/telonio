@@ -102,10 +102,16 @@ class ControllersTest extends SuiteTestCase
             return new \Telonio\Tests\TestResultSet([]);
         });
 
-        $controller = new HomeController($this->dataMapper);
+        $controlloAggiornamenti = $this->createStub(\Telonio\Application\Services\Aggiornamenti\ControlloAggiornamenti::class);
+        $disponibile = new \Telonio\Application\Services\Aggiornamenti\Release(\Telonio\Application\Services\Aggiornamenti\Versione::daTesto('0.10.0-alpha'),
+                'v0.10.0-alpha', 'https://github.com/valentinodelapa/telonio/releases/tag/v0.10.0-alpha', '2026-11-02', 'https://example.org/a.zip', str_repeat('a', 64), null);
+        $controlloAggiornamenti->method('verificaConCache')->willReturn($disponibile);
+        $controlloAggiornamenti->method('getCanale')->willReturn(\Telonio\Application\Enumerations\CanaleAggiornamenti::alpha);
+        $controller = new HomeController($this->dataMapper, null, $controlloAggiornamenti);
         $controller->index();
 
         $this->assertSame('home/index', $stato->vista);
+        $this->assertSame($utente->isAmministratore() ? $disponibile : null, $stato->vars['aggiornamento']);
         $this->assertSame($utente, $stato->vars['utente']);
         $this->assertArrayHasKey('riepilogoModuli', $stato->vars);
         $this->assertSame(['Scadute' => 0, 'Entro 7 giorni' => 0, 'Entro 30 giorni' => 0], $stato->vars['riepilogoModuli']['GestioneStudio']);

@@ -47,19 +47,9 @@ Ogni applicativo è un modulo `SismaFramework` all'interno di `www/` che condivi
     cp .env.example .env
     make start-dev
     ```
-3.  Crea le tabelle dei moduli e importa i dati di riferimento (comuni, stati esteri, codici ATECO, tabelle F24 e tassi, coefficienti e comuni esenti IMU, uffici di registrazione, calendario fiscale degli adempimenti):
+3.  Crea le tabelle dei moduli e importa i dati di riferimento (comuni, stati esteri, codici ATECO, tabelle F24 e tassi, coefficienti e comuni esenti IMU, uffici di registrazione, calendario fiscale degli adempimenti). Il comando esegue come `root` (password `DB_ROOT_PASSWORD` di `.env`) gli script SQL dei moduli e registra quelli di aggiornamento; è lo stesso usato a ogni aggiornamento:
     ```bash
-    docker exec -i telonio_db mariadb -uroot -pchange_me_root_password telonio < www/Telonio/Database/schema.sql
-    docker exec -i telonio_db mariadb -uroot -pchange_me_root_password telonio < www/Anagrafica/Database/schema.sql
-    docker exec -i telonio_db mariadb -uroot -pchange_me_root_password telonio < www/Anagrafica/Database/dati-riferimento.sql
-    docker exec -i telonio_db mariadb -uroot -pchange_me_root_password telonio < www/Deleghe/Database/schema.sql
-    docker exec -i telonio_db mariadb -uroot -pchange_me_root_password telonio < www/Deleghe/Database/dati-riferimento.sql
-    docker exec -i telonio_db mariadb -uroot -pchange_me_root_password telonio < www/Imu/Database/schema.sql
-    docker exec -i telonio_db mariadb -uroot -pchange_me_root_password telonio < www/Imu/Database/dati-riferimento.sql
-    docker exec -i telonio_db mariadb -uroot -pchange_me_root_password telonio < www/Successioni/Database/schema.sql
-    docker exec -i telonio_db mariadb -uroot -pchange_me_root_password telonio < www/Successioni/Database/dati-riferimento.sql
-    docker exec -i telonio_db mariadb -uroot -pchange_me_root_password telonio < www/GestioneStudio/Database/schema.sql
-    docker exec -i telonio_db mariadb -uroot -pchange_me_root_password telonio < www/GestioneStudio/Database/dati-riferimento.sql
+    docker exec telonio_php sh -c 'cd /var/www/html && sisma aggiorna-database'
     ```
 4.  Crea uno studio e il primo utente amministratore (oppure, in sviluppo, carica i dati demo con utente `admin` / `admin`, soggetti con storico, immobili, deleghe, calcoli IMU e successione di esempio):
     ```bash
@@ -83,6 +73,12 @@ docker exec -it telonio_php sh -c 'cd /var/www/html && sisma studio crea'
 
 # Carica i dati demo di sviluppo (su tabelle vuote)
 docker exec telonio_php sh -c 'cd /var/www/html && sisma fixtures'
+
+# Porta il database alla versione del codice (anche prima installazione); --simula mostra il piano
+docker exec telonio_php sh -c 'cd /var/www/html && sisma aggiorna-database'
+
+# Controlla su GitHub se c'è una versione più recente nel canale configurato
+docker exec telonio_php sh -c 'cd /var/www/html && sisma aggiornamenti'
 
 # Aggiorna comuni e stati esteri (ANPR) e classificazioni ATECO (ISTAT)
 docker exec telonio_php sh -c 'cd /var/www/html && sisma tabelle-riferimento'
@@ -163,7 +159,7 @@ Su una macchina sempre accesa (mini PC, NAS, server o VPS) con Docker, **fuori d
 1.  Scarica il codice: clone con `git clone --recurse-submodules` (poi `composer install --working-dir=www --no-dev`) oppure l'archivio di una release, che contiene già framework e dipendenze.
 2.  Crea il `.env` da `.env.example` con password e passphrase nuove (es. `openssl rand -base64 32`), `DEVELOPMENT_ENVIRONMENT=false`, `HTTPS_IS_FORCED=true` e i parametri SMTP reali.
 3.  Avvia lo stack con il backup: `make start-backup`.
-4.  Crea le tabelle eseguendo come `root` gli script `schema.sql` e `dati-riferimento.sql` dei moduli, come al passo 3 di "Avvio e installazione" (con `docker exec -i telonio_db ...`).
+4.  Crea le tabelle e importa i dati di riferimento: `docker exec telonio_php sh -c 'cd /var/www/html && sisma aggiorna-database'`.
 5.  Crea lo studio e il primo amministratore: `docker exec -it telonio_php sh -c 'cd /var/www/html && sisma studio crea'`. **Non** caricare le fixture (`sisma fixtures`), che creano l'utente demo `admin` / `admin`.
 
 Per una seconda istanza sulla stessa macchina dello sviluppo usare una cartella separata con `CONTAINER_PREFIX` diverso in `.env` (es. `telonio_prod`): nome di progetto Compose, volume del database e container restano distinti. In produzione fissare in `.env` anche `COMPOSE_PROJECT_NAME` (es. `telonio-prod`): il volume del database prende il nome del progetto, che altrimenti è quello della cartella, e un aggiornamento estratto in un'altra cartella partirebbe da un database vuoto.
@@ -236,7 +232,24 @@ Il file arriva già decifrato in `./backups` e si importa come sopra. Su una mac
 
 ### Aggiornamento
 
-Prima di aggiornare eseguire un backup (`docker exec telonio_backup backup.sh`), poi aggiornare il codice (nuova release o `git pull` su un tag; se la nuova versione va in un'altra cartella, copiarvi `.env`, `backups/` e `rclone/` e verificare che `.env` contenga `COMPOSE_PROJECT_NAME`), applicare gli eventuali script di migrazione indicati nel `CHANGELOG.md` e ricostruire con `docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.backup.yml --profile internal-db up -d --build`. L'immagine di MariaDB è fissata a una versione (`docker-compose.yml`): passare alla successiva a mano, dopo un backup (MariaDB non supporta il ritorno a una versione precedente).
+Dalla cartella dell'installazione (servono `curl`, `unzip` e `sha256sum`: su Debian `apt install curl unzip`):
+
+```bash
+sh aggiorna.sh --controlla   # c'è una versione più recente?
+sh aggiorna.sh               # aggiorna, dopo conferma (oppure make aggiorna)
+```
+
+Lo script cerca su GitHub l'ultima release del canale (`CANALE_AGGIORNAMENTI` in `.env`: `alpha`, `beta`, `rc` o `stabile`, ogni canale riceve anche le versioni più stabili; senza, il canale della versione installata), ne scarica l'archivio e ne verifica l'impronta SHA-256 pubblicata da GitHub (e la provenienza SLSA, se [`slsa-verifier`](https://github.com/slsa-framework/slsa-verifier) è installato). Poi:
+
+1.  esegue il dump del database in `backups/` (`<database>_<data>_prima-di-<versione>.sql.gz`);
+2.  ferma `php` e `nginx` e sposta il codice attuale in `.aggiornamenti/telonio-<versione>`: `.env`, `backups/`, `rclone/`, `www/filesystemMedia` (documenti caricati) e `www/Logs` restano al loro posto;
+3.  mette al suo posto il codice nuovo, ricostruisce e riavvia i container (`docker compose up -d --build`);
+4.  aggiorna il database con `sisma aggiorna-database`: gli script di aggiornamento dei moduli non ancora applicati, gli schemi (tabelle nuove) e i dati di riferimento;
+5.  controlla che l'applicazione risponda su `HTTP_BIND:HTTP_PORT`.
+
+Se un passo fallisce rimette il codice precedente e ripristina il database dal dump; la versione non riuscita resta in `.aggiornamenti/` per l'analisi. Restano le due versioni precedenti e gli ultimi due archivi scaricati. Opzioni: `--si` (senza conferma), `--canale=` (canale diverso), `--archivio=FILE` (archivio già scaricato), `--senza-backup` (database esterno: backup a cura propria). I file di Compose sono quelli di `COMPOSE_FILE` e `COMPOSE_PROFILES` in `.env` o, se assenti, produzione con database interno e backup.
+
+Gli amministratori vedono in scrivania l'avviso delle nuove versioni del canale (GitHub interrogato al massimo ogni 12 ore; `CONTROLLO_AGGIORNAMENTI=false` lo disattiva). Leggere sempre le note di rilascio: indicano gli eventuali passi manuali. Le installazioni da `git clone` si aggiornano con `git pull` su un tag, `docker compose ... up -d --build` e `sisma aggiorna-database`. L'immagine di MariaDB è fissata a una versione (`docker-compose.yml`): passare alla successiva a mano, dopo un backup (MariaDB non supporta il ritorno a una versione precedente).
 
 ## Configurazione SMTP e limiti PHP
 

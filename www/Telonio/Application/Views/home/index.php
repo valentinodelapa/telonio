@@ -8,6 +8,18 @@ require Layout::percorso('header');
 <h1 class="h3 mb-1"><?= Html::e($pageTitle) ?></h1>
 <p class="text-body-secondary mb-4"><?= Html::e($benvenuto) ?>, <?= Html::e($utente->nome) ?>.</p>
 
+<?php if ($aggiornamento !== null): ?>
+    <div class="alert alert-info d-flex" role="status">
+        <i class="bi bi-arrow-up-circle me-3 fs-4"></i>
+        <div>
+            <strong><?= Html::e($aggiornamentoDisponibile) ?> <?= Html::e($aggiornamento->versione) ?></strong>
+            (<?= Html::e($aggiornamentoCanale) ?> <?= Html::e($canaleAggiornamenti->value) ?>, <?= Html::e($aggiornamentoPubblicata) ?> <?= Html::e(date('d/m/Y', strtotime($aggiornamento->dataPubblicazione))) ?>).
+            <a href="<?= Html::e($aggiornamento->urlNote) ?>" target="_blank" rel="noopener" class="alert-link"><?= Html::e($aggiornamentoNote) ?></a>
+            <div class="small mt-1"><?= Html::e($aggiornamentoIstruzioni) ?> <code>sh aggiorna.sh</code></div>
+        </div>
+    </div>
+<?php endif; ?>
+
 <div class="row g-3">
     <?php foreach ($moduli as $modulo): ?>
         <div class="col-12 col-md-6 col-xl-4">

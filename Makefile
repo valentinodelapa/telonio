@@ -22,4 +22,8 @@ start-backup:
 stop-backup:
 	docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.backup.yml --profile internal-db down
 
-.PHONY: start-dev stop-dev start-prod stop-prod start-prod-external-db stop-prod-external-db start-backup stop-backup
+# Aggiornamento all'ultima versione del canale (vedi aggiorna.sh)
+aggiorna:
+	sh aggiorna.sh
+
+.PHONY: start-dev stop-dev start-prod stop-prod start-prod-external-db stop-prod-external-db start-backup stop-backup aggiorna

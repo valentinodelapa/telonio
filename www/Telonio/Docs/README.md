@@ -9,10 +9,11 @@ caricare nel database.
 
 ## Installazione
 
-Il modulo è registrato in `MODULE_FOLDERS`. Script da eseguire come root
-sullo schema del progetto prima degli script di qualsiasi altro modulo:
-
-1. `Telonio/Database/schema.sql`
+Il modulo è registrato in `MODULE_FOLDERS` per primo: il suo
+`Database/schema.sql` (studi, utenti, password, registro degli
+aggiornamenti) precede gli script di tutti gli altri moduli. Tabelle e dati
+di riferimento di tutti i moduli si creano con `sisma aggiorna-database`
+(vedi "Aggiornamenti").
 
 Per creare uno studio in produzione (o un nuovo studio aggiuntivo) con il
 suo primo utente amministratore si usa il comando CLI `sisma studio`:
@@ -92,6 +93,48 @@ docker exec -it telonio_php sh -c 'cd /var/www/html && sisma studio amministrato
 docker exec telonio_php sh -c 'cd /var/www/html && sisma studio disattiva --studio=1'
 docker exec telonio_php sh -c 'cd /var/www/html && sisma studio attiva --studio=1'
 ```
+
+## Aggiornamenti
+
+### Database (`sisma aggiorna-database`)
+
+Porta il database alla versione del codice con gli script dei moduli in
+`<Modulo>/Database`, nell'ordine di `MODULE_FOLDERS` (dipendenze prima),
+collegandosi come root con `DB_ROOT_PASSWORD` (l'utente dell'applicazione ha
+solo i permessi DML). Il piano (`Services\Aggiornamenti\PianoAggiornamentoDatabase`):
+
+- **modulo non installato** (nessuna tabella del suo `schema.sql` esiste):
+  `schema.sql`, registrazione degli `aggiornamento-<versione>.sql` (lo
+  schema è già quello della versione) e `dati-riferimento.sql`;
+- **modulo installato**: gli `aggiornamento-<versione>.sql` non registrati,
+  in ordine di versione, poi `schema.sql` (tabelle nuove), la registrazione
+  e `dati-riferimento.sql`.
+
+Il registro è la tabella `aggiornamento_database` (modulo, script, data).
+Sui database aggiornati a mano, prima del registro, gli script di
+aggiornamento vengono rieseguiti una volta: per questo **tutti gli script
+devono essere idempotenti** (`CREATE TABLE IF NOT EXISTS`, `ADD COLUMN IF
+NOT EXISTS`, `FOREIGN KEY IF NOT EXISTS`, `INSERT ... ON DUPLICATE KEY
+UPDATE`, `UPDATE ... WHERE <colonna> IS NULL`) e creare essi stessi le
+tabelle che modificano. Le `SELECT` degli script (es. dati da completare
+dopo una modifica dello schema) vengono stampate. Al termine il comando
+elimina `Cache/referenceCache.json`; con `--simula` mostra il piano.
+
+### Versioni (`sisma aggiornamenti`, avviso in scrivania)
+
+`Services\Aggiornamenti\ArchivioRelease` legge le release dall'API pubblica
+di GitHub (solo pubblicate, con tag semver, archivio zip e impronta
+SHA-256); `ControlloAggiornamenti` sceglie l'ultima successiva alla
+versione installata (`www/composer.json`) nel canale
+(`Enumerations\CanaleAggiornamenti`: alpha, beta, rc, stabile; ogni canale
+accetta le versioni più stabili) di `CANALE_AGGIORNAMENTI` o, se assente,
+della versione installata. `sisma aggiornamenti` interroga sempre GitHub
+(`--formato=shell` per `aggiorna.sh`); la scrivania, solo per gli
+amministratori, usa la cache `Cache/aggiornamenti.json` (12 ore, un'ora
+dopo un errore di rete, timeout di 5 secondi) e si disattiva con
+`CONTROLLO_AGGIORNAMENTI=false` o con una configurazione non valida.
+L'installazione dell'aggiornamento è a cura di `aggiorna.sh` nella radice
+del progetto (vedi il README principale, "Aggiornamento").
 
 ## Architettura e componenti condivisi
 

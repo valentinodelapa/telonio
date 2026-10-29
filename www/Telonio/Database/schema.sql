@@ -1,9 +1,10 @@
 -- =====================================================
 -- Telonio - modulo base della suite
 -- =====================================================
--- Studi (tenant), utenti e password. Da eseguire come root sullo schema
--- del progetto prima degli script dei moduli applicativi. I dati demo
--- (studio e utente admin) si caricano con le fixture: sisma fixtures.
+-- Studi (tenant), utenti e password, registro degli aggiornamenti del
+-- database. Lo esegue "sisma aggiorna-database" (come root, prima degli
+-- script dei moduli applicativi). I dati demo (studio e utente admin) si
+-- caricano con le fixture: sisma fixtures.
 
 CREATE TABLE IF NOT EXISTS `studio` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -39,3 +40,13 @@ CREATE TABLE IF NOT EXISTS `password` (
   KEY `idx_password_utente` (`utente_id`, `data_creazione`),
   CONSTRAINT `fk_password_utente` FOREIGN KEY (`utente_id`) REFERENCES `utente` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `aggiornamento_database` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `modulo` VARCHAR(50) NOT NULL,
+  `script` VARCHAR(100) NOT NULL COMMENT 'Nome dello script in <Modulo>/Database (aggiornamento-<versione>.sql)',
+  `eseguito_il` DATETIME NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_aggiornamento_database` (`modulo`, `script`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Script di aggiornamento dei moduli già applicati, registrati da sisma aggiorna-database';

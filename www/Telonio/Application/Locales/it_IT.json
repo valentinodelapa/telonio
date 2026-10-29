@@ -48,7 +48,12 @@
             "index": {
                 "pageTitle": "Scrivania",
                 "benvenuto": "Bentornato",
-                "inArrivo": "In arrivo"
+                "inArrivo": "In arrivo",
+                "aggiornamentoDisponibile": "È disponibile Telonio",
+                "aggiornamentoCanale": "canale",
+                "aggiornamentoPubblicata": "pubblicata il",
+                "aggiornamentoNote": "Note di rilascio",
+                "aggiornamentoIstruzioni": "Per installarla, sul server, dalla cartella dell'installazione:"
             }
         },
         "studio": {

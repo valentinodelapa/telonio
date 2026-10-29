@@ -2,6 +2,46 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.10.0-alpha] - 2026-10-29 - Aggiornamento Automatico
+
+Decima versione alpha: l'installazione si aggiorna con un comando (`sh aggiorna.sh`), che scarica e verifica la release del canale scelto, esegue il backup, sostituisce il codice, aggiorna il database e, se qualcosa non va, torna alla versione precedente. Il database si porta alla versione del codice con `sisma aggiorna-database`, che sostituisce gli script SQL da eseguire a mano, anche nella prima installazione. Gli amministratori vedono in scrivania l'avviso delle nuove versioni. Valgono le avvertenze della 0.1.0-alpha: la versione non è indicata per l'uso in produzione su dati reali.
+
+Versioni dei moduli: `Telonio` 0.5.0; `Anagrafica` 0.5.1, `Deleghe` 0.3.0, `Imu` 0.3.2, `Successioni` 0.3.1 e `GestioneStudio` 0.1.1 invariati.
+
+### ✨ Nuove Funzionalità
+
+#### Aggiornamento dell'installazione (`aggiorna.sh`)
+
+- **`sh aggiorna.sh`** (o `make aggiorna`) nella cartella dell'installazione: cerca su GitHub l'ultima release del canale, scarica l'archivio e ne verifica l'impronta SHA-256 pubblicata da GitHub (e la provenienza SLSA se è installato `slsa-verifier`), esegue il dump del database in `backups/`, ferma `php` e `nginx`, sposta il codice attuale in `.aggiornamenti/telonio-<versione>` lasciando al loro posto `.env`, `backups/`, `rclone/`, `www/filesystemMedia` e `www/Logs`, mette al suo posto quello nuovo, ricostruisce e riavvia i container, aggiorna il database e controlla che l'applicazione risponda;
+- **ritorno automatico alla versione precedente** se un passo fallisce: codice precedente rimesso al suo posto e database ripristinato dal dump; la versione non riuscita resta in `.aggiornamenti/` per l'analisi. Restano le due versioni precedenti e gli ultimi due archivi;
+- opzioni `--controlla`, `--si` (senza conferma), `--canale=`, `--archivio=FILE` (archivio già scaricato), `--senza-backup` (database esterno);
+- **canali** (`CANALE_AGGIORNAMENTI` in `.env`: `alpha`, `beta`, `rc`, `stabile`; ogni canale riceve anche le versioni più stabili; senza la variabile, il canale della versione installata);
+- file e profili di Compose da `COMPOSE_FILE` e `COMPOSE_PROFILES` in `.env` o, se assenti, produzione con database interno e backup.
+
+#### `Telonio`
+
+- **`sisma aggiorna-database`**: esegue come root (`DB_ROOT_PASSWORD`) gli script dei moduli nell'ordine di `MODULE_FOLDERS`: per un modulo nuovo `schema.sql` e `dati-riferimento.sql`; per un modulo installato gli `aggiornamento-<versione>.sql` non ancora applicati, in ordine di versione, poi `schema.sql` e `dati-riferimento.sql`. Gli script applicati sono registrati nella nuova tabella `aggiornamento_database`; le `SELECT` di controllo degli script vengono stampate; al termine elimina `Cache/referenceCache.json`. `--simula` mostra il piano. Vale anche per la prima installazione (README, "Avvio e installazione");
+- **`sisma aggiornamenti`**: versione installata, canale e ultima versione disponibile con le note di rilascio (`--canale=`, `--formato=shell` per lo script);
+- **avviso in scrivania** per gli amministratori quando è disponibile una nuova versione del canale, con le note di rilascio e il comando da lanciare: GitHub è interrogato al massimo ogni 12 ore (un'ora dopo un errore di rete, timeout di 5 secondi); `CONTROLLO_AGGIORNAMENTI=false` lo disattiva.
+
+### 🧩 Installazione
+
+- README: installazione con `sisma aggiorna-database` al posto dell'elenco degli script SQL; nuova sezione "Aggiornamento". `.env.example`: `CANALE_AGGIORNAMENTI`, `CONTROLLO_AGGIORNAMENTI` e, commentati, `COMPOSE_FILE`, `COMPOSE_PATH_SEPARATOR`, `COMPOSE_PROFILES`. `.aggiornamenti/` esclusa da Git e dall'archivio delle release.
+- Convenzione per gli script `aggiornamento-<versione>.sql` dei moduli: devono essere idempotenti e creare le tabelle che modificano (documentata in `www/Telonio/Docs/README.md`).
+
+### 🔄 Aggiornamento da 0.9.0-alpha
+
+Lo script di aggiornamento arriva con questa versione, quindi per l'ultima volta il codice si sostituisce a mano: le installazioni precedenti non hanno il comando `sisma aggiornamenti` che lo script usa per cercare la release. Con l'archivio della release scaricato:
+
+```bash
+curl -fLO https://github.com/valentinodelapa/telonio/releases/download/v0.10.0-alpha/telonio-v0.10.0-alpha.zip
+sha256sum telonio-v0.10.0-alpha.zip   # da confrontare con l'impronta della pagina della release
+unzip -p telonio-v0.10.0-alpha.zip aggiorna.sh > aggiorna.sh
+sh aggiorna.sh --archivio=telonio-v0.10.0-alpha.zip
+```
+
+Lo script esegue il backup, sostituisce il codice e aggiorna il database: `sisma aggiorna-database` crea il registro e riesegue una volta, senza effetti, gli script di aggiornamento già applicati. Lo stesso procedimento vale dalle versioni precedenti alla 0.9.0-alpha: gli script delle versioni intermedie (es. `Deleghe/Database/aggiornamento-0.3.sql` della 0.9.0-alpha) non ancora applicati vengono eseguiti in automatico. Dalla versione successiva basta `sh aggiorna.sh`. Facoltativi in `.env`: `CANALE_AGGIORNAMENTI`, `CONTROLLO_AGGIORNAMENTI` e, se i file di Compose non sono quelli predefiniti, `COMPOSE_FILE` e `COMPOSE_PROFILES`.
+
 ## [0.9.0-alpha] - 2026-10-29 - Pagamento Rateale e Ravvedimento Frazionato
 
 In `Deleghe` il pagamento rateale del saldo e del primo acconto (art. 20 D.Lgs. 241/1997) e del secondo acconto differito dalle norme straordinarie del 2023 e del 2024, il versamento tardivo dei contributi INPS e INAIL con le sanzioni civili e il ravvedimento frazionato. Valgono le avvertenze della 0.1.0-alpha: la versione non è indicata per l'uso in produzione su dati reali.
