@@ -79,7 +79,7 @@ ravvedere).
 
 | Entità | Contenuto |
 |---|---|
-| `Delega` | contribuente (`Soggetto`), modello (ordinario, semplificato, ELIDE, accise), data di versamento, stato, secondo codice fiscale con codice identificativo, conto di addebito (`ContoCorrente`), codice ufficio e atto, identificativo operazione, detrazione IMU, invio telematico, quietanza |
+| `Delega` | contribuente (`Soggetto`), modello (ordinario, semplificato, ELIDE, accise), data di versamento, stato, secondo codice fiscale con codice identificativo, conto di addebito (`ContoCorrente`), codice ufficio e atto, identificativo operazione, detrazione IMU, invio telematico, consegna al cliente (data e canale), quietanza (data, canale del pagamento del cliente, protocollo) |
 | `Versamento` | versamento del contribuente con la sua data, da versare (senza delega) o in una delega, con l'eventuale secondo codice fiscale richiesto: è il rigo di una sezione del modello (codice tributo o causale, riferimenti dell'ente, rateazione, anno o periodo, flag IMU e detrazione dell'abitazione principale, tipo ed elementi identificativi ELIDE, provincia, codice identificativo e mese accise, numero di certificazione crediti PA, importo a debito o a credito), con descrizione, origine e credito utilizzato |
 | `PianoRateazione` | pagamento rateale del saldo e del primo acconto: date delle rate; i versamenti originari sono collegati al piano, le rate sono versamenti generati con origine `Rateazione` |
 | `Credito` | credito del contribuente da compensare: dati del rigo a credito, importo, data da cui è utilizzabile, origine; il residuo è l'importo meno gli utilizzi (versamenti collegati) |
@@ -113,13 +113,25 @@ colonna non può avere una cifra subito dopo un underscore (`codice_24`).
 
 ## Stati della delega
 
-`bozza → confermata → trasmessa → quietanzata`, con passaggi indietro per
+`bozza → confermata → trasmessa → quietanzata` per le deleghe inviate dallo
+studio con Entratel, `bozza → confermata → consegnata → quietanzata` per
+quelle consegnate al cliente, che le paga da sé; passaggi indietro per
 correggere. Solo la bozza è modificabile e aggiornata dai moduli che
 generano versamenti; cambiando la data di versamento cambia anche quella
 dei suoi versamenti; la conferma richiede una delega senza errori; la
 generazione del file telematico porta le deleghe a "trasmessa" e
 l'annullamento dell'invio le riporta a "confermata"; la quietanza registra
 data di addebito e protocollo.
+
+"Consegna al cliente" (da "confermata") registra data e canale della
+consegna (a mano, email/PEC, area clienti, altro): la delega non entra più
+nelle forniture telematiche dello studio. Quando il cliente porta la
+ricevuta, "Registra quietanza" chiede anche il canale del pagamento (home
+banking, banca/sportello, posta, altro) e, facoltativo, il riferimento
+(es. CRO). Il percorso è lineare: una delega consegnata si quietanza solo
+passando dalla consegna, e la quietanza annullata torna allo stato da cui
+viene (consegnata o trasmessa). "Annulla consegna" la riporta a
+"confermata" e cancella i dati della consegna.
 
 ## Copia e ripetizione dei versamenti
 
@@ -552,7 +564,7 @@ originale; dove la fonte ha perso dei byte resta un carattere errato (es.
 versamenti dell'archivio del contribuente raggruppati per data di
 scadenza, compresi quelli registrati dagli altri moduli: una scadenza per
 contribuente e data, con il saldo e lo stato delle deleghe. È completata
-quando tutti i versamenti sono in deleghe trasmesse o quietanzate, o se
+quando tutti i versamenti sono in deleghe trasmesse, consegnate al cliente o quietanzate, o se
 omessi regolarizzati con un ravvedimento. `VersamentoModel::getPerPeriodo`
 legge i versamenti dello studio (o del contribuente) con scadenza nel
 periodo.

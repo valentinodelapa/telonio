@@ -9,6 +9,8 @@ use Deleghe\Application\Entities\Delega;
 use Deleghe\Application\Entities\Ravvedimento;
 use Deleghe\Application\Entities\SanzioneCivile;
 use Deleghe\Application\Entities\Versamento;
+use Deleghe\Application\Enumerations\CanaleConsegna;
+use Deleghe\Application\Enumerations\CanalePagamento;
 use Deleghe\Application\Enumerations\CodiceIdentificativo;
 use Deleghe\Application\Enumerations\ModelloF24;
 use Deleghe\Application\Enumerations\SezioneF24;
@@ -340,14 +342,16 @@ class DelegaController extends DelegheController
 
     /**
      * Passaggio di stato. La conferma richiede una delega senza errori; la
-     * quietanza registra data e protocollo; tornando indietro i dati della
-     * quietanza vengono rimossi.
+     * consegna al cliente registra data e canale; la quietanza registra data
+     * e protocollo e, per la delega consegnata, il canale del pagamento;
+     * tornando indietro i dati della consegna o della quietanza vengono
+     * rimossi.
      */
     public function stato(Request $request, Delega $delega, StatoDelega $stato): Response
     {
         $this->autorizza($delega);
         $this->verificaCsrf($request);
-        if (in_array($stato, $delega->stato->getPassaggi(), true) === false) {
+        if (in_array($stato, $delega->getPassaggi(), true) === false) {
             $this->aggiungiMessaggio('Passaggio di stato non consentito.', 'danger');
             return $this->vaiAllaDelega($delega);
         }
@@ -358,17 +362,33 @@ class DelegaController extends DelegheController
                 return $this->vaiAllaDelega($delega);
             }
         }
+        if (($stato === StatoDelega::consegnata) && ($delega->stato === StatoDelega::confermata)) {
+            $dataConsegna = self::leggiData((string) ($request->input['dataConsegna'] ?? ''));
+            $canaleConsegna = CanaleConsegna::tryFrom((string) ($request->input['canaleConsegna'] ?? ''));
+            if (($dataConsegna === null) || ($canaleConsegna === null)) {
+                $this->aggiungiMessaggio('Indicare data e canale della consegna al cliente.', 'danger');
+                return $this->vaiAllaDelega($delega);
+            }
+            $delega->dataConsegna = $dataConsegna;
+            $delega->canaleConsegna = $canaleConsegna;
+        } elseif (($stato === StatoDelega::confermata) && ($delega->stato === StatoDelega::consegnata)) {
+            $delega->dataConsegna = null;
+            $delega->canaleConsegna = null;
+        }
         if ($stato === StatoDelega::quietanzata) {
             $dataQuietanza = self::leggiData((string) ($request->input['dataQuietanza'] ?? ''));
-            if ($dataQuietanza === null) {
-                $this->aggiungiMessaggio('Indicare la data della quietanza.', 'danger');
+            $canalePagamento = CanalePagamento::tryFrom((string) ($request->input['canalePagamento'] ?? ''));
+            if (($dataQuietanza === null) || (($delega->stato === StatoDelega::consegnata) && ($canalePagamento === null))) {
+                $this->aggiungiMessaggio($delega->stato === StatoDelega::consegnata ? 'Indicare data e canale del pagamento.' : 'Indicare la data della quietanza.', 'danger');
                 return $this->vaiAllaDelega($delega);
             }
             $delega->dataQuietanza = $dataQuietanza;
+            $delega->canalePagamento = $delega->stato === StatoDelega::consegnata ? $canalePagamento : null;
             $protocollo = trim((string) ($request->input['protocollo'] ?? ''));
             $delega->protocollo = $protocollo === '' ? null : mb_substr($protocollo, 0, 50);
         } elseif ($delega->stato === StatoDelega::quietanzata) {
             $delega->dataQuietanza = null;
+            $delega->canalePagamento = null;
             $delega->protocollo = null;
         }
         $azione = $stato->getAzione($delega->stato);

@@ -6,6 +6,8 @@ use Deleghe\Application\Entities\Ravvedimento;
 use Deleghe\Application\Entities\SanzioneCivile;
 use Deleghe\Application\Enumerations\ModelloF24;
 use Deleghe\Application\Enumerations\SezioneF24;
+use Deleghe\Application\Enumerations\CanaleConsegna;
+use Deleghe\Application\Enumerations\CanalePagamento;
 use Deleghe\Application\Enumerations\StatoDelega;
 use Deleghe\Application\HelperClasses\Importo;
 use Deleghe\Application\Services\EsitoControllo;
@@ -37,8 +39,11 @@ require Layout::percorso('header');
         <?php if ($delega->codiceFiscaleCoobbligato !== null): ?>
             <div class="small text-body-secondary"><?= Html::e($campi['codiceIdentificativo']) ?> <?= Html::e($delega->codiceIdentificativo?->getLabel() ?? '') ?>: <span class="font-monospace"><?= Html::e($delega->codiceFiscaleCoobbligato) ?></span></div>
         <?php endif; ?>
+        <?php if ($delega->dataConsegna !== null): ?>
+            <div class="small text-warning-emphasis"><i class="bi bi-person-check me-1"></i><?= Html::e($consegna) ?> <?= Html::data($delega->dataConsegna) ?><?= $delega->canaleConsegna !== null ? ' · ' . Html::e($delega->canaleConsegna->getLabel()) : '' ?></div>
+        <?php endif; ?>
         <?php if ($delega->dataQuietanza !== null): ?>
-            <div class="small text-success"><i class="bi bi-check-circle me-1"></i><?= Html::e($quietanza) ?> <?= Html::data($delega->dataQuietanza) ?><?= $delega->protocollo !== null ? ' · ' . Html::e($delega->protocollo) : '' ?></div>
+            <div class="small text-success"><i class="bi bi-check-circle me-1"></i><?= Html::e($quietanza) ?> <?= Html::data($delega->dataQuietanza) ?><?= $delega->canalePagamento !== null ? ' · ' . Html::e($delega->canalePagamento->getLabel()) : '' ?><?= $delega->protocollo !== null ? ' · ' . Html::e($delega->protocollo) : '' ?></div>
         <?php endif; ?>
     </div>
     <div class="d-flex flex-wrap gap-2">
@@ -105,14 +110,31 @@ require Layout::percorso('header');
         <div class="card shadow-sm h-100">
             <div class="card-header bg-white fw-semibold"><?= Html::e($campi['stato']) ?></div>
             <div class="card-body d-flex flex-column gap-2">
-                <?php foreach ($delega->stato->getPassaggi() as $passaggio): ?>
+                <?php foreach ($delega->getPassaggi() as $passaggio): ?>
                     <form method="post" action="/delega/stato/delega/<?= Html::e($id) ?>/stato/<?= Html::e($passaggio->value) ?>" class="d-flex flex-wrap align-items-end gap-2">
                         <?= $campoCsrf ?>
+                        <?php if (($passaggio === StatoDelega::consegnata) && ($delega->stato === StatoDelega::confermata)): ?>
+                            <div><label class="form-label small mb-0" for="dataConsegna"><?= Html::e($campi['dataConsegna']) ?></label><input type="date" class="form-control form-control-sm" id="dataConsegna" name="dataConsegna" value="<?= Html::data(new DateTime(), 'Y-m-d') ?>" required title="<?= Html::e($aiutoConsegna) ?>"></div>
+                            <div class="flex-grow-1"><label class="form-label small mb-0" for="canaleConsegna"><?= Html::e($campi['canaleConsegna']) ?></label>
+                                <select class="form-select form-select-sm" id="canaleConsegna" name="canaleConsegna" required>
+                                    <option value=""><?= Html::e($selezionare) ?></option>
+                                    <?php foreach (CanaleConsegna::cases() as $canale): ?><option value="<?= Html::e($canale->value) ?>"><?= Html::e($canale->getLabel()) ?></option><?php endforeach; ?>
+                                </select>
+                            </div>
+                        <?php endif; ?>
                         <?php if ($passaggio === StatoDelega::quietanzata): ?>
                             <div><label class="form-label small mb-0" for="dataQuietanza"><?= Html::e($campi['dataQuietanza']) ?></label><input type="date" class="form-control form-control-sm" id="dataQuietanza" name="dataQuietanza" value="<?= Html::data($delega->scadenza, 'Y-m-d') ?>" required title="<?= Html::e($aiutoQuietanza) ?>"></div>
+                            <?php if ($delega->stato === StatoDelega::consegnata): ?>
+                                <div><label class="form-label small mb-0" for="canalePagamento"><?= Html::e($campi['canalePagamento']) ?></label>
+                                    <select class="form-select form-select-sm" id="canalePagamento" name="canalePagamento" required>
+                                        <option value=""><?= Html::e($selezionare) ?></option>
+                                        <?php foreach (CanalePagamento::cases() as $canale): ?><option value="<?= Html::e($canale->value) ?>"><?= Html::e($canale->getLabel()) ?></option><?php endforeach; ?>
+                                    </select>
+                                </div>
+                            <?php endif; ?>
                             <div class="flex-grow-1"><label class="form-label small mb-0" for="protocollo"><?= Html::e($campi['protocollo']) ?></label><input type="text" class="form-control form-control-sm" id="protocollo" name="protocollo" maxlength="50"></div>
                         <?php endif; ?>
-                        <?php $avanti = array_search($passaggio, StatoDelega::cases(), true) > array_search($delega->stato, StatoDelega::cases(), true); ?>
+                        <?php $avanti = $passaggio->isAvanti($delega->stato); ?>
                         <button type="submit" class="btn btn-sm <?= $avanti ? 'btn-primary' : 'btn-outline-secondary' ?>" <?= ($passaggio === StatoDelega::confermata && $avanti && $esito->isConfermabile() === false) ? 'disabled' : '' ?>><?= Html::e($passaggio->getAzione($delega->stato)) ?></button>
                     </form>
                 <?php endforeach; ?>

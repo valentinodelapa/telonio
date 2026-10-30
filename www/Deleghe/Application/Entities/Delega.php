@@ -5,6 +5,8 @@ namespace Deleghe\Application\Entities;
 use Anagrafica\Application\Entities\ContoCorrente;
 use Anagrafica\Application\Entities\Soggetto;
 use Telonio\Application\Entities\Studio;
+use Deleghe\Application\Enumerations\CanaleConsegna;
+use Deleghe\Application\Enumerations\CanalePagamento;
 use Deleghe\Application\Enumerations\CodiceIdentificativo;
 use Deleghe\Application\Enumerations\ModelloF24;
 use Deleghe\Application\Enumerations\StatoDelega;
@@ -21,6 +23,9 @@ use SismaFramework\Orm\ExtendedClasses\ReferencedEntity;
  * Versamento. Il conto di addebito serve per l'invio telematico con addebito
  * sul conto del contribuente (o del secondo soggetto, per i codici
  * identificativi che lo richiedono).
+ *
+ * La delega consegnata al cliente, che la paga da sé, ha data e canale della
+ * consegna e, con la quietanza, il canale del pagamento.
  */
 class Delega extends ReferencedEntity
 {
@@ -40,7 +45,10 @@ class Delega extends ReferencedEntity
     protected ?string $identificativoOperazione = null;
     protected ?float $detrazioneImu = null;
     protected ?InvioTelematico $invioTelematico = null;
+    protected ?SismaDate $dataConsegna = null;
+    protected ?CanaleConsegna $canaleConsegna = null;
     protected ?SismaDate $dataQuietanza = null;
+    protected ?CanalePagamento $canalePagamento = null;
     protected ?string $protocollo = null;
     protected ?string $note = null;
     protected SismaDateTime $dataInserimento;
@@ -61,5 +69,13 @@ class Delega extends ReferencedEntity
     public function isModificabile(): bool
     {
         return $this->stato->isModificabile();
+    }
+
+    /**
+     * @return StatoDelega[] passaggi di stato consentiti (StatoDelega::getPassaggi)
+     */
+    public function getPassaggi(): array
+    {
+        return $this->stato->getPassaggi($this->dataConsegna !== null);
     }
 }

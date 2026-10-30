@@ -18,6 +18,8 @@ use Deleghe\Application\Entities\SanzioneCivile;
 use Deleghe\Application\Entities\TassoInteresseLegale;
 use Deleghe\Application\Entities\TassoRiferimento;
 use Deleghe\Application\Entities\Versamento;
+use Deleghe\Application\Enumerations\CanaleConsegna;
+use Deleghe\Application\Enumerations\CanalePagamento;
 use Deleghe\Application\Enumerations\CircostanzaRavvedimento;
 use Deleghe\Application\Enumerations\CodiceIdentificativo;
 use Deleghe\Application\Enumerations\DichiarazioneRiferimento;
@@ -332,6 +334,25 @@ class EntitiesAndEnumerationsTest extends SuiteTestCase
         $this->assertSame('Segna come trasmessa', StatoDelega::trasmessa->getAzione(StatoDelega::confermata));
         $this->assertSame('Annulla quietanza', StatoDelega::trasmessa->getAzione(StatoDelega::quietanzata));
         $this->assertSame('Registra quietanza', StatoDelega::quietanzata->getAzione(StatoDelega::trasmessa));
+
+        // percorso della delega consegnata al cliente: confermata -> consegnata -> quietanzata, e indietro
+        $this->assertSame([StatoDelega::bozza, StatoDelega::trasmessa, StatoDelega::consegnata], StatoDelega::confermata->getPassaggi());
+        $this->assertSame([StatoDelega::confermata, StatoDelega::quietanzata], StatoDelega::consegnata->getPassaggi());
+        $this->assertSame([StatoDelega::trasmessa], StatoDelega::quietanzata->getPassaggi());
+        $this->assertSame([StatoDelega::consegnata], StatoDelega::quietanzata->getPassaggi(true));
+        $this->assertSame('Consegna al cliente', StatoDelega::consegnata->getAzione(StatoDelega::confermata));
+        $this->assertSame('Annulla consegna', StatoDelega::confermata->getAzione(StatoDelega::consegnata));
+        $this->assertSame('Annulla quietanza', StatoDelega::consegnata->getAzione(StatoDelega::quietanzata));
+        $this->assertSame('Registra quietanza', StatoDelega::quietanzata->getAzione(StatoDelega::consegnata));
+        $this->assertFalse(StatoDelega::consegnata->isModificabile());
+        $delega = new Delega($this->dataMapper);
+        $delega->stato = StatoDelega::quietanzata;
+        $this->assertSame([StatoDelega::trasmessa], $delega->getPassaggi());
+        $delega->dataConsegna = new SismaDate('2026-11-10');
+        $this->assertSame([StatoDelega::consegnata], $delega->getPassaggi());
+        foreach ([...CanaleConsegna::cases(), ...CanalePagamento::cases()] as $canale) {
+            $this->assertNotEmpty($canale->getLabel());
+        }
 
         foreach (TabellaF24::cases() as $tab) {
             $this->assertNotEmpty($tab->getLabel());

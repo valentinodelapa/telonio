@@ -22,8 +22,8 @@ use SismaFramework\Orm\HelperClasses\DataMapper;
  * quelli registrati dagli altri moduli (IMU, successioni, ...).
  *
  * La scadenza è completata quando tutti i versamenti sono in deleghe
- * trasmesse o quietanzate, oppure, se omessi, regolarizzati con un
- * ravvedimento.
+ * trasmesse, consegnate al cliente (che le paga da sé) o quietanzate,
+ * oppure, se omessi, regolarizzati con un ravvedimento.
  */
 class ScadenzeModulo implements FonteScadenze
 {
@@ -51,7 +51,7 @@ class ScadenzeModulo implements FonteScadenze
                 $saldo += $versamento->importoDebito - $versamento->importoCredito;
                 $stato = $versamento->delega?->stato;
                 $stati[$stato?->getLabel() ?? 'da inserire in delega'] = ($stati[$stato?->getLabel() ?? 'da inserire in delega'] ?? 0) + 1;
-                if (in_array($stato, [StatoDelega::trasmessa, StatoDelega::quietanzata], true) || (($stato === null) && ($ravvedimentoModel->countByVersamentoOmesso($versamento) > 0))) {
+                if (in_array($stato, [StatoDelega::trasmessa, StatoDelega::consegnata, StatoDelega::quietanzata], true) || (($stato === null) && ($ravvedimentoModel->countByVersamentoOmesso($versamento) > 0))) {
                     $eseguiti++;
                 }
             }

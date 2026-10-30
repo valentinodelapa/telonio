@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.13.0-alpha] - 2026-10-30 - Delega Consegnata al Cliente
+
+Tredicesima versione alpha: in `Deleghe` la delega che il cliente paga da sé si registra come consegnata, con data e canale della consegna, e si quietanza con il canale del pagamento; non entra più nelle forniture telematiche dello studio. Valgono le avvertenze della 0.1.0-alpha: la versione non è indicata per l'uso in produzione su dati reali.
+
+Versioni dei moduli: `Deleghe` 0.5.0; `Telonio` 0.6.0, `Anagrafica` 0.5.1, `Imu` 0.3.2, `Successioni` 0.3.2 e `GestioneStudio` 0.1.1 invariati.
+
+### ✨ Nuove Funzionalità
+
+#### `Deleghe` — delega consegnata al cliente
+
+- **nuovo stato "Consegnata"** per le deleghe che il cliente paga da sé (home banking, banca, posta), alternativo a "Trasmessa": dalla delega confermata "Consegna al cliente" registra la data e il canale della consegna (a mano, email/PEC, area clienti, altro). La delega consegnata non entra più nelle forniture telematiche dello studio;
+- **quietanza del pagamento del cliente**: dalla delega consegnata "Registra quietanza" chiede, oltre alla data e al riferimento facoltativo (es. CRO), il canale del pagamento (home banking, banca/sportello, posta, altro). Il percorso è lineare, `confermata → consegnata → quietanzata`; "Annulla quietanza" torna a "consegnata" e "Annulla consegna" a "confermata", cancellando i dati registrati;
+- consegna e quietanza, con canale, sono mostrate nella delega; nello scadenzario una data è completata anche quando i versamenti sono in deleghe consegnate al cliente.
+
+### 🔄 Aggiornamento da 0.12.0-alpha
+
+`sh aggiorna.sh` (con `sudo` se la cartella dell'installazione appartiene a root): `sisma aggiorna-database` esegue `Deleghe/Database/aggiornamento-0.5.sql` (idempotente), che aggiunge a `delega` le colonne `data_consegna`, `canale_consegna` e `canale_pagamento`.
+
 ## [0.12.0-alpha] - 2026-10-30 - Scelta dei Versamenti da Mettere in Delega
 
 Dodicesima versione alpha: in `Deleghe` si scelgono i versamenti di una data da mettere in delega (generazione, nuova delega, aggiunta alla delega in bozza), quelli non scelti restano da versare, e "Togli dalla delega" è distinto da "Elimina". Valgono le avvertenze della 0.1.0-alpha: la versione non è indicata per l'uso in produzione su dati reali.
