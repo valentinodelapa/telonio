@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.0-alpha] - 2026-10-30 - Scelta dei Versamenti da Mettere in Delega
+
+Dodicesima versione alpha: in `Deleghe` si scelgono i versamenti di una data da mettere in delega (generazione, nuova delega, aggiunta alla delega in bozza), quelli non scelti restano da versare, e "Togli dalla delega" è distinto da "Elimina". Valgono le avvertenze della 0.1.0-alpha: la versione non è indicata per l'uso in produzione su dati reali.
+
+Versioni dei moduli: `Deleghe` 0.4.0; `Telonio` 0.6.0, `Anagrafica` 0.5.1, `Imu` 0.3.2, `Successioni` 0.3.2 e `GestioneStudio` 0.1.1 invariati.
+
+### ✨ Nuove Funzionalità
+
+#### `Deleghe` — scelta dei versamenti da mettere in delega
+
+- **"Genera la delega"** nella scheda del contribuente inserisce solo i versamenti spuntati della data (di default tutti): gli altri restano da versare, per pagarli in un'altra data o ravvederli dopo la scadenza. Prima la delega riceveva per forza tutti i versamenti della data;
+- **"Nuova delega"** elenca i versamenti da versare della data scelta, con la spunta (di default su tutti), e inserisce solo quelli spuntati; se nel form si cambia la data, i versamenti della nuova data si scelgono dalla delega con "Aggiungi alla delega";
+- **"Aggiungi alla delega"** nella delega in bozza elenca i versamenti da versare della stessa data rimasti fuori e aggiunge solo quelli scelti (non preselezionati, perché di solito sono stati lasciati fuori apposta), invece di aggiungerli tutti.
+
+### 🔧 Modifiche
+
+#### `Deleghe`
+
+- nella delega "Togli dalla delega" (il versamento torna da versare) è un pulsante con la sua etichetta invece della sola icona accanto al cestino, e la conferma di "Elimina" avverte che il versamento viene cancellato dall'archivio e non torna da versare.
+
+### 🔄 Aggiornamento da 0.11.0-alpha
+
+Nessuna modifica al database: `sh aggiorna.sh` (con `sudo` se la cartella dell'installazione appartiene a root).
+
 ## [0.11.0-alpha] - 2026-10-29 - Versioni nell'Interfaccia e Aggiornamento più Robusto
 
 Undicesima versione alpha: la versione installata della suite e dei moduli è visibile nell'interfaccia; lo script di aggiornamento segnala i permessi insufficienti, riconosce i blocchi lasciati dagli aggiornamenti interrotti e non si ferma se la sessione si chiude. Valgono le avvertenze della 0.1.0-alpha: la versione non è indicata per l'uso in produzione su dati reali.

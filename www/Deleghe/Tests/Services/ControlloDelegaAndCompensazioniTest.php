@@ -505,6 +505,14 @@ class ControlloDelegaAndCompensazioniTest extends SuiteTestCase
         $delegheGen = $gen->genera($soggetto, new SismaDate('2026-06-16'), false);
         $this->assertCount(1, $delegheGen);
         $this->assertSame(200.0, $delegheGen[0]->detrazioneImu);
+
+        // versamenti scelti: quelli non scelti restano da versare (es. da ravvedere)
+        $escluso = clone $daVersare;
+        $escluso->id = 56;
+        $escluso->delega = null;
+        $this->testAdapter->accodaSelect(new TestResultSet([$escluso]), TestResultSet::conteggio(0));
+        $this->assertSame([], $gen->genera($soggetto, new SismaDate('2026-06-16'), false, [55]));
+        $this->assertNull($escluso->delega);
     }
 
     public function testCopiaVersamentiDatiContribuenteRiepilogoAndRavvedimentoSanzioniServices(): void

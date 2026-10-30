@@ -3,6 +3,7 @@
 use Telonio\Application\HelperClasses\Campo;
 use Telonio\Application\HelperClasses\Html;
 use Telonio\Application\HelperClasses\Layout;
+use Deleghe\Application\HelperClasses\Importo;
 
 $urlAnnulla = $nuova ? '/contribuente/show/soggetto/' . $delega->soggetto->id : '/delega/show/delega/' . $delega->id;
 
@@ -32,6 +33,23 @@ require Layout::percorso('header');
                         <?php endforeach; ?>
                     <?php endif; ?>
                 </div>
+                <input type="hidden" name="dataElenco" value="<?= Html::e($dataElenco) ?>">
+                <?php if (count($versamentiData) > 0): ?>
+                    <div class="col-12">
+                        <div class="form-label"><?= Html::e(sprintf($etichettaVersamentiData, Html::data(new DateTime($dataElenco)))) ?></div>
+                        <?php foreach ($versamentiData as $versamento): ?>
+                            <div class="form-check small">
+                                <input class="form-check-input" type="checkbox" name="versamenti[]" value="<?= Html::e($versamento->id) ?>" id="versamento-<?= Html::e($versamento->id) ?>" <?= in_array($versamento->id, $idScelti, true) ? 'checked' : '' ?>>
+                                <label class="form-check-label" for="versamento-<?= Html::e($versamento->id) ?>">
+                                    <span class="badge text-bg-light border"><?= Html::e($versamento->sezione->getLabel()) ?></span>
+                                    <span class="font-monospace fw-semibold"><?= Html::e($versamento->getCodice()) ?></span> <?= Html::e($versamento->descrizione ?? $versamento->getDescrizione()) ?>
+                                    · € <?= Html::e(Importo::euro($versamento->importoDebito - $versamento->importoCredito)) ?>
+                                </label>
+                            </div>
+                        <?php endforeach; ?>
+                        <div class="form-text"><?= Html::e($aiutoVersamentiData) ?></div>
+                    </div>
+                <?php endif; ?>
                 <?php if ($conCrediti): ?>
                     <div class="col-12">
                         <div class="form-check">

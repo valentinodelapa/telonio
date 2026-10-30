@@ -132,10 +132,23 @@ require Layout::percorso('header');
 </div>
 
 <?php if (count($daVersare) > 0): ?>
-    <div class="alert alert-info d-flex flex-wrap align-items-center gap-2">
-        <span class="me-auto"><i class="bi bi-inbox me-1"></i><?= Html::e(sprintf($testoDaVersare, count($daVersare), EsitoControllo::euro(array_sum(array_map(fn($versamento) => EsitoControllo::centesimi($versamento->importoDebito) - EsitoControllo::centesimi($versamento->importoCredito), $daVersare))))) ?></span>
-        <form method="post" action="/delega/aggiungi-da-versare/delega/<?= Html::e($id) ?>"><?= $campoCsrf ?><button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg me-1"></i><?= Html::e($azioni['aggiungiDaVersare']) ?></button></form>
-    </div>
+    <form method="post" action="/delega/aggiungi-da-versare/delega/<?= Html::e($id) ?>" class="alert alert-info">
+        <?= $campoCsrf ?>
+        <input type="hidden" name="scelta" value="1">
+        <div class="d-flex flex-wrap align-items-center gap-2">
+            <span class="me-auto"><i class="bi bi-inbox me-1"></i><?= Html::e(sprintf($testoDaVersare, count($daVersare), EsitoControllo::euro(array_sum(array_map(fn($versamento) => EsitoControllo::centesimi($versamento->importoDebito) - EsitoControllo::centesimi($versamento->importoCredito), $daVersare))))) ?></span>
+            <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg me-1"></i><?= Html::e($azioni['aggiungiDaVersare']) ?></button>
+        </div>
+        <?php foreach ($daVersare as $versamento): ?>
+            <div class="form-check small mt-1">
+                <input class="form-check-input" type="checkbox" name="versamenti[]" value="<?= Html::e($versamento->id) ?>" id="da-versare-<?= Html::e($versamento->id) ?>">
+                <label class="form-check-label" for="da-versare-<?= Html::e($versamento->id) ?>">
+                    <span class="font-monospace fw-semibold"><?= Html::e($versamento->getCodice()) ?></span> <?= Html::e($versamento->descrizione ?? $versamento->getDescrizione()) ?>
+                    · € <?= Html::e(Importo::euro($versamento->importoDebito - $versamento->importoCredito)) ?>
+                </label>
+            </div>
+        <?php endforeach; ?>
+    </form>
 <?php endif; ?>
 
 <?php if (count($creditiDisponibili) > 0): ?>
@@ -271,9 +284,9 @@ require Layout::percorso('header');
                                             <a href="/versamento/update/versamento/<?= Html::e($riga->id) ?>" class="btn btn-sm btn-outline-secondary" title="<?= Html::e($azioni['modifica']) ?>"><i class="bi bi-pencil"></i></a>
                                         <?php endif; ?>
                                         <?php if (($riga->credito === null) && (in_array($riga->origine, $originiDelega, true) === false)): ?>
-                                            <form method="post" action="/versamento/rimuovi/versamento/<?= Html::e($riga->id) ?>" class="d-inline"><?= $campoCsrf ?><button type="submit" class="btn btn-sm btn-outline-secondary" title="<?= Html::e($azioni['rimuovi']) ?>"><i class="bi bi-box-arrow-up"></i></button></form>
+                                            <form method="post" action="/versamento/rimuovi/versamento/<?= Html::e($riga->id) ?>" class="d-inline"><?= $campoCsrf ?><button type="submit" class="btn btn-sm btn-outline-primary text-nowrap" title="<?= Html::e($azioni['aiutoRimuovi']) ?>"><i class="bi bi-box-arrow-up me-1"></i><?= Html::e($azioni['rimuovi']) ?></button></form>
                                         <?php endif; ?>
-                                        <form method="post" action="/versamento/delete/versamento/<?= Html::e($riga->id) ?>" class="d-inline" data-conferma="<?= Html::e($confermaElimina) ?>"><?= $campoCsrf ?><button type="submit" class="btn btn-sm btn-outline-danger" title="<?= Html::e($azioni['elimina']) ?>"><i class="bi bi-trash"></i></button></form>
+                                        <form method="post" action="/versamento/delete/versamento/<?= Html::e($riga->id) ?>" class="d-inline" data-conferma="<?= Html::e(($riga->credito === null) && (in_array($riga->origine, $originiDelega, true) === false) ? $confermaEliminaRigo : $confermaElimina) ?>"><?= $campoCsrf ?><button type="submit" class="btn btn-sm btn-outline-danger" title="<?= Html::e($azioni['elimina']) ?>"><i class="bi bi-trash"></i></button></form>
                                     <?php endif; ?>
                                 </td>
                             </tr>

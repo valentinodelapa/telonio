@@ -18,9 +18,11 @@ apre l'elenco dei contribuenti (di default i soli clienti) e la scheda del
 contribuente ha tre schede:
 
 - **Da versare**: i versamenti non ancora in una delega, raggruppati per
-  data di versamento. Per ogni data "Genera la delega" li raccoglie nella
-  delega in bozza di quella data (creata se manca), separando ELIDE e accise
-  nei loro modelli, e a richiesta li compensa con i crediti disponibili. I
+  data di versamento. Per ogni data "Genera la delega" raccoglie quelli
+  spuntati (di default tutti) nella delega in bozza di quella data (creata
+  se manca), separando ELIDE e accise nei loro modelli, e a richiesta li
+  compensa con i crediti disponibili; quelli non spuntati restano da versare
+  (es. da pagare in un'altra data o da ravvedere dopo la scadenza). I
   versamenti con data superata non si generano: "Ravvedi" apre il calcolo
   del ravvedimento nella delega della data scelta, con i dati del
   versamento, che non risulta più da versare.
@@ -30,14 +32,20 @@ contribuente ha tre schede:
 
 "Nuova delega" chiede la data di versamento (proponendo le date che hanno
 versamenti da versare) e vi inserisce subito i versamenti di quella data
-ammessi dal modello, con le compensazioni se richieste. Il riepilogo dei
+spuntati nell'elenco (di default tutti) e ammessi dal modello, con le
+compensazioni se richieste; se nel form si cambia la data, i versamenti
+della nuova data si scelgono poi dalla delega con "Aggiungi alla delega". Il riepilogo dei
 crediti con residuo è anche in testa alla scheda "Da versare".
 
 I versamenti si inseriscono nell'archivio ("Nuovo versamento") o
 direttamente in una delega in bozza; dalla delega un versamento si può
-togliere (torna da versare) ed eliminando la delega tornano tutti da
-versare, tranne gli utilizzi dei crediti e i versamenti calcolati nella
-delega (ravvedimenti e sanzioni civili). Gli invii telematici, gli
+togliere con "Togli dalla delega" (torna da versare con la data della
+delega) ed eliminando la delega tornano tutti da versare, tranne gli
+utilizzi dei crediti e i versamenti calcolati nella delega (ravvedimenti e
+sanzioni civili). "Elimina" invece cancella il versamento dall'archivio
+(quelli generati da un altro modulo tornano con il suo ricalcolo). Nella
+delega in bozza i versamenti da versare della stessa data rimasti fuori
+sono elencati e si aggiungono scegliendoli uno per uno. Gli invii telematici, gli
 intermediari e i codici tributo restano a livello di studio.
 
 ## Installazione

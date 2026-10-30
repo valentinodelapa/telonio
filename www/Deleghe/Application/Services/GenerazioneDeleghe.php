@@ -33,12 +33,17 @@ class GenerazioneDeleghe
     }
 
     /**
+     * @param int[]|null $idScelti versamenti da inserire tra quelli da versare
+     *        della data (null: tutti); gli altri restano da versare
      * @return Delega[] deleghe che hanno ricevuto i versamenti
      */
-    public function genera(Soggetto $soggetto, SismaDate $scadenza, bool $compensa): array
+    public function genera(Soggetto $soggetto, SismaDate $scadenza, bool $compensa, ?array $idScelti = null): array
     {
         $gruppi = [];
         foreach ((new VersamentoModel($this->dataMapper))->getDaVersare($soggetto, $scadenza) as $versamento) {
+            if (($idScelti !== null) && (in_array($versamento->id, $idScelti, true) === false)) {
+                continue;
+            }
             $gruppi[self::getModello($versamento->sezione)->value . '|' . ($versamento->codiceFiscaleCoobbligato ?? '') . '|' . ($versamento->codiceIdentificativo?->value ?? '')][] = $versamento;
         }
         $deleghe = [];

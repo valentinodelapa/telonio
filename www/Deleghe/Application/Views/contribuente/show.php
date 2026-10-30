@@ -119,9 +119,10 @@ require Layout::percorso('header');
                     <a href="/rateazione/create/soggetto/<?= Html::e($id) ?>/scadenza/<?= Html::e($data) ?>" class="btn btn-sm btn-outline-primary"><i class="bi bi-calendar3 me-1"></i><?= Html::e($azioni['rateizza']) ?></a>
                 <?php endif; ?>
                 <?php if ($scaduto === false): ?>
-                    <form method="post" action="/delega/genera/soggetto/<?= Html::e($id) ?>" class="d-flex align-items-center gap-2">
+                    <form method="post" action="/delega/genera/soggetto/<?= Html::e($id) ?>" id="genera-<?= Html::e($data) ?>" class="d-flex align-items-center gap-2">
                         <?= $campoCsrf ?>
                         <input type="hidden" name="scadenza" value="<?= Html::e($data) ?>">
+                        <input type="hidden" name="scelta" value="1">
                         <?php if ($creditiConResiduo > 0): ?>
                             <div class="form-check small mb-0">
                                 <input class="form-check-input" type="checkbox" name="compensa" value="1" id="compensa-<?= Html::e($data) ?>" checked>
@@ -139,6 +140,11 @@ require Layout::percorso('header');
                     <tbody>
                         <?php foreach ($versamenti as $versamento): ?>
                             <tr>
+                                <td style="width: 2rem">
+                                    <?php if ($scaduto === false): ?>
+                                        <input class="form-check-input" type="checkbox" name="versamenti[]" value="<?= Html::e($versamento->id) ?>" form="genera-<?= Html::e($data) ?>" checked title="<?= Html::e($aiutoSceltaDelega) ?>" aria-label="<?= Html::e($aiutoSceltaDelega) ?> <?= Html::e($versamento->getCodice()) ?>">
+                                    <?php endif; ?>
+                                </td>
                                 <td class="text-nowrap"><span class="badge text-bg-light border"><?= Html::e($versamento->sezione->getLabel()) ?></span></td>
                                 <td class="font-monospace fw-semibold"><?= Html::e($versamento->getCodice()) ?></td>
                                 <td class="small">

@@ -59,8 +59,9 @@ class DelegaController extends DelegheController
 
     /**
      * Nuova delega del contribuente per la data scelta: vi entrano subito i
-     * versamenti da versare con quella data che il modello ammette e, a
-     * richiesta, le compensazioni con i crediti disponibili.
+     * versamenti da versare con quella data spuntati nel form (di default
+     * tutti) che il modello ammette e, a richiesta, le compensazioni con i
+     * crediti disponibili.
      */
     public function create(Request $request, Soggetto $soggetto, string $scadenza = ''): Response
     {
@@ -75,15 +76,23 @@ class DelegaController extends DelegheController
             $delega->contoAddebito ??= (new ContoCorrenteModel($this->dataMapper))->getPredefinito($delega->soggetto);
             $primaTransazione = $this->dataMapper->startTransaction();
             $this->dataMapper->save($delega);
-            $daVersare = (new VersamentoModel($this->dataMapper))->getDaVersare($soggetto, $delega->scadenza);
+            // versamenti spuntati nell'elenco della data mostrata; se la data è stata cambiata nel form
+            // l'elenco non vale per la nuova data: i versamenti si scelgono dalla delega ("Aggiungi alla delega")
+            $idScelti = array_map('intval', (array) ($request->input['versamenti'] ?? []));
+            $dataCambiata = ($request->input['dataElenco'] ?? '') !== $delega->scadenza->format('Y-m-d');
+            $daVersare = $dataCambiata ? [] : array_values(array_filter((new VersamentoModel($this->dataMapper))->getDaVersare($soggetto, $delega->scadenza),
+                                    fn(Versamento $versamento) => in_array($versamento->id, $idScelti, true)));
             $ammessi = array_filter($daVersare, fn(Versamento $versamento) => $delega->modello->ammetteSezione($versamento->sezione));
             (new GenerazioneDeleghe($this->dataMapper))->aggiungi($delega, $ammessi);
             $compensazioni = isset($request->input['compensa']) ? (new Compensazioni($this->dataMapper))->compensaAutomaticamente($delega) : [];
             $this->dataMapper->commitTransaction($primaTransazione);
-            $messaggio = count($ammessi) === 0 ? 'Delega creata: nessun versamento da versare il ' . $delega->scadenza->format('d/m/Y') . ', aggiungili nelle sezioni del modello.'
-                    : 'Delega creata con ' . count($ammessi) . ' versamenti da versare del ' . $delega->scadenza->format('d/m/Y') . (count($compensazioni) > 0 ? ' e ' . count($compensazioni) . ' compensazioni' : '') . '.';
+            $messaggio = match (true) {
+                $dataCambiata => 'Delega creata: i versamenti da versare del ' . $delega->scadenza->format('d/m/Y') . ', se ce ne sono, si scelgono con "Aggiungi alla delega".',
+                count($ammessi) === 0 => 'Delega creata senza versamenti da versare: aggiungili nelle sezioni del modello.',
+                default => 'Delega creata con ' . count($ammessi) . ' versamenti da versare del ' . $delega->scadenza->format('d/m/Y') . (count($compensazioni) > 0 ? ' e ' . count($compensazioni) . ' compensazioni' : '') . '.',
+            };
             if (count($daVersare) > count($ammessi)) {
-                $messaggio .= ' ' . (count($daVersare) - count($ammessi)) . ' versamenti della stessa data non sono previsti nel ' . $delega->modello->getLabel() . ': restano da versare.';
+                $messaggio .= ' ' . (count($daVersare) - count($ammessi)) . ' versamenti scelti non sono previsti nel ' . $delega->modello->getLabel() . ': restano da versare.';
             }
             $this->aggiungiMessaggio($messaggio);
             return $this->vaiAllaDelega($delega);
@@ -94,6 +103,11 @@ class DelegaController extends DelegheController
             $dateDaVersare[$data] = ($dateDaVersare[$data] ?? 0) + 1;
         }
         $this->vars['dateDaVersare'] = $dateDaVersare;
+        // elenco della data mostrata: di default tutti spuntati, dopo un invio con errori la scelta fatta
+        $this->vars['dataElenco'] = $delega->scadenza->format('Y-m-d');
+        $this->vars['versamentiData'] = (new VersamentoModel($this->dataMapper))->getDaVersare($soggetto, $delega->scadenza);
+        $this->vars['idScelti'] = ($request->input['dataElenco'] ?? null) === $this->vars['dataElenco'] ? array_map('intval', (array) ($request->input['versamenti'] ?? []))
+                : array_map(fn(Versamento $versamento) => $versamento->id, $this->vars['versamentiData']);
         $creditoModel = new CreditoModel($this->dataMapper);
         $this->vars['conCrediti'] = count(array_filter(iterator_to_array($creditoModel->getElenco($soggetto), false), fn($credito) => $creditoModel->getResiduo($credito) > 0)) > 0;
         $this->vars['pageTitle'] = 'Nuova delega F24';
@@ -103,7 +117,8 @@ class DelegaController extends DelegheController
 
     /**
      * Genera (o completa) le deleghe del contribuente per una data con i
-     * versamenti da versare di quella data.
+     * versamenti da versare di quella data scelti nella scheda (tutti se il
+     * form non indica la scelta); gli altri restano da versare.
      */
     public function genera(Request $request, Soggetto $soggetto): Response
     {
@@ -114,8 +129,13 @@ class DelegaController extends DelegheController
             $this->aggiungiMessaggio('Indicare la data di versamento.', 'danger');
             return $this->vaiAlContribuente($soggetto);
         }
+        $idScelti = isset($request->input['scelta']) ? array_map('intval', (array) ($request->input['versamenti'] ?? [])) : null;
+        if ($idScelti === []) {
+            $this->aggiungiMessaggio('Scegliere almeno un versamento da mettere in delega.', 'warning');
+            return $this->vaiAlContribuente($soggetto);
+        }
         try {
-            $deleghe = (new GenerazioneDeleghe($this->dataMapper))->genera($soggetto, $scadenza, isset($request->input['compensa']));
+            $deleghe = (new GenerazioneDeleghe($this->dataMapper))->genera($soggetto, $scadenza, isset($request->input['compensa']), $idScelti);
         } catch (DelegaNonModificabileException | \InvalidArgumentException $errore) {
             $this->aggiungiMessaggio($errore->getMessage(), 'danger');
             return $this->vaiAlContribuente($soggetto);
@@ -124,13 +144,14 @@ class DelegaController extends DelegheController
             $this->aggiungiMessaggio('Nessun versamento da versare il ' . $scadenza->format('d/m/Y') . '.', 'warning');
             return $this->vaiAlContribuente($soggetto);
         }
-        $this->aggiungiMessaggio(count($deleghe) === 1 ? 'Delega del ' . $scadenza->format('d/m/Y') . ' generata con i versamenti da versare.'
+        $this->aggiungiMessaggio(count($deleghe) === 1 ? 'Delega del ' . $scadenza->format('d/m/Y') . ' generata con i versamenti ' . ($idScelti === null ? 'da versare.' : 'scelti.')
                         : count($deleghe) . ' deleghe generate (modelli diversi per ELIDE e accise).');
         return count($deleghe) === 1 ? $this->vaiAllaDelega($deleghe[0]) : $this->vaiAlContribuente($soggetto, 'deleghe');
     }
 
     /**
-     * Inserisce nella delega i versamenti da versare con la sua data.
+     * Inserisce nella delega i versamenti da versare con la sua data scelti
+     * nella delega (tutti se il form non indica la scelta).
      */
     public function aggiungiDaVersare(Request $request, Delega $delega): Response
     {
@@ -139,8 +160,14 @@ class DelegaController extends DelegheController
         if (($bloccata = $this->verificaModificabile($delega)) !== null) {
             return $bloccata;
         }
+        // scelti nella delega (non preselezionati: di solito restano fuori apposta, es. tolti per ravvederli)
+        $idScelti = isset($request->input['scelta']) ? array_map('intval', (array) ($request->input['versamenti'] ?? [])) : null;
+        if ($idScelti === []) {
+            $this->aggiungiMessaggio('Scegliere i versamenti da aggiungere alla delega.', 'warning');
+            return $this->vaiAllaDelega($delega);
+        }
         $versamenti = array_filter((new VersamentoModel($this->dataMapper))->getDaVersare($delega->soggetto, $delega->scadenza),
-                fn(Versamento $versamento) => $delega->modello->ammetteSezione($versamento->sezione));
+                fn(Versamento $versamento) => $delega->modello->ammetteSezione($versamento->sezione) && (($idScelti === null) || in_array($versamento->id, $idScelti, true)));
         (new GenerazioneDeleghe($this->dataMapper))->aggiungi($delega, $versamenti);
         $this->aggiungiMessaggio(count($versamenti) . ' versamenti aggiunti alla delega.');
         return $this->vaiAllaDelega($delega);
