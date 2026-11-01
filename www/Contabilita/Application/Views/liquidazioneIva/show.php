@@ -12,9 +12,11 @@ require __DIR__ . '/../commonParts/navAzienda.php';
 <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
     <h1 class="h4 mb-0 me-auto"><?= Html::e($pageTitle) ?></h1>
     <a href="/liquidazione-iva/show/liquidazione/<?= Html::e($liquidazione->id) ?>/stampa/1" target="_blank" class="btn btn-sm btn-outline-secondary"><i class="bi bi-printer me-1"></i><?= Html::e($azioni['versioneStampa']) ?></a>
-    <form method="post" action="/liquidazione-iva/elabora/soggetto/<?= Html::e($soggetto->id) ?>/anno/<?= Html::e($liquidazione->anno) ?>/periodo/<?= Html::e($liquidazione->periodo) ?>">
+    <form method="post" action="/liquidazione-iva/elabora/soggetto/<?= Html::e($soggetto->id) ?>/anno/<?= Html::e($liquidazione->anno) ?>/periodo/<?= Html::e($liquidazione->periodo) ?>" class="d-flex flex-wrap align-items-center gap-2">
         <?= $campoCsrf ?>
-        <input type="hidden" name="creditoAnnoPrecedente" value="<?= Html::e(number_format($liquidazione->creditoAnnoPrecedente, 2, '.', '')) ?>">
+        <?php foreach (['creditoAnnoPrecedente', 'versamentiAuto', 'creditiImposta'] as $campoImporto): ?>
+            <input type="text" class="form-control form-control-sm text-end" style="width: 7rem" name="<?= Html::e($campoImporto) ?>" value="<?= $liquidazione->$campoImporto == 0 ? '' : Html::e(Importo::euro($liquidazione->$campoImporto)) ?>" placeholder="<?= Html::e($segnapostoImporti[$campoImporto]) ?>" title="<?= Html::e($campi[$campoImporto]) ?>" inputmode="decimal">
+        <?php endforeach; ?>
         <?php if ($liquidazione->registrazioneContabile !== null): ?><input type="hidden" name="giroconto" value="1"><?php endif; ?>
         <button type="submit" class="btn btn-sm btn-outline-primary"><i class="bi bi-arrow-repeat me-1"></i><?= Html::e($azioni['rielabora']) ?></button>
     </form>

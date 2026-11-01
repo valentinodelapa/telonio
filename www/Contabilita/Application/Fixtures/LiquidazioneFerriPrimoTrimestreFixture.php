@@ -8,7 +8,7 @@ use SismaFramework\Core\BaseClasses\BaseFixture;
 /**
  * Liquidazione IVA demo del negozio Ferri per il primo trimestre 2026:
  * ventilazione dei corrispettivi con i rapporti degli acquisti per la
- * rivendita, interessi dell'1% e giroconto.
+ * rivendita (anche di altri prodotti), interessi dell'1% e giroconto.
  */
 class LiquidazioneFerriPrimoTrimestreFixture extends BaseFixture
 {
@@ -19,7 +19,8 @@ class LiquidazioneFerriPrimoTrimestreFixture extends BaseFixture
         $this->addDependency(SoggettoFerriFixture::class)
                 ->addDependency(CorrispettiviFerriMarzoFixture::class)
                 ->addDependency(CorrispettiviFerriGennaioFixture::class)
-                ->addDependency(CorrispettiviFerriFebbraioFixture::class);
+                ->addDependency(CorrispettiviFerriFebbraioFixture::class)
+                ->addDependency(AcquistoFerriAltriProdottiFixture::class);
     }
 
     #[\Override]

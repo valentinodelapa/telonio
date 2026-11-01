@@ -131,6 +131,41 @@ class LiquidazioneIvaTest extends ContabilitaTestCase
         (new RegimeIva($this->dataMapper))->getPeriodicita($this->azienda, 2026);
     }
 
+    public function testVersamentiAutoECreditiImposta(): void
+    {
+        $elaborazione = new ElaborazioneLiquidazione($this->dataMapper);
+        $mensile = $this->liquidazione(PeriodicitaIva::mensile, 5, 1000.0, 300.0);
+        $mensile->creditoPrecedente = 100.0;
+        $mensile->versamentiAuto = 150.0;
+        $this->assertSame(450.0, $elaborazione->getMassimoCreditiImposta($mensile), '700 - 100 - 150');
+        $mensile->creditiImposta = 80.0;
+        $elaborazione->determinaImporti($mensile);
+        $this->assertSame(370.0, $mensile->importoDovuto);
+
+        $trimestre = $this->liquidazione(PeriodicitaIva::trimestrale, 2, 500.0, 100.0);
+        $trimestre->creditiImposta = 100.0;
+        $elaborazione->determinaImporti($trimestre);
+        $this->assertSame(3.0, $trimestre->interessi, 'interessi sull\'importo dopo lo scomputo');
+        $this->assertSame(303.0, $trimestre->importoDovuto);
+
+        $credito = $this->liquidazione(PeriodicitaIva::mensile, 5, 100.0, 300.0);
+        $this->assertSame(0.0, $elaborazione->getMassimoCreditiImposta($credito), 'con IVA a credito nessuno scomputo');
+    }
+
+    public function testCreditiImpostaOltreIlLimite(): void
+    {
+        $this->rispondiConti(['dati_fiscali' => [$this->datiFiscali(RegimeFiscale::ordinario, PeriodicitaIva::mensile)]]);
+        try {
+            (new ElaborazioneLiquidazione($this->dataMapper))->elabora($this->azienda, 2026, 1, 0.0, false, 0.0, 50.0);
+            $this->fail('Crediti scomputati senza IVA da versare');
+        } catch (\DomainException $errore) {
+            $this->assertStringContainsString('VP11', $errore->getMessage());
+        }
+        $this->rispondiConti(['dati_fiscali' => [$this->datiFiscali(RegimeFiscale::ordinario, PeriodicitaIva::trimestrale)]]);
+        $this->expectExceptionMessage('Quarto trimestre');
+        (new ElaborazioneLiquidazione($this->dataMapper))->elabora($this->azienda, 2026, 4, 0.0, false, 0.0, 50.0);
+    }
+
     public function testElaborazioneConCreditoAccontoVersamentoEGiroconto(): void
     {
         $dicembre = $this->creaRegistrazione(CausaleContabile::fatturaVendita, null, '2026-12-10');

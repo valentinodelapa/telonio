@@ -82,6 +82,9 @@ class CorrispettiviMensiliTest extends ContabilitaTestCase
         $esistente->id = 40;
         $esistente->numero = 12;
         $esistente->esercizioContabile = $this->esercizio;
+        $esistente->soggetto = $this->azienda;
+        $esistente->causale = \Contabilita\Application\Enumerations\CausaleContabile::corrispettivi;
+        $esistente->dataRegistrazione = new SismaDate('2026-02-28');
         $giornaliero = new CorrispettivoGiornaliero($this->dataMapper);
         $giornaliero->id = 7;
         $giornaliero->data = new SismaDate('2026-02-02');

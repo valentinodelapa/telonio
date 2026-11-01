@@ -11,6 +11,7 @@ require __DIR__ . '/../commonParts/navAzienda.php';
 ?>
 <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
     <h1 class="h5 mb-0 me-auto"><?= Html::e($navAzienda['liquidazioni']) ?> <?= Html::e($annoIva) ?><?= $periodicita === null ? '' : ' · ' . Html::e($periodicita->getLabel()) ?></h1>
+    <a href="/comunicazione-lipe/index/soggetto/<?= Html::e($soggetto->id) ?>/anno/<?= Html::e($annoIva) ?>" class="btn btn-sm btn-outline-secondary"><i class="bi bi-send me-1"></i><?= Html::e($comunicazioniLipe) ?></a>
     <div class="dropdown">
         <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-calendar3 me-1"></i><?= Html::e($annoIva) ?></button>
         <ul class="dropdown-menu dropdown-menu-end">
@@ -42,6 +43,10 @@ require __DIR__ . '/../commonParts/navAzienda.php';
                             <td>
                                 <form method="post" action="/liquidazione-iva/elabora/soggetto/<?= Html::e($soggetto->id) ?>/anno/<?= Html::e($annoIva) ?>/periodo/<?= Html::e($periodo) ?>" class="d-flex flex-wrap gap-2 align-items-center justify-content-end">
                                     <?= $campoCsrf ?>
+                                    <?php if ($liquidazione !== null): ?>
+                                        <input type="hidden" name="versamentiAuto" value="<?= Html::e(number_format($liquidazione->versamentiAuto, 2, '.', '')) ?>">
+                                        <input type="hidden" name="creditiImposta" value="<?= Html::e(number_format($liquidazione->creditiImposta, 2, '.', '')) ?>">
+                                    <?php endif; ?>
                                     <input type="text" class="form-control form-control-sm text-end" style="width: 7rem" name="creditoAnnoPrecedente" value="<?= $liquidazione === null || $liquidazione->creditoAnnoPrecedente == 0 ? '' : Html::e(Importo::euro($liquidazione->creditoAnnoPrecedente)) ?>" placeholder="0,00" title="<?= Html::e($campi['creditoAnnoPrecedente']) ?>" inputmode="decimal">
                                     <div class="form-check form-check-inline mb-0 small" title="<?= Html::e($etichettaGiroconto) ?>">
                                         <input class="form-check-input" type="checkbox" name="giroconto" value="1" id="giroconto<?= Html::e($periodo) ?>" <?= ($liquidazione === null) || ($liquidazione->registrazioneContabile !== null) ? 'checked' : '' ?>>
@@ -55,8 +60,25 @@ require __DIR__ . '/../commonParts/navAzienda.php';
                 </tbody>
             </table>
         </div>
-        <div class="card-footer bg-white small text-body-secondary"><?= Html::e($campi['creditoAnnoPrecedente']) ?> · <i class="bi bi-journal-text"></i> <?= Html::e($etichettaGiroconto) ?></div>
+        <div class="card-footer bg-white small text-body-secondary"><?= Html::e($campi['creditoAnnoPrecedente']) ?> · <i class="bi bi-journal-text"></i> <?= Html::e($etichettaGiroconto) ?> · <?= Html::e($aiutoAltriImporti) ?></div>
     </div>
+
+    <?php if ($requisitiVentilazione !== null): ?>
+        <?php $requisiti = $requisitiVentilazione; ?>
+        <div class="card shadow-sm mb-3 <?= count($requisiti['superati']) > 0 ? 'border-danger' : '' ?>">
+            <div class="card-body small">
+                <div class="fw-semibold mb-1"><?= Html::e($titoloRequisiti) ?> (<?= Html::e($annoPrecedente) ?> <?= Html::e($requisiti['anno']) ?>)</div>
+                <?php if ($requisiti['disponibile'] === false): ?>
+                    <div class="text-body-secondary"><?= Html::e($requisitiNonVerificabili) ?></div>
+                <?php else: ?>
+                    <div><?= Html::e($altriProdotti) ?>: € <?= Html::e(Importo::euro($requisiti['altriProdotti'])) ?> su € <?= Html::e(Importo::euro($requisiti['acquisti'])) ?> = <span class="<?= $requisiti['percentualeAltri'] > 50 ? 'text-danger fw-semibold' : '' ?>"><?= Html::e(number_format($requisiti['percentualeAltri'], 2, ',', '.')) ?>%</span> (max 50%)</div>
+                    <div><?= Html::e($cessioniFatturate) ?>: € <?= Html::e(Importo::euro($requisiti['fatture'])) ?> su € <?= Html::e(Importo::euro($requisiti['volumeAffari'])) ?> = <span class="<?= $requisiti['percentualeFatture'] > 20 ? 'text-danger fw-semibold' : '' ?>"><?= Html::e(number_format($requisiti['percentualeFatture'], 2, ',', '.')) ?>%</span> (max 20%)</div>
+                    <?php if (count($requisiti['superati']) > 0): ?><div class="text-danger mt-1"><?= Html::e($requisitiSuperati) ?></div><?php endif; ?>
+                <?php endif; ?>
+                <div class="text-body-secondary mt-1"><?= Html::e($aiutoRequisiti) ?></div>
+            </div>
+        </div>
+    <?php endif; ?>
 
     <div class="card shadow-sm">
         <div class="card-body d-flex flex-wrap align-items-center gap-2">

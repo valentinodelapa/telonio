@@ -9,6 +9,7 @@ use Contabilita\Application\Enumerations\TipoRegistroIva;
 use Contabilita\Application\Forms\RegistroIvaForm;
 use Contabilita\Application\Models\RegistrazioneContabileModel;
 use Contabilita\Application\Models\RegistroIvaModel;
+use Contabilita\Application\Models\StampaDefinitivaModel;
 use Contabilita\Application\Services\StampaRegistroIva;
 use SismaFramework\Core\HttpClasses\Request;
 use SismaFramework\Core\HttpClasses\Response;
@@ -55,8 +56,9 @@ class RegistroIvaController extends ContabilitaController
         $soggetto = $registro->soggetto;
         $this->caricaAzienda($soggetto);
         $this->verificaCsrf($request);
-        if (($registro->sezionale === '') || ((new RegistrazioneContabileModel($this->dataMapper))->countByRegistroIva($registro) > 0)) {
-            $this->aggiungiMessaggio('Il registro principale e i sezionali con documenti non si eliminano: renderli non attivi.', 'warning');
+        if (($registro->sezionale === '') || ((new RegistrazioneContabileModel($this->dataMapper))->countByRegistroIva($registro) > 0)
+                || ((new StampaDefinitivaModel($this->dataMapper))->countByRegistroIva($registro) > 0)) {
+            $this->aggiungiMessaggio('Il registro principale e i sezionali con documenti o stampe definitive non si eliminano: renderli non attivi.', 'warning');
         } else {
             $this->dataMapper->delete($registro);
             $this->aggiungiMessaggio('Sezionale eliminato.');

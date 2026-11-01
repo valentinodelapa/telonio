@@ -1,1 +1,4 @@
 *.sh text eol=lf
+# File di prova delle fatture elettroniche: il contenuto deve restare identico
+# a quello firmato nelle buste .p7m (nessuna conversione dei fine riga)
+www/Contabilita/Tests/File/* -text

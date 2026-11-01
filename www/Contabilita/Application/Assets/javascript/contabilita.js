@@ -130,3 +130,19 @@
     griglia.addEventListener('input', totali);
     totali();
 })();
+
+/*
+ * Stampe definitive: l'anteprima apre in una nuova scheda le pagine fino
+ * alla data indicata nel modulo, senza registrare la stampa.
+ */
+(function () {
+    document.querySelectorAll('[data-anteprima]').forEach(function (pulsante) {
+        pulsante.addEventListener('click', function (evento) {
+            evento.preventDefault();
+            const data = pulsante.form.querySelector('input[name="al"]').value;
+            if (data !== '') {
+                window.open(pulsante.dataset.anteprima + '/al/' + encodeURIComponent(data), '_blank');
+            }
+        });
+    });
+})();

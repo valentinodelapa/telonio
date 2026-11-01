@@ -35,7 +35,10 @@ class RigaIvaForm extends BaseForm
         if (($this->request->input['imposta'] ?? '') === '') {
             $this->addRequest('imposta', '0');
         }
-        $this->addRequest('rivendita', empty($this->request->input['rivendita']) ? '0' : '1');
+        // rivendita: '1' beni delle categorie ammesse alla ventilazione, '2' altri prodotti
+        $rivendita = (string) ($this->request->input['rivendita'] ?? '');
+        $this->addRequest('rivendita', in_array($rivendita, ['1', '2'], true) ? '1' : '0');
+        $this->addRequest('altriProdotti', $rivendita === '2' ? '1' : '0');
     }
 
     #[\Override]
@@ -46,6 +49,7 @@ class RigaIvaForm extends BaseForm
                 ->addFilterFieldMode('imposta', FilterType::isNumeric)
                 ->addFilterFieldMode('detraibilita', FilterType::isNumeric)
                 ->addFilterFieldMode('rivendita', FilterType::isBoolean)
+                ->addFilterFieldMode('altriProdotti', FilterType::isBoolean)
                 ->addFilterFieldMode('conto', FilterType::isEntity, [], true);
     }
 

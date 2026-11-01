@@ -16,6 +16,7 @@ $voci = [
     'registri' => ['/registro-iva/index/soggetto/' . $soggetto->id, 'bi-journals'],
     'liquidazioni' => ['/liquidazione-iva/index/soggetto/' . $soggetto->id . ($annoEsercizio === null ? '' : '/anno/' . $annoEsercizio), 'bi-calculator'],
     'giornale' => ['/stampa-contabile/giornale/soggetto/' . $soggetto->id . $suffissoAnno, 'bi-list-ol'],
+    'stampeDefinitive' => ['/stampa-definitiva/index/soggetto/' . $soggetto->id . $suffissoAnno, 'bi-printer'],
     'bilancio' => ['/stampa-contabile/bilancio/soggetto/' . $soggetto->id . $suffissoAnno, 'bi-bar-chart'],
     'piano' => [$piano === null ? '#' : '/piano-conti/show/piano/' . $piano->id, 'bi-diagram-3'],
 ];

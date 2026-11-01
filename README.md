@@ -17,7 +17,7 @@ Ogni applicativo è un modulo `SismaFramework` all'interno di `www/` che condivi
 | **`Imu`** | Disponibile | Calcolo dell'IMU sugli immobili in anagrafica: importazione dei prospetti comunali delle aliquote dal portale del Dipartimento delle Finanze, gestione caratteristiche e agevolazioni storicizzate, prospetto di calcolo e invio automatico dei versamenti di acconto e saldo all'archivio `Deleghe`, dichiarazione IMU/IMPi e IMU ENC con file telematico | [`www/Imu/Docs/README.md`](www/Imu/Docs/README.md) |
 | **`Successioni`** | Disponibile | Dichiarazione di successione e domanda di volture catastali: beneficiari (anche trust testamentario ed eredità giacente) e immobili dall'anagrafica (anche del catasto tavolare, graffati o all'estero), aziende, titoli, navi e aeromobili, quote di legge proposte, liquidazione del quadro EF con ravvedimento e autoliquidazione dell'imposta di successione, F24 dei beneficiari (anche a rate) nell'archivio `Deleghe`, allegati PDF/A, file telematico XML SUC13 validato sullo schema ufficiale, dichiarazione sostitutiva, volture riportate nell'anagrafica | [`www/Successioni/Docs/README.md`](www/Successioni/Docs/README.md) |
 | **`GestioneStudio`** | Disponibile | Scadenzario dello studio con le scadenze di tutti gli applicativi (adempimenti dei clienti, versamenti F24, dichiarazioni IMU e di successione) per periodo, stato e operatore; calendario fiscale degli adempimenti con termini, proroghe (anche riservate ai soggetti ISA), differimento di agosto e slittamento al primo giorno lavorativo; adempimenti dei clienti storicizzati con responsabile, proposti in base all'anagrafica e al regime fiscale; stato di lavorazione e note di ogni scadenza | [`www/GestioneStudio/Docs/README.md`](www/GestioneStudio/Docs/README.md) |
-| **`Contabilita`** | Disponibile | Contabilità in partita doppia delle aziende clienti: piano dei conti modello (suite e studio, con raccordo alle voci CEE) copiato nell'azienda, clienti e fornitori con partitario, prima nota con proposta automatica delle righe, registri IVA e sezionali, corrispettivi del mese con ventilazione, liquidazioni periodiche mensili e trimestrali e acconto con i versamenti nell'archivio `Deleghe`, importazione delle fatture elettroniche (XML, .p7m, ZIP) con proposta della registrazione, libro giornale, schede contabili e bilancio di verifica | [`www/Contabilita/Docs/README.md`](www/Contabilita/Docs/README.md) |
+| **`Contabilita`** | Disponibile | Contabilità in partita doppia delle aziende clienti: piano dei conti modello (suite e studio, con raccordo alle voci CEE) copiato nell'azienda, clienti e fornitori con partitario, prima nota con proposta automatica delle righe, registri IVA e sezionali, corrispettivi del mese con ventilazione, liquidazioni periodiche mensili e trimestrali e acconto con i versamenti nell'archivio `Deleghe`, comunicazione delle liquidazioni periodiche (file validato sullo schema ufficiale), importazione delle fatture elettroniche (XML, .p7m, ZIP) verificate sullo schema XSD con proposta della registrazione, libro giornale, schede contabili, bilancio di verifica, stampe definitive numerate del giornale e dei registri IVA | [`www/Contabilita/Docs/README.md`](www/Contabilita/Docs/README.md) |
 | **`Dichiarativi`** | In arrivo | Redditi, IVA annuale, 770 e invii telematici | — |
 | **`Bilancio`** | In arrivo | Bilancio CEE, nota integrativa e analisi di bilancio | — |
 | **`Parcellazione`** | In arrivo | Parcelle, fatture elettroniche e incassi dello studio | — |
@@ -100,6 +100,9 @@ docker exec telonio_php sh -c 'cd /var/www/html && sisma calendario-fiscale'
 
 # Aggiorna i piani dei conti modello e i codici IVA della suite dalle sorgenti del modulo Contabilita
 docker exec telonio_php sh -c 'cd /var/www/html && sisma tabelle-contabilita'
+
+# Scarica di nuovo gli schemi XSD ufficiali usati da Contabilita (comunicazione delle liquidazioni periodiche IVA, fattura elettronica)
+docker exec telonio_php sh -c 'cd /var/www/html && sisma specifiche-contabilita'
 ```
 
 ## Ambienti: sviluppo e produzione
@@ -181,7 +184,7 @@ Per un nome del proprio dominio (es. `telonio.studio.it`) servono un record DNS 
 
 ### Backup e ripristino
 
-Il servizio di backup esegue un dump compresso del database ogni notte (`BACKUP_SCHEDULE`) in `./backups`, con i file più vecchi di `BACKUP_RETENTION_DAYS` (default 30) eliminati. La copia locale protegge da errori e aggiornamenti non riusciti, non da guasto, furto o ransomware della macchina; per questo servono anche:
+Il servizio di backup esegue un dump compresso del database ogni notte (`BACKUP_SCHEDULE`, oppure `BACKUP_SCHEDULE=off` per disattivare il cron interno e lanciarlo solo su richiesta dall'host con `docker exec telonio_backup backup.sh`) in `./backups`, con i file più vecchi di `BACKUP_RETENTION_DAYS` (default 30) eliminati. La copia locale protegge da errori e aggiornamenti non riusciti, non da guasto, furto o ransomware della macchina; per questo servono anche:
 
 *   una **copia remota cifrata** (vedi sotto);
 *   il **`.env` in un luogo sicuro** (es. password manager): senza `ENCRYPTION_PASSPHRASE` e le credenziali un backup non basta a ripristinare l'installazione;
@@ -260,7 +263,7 @@ La versione installata della suite è nel piè di pagina di ogni pagina, con que
 
 *   **SMTP (`MAIL_*` in `.env`)**: in sviluppo puntano a `mailpit:1025` senza autenticazione; in produzione basta sostituirli con i parametri del provider SMTP reale.
 *   **Limiti PHP (`UPLOAD_MAX_FILESIZE`, `POST_MAX_SIZE`, `MEMORY_LIMIT`, `MAX_EXECUTION_TIME`, `MAX_INPUT_TIME`)**: renderizzati all'avvio del container `php` in `/usr/local/etc/php/conf.d/limits.ini` tramite `docker-entrypoint.sh`. `POST_MAX_SIZE` viene allineato automaticamente anche a `client_max_body_size` del container `nginx`.
-*   **Backup (`BACKUP_SCHEDULE`, `BACKUP_RETENTION_DAYS`)**: il servizio opzionale `docker-compose.backup.yml` esegue dump periodici compressi di MariaDB in `./backups` (esclusa da Git) con pulizia automatica oltre la retention configurata (vedi "Backup e ripristino").
+*   **Backup (`BACKUP_SCHEDULE`, `BACKUP_RETENTION_DAYS`)**: il servizio opzionale `docker-compose.backup.yml` esegue dump periodici compressi di MariaDB (o solo su richiesta, con `BACKUP_SCHEDULE=off`) in `./backups` (esclusa da Git) con pulizia automatica oltre la retention configurata (vedi "Backup e ripristino").
 
 ## Licenza e attribuzioni
 

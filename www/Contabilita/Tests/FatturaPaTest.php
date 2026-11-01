@@ -13,6 +13,8 @@ use Contabilita\Application\Services\FatturaPa\EstrazioneP7m;
 use Contabilita\Application\Services\FatturaPa\ImportazioneFatture;
 use Contabilita\Application\Services\FatturaPa\LetturaFatturaPa;
 use Contabilita\Application\Services\FatturaPa\PropostaDaFattura;
+use Contabilita\Application\Services\FatturaPa\VerificaSchemaFattura;
+use Contabilita\Application\Services\TabelleRiferimento\SpecificheContabilita;
 use SismaFramework\Orm\CustomTypes\SismaDate;
 use Telonio\Tests\TestResultSet;
 
@@ -111,7 +113,9 @@ class FatturaPaTest extends ContabilitaTestCase
         $this->assertTrue($fattura->controparte->fornitore);
         $this->assertSame('Via Napoli 3', $fattura->controparte->indirizzo);
         $this->assertSame(TipoDocumentoFattura::notaCredito, $esito->fatture[1]->tipoDocumento);
-        $this->assertNull($esito->fatture[1]->avvisi, 'senza totale del documento nessuna differenza da segnalare');
+        $this->assertSame(['IT04123451009_1.xml'], $esito->nonConformi, 'mancano i dati di trasmissione');
+        $this->assertStringContainsString('non conforme allo schema', $esito->fatture[1]->avvisi);
+        $this->assertStringNotContainsString('differisce', $esito->fatture[1]->avvisi, 'senza totale del documento nessuna differenza da segnalare');
         $this->assertSame($fattura->controparte, $esito->fatture[1]->controparte, 'una sola controparte per il lotto');
 
         $fattura->controparte->contoFornitore = $this->conti['13.01.0001'];
@@ -130,6 +134,21 @@ class FatturaPaTest extends ContabilitaTestCase
         $this->assertSame(CausaleContabile::notaCreditoRicevuta, $registrazione->causale);
         $this->assertSame(-10.0, $righeIva[0]->imponibile);
         $this->assertSame(-2.2, $righeIva[0]->imposta);
+    }
+
+    public function testVerificaSulloSchema(): void
+    {
+        $verifica = new VerificaSchemaFattura();
+        foreach (['fattura-der', 'lotto-ber-base64'] as $nome) {
+            $this->assertNull($verifica->verifica(file_get_contents(__DIR__ . '/File/' . $nome . '.xml')), $nome);
+        }
+        $this->assertStringContainsString('DatiTrasmissione', $verifica->verifica(self::xml()));
+        $alterato = str_replace('<TipoDocumento>TD01</TipoDocumento>', '<TipoDocumento>TD01</TipoDocumento><Extra/>', file_get_contents(__DIR__ . '/File/fattura-der.xml'));
+        $this->assertStringContainsString('Extra', $verifica->verifica($alterato));
+        $this->assertStringContainsString('spazio dei nomi', $verifica->verifica('<FatturaElettronica/>'));
+        $this->assertNotNull($verifica->verifica('non xml'));
+        $this->assertNull(SpecificheContabilita::verificaSchema(SpecificheContabilita::getSchemaFatturaPa()));
+        $this->assertNull(SpecificheContabilita::verificaSchema(SpecificheContabilita::getSchemaLipe()));
     }
 
     public function testImportazioneScartaLeFattureDiAltri(): void

@@ -30,7 +30,7 @@ require __DIR__ . '/../commonParts/stampaTesta.php';
                         <td rowspan="<?= count($righe) ?>"><?= Html::data($registrazione->dataCompetenzaIva) ?><?= $registrazione->esigibilita->value !== 'I' ? '<div class="tenue">' . Html::e($registrazione->esigibilita->getLabel()) . '</div>' : '' ?></td>
                         <td rowspan="<?= count($righe) ?>"><?= Html::e($registrazione->controparte?->denominazione ?? '') ?><div class="tenue"><?= Html::e($registrazione->controparte?->partitaIva ?? $registrazione->controparte?->codiceFiscale ?? '') ?></div></td>
                     <?php endif; ?>
-                    <td><?= Html::e($riga->codiceIva->getEtichetta()) ?><?= $riga->rivendita ? ' <span class="tenue">(rivendita)</span>' : '' ?></td>
+                    <td><?= Html::e($riga->codiceIva->getEtichetta()) ?><?= $riga->rivendita ? ' <span class="tenue">(' . ($riga->altriProdotti ? 'rivendita, altri prodotti' : 'rivendita') . ')</span>' : '' ?></td>
                     <td class="num"><?= Html::e(Importo::euro($riga->imponibile)) ?></td>
                     <td class="num"><?= Html::e(Importo::euro($riga->imposta)) ?></td>
                     <?php if ($acquisti): ?><td class="num"><?= Html::e(Importo::euro($riga->getImpostaDetraibile())) ?></td><?php endif; ?>

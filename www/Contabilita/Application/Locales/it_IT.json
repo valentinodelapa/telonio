@@ -81,7 +81,19 @@
                 "file": "File",
                 "rivendita": "Riv.",
                 "ivaVentilata": "di cui dei corrispettivi ventilati",
-                "ventilazioneCodice": "Corrispettivi da ventilare (aliquota attribuita nella liquidazione in proporzione agli acquisti per rivendita)"
+                "ventilazioneCodice": "Corrispettivi da ventilare (aliquota attribuita nella liquidazione in proporzione agli acquisti per rivendita)",
+                "protocollo": "Protocollo",
+                "identificativo": "Identificativo",
+                "contribuente": "Contribuente",
+                "dichiarante": "Dichiarante",
+                "codiceCarica": "Codice carica",
+                "intermediario": "Intermediario",
+                "impegno": "Impegno alla presentazione",
+                "dataImpegno": "Data dell'impegno",
+                "dataInvio": "Data di invio",
+                "pagine": "Pagine",
+                "versamentiAuto": "Versamenti auto UE (F24 elementi identificativi)",
+                "creditiImposta": "Crediti d'imposta scomputati"
             },
             "azioni": {
                 "salva": "Salva",
@@ -110,7 +122,15 @@
                 "riapriEsercizio": "Riapri l'esercizio",
                 "nuovoEsercizio": "Nuovo esercizio",
                 "apriContabilita": "Apri la contabilità",
-                "scheda": "Scheda contabile"
+                "scheda": "Scheda contabile",
+                "prepara": "Prepara",
+                "riprepara": "Riprepara",
+                "segnaInviata": "Segna come inviata",
+                "riportaBozza": "Riporta in bozza",
+                "anteprima": "Anteprima",
+                "stampaDefinitiva": "Stampa definitiva",
+                "ristampa": "Ristampa",
+                "annullaStampa": "Annulla la stampa"
             },
             "navAziende": "Aziende",
             "navPiani": "Piani dei conti",
@@ -123,6 +143,7 @@
                 "registri": "Registri IVA",
                 "liquidazioni": "Liquidazioni IVA",
                 "giornale": "Giornale",
+                "stampeDefinitive": "Stampe definitive",
                 "bilancio": "Bilancio di verifica",
                 "piano": "Piano dei conti"
             },
@@ -222,7 +243,9 @@
                 "contropartita": "Contropartita",
                 "differenza": "Differenza",
                 "proposta": "Proposta dalla fattura elettronica",
-                "aiutoRivendita": "Acquisto di beni destinati alla rivendita: base della ventilazione dei corrispettivi"
+                "aiutoRivendita": "Acquisto di beni destinati alla rivendita, base della ventilazione dei corrispettivi: \"Rivendita\" per i prodotti delle categorie ammesse (alimentari e dietetici, tessili e vestiario, igiene personale e farmaceutici: art. 1 D.M. 24 febbraio 1973), \"Altri prodotti\" per gli altri beni (limite del 50% degli acquisti, art. 4)",
+                "rivenditaAmmessa": "Rivendita",
+                "rivenditaAltri": "Altri prodotti"
             },
             "show": {
                 "daFattura": "Dalla fattura elettronica",
@@ -249,7 +272,16 @@
                 "accontoTitolo": "Acconto IVA",
                 "accontoNonCalcolato": "Acconto non calcolato.",
                 "accontoNonDovuto": "non dovuto (inferiore a 103,29 euro)",
-                "calcolaAcconto": "Calcola l'acconto"
+                "calcolaAcconto": "Calcola l'acconto",
+                "comunicazioniLipe": "Comunicazioni liquidazioni",
+                "titoloRequisiti": "Limiti della ventilazione dei corrispettivi",
+                "annoPrecedente": "anno precedente",
+                "requisitiNonVerificabili": "Anno precedente non registrato in contabilità: limiti da verificare sui dati dell'azienda.",
+                "altriProdotti": "Acquisti di altri prodotti sul totale degli acquisti e importazioni",
+                "cessioniFatturate": "Cessioni fatturate sul volume d'affari",
+                "requisitiSuperati": "Limite superato: nell'anno la ventilazione non si applica (rivedere l'opzione nei dati fiscali dell'Anagrafica).",
+                "aiutoRequisiti": "Artt. 4 e 5 D.M. 24 febbraio 1973; escluse le cessioni di immobili e beni strumentali (righe con contropartita patrimoniale). Gli altri prodotti sono gli acquisti per la rivendita di beni fuori dalle categorie ammesse.",
+                "aiutoAltriImporti": "versamenti auto UE e crediti d'imposta si indicano rielaborando dalla liquidazione"
             },
             "common": {
                 "titoloVentilazione": "Ventilazione dei corrispettivi",
@@ -261,6 +293,13 @@
                 "titoloVersamenti": "Versamenti registrati per le deleghe F24",
                 "nessunVersamento": "Nessun versamento.",
                 "titoloGiroconto": "Giroconto in prima nota"
+            },
+            "show": {
+                "segnapostoImporti": {
+                    "creditoAnnoPrecedente": "Cred. anno prec.",
+                    "versamentiAuto": "Auto UE",
+                    "creditiImposta": "Crediti d'imp."
+                }
             }
         },
         "accontoIva": {
@@ -306,6 +345,51 @@
                 "aggiungiCodice": "Aggiungi un codice IVA",
                 "aggiungiColonna": "Aggiungi la colonna",
                 "aiutoVentilazione": "Ventilazione dei corrispettivi: i corrispettivi senza distinzione di aliquota si indicano nella colonna VEN; la liquidazione li ripartisce in proporzione agli acquisti per rivendita dall'inizio dell'anno (art. 3 D.M. 24 febbraio 1973)."
+            }
+        },
+        "comunicazioneLipe": {
+            "common": {
+                "titolo": "Comunicazioni delle liquidazioni periodiche IVA",
+                "titoloFrontespizio": "Frontespizio"
+            },
+            "index": {
+                "aiuto": "Una comunicazione per trimestre (art. 21-bis D.L. 78/2010), preparata dalle liquidazioni elaborate: un modulo per mese per i mensili, uno per i trimestrali. Termine: ultimo giorno del secondo mese successivo al trimestre (30 settembre per il secondo, fine di febbraio per il quarto).",
+                "nonPreparata": "Da preparare"
+            },
+            "show": {
+                "inviataIl": "il",
+                "titoloQuadro": "Quadro VP",
+                "aiutoQuadro": "Dati fissati alla preparazione: dopo una nuova elaborazione delle liquidazioni ripreparare la comunicazione.",
+                "aiutoInvio": "Il file scaricato è validato sullo schema ufficiale (fornitura IVP18): va firmato e trasmesso con Entratel o dal portale Fatture e corrispettivi; poi si annotano data e protocollo della ricevuta.",
+                "conDichiarazione": "con la dichiarazione annuale",
+                "descrizioniRighi": {
+                    "VP2": "Operazioni attive",
+                    "VP3": "Operazioni passive",
+                    "VP4": "IVA esigibile",
+                    "VP5": "IVA detratta",
+                    "VP6": "IVA dovuta o a credito",
+                    "VP7": "Debito periodo precedente",
+                    "VP8": "Credito periodo precedente",
+                    "VP9": "Credito anno precedente",
+                    "VP10": "Versamenti auto UE",
+                    "VP11": "Crediti d'imposta",
+                    "VP12": "Interessi trimestrali",
+                    "VP13": "Acconto (metodo)",
+                    "VP14": "IVA da versare o a credito"
+                }
+            },
+            "form": {
+                "aiutoDichiarante": "Chi firma la comunicazione se diverso dal contribuente: obbligatorio per i soggetti diversi dalle persone fisiche."
+            }
+        },
+        "stampaDefinitiva": {
+            "index": {
+                "aiuto": "Libro giornale (per esercizio, art. 2215 c.c.) e registri IVA (per anno solare, art. 39 D.P.R. 633/1972) con le pagine numerate per anno: ogni stampa prosegue dal giorno dopo la precedente e dalla pagina successiva; le registrazioni dei periodi stampati non si modificano più. La stampa si rigenera identica per la ristampa; si annulla solo l'ultima.",
+                "nessunLibro": "Nessun libro da stampare: aprire l'esercizio dell'anno.",
+                "completo": "Stampato per intero.",
+                "nienteDaStampare": "Prossima stampa dal",
+                "confermaRegistra": "La stampa definitiva numera le pagine e blocca le registrazioni del periodo. Proseguire?",
+                "confermaAnnulla": "Annullare la stampa definitiva? Le pagine già stampate andranno distrutte."
             }
         }
     }

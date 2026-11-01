@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.15.0-alpha] - 2026-11-01 - Comunicazioni IVA e stampe definitive
+
+Quindicesima versione alpha: in `Contabilita` la comunicazione delle liquidazioni periodiche IVA, le stampe definitive numerate del giornale e dei registri IVA, i limiti della ventilazione dei corrispettivi e la verifica delle fatture elettroniche sullo schema ufficiale; backup del self-hosting anche solo su richiesta. Valgono le avvertenze della 0.1.0-alpha: la versione non è indicata per l'uso in produzione su dati reali.
+
+Versioni dei moduli: `Contabilita` 0.2.0; `Telonio` 0.6.1, `Anagrafica` 0.6.0, `Deleghe` 0.5.0, `Imu` 0.3.2, `Successioni` 0.3.2 e `GestioneStudio` 0.1.1 invariati.
+
+**Aggiornamento del database**: `sisma aggiorna-database` esegue `Contabilita/Database/aggiornamento-0.2.sql` (tabelle `comunicazione_lipe`, `modulo_lipe` e `stampa_definitiva`, colonne `riga_iva.altri_prodotti`, `liquidazione_iva.versamenti_auto` e `liquidazione_iva.crediti_imposta`); idempotente.
+
+### ✨ Nuove Funzionalità
+
+#### `Contabilita` 0.2.0
+
+- **comunicazione delle liquidazioni periodiche IVA** (art. 21-bis D.L. 78/2010) per trimestre, preparata dalle liquidazioni elaborate: un modulo per mese dei mensili o uno per il trimestre dei trimestrali (quarto trimestre con il periodo "5", senza interessi né importo da versare), righi da VP2 a VP14 con i controlli delle specifiche (VP7 e VP8 solo nei periodi ammessi, VP2 con l'imponibile dei corrispettivi ventilati, VP13 con il metodo dell'acconto), dichiarante proposto dai legami dell'Anagrafica con il codice di carica, intermediario predefinito di Deleghe con l'impegno alla presentazione; file della fornitura IVP18 validato sullo schema ufficiale prima del download, stato di invio con data e protocollo, termine (30 settembre per il secondo trimestre, fine di febbraio per il quarto) con gli slittamenti;
+- **versamenti auto UE e crediti d'imposta nella liquidazione IVA** (righi VP10 e VP11): l'IVA già versata con F24 elementi identificativi sulle prime cessioni interne di auto di provenienza UE (D.L. 262/2006) e i crediti d'imposta particolari scomputati dal versamento si indicano all'elaborazione e riducono l'importo da versare e il versamento in Deleghe; i crediti d'imposta non superano l'IVA da versare e non si usano nel quarto trimestre dei trimestrali;
+- **stampe definitive** del libro giornale (per esercizio) e dei registri IVA (per anno solare) con le pagine numerate per anno: periodi contigui, impaginazione a righe fisse con i riporti del giornale, anteprima, ristampa identica e annullamento della sola ultima stampa; le registrazioni dei periodi stampati (comprese le integrazioni dell'inversione contabile nel registro delle vendite) non si creano, modificano o eliminano più;
+- **limiti della ventilazione dei corrispettivi** verificati sui registri dell'anno precedente (artt. 4 e 5 D.M. 24 febbraio 1973): acquisti di "altri prodotti" non oltre il 50% del totale degli acquisti e importazioni, cessioni fatturate non oltre il 20% del volume d'affari, esclusi immobili e beni strumentali; prospetto nella pagina delle liquidazioni e avviso nella liquidazione se superati. La colonna "Riv." delle righe IVA degli acquisti distingue la rivendita dei prodotti ammessi da quella degli altri prodotti;
+- **fatture elettroniche verificate sullo schema XSD ufficiale** (VFPR12 delle specifiche 1.9.1) all'importazione: i file non conformi si importano con l'avviso del primo errore;
+- **schemi XSD ufficiali nel modulo** (`Contabilita/Application/Assets/xsd`, validazione senza rete) e comando `sisma specifiche-contabilita` per scaricarli di nuovo dalle fonti ufficiali;
+- fixture: liquidazioni di febbraio (con versamenti auto UE e un credito d'imposta) e marzo, comunicazione del primo trimestre inviata, stampe definitive di gennaio del giornale e del registro delle vendite e fattura elettronica non conforme per Alfa; acquisto di altri prodotti, comunicazione del primo trimestre in bozza ed esercizio 2025 chiuso (base dei limiti della ventilazione) per Ferri.
+
+#### Self-hosting
+
+- **backup solo su richiesta**: con `BACKUP_SCHEDULE=off` (o `none`, `false`, senza distinzione di maiuscole) il servizio di backup non pianifica il dump notturno e lo esegue solo quando lanciato dall'host (`docker exec telonio_backup backup.sh`, ad esempio da un timer dell'host o prima di un intervento); la pulizia oltre la retention e le copie remote restano quelle del backup pianificato.
+
+### 🐛 Correzioni
+
+- **test delle fatture elettroniche falliti dopo il checkout su Windows**: con `core.autocrlf` Git convertiva i fine riga dei file XML di prova, che devono restare identici al contenuto firmato nelle buste `.p7m`; `.gitattributes` li esclude dalla conversione.
+
 ## [0.14.0-alpha] - 2026-11-01 - Contabilità
 
 Quattordicesima versione alpha: nuovo applicativo `Contabilita`, contabilità in partita doppia e IVA delle aziende clienti, con l'importazione delle fatture elettroniche, i corrispettivi del mese in una sola maschera e la ventilazione dei corrispettivi. Valgono le avvertenze della 0.1.0-alpha: la versione non è indicata per l'uso in produzione su dati reali.

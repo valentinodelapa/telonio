@@ -77,6 +77,9 @@ class FatturaElettronicaController extends ContabilitaController
             foreach ($esito->errori as $errore) {
                 $this->aggiungiMessaggio($errore, 'danger');
             }
+            foreach (array_unique($esito->nonConformi) as $nome) {
+                $this->aggiungiMessaggio($nome . ': file non conforme allo schema della fattura elettronica, importato con avviso.', 'warning');
+            }
         }
         $this->aggiungiMessaggio(sprintf('Fatture importate: %d%s%s.', $importate, $doppie > 0 ? sprintf(' (%d già presenti, ignorate)', $doppie) : '',
                         count($controparti) > 0 ? '; nuovi clienti o fornitori: ' . implode(', ', array_unique($controparti)) : ''), $importate > 0 ? 'success' : 'warning');

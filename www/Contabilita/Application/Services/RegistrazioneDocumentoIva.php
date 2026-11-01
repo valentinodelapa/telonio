@@ -28,7 +28,7 @@ final class RegistrazioneDocumentoIva
 
     /**
      * @param array<string, float> $imponibili codice IVA => imponibile (positivo anche nelle note di credito)
-     * @param array{esigibilita?: EsigibilitaIva, rivendita?: bool, registro?: RegistroIva, totale?: float} $opzioni
+     * @param array{esigibilita?: EsigibilitaIva, rivendita?: bool, altriProdotti?: bool, registro?: RegistroIva, totale?: float} $opzioni
      * @throws \DomainException se la registrazione non supera i controlli
      */
     public static function registra(DataMapper $dataMapper, EsercizioContabile $esercizio, ?Controparte $controparte, CausaleContabile $causale, string $data, ?string $numero, array $imponibili, array $opzioni = []): RegistrazioneContabile
@@ -57,7 +57,8 @@ final class RegistrazioneDocumentoIva
                 $riga->imponibile = round($imponibile * $segno, 2);
                 $riga->imposta = $riga->codiceIva->calcolaImposta($riga->imponibile);
                 $riga->detraibilita = $riga->codiceIva->detraibilita;
-                $riga->rivendita = $opzioni['rivendita'] ?? false;
+                $riga->rivendita = ($opzioni['rivendita'] ?? false) || ($opzioni['altriProdotti'] ?? false);
+                $riga->altriProdotti = $opzioni['altriProdotti'] ?? false;
                 $righeIva[] = $riga;
             }
             $registrazione->totaleDocumento = round(abs(PropostaRighe::totaleDocumento($righeIva)), 2);

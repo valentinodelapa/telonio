@@ -11,6 +11,7 @@ use Contabilita\Application\Services\CalcoloLiquidazioneIva;
 use Contabilita\Application\Services\ElaborazioneLiquidazione;
 use Contabilita\Application\Services\PeriodiIva;
 use Contabilita\Application\Services\RegimeIva;
+use Contabilita\Application\Services\RequisitiVentilazione;
 use Contabilita\Application\Services\VentilazioneCorrispettivi;
 use Deleghe\Application\HelperClasses\Importo;
 use Deleghe\Application\Models\VersamentoModel;
@@ -48,6 +49,8 @@ class LiquidazioneIvaController extends ContabilitaController
             }
         }
         $this->vars['periodicita'] = $periodicita;
+        $this->vars['requisitiVentilazione'] = ($periodicita !== null) && (new RegimeIva($this->dataMapper))->isVentilazione($soggetto, $anno)
+                ? (new RequisitiVentilazione($this->dataMapper))->verifica($soggetto, $anno) : null;
         $this->vars['periodi'] = $periodi;
         $this->vars['liquidazioni'] = (new LiquidazioneIvaModel($this->dataMapper))->getPerAnno($soggetto, $anno);
         $this->vars['acconto'] = (new AccontoIvaModel($this->dataMapper))->getPerAnno($soggetto, $anno);
@@ -69,8 +72,10 @@ class LiquidazioneIvaController extends ContabilitaController
         }
         $this->verificaCsrf($request);
         $credito = (float) Importo::normalizza((string) ($request->input['creditoAnnoPrecedente'] ?? '0'));
+        $versamentiAuto = (float) Importo::normalizza((string) ($request->input['versamentiAuto'] ?? '0'));
+        $creditiImposta = (float) Importo::normalizza((string) ($request->input['creditiImposta'] ?? '0'));
         try {
-            $liquidazione = (new ElaborazioneLiquidazione($this->dataMapper))->elabora($soggetto, $anno, $periodo, $credito, isset($request->input['giroconto']));
+            $liquidazione = (new ElaborazioneLiquidazione($this->dataMapper))->elabora($soggetto, $anno, $periodo, $credito, isset($request->input['giroconto']), $versamentiAuto, $creditiImposta);
             $this->aggiungiMessaggio('Liquidazione di ' . $liquidazione->getDescrizionePeriodo() . ' elaborata: '
                     . ($liquidazione->importoDovuto > 0 ? 'da versare € ' . Importo::euro($liquidazione->importoDovuto) . ' entro il ' . $liquidazione->scadenza->format('d/m/Y') . ' (in Deleghe F24).'
                     : ($liquidazione->debitoRinviato > 0 ? 'debito di € ' . Importo::euro($liquidazione->debitoRinviato) . ' rinviato al periodo successivo.' : 'credito di € ' . Importo::euro($liquidazione->creditoFinale) . '.')));

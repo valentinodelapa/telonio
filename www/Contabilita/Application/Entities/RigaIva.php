@@ -10,7 +10,9 @@ use SismaFramework\Orm\CustomTypes\SismaDate;
  * Riga del registro IVA: codice IVA, imponibile e imposta con il segno
  * del documento (negativi nelle note di credito), percentuale detraibile
  * sugli acquisti, acquisto di beni per la rivendita (base della
- * ventilazione dei corrispettivi) e conto di costo o ricavo di
+ * ventilazione dei corrispettivi; "altri prodotti" se non compresi nelle
+ * categorie dell'art. 1 D.M. 24 febbraio 1973, per il limite del 50%
+ * dell'art. 4) e conto di costo o ricavo di
  * contropartita. Soggetto,
  * registro e data di competenza sono copiati dalla registrazione
  * (Services\SalvataggioRegistrazione) per le interrogazioni per periodo.
@@ -29,6 +31,7 @@ class RigaIva extends BaseEntity
     protected float $imposta = 0.0;
     protected float $detraibilita = 100.0;
     protected bool $rivendita = false;
+    protected bool $altriProdotti = false;
     protected ?Conto $conto = null;
 
     #[\Override]

@@ -13,6 +13,7 @@ use Contabilita\Application\Models\LiquidazioneIvaModel;
 use Contabilita\Application\Models\RegistrazioneContabileModel;
 use Contabilita\Application\Models\RigaContabileModel;
 use Contabilita\Application\Models\RigaIvaModel;
+use Contabilita\Application\Services\StampaDefinitiva\StampeDefinitive;
 use SismaFramework\Orm\CustomTypes\SismaDateTime;
 use SismaFramework\Orm\HelperClasses\DataMapper;
 
@@ -24,6 +25,9 @@ use SismaFramework\Orm\HelperClasses\DataMapper;
  * giornaliero dei corrispettivi) riscritte con i
  * dati copiati dalla registrazione e collegamento alla fattura
  * elettronica da cui deriva.
+ *
+ * Le registrazioni dei periodi già stampati in via definitiva (libro
+ * giornale o registro IVA) non si salvano né si eliminano.
  */
 class SalvataggioRegistrazione
 {
@@ -37,9 +41,14 @@ class SalvataggioRegistrazione
      * @param RigaIva[] $righeIva con il segno del documento
      * @param RigaContabile[] $righe
      * @param string|null $chiaveProtocollo registro e anno del protocollo prima della modifica ("id|anno")
+     * @throws \DomainException se la registrazione cade in un periodo stampato in via definitiva
      */
     public function salva(RegistrazioneContabile $registrazione, array $righeIva, array $righe, ?string $chiaveProtocollo = null, ?FatturaElettronica $fattura = null): RegistrazioneContabile
     {
+        $blocco = (new StampeDefinitive($this->dataMapper))->getBlocco($registrazione, $righeIva);
+        if ($blocco !== null) {
+            throw new \DomainException($blocco);
+        }
         $registrazioneModel = new RegistrazioneContabileModel($this->dataMapper);
         $primaTransazione = $this->dataMapper->startTransaction();
         if (isset($registrazione->id) === false) {
@@ -102,9 +111,15 @@ class SalvataggioRegistrazione
      * Elimina la registrazione: la fattura elettronica collegata torna da
      * registrare, la liquidazione IVA che l'aveva generata perde il
      * collegamento al giroconto.
+     *
+     * @throws \DomainException se la registrazione cade in un periodo stampato in via definitiva
      */
     public function elimina(RegistrazioneContabile $registrazione): void
     {
+        $blocco = (new StampeDefinitive($this->dataMapper))->getBlocco($registrazione);
+        if ($blocco !== null) {
+            throw new \DomainException($blocco);
+        }
         $primaTransazione = $this->dataMapper->startTransaction();
         $fattura = (new FatturaElettronicaModel($this->dataMapper))->getPerRegistrazione($registrazione);
         if ($fattura !== null) {

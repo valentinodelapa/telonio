@@ -19,6 +19,9 @@ class EsitoImportazione
     /** @var string[] controparti create */
     public array $nuoveControparti = [];
 
+    /** @var string[] file importati benché non conformi allo schema XSD */
+    public array $nonConformi = [];
+
     /** @var string[] */
     public array $errori = [];
 }

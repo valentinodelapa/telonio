@@ -26,7 +26,9 @@ use SismaFramework\Orm\HelperClasses\DataMapper;
  * - la controparte si cerca per partita IVA o codice fiscale tra quelle
  *   dell'azienda ed è creata se manca;
  * - l'impronta (SHA-256 del documento e posizione nel lotto) impedisce di
- *   importare due volte la stessa fattura.
+ *   importare due volte la stessa fattura;
+ * - il file è verificato sullo schema XSD ufficiale: se non è conforme si
+ *   importa comunque, con l'avviso del primo errore.
  */
 class ImportazioneFatture
 {
@@ -92,6 +94,10 @@ class ImportazioneFatture
             $esito->errori[] = $nomeFile . ': la fattura non riguarda l\'azienda (né cedente né cessionario hanno la sua partita IVA o il suo codice fiscale).';
             return;
         }
+        $nonConformita = (new VerificaSchemaFattura())->verifica($xml);
+        if ($nonConformita !== null) {
+            $esito->nonConformi[] = $nomeFile;
+        }
         $fatturaModel = new FatturaElettronicaModel($this->dataMapper);
         $controparteFattura = $direzione === DirezioneFattura::emessa ? $documento->cessionario : $documento->cedente;
         $controparte = null;
@@ -121,6 +127,9 @@ class ImportazioneFatture
             $fattura->controparte = $controparte;
             $fattura->contenuto = $xml;
             $avvisi = self::avvisi($corpo, $direzione);
+            if ($nonConformita !== null) {
+                array_unshift($avvisi, 'File non conforme allo schema della fattura elettronica (' . $nonConformita . '): verificarne la provenienza.');
+            }
             $fattura->avvisi = count($avvisi) > 0 ? implode("\n", $avvisi) : null;
             $this->dataMapper->save($fattura);
             $esito->fatture[] = $fattura;

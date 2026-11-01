@@ -3,9 +3,11 @@
 Contabilità in partita doppia delle aziende clienti dello studio: piano dei
 conti, clienti e fornitori con il partitario, prima nota con le righe
 proposte dalla causale, registri IVA, liquidazioni periodiche e acconto
-con i versamenti registrati nell'archivio di Deleghe F24, importazione
-delle fatture elettroniche con la proposta della registrazione, libro
-giornale, schede contabili e bilancio di verifica.
+con i versamenti registrati nell'archivio di Deleghe F24, comunicazione
+delle liquidazioni periodiche (LIPE), importazione delle fatture
+elettroniche (verificate sullo schema ufficiale) con la proposta della
+registrazione, libro giornale, schede contabili, bilancio di verifica e
+stampe definitive numerate del giornale e dei registri IVA.
 
 L'azienda è il soggetto dell'Anagrafica: il modulo non ha un'anagrafica
 delle aziende propria. Regime fiscale e periodicità IVA si leggono dai
@@ -31,10 +33,12 @@ scheda dell'azienda, per esercizio, ha le sezioni:
 - **Clienti e fornitori**: controparti con i sottoconti del partitario;
 - **Registri IVA**: registri e sezionali, stampa per mese o periodo,
   corrispettivi del mese in una sola maschera;
-- **Liquidazioni IVA**: periodi dell'anno con elaborazione, prospetto e
-  acconto;
+- **Liquidazioni IVA**: periodi dell'anno con elaborazione, prospetto,
+  acconto, limiti della ventilazione e comunicazioni delle liquidazioni
+  periodiche;
 - **Giornale** e **Bilancio di verifica** per periodo, con le schede
   contabili dei sottoconti;
+- **Stampe definitive** del libro giornale e dei registri IVA;
 - **Piano dei conti** dell'azienda.
 
 A livello di studio "Piani dei conti" elenca i modelli (della suite e
@@ -48,9 +52,22 @@ Telonio, Anagrafica (>= 0.6.0, per regime fiscale, periodicità IVA e ventilazio
 Deleghe. `sisma aggiorna-database` esegue per un'installazione nuova o
 esistente:
 
-1. `Contabilita/Database/schema.sql`
+1. `Contabilita/Database/schema.sql` (per i database della versione 0.1,
+   prima `Contabilita/Database/aggiornamento-0.2.sql`: comunicazioni
+   delle liquidazioni periodiche, stampe definitive, colonna
+   `riga_iva.altri_prodotti`)
 2. `Contabilita/Database/dati-riferimento.sql` (piano dei conti standard e
    codici IVA della suite, generato da `sisma tabelle-contabilita --sql`)
+
+Gli schemi XSD ufficiali (comunicazione delle liquidazioni periodiche,
+fattura elettronica, firme XML) sono nel modulo, in
+`Application/Assets/xsd`, con i riferimenti tra file resi locali: la
+validazione non accede alla rete. `sisma specifiche-contabilita` li
+scarica di nuovo dalle fonti ufficiali (pagina delle specifiche tecniche
+della LIPE dell'Agenzia delle Entrate, schema VFPR12 della fattura,
+schema W3C xmldsig) e verifica che si carichino; con
+`--fatturapa=URL` si indica lo schema di una nuova versione delle
+specifiche della fattura.
 
 Le fixture (`sisma fixtures`) coprono tutte le funzioni del modulo:
 
@@ -62,17 +79,30 @@ Le fixture (`sisma fixtures`) coprono tutte le funzioni del modulo:
   20 gennaio, nota di credito a Beta, acquisto da Delta con subappalto in
   inversione contabile (RC22), incasso da Beta; sezionale delle vendite
   "B"; fattura elettronica ricevuta da Epsilon (importata, da
-  registrare); liquidazione di gennaio con il giroconto (172 euro, 6001 al
-  16 febbraio) e acconto IVA previsionale (528 euro, 6013 al 28 dicembre),
-  entrambi nell'archivio di Deleghe F24;
+  registrare) e da Zeta Pulizie (non conforme allo schema: manca il
+  regime fiscale del cedente, importata con l'avviso); fattura a Beta del
+  12 febbraio; liquidazioni di gennaio con il giroconto (172 euro, 6001 al
+  16 febbraio), febbraio (con versamenti auto UE e un credito d'imposta
+  d'esempio, righi VP10 e VP11) e marzo; acconto IVA previsionale (528 euro, 6013
+  al 28 dicembre), nell'archivio di Deleghe F24; comunicazione delle
+  liquidazioni del primo trimestre (tre moduli, dichiarante
+  l'amministratore unico con codice carica 1, intermediario dello studio),
+  inviata; stampe definitive di gennaio del libro giornale e del registro
+  delle vendite (pagina 2026/1: le registrazioni di gennaio non sono più
+  modificabili);
 - **Ferri Lucia, "Alimentari Ferri"** (ditta individuale, contabilità
   semplificata, IVA trimestrale, ventilazione dei corrispettivi nei dati
   fiscali): acquisti di merci per la rivendita al 4%, 10% e 22% da un
-  grossista e un acquisto di materiali di consumo escluso dalla
+  grossista, un acquisto di articoli per la casa da rivendere ("altri
+  prodotti") e un acquisto di materiali di consumo escluso dalla
   ventilazione; corrispettivi di gennaio, febbraio e marzo registrati con
   la maschera mensile (da ventilare dal lunedì al sabato, bevande già
   distinte al 22% il sabato); liquidazione del primo trimestre con la
-  ventilazione, gli interessi dell'1% e il giroconto (6031 al 18 maggio).
+  ventilazione, gli interessi dell'1% e il giroconto (6031 al 18 maggio);
+  comunicazione del primo trimestre in bozza (un modulo, senza
+  dichiarante); esercizio 2025 chiuso con acquisti e corrispettivi di
+  dicembre, base della verifica dei limiti della ventilazione per il
+  2026.
 
 ## Modello dei dati
 
@@ -86,11 +116,14 @@ Le fixture (`sisma fixtures`) coprono tutte le funzioni del modulo:
 | `Controparte` | cliente o fornitore dell'azienda con dati fiscali, sede, recapiti per la fatturazione, pubblica amministrazione (scissione dei pagamenti), sottoconti del partitario, costo o ricavo e codice IVA abituali |
 | `RegistrazioneContabile` | registrazione di prima nota: numero nell'esercizio, causale, documento, controparte e, per i documenti IVA, registro, protocollo, data di competenza ed esigibilità; origine e riferimento per le registrazioni generate |
 | `RigaContabile` | riga in partita doppia sul sottoconto, con la controparte delle righe del partitario |
-| `RigaIva` | riga del registro: codice IVA, imponibile e imposta con il segno del documento, detraibilità, acquisto per rivendita (ventilazione), contropartita |
+| `RigaIva` | riga del registro: codice IVA, imponibile e imposta con il segno del documento, detraibilità, acquisto per rivendita (ventilazione) e di altri prodotti, contropartita |
 | `LiquidazioneIva` | liquidazione del mese o trimestre con il prospetto (IVA esigibile, di cui ventilata, e detraibile, riporti, acconto, interessi, dovuto o credito), la scadenza e il giroconto |
 | `AccontoIva` | acconto dell'anno con metodo, base e importo |
 | `CorrispettivoGiornaliero` | corrispettivi di una giornata per codice IVA (comprensivi dell'imposta) della registrazione mensile dei corrispettivi |
 | `FatturaElettronica` | fattura importata (una per documento del lotto): dati principali, XML completo, impronta, stato e registrazione |
+| `ComunicazioneLipe` | comunicazione delle liquidazioni periodiche del trimestre: progressivo (identificativo), dichiarante e codice carica, intermediario e impegno, stato, data e protocollo dell'invio |
+| `ModuloLipe` | modulo del quadro VP (mese o trimestre) con i righi da VP2 a VP14 fissati alla preparazione e la liquidazione di origine |
+| `StampaDefinitiva` | stampa definitiva di un periodo del libro giornale (esercizio) o di un registro IVA (anno solare) con prima e ultima pagina e righe per pagina |
 
 ### Enum o entità
 
@@ -104,7 +137,9 @@ comportamento, entità per le tabelle ampie o aggiornabili):
   esigibilità, nature IVA e tipi di documento della fattura elettronica
   (fissati dalle specifiche tecniche), voci CEE degli schemi di bilancio
   degli artt. 2424 e 2425 c.c. (`VoceCee`, fissate dalla legge), metodi
-  dell'acconto;
+  dell'acconto, codici di carica del dichiarante e impegno alla
+  presentazione (tabelle delle specifiche), stati della comunicazione,
+  libri della stampa definitiva;
 - **entità**: piani e conti (personalizzabili da studio e azienda), codici
   IVA (lo studio ne aggiunge, ad esempio per detraibilità particolari),
   registri (sezionali dell'azienda).
@@ -251,8 +286,10 @@ l'anno come la periodicità).
   corrispettivi.
 - **Acquisti per rivendita**: nelle righe IVA degli acquisti la colonna
   "Riv." (per le aziende in ventilazione) indica i beni destinati alla
-  rivendita; dalle fatture elettroniche si propone se la contropartita è
-  quella degli acquisti di merci. Sono esclusi i beni non rivenduti, quelli
+  rivendita: "Rivendita" per i prodotti delle categorie ammesse, "Altri
+  prodotti" per gli altri beni rivenduti, che concorrono ai rapporti e al
+  limite dell'art. 4; dalle fatture elettroniche si propone "Rivendita" se
+  la contropartita è quella degli acquisti di merci. Sono esclusi i beni non rivenduti, quelli
   per altre finalità e gli ammortizzabili (art. 3 D.M.). La stampa del
   registro degli acquisti ne riporta i totali per aliquota, IVA compresa.
 - **Liquidazione** (`Services\VentilazioneCorrispettivi`): i corrispettivi
@@ -273,8 +310,25 @@ l'anno come la periodicità).
   avviso, da riportare nella dichiarazione annuale.
 
 Un avviso segnala i corrispettivi da ventilare di un'azienda senza
-l'opzione nei dati fiscali. Le condizioni di accesso (artt. 4 e 5 D.M.)
-non sono verificate.
+l'opzione nei dati fiscali.
+
+**Limiti** (`Services\RequisitiVentilazione`), verificati sui registri
+dell'anno precedente e mostrati nella pagina delle liquidazioni delle
+aziende con l'opzione; superati, la liquidazione avvisa che nell'anno la
+ventilazione non si applica:
+
+- art. 4 D.M.: acquisti di altri prodotti non oltre il 50% del totale
+  degli acquisti e delle importazioni registrati;
+- art. 5 D.M.: cessioni fatturate non oltre il 20% del volume d'affari
+  (vendite fatturate e corrispettivi al netto dell'imposta, con
+  l'imponibile della ventilazione annuale per quelli da ventilare);
+- in entrambi sono escluse le cessioni di immobili e di beni strumentali,
+  riconosciute dalla contropartita patrimoniale della riga IVA.
+
+Se l'anno precedente non è in contabilità i limiti si verificano a parte.
+La ventilazione non è stata abolita: lo schema di decreto del 22 luglio
+2025 che la sopprimeva dal 2026 non è passato nel testo definitivo
+(D.Lgs. 186/2025) e il Testo unico IVA la riprende nell'art. 87.
 
 ## Liquidazioni IVA
 
@@ -290,8 +344,9 @@ competenza nel periodo:
 `Services\ElaborazioneLiquidazione` riporta il credito e il debito
 rinviato del periodo precedente, compensa il credito annuale indicato
 (compensazione "verticale" del credito della dichiarazione dell'anno
-precedente: non si riporta da solo), scomputa l'acconto nell'ultimo
-periodo e applica le regole di `Services\PeriodiIva`:
+precedente: non si riporta da solo), scomputa i versamenti auto UE e i
+crediti d'imposta indicati, l'acconto nell'ultimo periodo e applica le
+regole di `Services\PeriodiIva`:
 
 - mensili (art. 1, c. 1 e 4, D.P.R. 100/1998): versamento entro il 16 del
   mese successivo, codici 6001-6012;
@@ -325,6 +380,89 @@ trimestrali, al 20 dicembre); non è dovuto sotto 103,29 euro. Le forme
 speciali di periodicità (trimestrali speciali dell'art. 74, c. 4, D.P.R.
 633/1972) non sono gestite.
 
+## Comunicazione delle liquidazioni periodiche
+
+La comunicazione del trimestre (art. 21-bis D.L. 78/2010) si prepara
+dalle liquidazioni elaborate (`Services\Lipe\PreparazioneLipe`): un
+modulo per ogni mese dei mensili, uno per il trimestre dei trimestrali,
+con i righi:
+
+- VP2 e VP3: imponibili delle operazioni attive e passive del periodo,
+  comprese non imponibili, esenti, scissione dei pagamenti, esigibilità
+  differita e inversione contabile; per i corrispettivi ventilati
+  l'imponibile della ventilazione;
+- VP4-VP6: IVA esigibile e detratta della liquidazione;
+- VP7 (debito non superiore a 100 euro) e VP8 (credito del periodo
+  precedente) dove le specifiche li ammettono (VP7 non a gennaio,
+  dicembre, primo e quarto trimestre; VP8 non nel primo periodo, il cui
+  credito dell'anno precedente va nel VP9), con un avviso se la
+  liquidazione ne riporta uno non ammesso;
+- VP9 credito annuale compensato, VP10 IVA già versata con F24 elementi
+  identificativi sulle prime cessioni interne di auto di provenienza UE
+  (D.L. 262/2006), VP11 crediti d'imposta particolari scomputati dal
+  versamento (non quelli compensati nel modello F24), VP12 interessi dei
+  trimestrali, VP13 acconto con il metodo (1 storico, 2 previsionale, 3
+  analitico);
+- VP14: risultato dei righi, compreso il debito non versato perché non
+  superiore a 100 euro; un avviso segnala la differenza dal risultato
+  della liquidazione (da rielaborare);
+- quarto trimestre dei trimestrali: periodo "5", senza VP11, VP12 e VP14
+  (l'imposta si versa con la dichiarazione annuale).
+
+Versamenti auto UE e crediti d'imposta non risultano dai registri: si
+indicano all'elaborazione della liquidazione, come il credito annuale, e
+riducono l'importo da versare (e il versamento in Deleghe); i crediti
+d'imposta non superano l'IVA da versare prima del loro scomputo e non si
+usano nel quarto trimestre dei trimestrali. Alla prima preparazione si propongono il dichiarante
+(rappresentante legale, amministratore unico, presidente del CdA o
+liquidatore in carica dai legami dell'Anagrafica, obbligatorio per i
+soggetti diversi dalle persone fisiche) e l'intermediario predefinito di
+Deleghe con l'impegno "predisposta da chi effettua l'invio"; si
+modificano nel frontespizio.
+
+`Services\Lipe\GeneratoreLipe` produce la fornitura IVP18 (specifiche
+tecniche del provvedimento del 14 marzo 2024) e la valida sullo schema
+ufficiale prima del download: il file va firmato e trasmesso con Entratel
+o dal portale Fatture e corrispettivi; il nome proposto è
+`IT<codice fiscale>_LI_<progressivo>.xml` (convenzione diffusa, non
+verificata su un documento ufficiale). Registrati data e protocollo
+dell'invio la comunicazione non si modifica: per una sostitutiva entro il
+termine la si riporta in bozza e la si riprepara. Termine: ultimo giorno
+del secondo mese successivo al trimestre (30 settembre per il secondo,
+fine di febbraio per il quarto), al primo giorno lavorativo se festivo.
+Le liquidazioni di gruppo, i soggetti con periodicità mista e le
+operazioni straordinarie non sono gestiti.
+
+## Stampe definitive
+
+Il libro giornale (per esercizio, art. 2215 c.c.) e i registri IVA (per
+anno solare, art. 39 D.P.R. 633/1972) si stampano in definitiva con le
+pagine numerate per anno ("2026/1", "2026/2", ...), senza bollatura né
+vidimazione (art. 8 L. 383/2001). Tenuti con sistemi elettronici, i
+registri vanno stampati entro tre mesi dal termine della dichiarazione
+dei redditi (art. 7, c. 4-ter, D.L. 357/1994) o, aggiornati sul sistema
+elettronico, anche solo su richiesta degli organi di controllo (c.
+4-quater, esteso a tutti i registri contabili dal D.L. 34/2019): la
+stampa definitiva serve a chi stampa o conserva i libri per periodi.
+
+- **Continuità** (`Services\StampaDefinitiva\StampeDefinitive`): ogni
+  stampa parte dal giorno dopo la precedente (o dall'inizio dell'esercizio
+  o dell'anno) e dalla pagina successiva, fino a un giorno già trascorso
+  entro la fine dell'esercizio o dell'anno; si annulla solo l'ultima.
+- **Impaginazione** (`Services\StampaDefinitiva\Impaginazione`): righe
+  fisse per pagina, ciascuna su una sola linea (testi lunghi troncati),
+  così il numero delle pagine non dipende dal browser; il giornale porta
+  i riporti di dare e avere da una pagina all'altra e il totale
+  progressivo dell'esercizio. Il numero di righe per pagina è registrato
+  con la stampa: la ristampa rigenera le stesse pagine dai dati.
+- **Blocco**: le registrazioni con data (giornale) o competenza IVA
+  (registro) in un periodo stampato non si creano, modificano o eliminano
+  più (`SalvataggioRegistrazione`), comprese le integrazioni degli
+  acquisti in inversione contabile riportate nel registro delle vendite;
+  la rielaborazione di una liquidazione lascia il giroconto stampato con
+  un avviso. Annullando l'ultima stampa il periodo torna modificabile.
+- L'anteprima mostra le pagine con la filigrana senza registrare nulla.
+
 ## Fatture elettroniche
 
 `Services\FatturaPa\ImportazioneFatture` accetta file XML, firmati
@@ -341,7 +479,12 @@ Per ogni documento del lotto la direzione si ricava dalla partita IVA o
 dal codice fiscale dell'azienda (cedente: emessa; cessionario: ricevuta;
 altrimenti scartata), la controparte si cerca per partita IVA o codice
 fiscale ed è creata se manca, l'impronta (SHA-256 dell'XML e posizione
-nel lotto) impedisce i doppi caricamenti. Gli avvisi segnalano divisa
+nel lotto) impedisce i doppi caricamenti. Il file è verificato sullo
+schema XSD ufficiale (`Services\FatturaPa\VerificaSchemaFattura`,
+schema VFPR12 delle specifiche 1.9.1): il Sistema di Interscambio scarta
+i file non conformi, quindi un errore indica un file alterato, prodotto
+fuori dal SdI o di una versione dello schema più recente; la fattura si
+importa comunque, con l'avviso del primo errore. Gli altri avvisi segnalano divisa
 estera, esigibilità differita, differenze tra totale e riepiloghi
 (ritenute, bolli), integrazioni TD16 che possono duplicare la fattura del
 fornitore.
@@ -393,8 +536,13 @@ suite sono in sola lettura per tutti.
   7), L. 405/1990 (art. 6), D.Lgs. 1/2024 (art. 9), D.L. 16/2012 (art.
   3-quater): testi su Normattiva;
 - specifiche tecniche della fattura elettronica (allegato A al
-  provvedimento AdE 30 aprile 2018 e successive versioni, 1.9): nature,
-  tipi di documento, esigibilità;
+  provvedimento AdE 30 aprile 2018 e successive versioni, 1.9.1): nature,
+  tipi di documento, esigibilità, schema VFPR12 v1.2.3;
+- art. 21-bis D.L. 78/2010; specifiche tecniche e istruzioni della
+  comunicazione delle liquidazioni periodiche IVA (provvedimento AdE 14
+  marzo 2024, fornitura IVP18, schemi XSD);
+- artt. 2214-2220 c.c., art. 39 D.P.R. 633/1972, art. 8 L. 383/2001,
+  art. 7 D.L. 357/1994 (stampe dei libri);
 - artt. 2424 e 2425 c.c. nel testo modificato dal D.Lgs. 139/2015;
 - RFC 5652 (Cryptographic Message Syntax) per la busta CAdES.
 
@@ -403,19 +551,16 @@ suite sono in sola lettura per tutti.
 - registrazione all'incasso dell'IVA a esigibilità differita e IVA per
   cassa (art. 32-bis D.L. 83/2012); oggi esclusa dalla liquidazione con un
   avviso;
-- comunicazione delle liquidazioni periodiche (LIPE) e dichiarazione IVA
-  annuale (modulo Dichiarativi), pro-rata di detraibilità, plafond;
+- dichiarazione IVA annuale (modulo Dichiarativi), pro-rata di
+  detraibilità, plafond;
 - contabilità dei forfetari, cespiti e ammortamenti, ratei e risconti,
   chiusura e riapertura dei conti con le scritture di assestamento
   (base per il modulo Bilancio);
 - trimestrali speciali (art. 74, c. 4, D.P.R. 633/1972) e liquidazione di
   gruppo;
-- stampa definitiva numerata del giornale e dei registri (oggi
-  l'esercizio chiuso blocca le modifiche);
+- stampa definitiva del libro degli inventari e dei registri dei beni
+  ammortizzabili (con i cespiti);
 - importazione nella maschera mensile dei corrispettivi telematici
   trasmessi (portale Fatture e corrispettivi) e scarico automatico delle
-  fatture; verifica delle condizioni di accesso alla ventilazione e
-  quadro VF della dichiarazione annuale;
-- adeguamento dei riferimenti normativi al Testo unico IVA (dal 2027);
-- verifica dei file importati sugli XSD ufficiali (oggi lettura
-  tollerante dei soli dati necessari).
+  fatture; quadro VF della dichiarazione annuale;
+- adeguamento dei riferimenti normativi al Testo unico IVA (dal 2027).

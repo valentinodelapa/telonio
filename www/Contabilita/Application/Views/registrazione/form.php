@@ -91,7 +91,9 @@ require Layout::percorso('header');
                                     <td style="width: 6rem"><input type="text" class="form-control form-control-sm text-end" name="<?= Html::e($prefisso) ?>[detraibilita]" value="<?= Html::e($riga['detraibilita'] ?? '') ?>" inputmode="decimal" placeholder="100" data-detraibilita></td>
                                 <?php endif; ?>
                                 <?php if ($acquisti && $ventilazione): ?>
-                                    <td class="text-center"><input class="form-check-input" type="checkbox" name="<?= Html::e($prefisso) ?>[rivendita]" value="1" <?= ($riga['rivendita'] ?? '') === '1' ? 'checked' : '' ?> aria-label="<?= Html::e($campi['rivendita']) ?>"></td>
+                                    <td style="width: 7rem"><select class="form-select form-select-sm" name="<?= Html::e($prefisso) ?>[rivendita]" aria-label="<?= Html::e($campi['rivendita']) ?>">
+                                        <?php foreach (['' => '-', '1' => $rivenditaAmmessa, '2' => $rivenditaAltri] as $valore => $etichetta): ?><option value="<?= Html::e($valore) ?>" <?= ($riga['rivendita'] ?? '') === (string) $valore ? 'selected' : '' ?>><?= Html::e($etichetta) ?></option><?php endforeach; ?>
+                                    </select></td>
                                 <?php endif; ?>
                                 <td><?= $autocompleta($prefisso . '[conto]', $urlConti, $riga['conto'] ?? null, $riga['contoEtichetta'] ?? null) ?></td>
                             </tr>

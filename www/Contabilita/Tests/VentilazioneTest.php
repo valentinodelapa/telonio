@@ -6,6 +6,9 @@ use Anagrafica\Application\Entities\DatiFiscali;
 use Anagrafica\Application\Enumerations\PeriodicitaIva;
 use Anagrafica\Application\Enumerations\RegimeFiscale;
 use Contabilita\Application\Entities\CodiceIva;
+use Contabilita\Application\Entities\Conto;
+use Contabilita\Application\Enumerations\LivelloConto;
+use Contabilita\Application\Enumerations\NaturaConto;
 use Contabilita\Application\Entities\LiquidazioneIva;
 use Contabilita\Application\Entities\RigaIva;
 use Contabilita\Application\Enumerations\CausaleContabile;
@@ -185,5 +188,50 @@ class VentilazioneTest extends ContabilitaTestCase
         $this->assertStringContainsString('Ventilazione annuale', (string) $liquidazione->avvisi);
         $this->assertStringContainsString('differenza € 10,00', (string) $liquidazione->avvisi);
         $this->assertStringNotContainsString('non è indicata', (string) $liquidazione->avvisi);
+    }
+
+    public function testLimitiSullAnnoPrecedente(): void
+    {
+        $merci = $this->acquisto('22', 6000.0, '2025-03-10');
+        $altri = $this->acquisto('22', 4000.0, '2025-04-10');
+        $altri->altriProdotti = true;
+        $servizi = $this->acquisto('22', 1000.0, '2025-05-10', false);
+        $vendita = $this->creaRegistrazione(CausaleContabile::fatturaVendita, null, '2025-06-10');
+        $fattura = $this->creaRigaIva('22', 3000.0, 1, null, $vendita);
+        $cespite = $this->creaRigaIva('22', 5000.0, 1, null, $vendita);
+        $impianti = new Conto($this->dataMapper);
+        $impianti->id = 100900;
+        $impianti->pianoConti = $this->piano;
+        $impianti->codice = '02.01.0001';
+        $impianti->descrizione = 'Impianti e macchinari';
+        $impianti->natura = NaturaConto::attivita;
+        $impianti->livello = LivelloConto::sottoconto;
+        $cespite->conto = $impianti;
+        $corrispettivi = $this->creaRigaIva('10', 9000.0, 1, null, $this->creaRegistrazione(CausaleContabile::corrispettivi, null, '2025-06-30'));
+        $this->rispondiConti(['riga_iva' => [$merci, $altri, $servizi, $fattura, $cespite, $corrispettivi]]);
+        $requisiti = (new \Contabilita\Application\Services\RequisitiVentilazione($this->dataMapper))->verifica($this->azienda, 2026);
+        $this->assertSame(2025, $requisiti['anno']);
+        $this->assertTrue($requisiti['disponibile']);
+        $this->assertSame(36.36, $requisiti['percentualeAltri'], '4.000 su 11.000 di acquisti e importazioni');
+        $this->assertSame(3000.0, $requisiti['fatture'], 'esclusa la cessione del bene strumentale');
+        $this->assertSame(12000.0, $requisiti['volumeAffari']);
+        $this->assertSame(25.0, $requisiti['percentualeFatture']);
+        $this->assertCount(1, $requisiti['superati']);
+        $this->assertStringContainsString('art. 5', $requisiti['superati'][0]);
+
+        $this->rispondiConti();
+        $this->assertFalse((new \Contabilita\Application\Services\RequisitiVentilazione($this->dataMapper))->verifica($this->azienda, 2026)['disponibile']);
+    }
+
+    public function testSceltaRivenditaNelleRigheIva(): void
+    {
+        $this->rispondiConti(['codice_iva' => [$this->codiciIva['22']]]);
+        foreach (['' => [false, false], '1' => [true, false], '2' => [true, true]] as $valore => [$rivendita, $altriProdotti]) {
+            $form = new \Contabilita\Application\Forms\RigaIvaForm(new RigaIva($this->dataMapper), $this->dataMapper);
+            $form->handleRequest($this->creaRequest(['submitted' => '1', 'codiceIva' => '1', 'imponibile' => '100,00', 'imposta' => '22,00', 'rivendita' => (string) $valore]));
+            $this->assertTrue($form->isValid(), 'valore ' . $valore);
+            $riga = $form->resolveEntity();
+            $this->assertSame([$rivendita, $altriProdotti], [$riga->rivendita, $riga->altriProdotti], 'valore ' . $valore);
+        }
     }
 }

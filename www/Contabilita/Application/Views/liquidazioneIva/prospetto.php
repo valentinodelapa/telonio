@@ -14,6 +14,8 @@ $righeProspetto = [
     [$campi['debitoPrecedente'], $liquidazione->debitoPrecedente],
     [$campi['creditoPrecedente'], -$liquidazione->creditoPrecedente],
     [$campi['creditoAnnoPrecedente'], -$liquidazione->creditoAnnoPrecedente],
+    [$campi['versamentiAuto'], -$liquidazione->versamentiAuto],
+    [$campi['creditiImposta'], -$liquidazione->creditiImposta],
     [$campi['acconto'], -$liquidazione->acconto],
     [$campi['interessi'], $liquidazione->interessi],
 ];

@@ -99,6 +99,23 @@ final class PeriodiIva
     }
 
     /**
+     * Termine della comunicazione delle liquidazioni periodiche del
+     * trimestre: ultimo giorno del secondo mese successivo, 30 settembre
+     * per il secondo e fine di febbraio per il quarto (art. 21-bis, c. 1,
+     * D.L. 78/2010), al primo giorno lavorativo se festivo.
+     */
+    public static function getScadenzaLipe(int $anno, int $trimestre): SismaDate
+    {
+        $mese = match ($trimestre) {
+            2 => 9,
+            4 => 2,
+            default => $trimestre * 3 + 2,
+        };
+        $mese = new \DateTimeImmutable(sprintf('%04d-%02d-01', $trimestre === 4 ? $anno + 1 : $anno, $mese));
+        return Calendario::termineFiscale($mese->modify('last day of this month'));
+    }
+
+    /**
      * Soglia sotto cui (o alla quale) il versamento si rinvia al periodo
      * successivo.
      */

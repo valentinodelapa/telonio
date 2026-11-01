@@ -29,6 +29,7 @@ use Contabilita\Application\Services\FatturaPa\PropostaDaFattura;
 use Contabilita\Application\Services\PropostaRighe;
 use Contabilita\Application\Services\RegimeIva;
 use Contabilita\Application\Services\SalvataggioRegistrazione;
+use Contabilita\Application\Services\StampaDefinitiva\StampeDefinitive;
 use SismaFramework\Core\HttpClasses\Request;
 use SismaFramework\Core\HttpClasses\Response;
 use SismaFramework\Orm\CustomTypes\SismaDate;
@@ -116,6 +117,11 @@ class RegistrazioneController extends ContabilitaController
             $this->aggiungiMessaggio($registrazione->isGenerata() ? 'La registrazione è generata dalla liquidazione IVA: si aggiorna rielaborando la liquidazione.' : 'L\'esercizio è chiuso.', 'warning');
             return $this->router->redirect('registrazione/show/registrazione/' . $registrazione->id);
         }
+        $blocco = (new StampeDefinitive($this->dataMapper))->getBlocco($registrazione);
+        if ($blocco !== null) {
+            $this->aggiungiMessaggio($blocco, 'warning');
+            return $this->router->redirect('registrazione/show/registrazione/' . $registrazione->id);
+        }
         $this->getEsercizio($registrazione->soggetto, $registrazione->esercizioContabile->anno);
         $segno = $registrazione->causale->getSegno();
         $righeIva = [];
@@ -195,7 +201,12 @@ class RegistrazioneController extends ContabilitaController
             $this->aggiungiMessaggio('L\'esercizio è chiuso: la registrazione non si elimina.', 'warning');
             return $this->router->redirect('registrazione/show/registrazione/' . $registrazione->id);
         }
-        (new SalvataggioRegistrazione($this->dataMapper))->elimina($registrazione);
+        try {
+            (new SalvataggioRegistrazione($this->dataMapper))->elimina($registrazione);
+        } catch (\DomainException $errore) {
+            $this->aggiungiMessaggio($errore->getMessage(), 'warning');
+            return $this->router->redirect('registrazione/show/registrazione/' . $registrazione->id);
+        }
         $this->aggiungiMessaggio('Registrazione n. ' . $registrazione->numero . ' eliminata' . ($registrazione->causale->isIva() ? ': rielaborare la liquidazione IVA del periodo.' : '.'));
         return $this->router->redirect('registrazione/index/soggetto/' . $soggetto->id . '/anno/' . $anno);
     }
@@ -244,7 +255,14 @@ class RegistrazioneController extends ContabilitaController
                     }
                 }
                 if (count($errori) === 0) {
-                    $registrazione = (new SalvataggioRegistrazione($this->dataMapper))->salva($registrazione, $righeIva, $righe, $chiaveProtocollo, $fattura);
+                    try {
+                        $registrazione = (new SalvataggioRegistrazione($this->dataMapper))->salva($registrazione, $righeIva, $righe, $chiaveProtocollo, $fattura);
+                    } catch (\DomainException $errore) {
+                        $errori['dataRegistrazione'] = $errore->getMessage();
+                        $form->getFilterErrors()->dataRegistrazioneCustomMessage = $errore->getMessage();
+                    }
+                }
+                if (count($errori) === 0) {
                     $this->aggiungiMessaggio('Registrazione n. ' . $registrazione->numero . ' salvata' . ($registrazione->protocolloIva === null ? '' : ' (protocollo IVA ' . $registrazione->protocolloIva . ')') . '.');
                     if ($azione === 'salvaNuova') {
                         return $this->router->redirect('registrazione/create/soggetto/' . $soggetto->id . '/anno/' . $registrazione->esercizioContabile->anno . '/causale/' . $registrazione->causale->value);
@@ -266,7 +284,7 @@ class RegistrazioneController extends ContabilitaController
         $this->vars['codiciIva'] = (new CodiceIvaModel($this->dataMapper))->getElenco($this->studio);
         $this->vars['esigibilita'] = EsigibilitaIva::cases();
         $this->vars['ventilazione'] = (new RegimeIva($this->dataMapper))->isVentilazione($soggetto, (int) $registrazione->dataRegistrazione->format('Y'))
-                || (count(array_filter($this->vars['datiIva'], fn(array $riga) => ($riga['rivendita'] ?? '') === '1')) > 0);
+                || (count(array_filter($this->vars['datiIva'], fn(array $riga) => in_array($riga['rivendita'] ?? '', ['1', '2'], true))) > 0);
         $controparte = $registrazione->controparte;
         $this->vars['etichettaControparte'] = $controparte?->getEtichetta();
         $this->vars['avvisiProposta'] ??= [];
@@ -320,6 +338,7 @@ class RegistrazioneController extends ContabilitaController
             }
             if ($registrazione->causale->getTipoRegistroIva() !== TipoRegistroIva::acquisti) {
                 $riga->rivendita = false;
+                $riga->altriProdotti = false;
             }
             $riga->imponibile = round($riga->imponibile * $segno, 2);
             $riga->imposta = round($riga->imposta * $segno, 2);
@@ -380,7 +399,7 @@ class RegistrazioneController extends ContabilitaController
     private static function datiRigaIva(RigaIva $riga, int $segno): array
     {
         return ['codiceIva' => (string) $riga->codiceIva->id, 'imponibile' => self::importo($riga->imponibile * $segno), 'imposta' => self::importo($riga->imposta * $segno),
-            'detraibilita' => self::importo($riga->detraibilita), 'rivendita' => $riga->rivendita ? '1' : '', 'conto' => $riga->conto === null ? '' : (string) $riga->conto->id, 'contoEtichetta' => $riga->conto?->getEtichetta()];
+            'detraibilita' => self::importo($riga->detraibilita), 'rivendita' => $riga->rivendita ? ($riga->altriProdotti ? '2' : '1') : '', 'conto' => $riga->conto === null ? '' : (string) $riga->conto->id, 'contoEtichetta' => $riga->conto?->getEtichetta()];
     }
 
     private static function datiRiga(RigaContabile $riga): array

@@ -12,7 +12,9 @@ use Telonio\Application\Entities\Studio;
 /**
  * Liquidazione periodica IVA dell'azienda per mese o trimestre: IVA
  * esigibile e detraibile del periodo dai registri, debito non versato e
- * credito del periodo precedente, credito annuale compensato, acconto,
+ * credito del periodo precedente, credito annuale compensato, versamenti
+ * dell'IVA sulle auto di provenienza UE (F24 elementi identificativi, D.L.
+ * 262/2006) e crediti d'imposta particolari scomputati, acconto,
  * interessi dei trimestrali, importo dovuto o credito riportato. Il
  * versamento è registrato nell'archivio di Deleghe F24 (origine
  * "Contabilita", riferimento iva-<anno>-<periodo>).
@@ -34,6 +36,8 @@ class LiquidazioneIva extends BaseEntity
     protected float $debitoPrecedente = 0.0;
     protected float $creditoPrecedente = 0.0;
     protected float $creditoAnnoPrecedente = 0.0;
+    protected float $versamentiAuto = 0.0;
+    protected float $creditiImposta = 0.0;
     protected float $acconto = 0.0;
     protected float $interessi = 0.0;
     protected float $importoDovuto = 0.0;

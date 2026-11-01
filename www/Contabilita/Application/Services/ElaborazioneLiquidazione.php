@@ -15,6 +15,7 @@ use Contabilita\Application\Models\EsercizioContabileModel;
 use Contabilita\Application\Models\LiquidazioneIvaModel;
 use Contabilita\Application\Models\PianoContiModel;
 use Contabilita\Application\Models\RegistrazioneContabileModel;
+use Contabilita\Application\Services\StampaDefinitiva\StampeDefinitive;
 use Deleghe\Application\Entities\Versamento;
 use Deleghe\Application\Enumerations\SezioneCodiceTributo;
 use Deleghe\Application\Enumerations\SezioneF24;
@@ -38,7 +39,13 @@ use SismaFramework\Orm\HelperClasses\DataMapper;
  *
  * Il credito risultante dalla dichiarazione annuale dell'anno precedente
  * non si riporta da solo: si indica l'importo compensato nel periodo
- * (compensazione "verticale").
+ * (compensazione "verticale"). Allo stesso modo si indicano l'IVA già
+ * versata con F24 elementi identificativi sulle prime cessioni interne di
+ * auto di provenienza UE (D.L. 262/2006) e i crediti d'imposta particolari
+ * scomputati dal versamento (non quelli compensati nel modello F24): righi
+ * VP10 e VP11 della comunicazione delle liquidazioni periodiche. I crediti
+ * d'imposta non superano l'IVA da versare e non si usano nel quarto
+ * trimestre dei trimestrali, che si chiude con la dichiarazione annuale.
  */
 class ElaborazioneLiquidazione
 {
@@ -49,11 +56,14 @@ class ElaborazioneLiquidazione
     }
 
     /**
-     * @throws \DomainException se l'azienda non liquida l'IVA nell'anno
+     * @throws \DomainException se l'azienda non liquida l'IVA nell'anno o i crediti d'imposta non sono scomputabili
      * @throws \InvalidArgumentException se il versamento non supera i controlli di Deleghe
      */
-    public function elabora(Soggetto $soggetto, int $anno, int $periodo, float $creditoAnnoPrecedente = 0.0, bool $giroconto = true): LiquidazioneIva
+    public function elabora(Soggetto $soggetto, int $anno, int $periodo, float $creditoAnnoPrecedente = 0.0, bool $giroconto = true, float $versamentiAuto = 0.0, float $creditiImposta = 0.0): LiquidazioneIva
     {
+        if (($versamentiAuto < 0) || ($creditiImposta < 0)) {
+            throw new \DomainException('Versamenti auto UE e crediti d\'imposta non possono essere negativi.');
+        }
         $periodicita = (new RegimeIva($this->dataMapper))->getPeriodicita($soggetto, $anno);
         if (($periodo < 1) || ($periodo > PeriodiIva::getNumeroPeriodi($periodicita))) {
             throw new \DomainException('Periodo non valido per la periodicità ' . mb_strtolower($periodicita->getLabel()) . '.');
@@ -65,7 +75,6 @@ class ElaborazioneLiquidazione
         $ventilazione = new VentilazioneCorrispettivi($this->dataMapper);
         $ventilata = $ventilazione->calcola($soggetto, $dal, $al);
         $annuale = (PeriodiIva::isUltimoPeriodo($periodicita, $periodo) && ($periodo > 1)) ? $ventilazione->calcola($soggetto, new SismaDate($anno . '-01-01'), $al) : $ventilata;
-        $primaTransazione = $this->dataMapper->startTransaction();
         $liquidazione = $model->getPerPeriodo($soggetto, $anno, $periodo) ?? new LiquidazioneIva($this->dataMapper);
         $liquidazione->studio = $soggetto->studio;
         $liquidazione->soggetto = $soggetto;
@@ -85,6 +94,18 @@ class ElaborazioneLiquidazione
         $liquidazione->creditoPrecedente = $precedente?->creditoFinale ?? 0.0;
         $liquidazione->debitoPrecedente = $precedente?->debitoRinviato ?? 0.0;
         $liquidazione->creditoAnnoPrecedente = round(max(0.0, $creditoAnnoPrecedente), 2);
+        $liquidazione->versamentiAuto = round($versamentiAuto, 2);
+        $liquidazione->creditiImposta = round($creditiImposta, 2);
+        if ($creditiImposta > 0) {
+            if (($periodicita === PeriodicitaIva::trimestrale) && ($periodo === 4)) {
+                throw new \DomainException('Quarto trimestre: i crediti d\'imposta si scomputano nel saldo della dichiarazione annuale.');
+            }
+            $massimo = $this->getMassimoCreditiImposta($liquidazione);
+            if ($creditiImposta > $massimo + 0.005) {
+                throw new \DomainException(sprintf('I crediti d\'imposta (VP11) non possono superare l\'IVA da versare prima del loro scomputo (€ %s).', number_format($massimo, 2, ',', '.')));
+            }
+        }
+        $primaTransazione = $this->dataMapper->startTransaction();
         $liquidazione->acconto = 0.0;
         if (PeriodiIva::isUltimoPeriodo($periodicita, $periodo)) {
             $acconto = (new AccontoIvaModel($this->dataMapper))->getPerAnno($soggetto, $anno);
@@ -122,6 +143,10 @@ class ElaborazioneLiquidazione
         if (($datiFiscali === null) || ($datiFiscali->ventilazioneCorrispettivi === false)) {
             $avvisi[] = 'Corrispettivi da ventilare, ma nei dati fiscali dell\'Anagrafica la ventilazione dei corrispettivi non è indicata per il ' . $liquidazione->anno . '.';
         }
+        $requisiti = (new RequisitiVentilazione($this->dataMapper))->verifica($liquidazione->soggetto, $liquidazione->anno);
+        if (count($requisiti['superati']) > 0) {
+            $avvisi[] = 'Ventilazione non applicabile nel ' . $liquidazione->anno . ': ' . implode('; ', $requisiti['superati']) . '. Liquidare i corrispettivi con le aliquote dei singoli prodotti.';
+        }
         if ((PeriodiIva::isUltimoPeriodo($liquidazione->periodicita, $liquidazione->periodo) === false) || ($annuale === $periodo)) {
             return;
         }
@@ -137,13 +162,25 @@ class ElaborazioneLiquidazione
     }
 
     /**
+     * Crediti d'imposta scomputabili (controllo del rigo VP11): IVA dovuta
+     * del periodo e debito precedente, al netto dei crediti riportati e dei
+     * versamenti auto UE.
+     */
+    public function getMassimoCreditiImposta(LiquidazioneIva $liquidazione): float
+    {
+        return max(0.0, round(max(0.0, $liquidazione->getIvaPeriodo()) + $liquidazione->debitoPrecedente - $liquidazione->creditoPrecedente
+                        - $liquidazione->creditoAnnoPrecedente - $liquidazione->versamentiAuto, 2));
+    }
+
+    /**
      * Importo dovuto o credito del periodo; il debito non superiore alla
      * soglia si rinvia, gli interessi dei trimestrali si aggiungono al
      * versamento.
      */
     public function determinaImporti(LiquidazioneIva $liquidazione): void
     {
-        $saldo = round($liquidazione->getIvaPeriodo() + $liquidazione->debitoPrecedente - $liquidazione->creditoPrecedente - $liquidazione->creditoAnnoPrecedente - $liquidazione->acconto, 2);
+        $saldo = round($liquidazione->getIvaPeriodo() + $liquidazione->debitoPrecedente - $liquidazione->creditoPrecedente - $liquidazione->creditoAnnoPrecedente
+                - $liquidazione->versamentiAuto - $liquidazione->creditiImposta - $liquidazione->acconto, 2);
         $liquidazione->importoDovuto = $liquidazione->creditoFinale = $liquidazione->debitoRinviato = $liquidazione->interessi = 0.0;
         if ($saldo <= 0) {
             $liquidazione->creditoFinale = -$saldo;
@@ -197,8 +234,9 @@ class ElaborazioneLiquidazione
         $esistente = (new RegistrazioneContabileModel($this->dataMapper))->getGenerata($soggetto, LiquidazioneIva::ORIGINE, $riferimento);
         $liquidazione->registrazioneContabile = null;
         if ($esistente !== null) {
-            if ($esistente->isModificabile() === false) {
-                $avvisi[] = 'Giroconto non aggiornato: l\'esercizio della registrazione n. ' . $esistente->numero . ' è chiuso.';
+            $blocco = $esistente->isModificabile() ? (new StampeDefinitive($this->dataMapper))->getBlocco($esistente) : 'l\'esercizio della registrazione n. ' . $esistente->numero . ' è chiuso.';
+            if ($blocco !== null) {
+                $avvisi[] = 'Giroconto non aggiornato: ' . lcfirst($blocco);
                 $liquidazione->registrazioneContabile = $esistente;
                 return;
             }
@@ -254,7 +292,11 @@ class ElaborazioneLiquidazione
         $registrazione->descrizione = 'Liquidazione IVA ' . $liquidazione->getDescrizionePeriodo();
         $registrazione->origine = LiquidazioneIva::ORIGINE;
         $registrazione->riferimentoOrigine = $riferimento;
-        $liquidazione->registrazioneContabile = $salvataggio->salva($registrazione, [], $righe);
+        try {
+            $liquidazione->registrazioneContabile = $salvataggio->salva($registrazione, [], $righe);
+        } catch (\DomainException $errore) {
+            $avvisi[] = 'Giroconto non registrato: ' . lcfirst($errore->getMessage());
+        }
     }
 
     /**
@@ -270,7 +312,7 @@ class ElaborazioneLiquidazione
         $giroconto = $liquidazione->registrazioneContabile;
         $liquidazione->registrazioneContabile = null;
         $this->dataMapper->save($liquidazione);
-        if (($giroconto !== null) && $giroconto->isModificabile()) {
+        if (($giroconto !== null) && $giroconto->isModificabile() && ((new StampeDefinitive($this->dataMapper))->getBlocco($giroconto) === null)) {
             (new SalvataggioRegistrazione($this->dataMapper))->elimina($giroconto);
         }
         $this->dataMapper->delete($liquidazione);
