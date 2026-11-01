@@ -48,6 +48,7 @@ class DatiFiscaliForm extends BaseForm
                 ->addFilterFieldMode('regimeFiscale', FilterType::isEnumeration, [], true)
                 ->addFilterFieldMode('periodicitaIva', FilterType::isEnumeration, [], true)
                 ->addFilterFieldMode('soggettoIsa', FilterType::isBoolean)
+                ->addFilterFieldMode('ventilazioneCorrispettivi', FilterType::isBoolean)
                 ->addFilterFieldMode('sostitutoImposta', FilterType::isBoolean);
         if ($this->entity->soggetto->tipoSoggetto === TipoSoggetto::societaCapitali) {
             $this->addFilterFieldMode('trasparenzaFiscale', FilterType::isBoolean);
@@ -100,7 +101,8 @@ class DatiFiscaliForm extends BaseForm
         $regime = $dati->regimeFiscale;
         if ($dati->partitaIva === null) {
             $valido = true;
-            foreach (['regimeFiscale' => $regime !== null, 'periodicitaIva' => $dati->periodicitaIva !== null, 'soggettoIsa' => (bool) $dati->soggettoIsa, 'trasparenzaFiscale' => (bool) ($dati->trasparenzaFiscale ?? false)] as $campo => $indicato) {
+            foreach (['regimeFiscale' => $regime !== null, 'periodicitaIva' => $dati->periodicitaIva !== null, 'soggettoIsa' => (bool) $dati->soggettoIsa, 'trasparenzaFiscale' => (bool) ($dati->trasparenzaFiscale ?? false),
+                'ventilazioneCorrispettivi' => (bool) ($dati->ventilazioneCorrispettivi ?? false)] as $campo => $indicato) {
                 if ($indicato) {
                     $this->formFilterError->{$campo . 'CustomMessage'} = 'Previsto solo con la partita IVA.';
                     $valido = false;
@@ -129,6 +131,10 @@ class DatiFiscaliForm extends BaseForm
             }
             if ($dati->soggettoIsa) {
                 $this->formFilterError->soggettoIsaCustomMessage = 'I contribuenti in questo regime sono esclusi dagli ISA.';
+                $valido = false;
+            }
+            if ($dati->ventilazioneCorrispettivi ?? false) {
+                $this->formFilterError->ventilazioneCorrispettiviCustomMessage = 'La ventilazione riguarda la liquidazione dell\'IVA, non prevista nel regime.';
                 $valido = false;
             }
         } elseif ($dati->periodicitaIva === null) {

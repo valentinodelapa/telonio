@@ -246,6 +246,8 @@ class FormsTest extends SuiteTestCase
             'forfetario valido' => ['PF', 'LAV', ['regimeFiscale' => 'FOR'], null],
             'semplificato trimestrale' => ['PF', 'IMP', ['regimeFiscale' => 'SEM', 'periodicitaIva' => 'T', 'soggettoIsa' => '1'], null],
             'L. 398/1991 trimestrale' => ['EN', null, ['regimeFiscale' => 'L398', 'periodicitaIva' => 'T', 'enteNonCommerciale' => '1'], null],
+            'forfetario con ventilazione' => ['PF', 'IMP', ['regimeFiscale' => 'FOR', 'ventilazioneCorrispettivi' => '1'], 'ventilazioneCorrispettiviCustomMessage'],
+            'dettagliante con ventilazione' => ['PF', 'IMP', ['regimeFiscale' => 'SEM', 'periodicitaIva' => 'T', 'ventilazioneCorrispettivi' => '1'], null],
         ];
     }
 
@@ -287,6 +289,12 @@ class FormsTest extends SuiteTestCase
         $formSostituto->handleRequest($this->creaRequest(['validoDal' => '2025-05-01', 'sostitutoImposta' => '1']));
         $this->assertTrue($formSostituto->isValid());
         $this->assertTrue($formSostituto->resolveEntity()->sostitutoImposta);
+        $dfVentilazione = new DatiFiscali($this->dataMapper);
+        $dfVentilazione->soggetto = $pf;
+        $formVentilazione = new DatiFiscaliForm($dfVentilazione, $this->dataMapper);
+        $formVentilazione->handleRequest($this->creaRequest(['validoDal' => '2025-05-01', 'ventilazioneCorrispettivi' => '1']));
+        $this->assertFalse($formVentilazione->isValid());
+        $this->assertNotEmpty($formVentilazione->getFilterErrors()->ventilazioneCorrispettiviCustomMessage, 'ventilazione solo con la partita IVA');
     }
 
     public function testDatiCatastaliForm(): void

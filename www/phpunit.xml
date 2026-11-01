@@ -53,6 +53,9 @@ THE SOFTWARE.
         <testsuite name="GestioneStudio">
             <directory suffix="Test.php">./GestioneStudio/Tests</directory>
         </testsuite>
+        <testsuite name="Contabilita">
+            <directory suffix="Test.php">./Contabilita/Tests</directory>
+        </testsuite>
     </testsuites>
     <php>
         <server name="HTTP_USER_AGENT" value=""/>
@@ -77,6 +80,8 @@ THE SOFTWARE.
             <directory suffix=".php">./Successioni/Console</directory>
             <directory suffix=".php">./GestioneStudio/Application</directory>
             <directory suffix=".php">./GestioneStudio/Console</directory>
+            <directory suffix=".php">./Contabilita/Application</directory>
+            <directory suffix=".php">./Contabilita/Console</directory>
         </include>
         <exclude>
             <directory>./Telonio/Application/Views</directory>
@@ -85,6 +90,7 @@ THE SOFTWARE.
             <directory>./Imu/Application/Views</directory>
             <directory>./Successioni/Application/Views</directory>
             <directory>./GestioneStudio/Application/Views</directory>
+            <directory>./Contabilita/Application/Views</directory>
         </exclude>
     </source>
 </phpunit>

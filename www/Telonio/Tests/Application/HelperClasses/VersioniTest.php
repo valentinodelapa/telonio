@@ -24,7 +24,7 @@ class VersioniTest extends TestCase
         $this->assertSame($composer['version'], Versioni::getSuite());
         $this->assertSame($deleghe['version'], Versioni::getModulo('Deleghe'));
         $this->assertSame($deleghe['version'], ModuloSuite::deleghe->getVersione());
-        $this->assertNull(ModuloSuite::contabilita->getVersione(), 'modulo non disponibile');
+        $this->assertNull(ModuloSuite::bilancio->getVersione(), 'modulo non disponibile');
         $this->assertNull(Versioni::getModulo('Inesistente'));
     }
 

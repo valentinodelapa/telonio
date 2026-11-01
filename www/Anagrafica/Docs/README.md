@@ -38,7 +38,7 @@ riferimento (punto 3). Ogni modulo registrato deve avere la cartella
 | Entità | Contenuto | Storicizzata |
 |---|---|---|
 | `Soggetto` | tipo (PF, società di persone, società di capitali, ente), codice fiscale, dati di nascita, data di decesso (persone fisiche: apre la successione nel modulo Successioni), cliente sì/no | no |
-| `DatiFiscali` | denominazione, natura giuridica (società/enti) o attività economica (persone fisiche), partita IVA, ATECO, ente non commerciale (art. 73, c. 1, lett. c, TUIR; solo enti), regime fiscale e periodicità IVA, applicazione degli ISA, sostituto d'imposta, trasparenza fiscale (società di capitali) | sì |
+| `DatiFiscali` | denominazione, natura giuridica (società/enti) o attività economica (persone fisiche), partita IVA, ATECO, ente non commerciale (art. 73, c. 1, lett. c, TUIR; solo enti), regime fiscale e periodicità IVA, applicazione degli ISA, sostituto d'imposta, trasparenza fiscale (società di capitali), ventilazione dei corrispettivi | sì |
 | `Indirizzo` | residenza, domicilio fiscale, sedi, ... (una versione vigente per tipo) | sì |
 | `Legame` | il soggetto collegato ricopre un ruolo presso il soggetto (socio con quota, amministratore, legale rappresentante, ...) | sì |
 | `Recapito` | telefono, e-mail, PEC, ... con recapito principale per tipo | no |
@@ -153,9 +153,17 @@ di regime è una nuova variazione (di norma dal 1° gennaio).
   regimi forfetario e di vantaggio; serve, ad esempio, alle proroghe dei
   versamenti riservate ai soggetti ISA;
 - **sostituto d'imposta**: anche senza partita IVA (es. condominio);
-- **trasparenza fiscale** (artt. 115-116 TUIR): solo società di capitali.
+- **trasparenza fiscale** (artt. 115-116 TUIR): solo società di capitali;
+- **ventilazione dei corrispettivi** (art. 24, c. 3, D.P.R. 633/1972; D.M.
+  24 febbraio 1973; dal 2027 art. 87 D.Lgs. 10/2026): commercianti al
+  minuto delle categorie ammesse che registrano i corrispettivi senza
+  distinzione di aliquota; solo con un regime che prevede le liquidazioni
+  IVA. La legge la Contabilità per ripartire i corrispettivi nelle
+  liquidazioni; le condizioni di accesso (acquisti di altri prodotti non
+  oltre il 50%, vendite fatturate non oltre il 20% dell'anno precedente)
+  non sono verificate.
 
-Senza partita IVA regime, periodicità, ISA e trasparenza non sono
+Senza partita IVA regime, periodicità, ISA, trasparenza e ventilazione non sono
 previsti. Gli altri moduli leggono i dati in vigore con
 `DatiFiscaliModel::getVigenteAl` (es. `GestioneStudio` per proporre gli
 adempimenti e applicare le proroghe condizionate).

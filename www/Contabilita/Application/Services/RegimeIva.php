@@ -1,0 +1,55 @@
+<?php
+
+namespace Contabilita\Application\Services;
+
+use Anagrafica\Application\Entities\DatiFiscali;
+use Anagrafica\Application\Entities\Soggetto;
+use Anagrafica\Application\Enumerations\PeriodicitaIva;
+use Anagrafica\Application\Models\DatiFiscaliModel;
+use SismaFramework\Orm\CustomTypes\SismaDate;
+use SismaFramework\Orm\HelperClasses\DataMapper;
+
+/**
+ * Regime IVA dell'azienda nell'anno, dai dati fiscali storicizzati
+ * dell'Anagrafica: la periodicità delle liquidazioni è un'opzione annuale
+ * e si legge al 1° gennaio (o, per le attività iniziate nell'anno, al 31
+ * dicembre).
+ */
+class RegimeIva
+{
+
+    public function __construct(private DataMapper $dataMapper = new DataMapper())
+    {
+
+    }
+
+    public function getDatiFiscali(Soggetto $soggetto, int $anno): ?DatiFiscali
+    {
+        $model = new DatiFiscaliModel($this->dataMapper);
+        return $model->getVigenteAl($soggetto, new SismaDate($anno . '-01-01')) ?? $model->getVigenteAl($soggetto, new SismaDate($anno . '-12-31'));
+    }
+
+    /**
+     * L'azienda applica la ventilazione dei corrispettivi nell'anno.
+     */
+    public function isVentilazione(Soggetto $soggetto, int $anno): bool
+    {
+        return $this->getDatiFiscali($soggetto, $anno)?->ventilazioneCorrispettivi ?? false;
+    }
+
+    /**
+     * @throws \DomainException se nell'anno l'azienda non liquida l'IVA
+     */
+    public function getPeriodicita(Soggetto $soggetto, int $anno): PeriodicitaIva
+    {
+        $datiFiscali = $this->getDatiFiscali($soggetto, $anno);
+        if (($datiFiscali === null) || ($datiFiscali->partitaIva === null) || ($datiFiscali->regimeFiscale === null)) {
+            throw new \DomainException('Nei dati fiscali dell\'Anagrafica per il ' . $anno . ' mancano partita IVA o regime fiscale.');
+        }
+        if ($datiFiscali->regimeFiscale->isLiquidazioneIva() === false) {
+            throw new \DomainException('Nel ' . $anno . ' l\'azienda è nel regime ' . mb_strtolower($datiFiscali->regimeFiscale->getLabel()) . ', che non prevede le liquidazioni IVA.');
+        }
+        return $datiFiscali->regimeFiscale->getPeriodicitaObbligata() ?? $datiFiscali->periodicitaIva
+                ?? throw new \DomainException('Nei dati fiscali dell\'Anagrafica per il ' . $anno . ' manca la periodicità IVA.');
+    }
+}

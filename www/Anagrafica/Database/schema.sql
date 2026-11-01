@@ -112,6 +112,7 @@ CREATE TABLE IF NOT EXISTS `dati_fiscali` (
   `soggetto_isa` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Applica gli ISA, anche con cause di esclusione',
   `sostituto_imposta` TINYINT(1) NOT NULL DEFAULT 0,
   `trasparenza_fiscale` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Società di capitali: opzione per la trasparenza (artt. 115-116 TUIR)',
+  `ventilazione_corrispettivi` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Ventilazione dei corrispettivi (art. 24, c. 3, D.P.R. 633/1972, D.M. 24/2/1973)',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_dati_fiscali_decorrenza` (`soggetto_id`, `valido_dal`),
   CONSTRAINT `fk_dati_fiscali_soggetto` FOREIGN KEY (`soggetto_id`) REFERENCES `soggetto` (`id`),

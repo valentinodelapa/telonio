@@ -1,0 +1,194 @@
+piano_conti_id;id;codice;descrizione;natura;funzione;voce_cee
+1;1;01;Immobilizzazioni immateriali;A;;
+1;2;01.01;Costi di impianto e di ampliamento;A;;
+1;3;01.01.0001;Costi di impianto e di ampliamento;A;;A.B.I.1
+1;4;01.02;Software e diritti di utilizzazione;A;;
+1;5;01.02.0001;Software;A;;A.B.I.3
+1;6;01.03;Avviamento;A;;
+1;7;01.03.0001;Avviamento;A;;A.B.I.5
+1;8;01.04;Altre immobilizzazioni immateriali;A;;
+1;9;01.04.0001;Spese su beni di terzi;A;;A.B.I.7
+1;10;02;Immobilizzazioni materiali;A;;
+1;11;02.01;Terreni e fabbricati;A;;
+1;12;02.01.0001;Terreni;A;;A.B.II.1
+1;13;02.01.0002;Fabbricati;A;;A.B.II.1
+1;14;02.02;Impianti e macchinari;A;;
+1;15;02.02.0001;Impianti generici;A;;A.B.II.2
+1;16;02.02.0002;Macchinari;A;;A.B.II.2
+1;17;02.03;Attrezzature;A;;
+1;18;02.03.0001;Attrezzature industriali e commerciali;A;;A.B.II.3
+1;19;02.04;Altri beni materiali;A;;
+1;20;02.04.0001;Mobili e arredi;A;;A.B.II.4
+1;21;02.04.0002;Macchine d'ufficio elettroniche;A;;A.B.II.4
+1;22;02.04.0003;Autovetture;A;;A.B.II.4
+1;23;02.04.0004;Automezzi;A;;A.B.II.4
+1;24;03;Fondi ammortamento;A;;
+1;25;03.01;Fondi ammortamento immobilizzazioni immateriali;A;;
+1;26;03.01.0001;F.do amm. costi di impianto e di ampliamento;A;;A.B.I.1
+1;27;03.01.0002;F.do amm. software;A;;A.B.I.3
+1;28;03.01.0003;F.do amm. avviamento;A;;A.B.I.5
+1;29;03.01.0004;F.do amm. spese su beni di terzi;A;;A.B.I.7
+1;30;03.02;Fondi ammortamento immobilizzazioni materiali;A;;
+1;31;03.02.0001;F.do amm. fabbricati;A;;A.B.II.1
+1;32;03.02.0002;F.do amm. impianti e macchinari;A;;A.B.II.2
+1;33;03.02.0003;F.do amm. attrezzature;A;;A.B.II.3
+1;34;03.02.0004;F.do amm. mobili e arredi;A;;A.B.II.4
+1;35;03.02.0005;F.do amm. macchine d'ufficio elettroniche;A;;A.B.II.4
+1;36;03.02.0006;F.do amm. autovetture;A;;A.B.II.4
+1;37;03.02.0007;F.do amm. automezzi;A;;A.B.II.4
+1;38;04;Immobilizzazioni finanziarie;A;;
+1;39;04.01;Partecipazioni;A;;
+1;40;04.01.0001;Partecipazioni in imprese controllate;A;;A.B.III.1.a
+1;41;04.01.0002;Partecipazioni in altre imprese;A;;A.B.III.1.d-bis
+1;42;04.02;Crediti immobilizzati;A;;
+1;43;04.02.0001;Depositi cauzionali;A;;A.B.III.2.d-bis
+1;44;05;Rimanenze;A;;
+1;45;05.01;Rimanenze di magazzino;A;;
+1;46;05.01.0001;Rimanenze di materie prime;A;;A.C.I.1
+1;47;05.01.0002;Rimanenze di prodotti in corso di lavorazione;A;;A.C.I.2
+1;48;05.01.0003;Rimanenze di prodotti finiti e merci;A;;A.C.I.4
+1;49;06;Crediti;A;;
+1;50;06.01;Crediti verso clienti;A;CLI;A.C.II.1
+1;51;06.02;Altri crediti commerciali;A;;
+1;52;06.02.0001;Clienti c/fatture da emettere;A;;A.C.II.1
+1;53;06.02.0002;Effetti attivi;A;;A.C.II.1
+1;54;06.02.0003;F.do svalutazione crediti;A;;A.C.II.1
+1;55;06.03;Crediti tributari;A;;
+1;56;06.03.0001;Erario c/IVA;A;EIV;A.C.II.5-bis
+1;57;06.03.0002;IVA su acquisti;A;IVA;A.C.II.5-bis
+1;58;06.03.0003;Erario c/acconto IVA;A;ACI;A.C.II.5-bis
+1;59;06.03.0004;Erario c/acconti IRES;A;;A.C.II.5-bis
+1;60;06.03.0005;Erario c/acconti IRAP;A;;A.C.II.5-bis
+1;61;06.03.0006;Erario c/ritenute subite;A;;A.C.II.5-bis
+1;62;06.04;Crediti verso altri;A;;
+1;63;06.04.0001;Anticipi a fornitori;A;;A.C.II.5-quater
+1;64;06.04.0002;Crediti verso dipendenti;A;;A.C.II.5-quater
+1;65;06.04.0003;Crediti diversi;A;;A.C.II.5-quater
+1;66;07;Disponibilità liquide;A;;
+1;67;07.01;Depositi bancari e postali;A;;
+1;68;07.01.0001;Banca c/c;A;BAN;A.C.IV.1
+1;69;07.01.0002;Conto corrente postale;A;;A.C.IV.1
+1;70;07.02;Cassa;A;;
+1;71;07.02.0001;Cassa contanti;A;CAS;A.C.IV.3
+1;72;07.02.0002;Valori bollati;A;;A.C.IV.3
+1;73;08;Ratei e risconti attivi;A;;
+1;74;08.01;Ratei e risconti attivi;A;;
+1;75;08.01.0001;Ratei attivi;A;;A.D
+1;76;08.01.0002;Risconti attivi;A;;A.D
+1;77;10;Patrimonio netto;P;;
+1;78;10.01;Capitale e riserve;P;;
+1;79;10.01.0001;Capitale sociale;P;;P.A.I
+1;80;10.01.0002;Riserva legale;P;;P.A.IV
+1;81;10.01.0003;Riserva straordinaria;P;;P.A.VI
+1;82;10.01.0004;Versamenti in conto capitale;P;;P.A.VI
+1;83;10.01.0005;Utili (perdite) portati a nuovo;P;;P.A.VIII
+1;84;10.01.0006;Capitale netto (imprese individuali e società di persone);P;;P.A.I
+1;85;10.02;Risultato dell'esercizio;P;;
+1;86;10.02.0001;Utile dell'esercizio;P;;P.A.IX
+1;87;10.02.0002;Perdita dell'esercizio;P;;P.A.IX
+1;88;10.03;Prelevamenti;P;;
+1;89;10.03.0001;Prelevamenti del titolare o dei soci;P;;P.A.I
+1;90;11;Fondi per rischi e oneri;P;;
+1;91;11.01;Fondi per rischi e oneri;P;;
+1;92;11.01.0001;Fondo imposte;P;;P.B.2
+1;93;11.01.0002;Altri fondi per rischi e oneri;P;;P.B.4
+1;94;12;Trattamento di fine rapporto;P;;
+1;95;12.01;Trattamento di fine rapporto;P;;
+1;96;12.01.0001;Fondo TFR;P;;P.C
+1;97;13;Debiti;P;;
+1;98;13.01;Debiti verso fornitori;P;FOR;P.D.7
+1;99;13.02;Altri debiti commerciali;P;;
+1;100;13.02.0001;Fornitori c/fatture da ricevere;P;;P.D.7
+1;101;13.02.0002;Effetti passivi;P;;P.D.8
+1;102;13.03;Debiti verso banche;P;;
+1;103;13.03.0001;Finanziamenti bancari;P;;P.D.4
+1;104;13.03.0002;Mutui passivi;P;;P.D.4
+1;105;13.04;Debiti tributari;P;;
+1;106;13.04.0001;IVA su vendite;P;IVV;P.D.12
+1;107;13.04.0002;Erario c/ritenute da versare;P;;P.D.12
+1;108;13.04.0003;Erario c/IRES;P;;P.D.12
+1;109;13.04.0004;Erario c/IRAP;P;;P.D.12
+1;110;13.05;Debiti previdenziali;P;;
+1;111;13.05.0001;INPS c/contributi;P;;P.D.13
+1;112;13.05.0002;INAIL c/premi;P;;P.D.13
+1;113;13.06;Altri debiti;P;;
+1;114;13.06.0001;Dipendenti c/retribuzioni;P;;P.D.14
+1;115;13.06.0002;Soci c/finanziamenti;P;;P.D.3
+1;116;13.06.0003;Debiti diversi;P;;P.D.14
+1;117;14;Ratei e risconti passivi;P;;
+1;118;14.01;Ratei e risconti passivi;P;;
+1;119;14.01.0001;Ratei passivi;P;;P.E
+1;120;14.01.0002;Risconti passivi;P;;P.E
+1;121;20;Valore della produzione;R;;
+1;122;20.01;Ricavi delle vendite e delle prestazioni;R;;
+1;123;20.01.0001;Ricavi per vendite di merci;R;RIC;E.A.1
+1;124;20.01.0002;Ricavi per prestazioni di servizi;R;;E.A.1
+1;125;20.01.0003;Corrispettivi;R;RCO;E.A.1
+1;126;20.01.0004;Resi e sconti su vendite;R;;E.A.1
+1;127;20.02;Altri ricavi e proventi;R;;
+1;128;20.02.0001;Proventi diversi;R;;E.A.5
+1;129;20.02.0002;Plusvalenze ordinarie;R;;E.A.5
+1;130;20.02.0003;Contributi in conto esercizio;R;;E.A.5
+1;131;20.02.0004;Arrotondamenti attivi;R;ARA;E.A.5
+1;132;21;Costi per acquisti;C;;
+1;133;21.01;Materie prime, sussidiarie, di consumo e merci;C;;
+1;134;21.01.0001;Acquisti di merci;C;COS;E.B.6
+1;135;21.01.0002;Acquisti di materie prime;C;;E.B.6
+1;136;21.01.0003;Materiale di consumo;C;;E.B.6
+1;137;21.01.0004;Carburanti e lubrificanti;C;;E.B.6
+1;138;21.01.0005;Resi e sconti su acquisti;C;;E.B.6
+1;139;22;Costi per servizi;C;;
+1;140;22.01;Costi per servizi;C;;
+1;141;22.01.0001;Consulenze;C;;E.B.7
+1;142;22.01.0002;Energia elettrica;C;;E.B.7
+1;143;22.01.0003;Spese telefoniche;C;;E.B.7
+1;144;22.01.0004;Manutenzioni e riparazioni;C;;E.B.7
+1;145;22.01.0005;Assicurazioni;C;;E.B.7
+1;146;22.01.0006;Spese e commissioni bancarie;C;;E.B.7
+1;147;22.01.0007;Pubblicità;C;;E.B.7
+1;148;22.01.0008;Trasporti;C;;E.B.7
+1;149;22.01.0009;Compensi agli amministratori;C;;E.B.7
+1;150;22.01.0010;Servizi diversi;C;;E.B.7
+1;151;23;Costi per godimento di beni di terzi;C;;
+1;152;23.01;Godimento di beni di terzi;C;;
+1;153;23.01.0001;Fitti passivi;C;;E.B.8
+1;154;23.01.0002;Canoni di leasing;C;;E.B.8
+1;155;23.01.0003;Noleggi;C;;E.B.8
+1;156;24;Costi per il personale;C;;
+1;157;24.01;Costi per il personale;C;;
+1;158;24.01.0001;Salari e stipendi;C;;E.B.9.a
+1;159;24.01.0002;Oneri sociali;C;;E.B.9.b
+1;160;24.01.0003;Trattamento di fine rapporto;C;;E.B.9.c
+1;161;25;Ammortamenti e svalutazioni;C;;
+1;162;25.01;Ammortamenti e svalutazioni;C;;
+1;163;25.01.0001;Ammortamento immobilizzazioni immateriali;C;;E.B.10.a
+1;164;25.01.0002;Ammortamento immobilizzazioni materiali;C;;E.B.10.b
+1;165;25.01.0003;Svalutazione dei crediti;C;;E.B.10.d
+1;166;26;Variazione delle rimanenze;C;;
+1;167;26.01;Variazione delle rimanenze di merci e materie;C;;
+1;168;26.01.0001;Rimanenze iniziali;C;;E.B.11
+1;169;26.01.0002;Rimanenze finali;C;;E.B.11
+1;170;27;Oneri diversi di gestione;C;;
+1;171;27.01;Oneri diversi di gestione;C;;
+1;172;27.01.0001;Imposte e tasse diverse;C;;E.B.14
+1;173;27.01.0002;Sanzioni e multe;C;;E.B.14
+1;174;27.01.0003;Minusvalenze ordinarie;C;;E.B.14
+1;175;27.01.0004;Arrotondamenti passivi;C;ARP;E.B.14
+1;176;27.01.0005;Oneri diversi;C;;E.B.14
+1;177;28;Proventi finanziari;R;;
+1;178;28.01;Proventi finanziari;R;;
+1;179;28.01.0001;Interessi attivi bancari;R;;E.C.16.d
+1;180;29;Oneri finanziari;C;;
+1;181;29.01;Interessi e altri oneri finanziari;C;;
+1;182;29.01.0001;Interessi passivi bancari;C;;E.C.17
+1;183;29.01.0002;Interessi passivi su mutui;C;;E.C.17
+1;184;29.01.0003;Interessi passivi su debiti tributari;C;;E.C.17
+1;185;30;Imposte sul reddito;C;;
+1;186;30.01;Imposte sul reddito dell'esercizio;C;;
+1;187;30.01.0001;IRES;C;;E.20
+1;188;30.01.0002;IRAP;C;;E.20
+1;189;40;Conti di sistema;S;;
+1;190;40.01;Aperture e chiusure;S;;
+1;191;40.01.0001;Stato patrimoniale di apertura;S;;
+1;192;40.01.0002;Stato patrimoniale di chiusura;S;;
+1;193;40.01.0003;Conto economico;S;;

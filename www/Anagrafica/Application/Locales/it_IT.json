@@ -93,7 +93,8 @@
                 "iva": "IVA",
                 "soggettoIsa": "Applica gli ISA (anche con cause di esclusione)",
                 "sostitutoImposta": "Sostituto d'imposta",
-                "trasparenzaFiscale": "Opzione per la trasparenza fiscale (artt. 115-116 TUIR)"
+                "trasparenzaFiscale": "Opzione per la trasparenza fiscale (artt. 115-116 TUIR)",
+                "ventilazioneCorrispettivi": "Ventilazione dei corrispettivi (commercio al minuto, D.M. 24/2/1973)"
             },
             "azioni": {
                 "salva": "Salva",
@@ -133,7 +134,8 @@
             "aiutoPeriodicita": "Non prevista nei regimi forfetario e di vantaggio.",
             "etichettaIsa": "ISA",
             "etichettaSostituto": "Sostituto d'imposta",
-            "etichettaTrasparenza": "Trasparenza fiscale"
+            "etichettaTrasparenza": "Trasparenza fiscale",
+            "etichettaVentilazione": "Ventilazione dei corrispettivi"
         },
         "indirizzo": {
             "form": {

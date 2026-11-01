@@ -2,6 +2,40 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.14.0-alpha] - 2026-11-01 - Contabilità
+
+Quattordicesima versione alpha: nuovo applicativo `Contabilita`, contabilità in partita doppia e IVA delle aziende clienti, con l'importazione delle fatture elettroniche, i corrispettivi del mese in una sola maschera e la ventilazione dei corrispettivi. Valgono le avvertenze della 0.1.0-alpha: la versione non è indicata per l'uso in produzione su dati reali.
+
+Versioni dei moduli: `Contabilita` 0.1.0 (nuovo), `Telonio` 0.6.1, `Anagrafica` 0.6.0; `Deleghe` 0.5.0, `Imu` 0.3.2, `Successioni` 0.3.2 e `GestioneStudio` 0.1.1 invariati.
+
+### ✨ Nuove Funzionalità
+
+#### `Contabilita` — contabilità in partita doppia
+
+- **apertura della contabilità** del soggetto dell'Anagrafica (regime e periodicità IVA restano quelli dei suoi dati fiscali): copia del piano dei conti modello scelto, registri IVA di vendite, acquisti e corrispettivi, primo esercizio; esercizi successivi, chiusura (registrazioni non più modificabili) e riapertura;
+- **piani dei conti** su tre livelli (mastro, conto, sottoconto): piano standard della suite con il raccordo alle voci degli schemi di bilancio degli artt. 2424 e 2425 c.c. (enum `VoceCee`), modelli dello studio copiati dalla suite e piano dell'azienda personalizzabile; le funzioni dei conti (clienti, fornitori, IVA, Erario c/IVA, banca, cassa, ricavi, costi, ...) guidano le proposte automatiche;
+- **codici IVA** della suite (aliquote, nature N1-N7 della fattura elettronica, detraibilità, integrazione per inversione contabile, acquisti intracomunitari ed esteri, con la norma) e dello studio;
+- **clienti e fornitori** delle aziende, separati per azienda, con i sottoconti del partitario aperti da soli;
+- **prima nota** con testata, righe IVA e righe in partita doppia: "Proponi le righe" le compone dalla causale (vendite anche in scissione dei pagamenti, corrispettivi, acquisti con IVA indetraibile e integrazione dell'imposta, note di credito, incassi, pagamenti, versamenti IVA), controlli di quadratura e coerenza, numero progressivo nell'esercizio e protocollo IVA per registro e anno solare, sezionali;
+- **ventilazione dei corrispettivi** (art. 24, c. 3, D.P.R. 633/1972; D.M. 24 febbraio 1973) per le aziende con l'opzione nei dati fiscali: corrispettivi da ventilare senza aliquota (codice `VEN`) nella maschera mensile, acquisti per rivendita segnati nelle righe IVA (proposti anche dalle fatture elettroniche), ripartizione nella liquidazione con i rapporti progressivi degli acquisti dal 1° gennaio e scorporo dell'imposta, prospetto della ventilazione, storno dell'imposta dai ricavi nel giroconto, ventilazione annuale con la differenza da riportare nella dichiarazione;
+- **corrispettivi del mese in una sola maschera**: griglia dei giorni per codice IVA con gli importi comprensivi dell'imposta, salvata come unica registrazione mensile (art. 6, c. 4, D.P.R. 695/1996) con l'imposta scorporata dal totale di ciascuna aliquota (art. 27, c. 4, D.P.R. 633/1972) e il dettaglio giornaliero riportato nella stampa del registro dei corrispettivi (art. 24); salvare di nuovo il mese aggiorna la registrazione, azzerarlo la elimina;
+- **liquidazioni IVA** mensili e trimestrali dai registri per data di competenza, con riporto del credito, debito non superiore a 100 euro rinviato (D.Lgs. 1/2024), credito annuale compensato, interessi dell'1% dei trimestrali, scomputo dell'acconto; il versamento (6001-6012, 6031-6033, 6099 per il quarto trimestre) è registrato nell'archivio di `Deleghe` e il giroconto in prima nota è facoltativo; **acconto IVA** con i metodi storico, previsionale e analitico (6013/6035, entro il 27 dicembre);
+- **fatture elettroniche**: caricamento di file XML, firmati `.p7m` (DER o base64, anche BER a lunghezza indefinita) e archivi ZIP del portale Fatture e corrispettivi; direzione riconosciuta dalla partita IVA dell'azienda, controparti create, doppioni ignorati, avvisi (divisa, esigibilità differita, totali, integrazioni TD16); proposta della registrazione da confermare, con il codice di integrazione per gli acquisti in inversione contabile;
+- **stampe**: registri IVA per periodo con i totali per codice e le integrazioni, prospetto della liquidazione, libro giornale, schede contabili (anche dei clienti e fornitori) e bilancio di verifica con il risultato del periodo;
+- `sisma tabelle-contabilita` aggiorna piani dei conti modello e codici IVA della suite dalle sorgenti del modulo (`Contabilita/Database/sorgenti`); fixture demo che coprono tutte le funzioni (Alfa Consulting S.r.l. in contabilità ordinaria con vendite anche in scissione dei pagamenti, note di credito, inversione contabile, incassi, sezionale, fattura elettronica da registrare, liquidazione e acconto; il negozio "Alimentari Ferri" con la ventilazione, i corrispettivi mensili e la liquidazione trimestrale); indicatori in scrivania.
+
+#### `Anagrafica`
+
+- **ventilazione dei corrispettivi** nei dati fiscali storicizzati dei titolari di partita IVA con un regime che prevede le liquidazioni IVA, mostrata nella scheda del soggetto; la usa la liquidazione IVA della Contabilità.
+
+#### `Telonio`
+
+- il menu e la scrivania aprono l'applicativo Contabilità (`ModuloSuite::contabilita`, `/azienda/index`), con la descrizione aggiornata.
+
+### 🔄 Aggiornamento da 0.13.0-alpha
+
+`sh aggiorna.sh` (con `sudo` se la cartella dell'installazione appartiene a root): `sisma aggiorna-database` esegue `Anagrafica/Database/aggiornamento-0.6.sql` (idempotente, aggiunge a `dati_fiscali` la colonna `ventilazione_corrispettivi`) e installa il nuovo modulo con `Contabilita/Database/schema.sql` e `Contabilita/Database/dati-riferimento.sql`.
+
 ## [0.13.0-alpha] - 2026-10-30 - Delega Consegnata al Cliente
 
 Tredicesima versione alpha: in `Deleghe` la delega che il cliente paga da sé si registra come consegnata, con data e canale della consegna, e si quietanza con il canale del pagamento; non entra più nelle forniture telematiche dello studio. Valgono le avvertenze della 0.1.0-alpha: la versione non è indicata per l'uso in produzione su dati reali.

@@ -44,7 +44,7 @@ enum ModuloSuite: string
             self::deleghe => 'Deleghe di pagamento F24, compensazioni e versamenti generati dagli altri applicativi',
             self::imu => 'Calcolo IMU sugli immobili dell\'anagrafica, aliquote dei comuni e versamenti di acconto e saldo',
             self::successioni => 'Dichiarazioni di successione e volture catastali, autoliquidazione e file telematico',
-            self::contabilita => 'Contabilità ordinaria, semplificata e forfetaria, registri IVA e cespiti',
+            self::contabilita => 'Contabilità in partita doppia, registri e liquidazioni IVA, fatture elettroniche, giornale e bilancio di verifica',
             self::dichiarativi => 'Redditi, IVA annuale, 770 e invii telematici',
             self::bilancio => 'Bilancio CEE, nota integrativa e analisi di bilancio',
             self::parcellazione => 'Parcelle, fatture elettroniche e incassi dello studio',
@@ -74,6 +74,7 @@ enum ModuloSuite: string
             self::deleghe => '/contribuente/index',
             self::imu => '/contribuente-imu/index',
             self::successioni => '/defunto/index',
+            self::contabilita => '/azienda/index',
             self::gestioneStudio => '/scadenzario/index',
             default => '#',
         };

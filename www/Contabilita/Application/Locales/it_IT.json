@@ -1,0 +1,312 @@
+{
+    "pages": {
+        "common": {
+            "campi": {
+                "azienda": "Azienda",
+                "esercizio": "Esercizio",
+                "dataInizio": "Inizio dell'esercizio",
+                "dataFine": "Fine dell'esercizio",
+                "modello": "Piano dei conti modello",
+                "denominazione": "Denominazione",
+                "descrizione": "Descrizione",
+                "codice": "Codice",
+                "livello": "Livello",
+                "natura": "Natura",
+                "funzione": "Funzione nelle proposte",
+                "voceCee": "Voce di bilancio (artt. 2424-2425 c.c.)",
+                "attivo": "Attivo",
+                "aliquota": "Aliquota %",
+                "naturaIva": "Natura (operazioni senza imposta)",
+                "detraibilita": "Detraibilità %",
+                "inversioneContabile": "Integrazione dell'imposta (inversione contabile, intracomunitari, esteri)",
+                "norma": "Norma",
+                "tipo": "Tipo",
+                "sezionale": "Sezionale",
+                "cognome": "Cognome",
+                "nome": "Nome",
+                "codiceFiscale": "Codice fiscale",
+                "partitaIva": "Partita IVA",
+                "nazione": "Nazione",
+                "indirizzo": "Indirizzo",
+                "cap": "CAP",
+                "comune": "Comune",
+                "provincia": "Prov.",
+                "pec": "PEC",
+                "codiceDestinatario": "Codice destinatario",
+                "cliente": "Cliente",
+                "fornitore": "Fornitore",
+                "pubblicaAmministrazione": "Pubblica amministrazione (scissione dei pagamenti)",
+                "contoContropartita": "Costo o ricavo abituale",
+                "codiceIva": "Codice IVA",
+                "note": "Note",
+                "numero": "N.",
+                "dataRegistrazione": "Data di registrazione",
+                "causale": "Causale",
+                "controparte": "Cliente o fornitore",
+                "numeroDocumento": "Numero del documento",
+                "dataDocumento": "Data del documento",
+                "registroIva": "Registro IVA",
+                "protocolloIva": "Protocollo",
+                "dataCompetenzaIva": "Competenza IVA",
+                "esigibilita": "Esigibilità",
+                "totaleDocumento": "Totale del documento",
+                "imponibile": "Imponibile",
+                "imposta": "Imposta",
+                "conto": "Conto",
+                "dare": "Dare",
+                "avere": "Avere",
+                "saldo": "Saldo",
+                "data": "Data",
+                "periodo": "Periodo",
+                "scadenza": "Scadenza",
+                "stato": "Stato",
+                "direzione": "Direzione",
+                "importo": "Importo",
+                "dal": "Dal",
+                "al": "Al",
+                "metodo": "Metodo",
+                "base": "Base di calcolo",
+                "regime": "Regime fiscale",
+                "periodicita": "Periodicità IVA",
+                "ivaEsigibile": "IVA esigibile",
+                "ivaDetraibile": "IVA detraibile",
+                "debitoPrecedente": "Debito del periodo precedente",
+                "creditoPrecedente": "Credito del periodo precedente",
+                "creditoAnnoPrecedente": "Credito dell'anno precedente compensato",
+                "acconto": "Acconto",
+                "interessi": "Interessi 1%",
+                "importoDovuto": "Da versare",
+                "creditoFinale": "Credito da riportare",
+                "debitoRinviato": "Debito rinviato (non superiore a 100 euro)",
+                "file": "File",
+                "rivendita": "Riv.",
+                "ivaVentilata": "di cui dei corrispettivi ventilati",
+                "ventilazioneCodice": "Corrispettivi da ventilare (aliquota attribuita nella liquidazione in proporzione agli acquisti per rivendita)"
+            },
+            "azioni": {
+                "salva": "Salva",
+                "salvaNuova": "Salva e nuova",
+                "annulla": "Annulla",
+                "modifica": "Modifica",
+                "elimina": "Elimina",
+                "cerca": "Cerca",
+                "apri": "Apri",
+                "stampa": "Stampa",
+                "versioneStampa": "Versione da stampare",
+                "nuovo": "Nuovo",
+                "copia": "Copia nello studio",
+                "proponi": "Proponi le righe",
+                "aggiungiRighe": "Aggiungi righe",
+                "elabora": "Elabora",
+                "rielabora": "Rielabora",
+                "carica": "Carica",
+                "registra": "Registra",
+                "scarta": "Scarta",
+                "ripristina": "Rimetti da registrare",
+                "scarica": "Scarica XML",
+                "deleghe": "Apri in Deleghe F24",
+                "aggiorna": "Aggiorna",
+                "chiudiEsercizio": "Chiudi l'esercizio",
+                "riapriEsercizio": "Riapri l'esercizio",
+                "nuovoEsercizio": "Nuovo esercizio",
+                "apriContabilita": "Apri la contabilità",
+                "scheda": "Scheda contabile"
+            },
+            "navAziende": "Aziende",
+            "navPiani": "Piani dei conti",
+            "navCodiciIva": "Codici IVA",
+            "navAzienda": {
+                "riepilogo": "Riepilogo",
+                "primaNota": "Prima nota",
+                "fatture": "Fatture elettroniche",
+                "controparti": "Clienti e fornitori",
+                "registri": "Registri IVA",
+                "liquidazioni": "Liquidazioni IVA",
+                "giornale": "Giornale",
+                "bilancio": "Bilancio di verifica",
+                "piano": "Piano dei conti"
+            },
+            "selezionare": "— Seleziona —",
+            "nessuno": "— Nessuno —",
+            "tutte": "Tutte",
+            "tutti": "Tutti",
+            "campiObbligatori": "I campi con * sono obbligatori.",
+            "confermaElimina": "Confermi l'eliminazione?",
+            "nessunRisultato": "Nessun elemento.",
+            "risultati": "elementi",
+            "dellaSuite": "della suite",
+            "delloStudio": "dello studio",
+            "totale": "Totale",
+            "si": "sì",
+            "no": "no",
+            "corrispettiviMese": "Corrispettivi del mese"
+        },
+        "azienda": {
+            "index": {
+                "aiuto": "Si sceglie l'azienda di cui tenere la contabilità: i soggetti sono quelli dell'Anagrafica, con regime e periodicità IVA dei loro dati fiscali.",
+                "segnapostoRicerca": "Cerca per nome, codice fiscale o partita IVA",
+                "etichettaTutti": "Includi i soggetti non clienti",
+                "etichettaAperta": "Contabilità aperta",
+                "nonAperta": "Da aprire",
+                "daRegistrare": "fatture da registrare"
+            },
+            "show": {
+                "ultimeRegistrazioni": "Ultime registrazioni",
+                "tutteRegistrazioni": "Tutta la prima nota",
+                "nuovaRegistrazione": "Nuova registrazione",
+                "titoloFattureDaRegistrare": "Fatture elettroniche da registrare",
+                "liquidazioniAnno": "Liquidazioni IVA",
+                "nessunEsercizio": "Nessun esercizio aperto.",
+                "esercizioChiuso": "Esercizio chiuso: le registrazioni non si modificano.",
+                "nonElaborata": "non elaborata",
+                "datiFiscaliMancanti": "Dati fiscali dell'Anagrafica non indicati per l'anno."
+            },
+            "apri": {
+                "aiuto": "Il piano dei conti modello scelto viene copiato nell'azienda e si potrà personalizzare; si creano i registri IVA delle vendite, degli acquisti e dei corrispettivi e il primo esercizio. Regime e periodicità IVA restano quelli dei dati fiscali dell'Anagrafica.",
+                "senzaModelli": "Nessun piano dei conti modello: eseguire \"sisma tabelle-contabilita\" o crearne uno dello studio."
+            },
+            "esercizio": {
+                "aiuto": "L'esercizio è identificato dall'anno di chiusura; di norma segue l'ultimo senza interruzioni e dura dodici mesi (al massimo diciotto, per il primo)."
+            }
+        },
+        "pianoConti": {
+            "index": {
+                "aiuto": "I piani della suite si leggono e si copiano nello studio per personalizzarli; all'apertura della contabilità l'azienda riceve una copia del modello scelto.",
+                "etichettaConti": "conti"
+            },
+            "show": {
+                "aiutoModello": "Modello dello studio: le modifiche valgono per le aziende aperte da qui in avanti, non per quelle già aperte.",
+                "aiutoSuite": "Piano della suite, aggiornato con \"sisma tabelle-contabilita\": per personalizzarlo copiarlo nello studio.",
+                "aiutoAzienda": "Piano dei conti dell'azienda: si registra sui sottoconti. I sottoconti dei clienti e dei fornitori si aprono da soli sotto i conti con funzione partitario.",
+                "nuovoMastro": "Nuovo mastro",
+                "nuovoSottoconto": "Aggiungi",
+                "nonAttivo": "non attivo"
+            },
+            "form": {
+                "aiuto": "Denominazione e descrizione del piano."
+            }
+        },
+        "conto": {
+            "form": {
+                "aiuto": "Il codice indica il livello: NN mastro, NN.NN conto, NN.NN.NNNN sottoconto (si registra solo sui sottoconti). La funzione indica il conto alle proposte automatiche della prima nota; la voce CEE lo raccorda allo schema di bilancio."
+            }
+        },
+        "codiceIva": {
+            "index": {
+                "aiuto": "Codici IVA delle righe dei registri: aliquota o natura dell'operazione (codici della fattura elettronica), detraibilità proposta sugli acquisti, integrazione dell'imposta per gli acquisti in inversione contabile. Quelli della suite si aggiornano con \"sisma tabelle-contabilita\"."
+            },
+            "form": {
+                "aiuto": "Indicare l'aliquota oppure, per le operazioni senza imposta, la natura."
+            }
+        },
+        "controparte": {
+            "index": {
+                "aiuto": "Clienti e fornitori dell'azienda, ciascuno con il suo sottoconto del partitario. Si creano anche importando le fatture elettroniche.",
+                "segnapostoRicerca": "Cerca per denominazione, partita IVA o codice fiscale"
+            },
+            "form": {
+                "aiuto": "Al salvataggio si aprono i sottoconti del partitario per i ruoli indicati. La partita IVA si indica senza il prefisso del paese."
+            }
+        },
+        "registrazione": {
+            "index": {
+                "segnapostoRicerca": "Descrizione o numero del documento",
+                "nuova": "Nuova registrazione",
+                "generata": "generata"
+            },
+            "form": {
+                "righeIva": "Righe IVA",
+                "righe": "Partita doppia",
+                "aiutoIva": "Importi come nel documento (positivi anche nelle note di credito). Lasciando vuota l'imposta si calcola con l'aliquota del codice.",
+                "aiutoRighe": "\"Proponi le righe\" compone la partita doppia dalla causale e dalle righe IVA (o dal totale per incassi, pagamenti e versamenti); le righe si possono poi modificare.",
+                "contropartita": "Contropartita",
+                "differenza": "Differenza",
+                "proposta": "Proposta dalla fattura elettronica",
+                "aiutoRivendita": "Acquisto di beni destinati alla rivendita: base della ventilazione dei corrispettivi"
+            },
+            "show": {
+                "daFattura": "Dalla fattura elettronica",
+                "generataDa": "Registrazione generata dalla liquidazione IVA: si aggiorna rielaborandola.",
+                "generataCorrispettivi": "Registrazione dei corrispettivi del mese: si modifica dalla maschera mensile."
+            }
+        },
+        "registroIva": {
+            "index": {
+                "aiuto": "Registri IVA dell'azienda. I sezionali hanno una numerazione propria dei protocolli; la stampa si fa per mese o per qualsiasi periodo.",
+                "nuovoSezionale": "Nuovo sezionale",
+                "principale": "principale",
+                "stampaMese": "Stampa del mese",
+                "corrispettiviMese": "Corrispettivi del mese"
+            },
+            "form": {
+                "aiuto": "Tipo e sezionale non si modificano dopo la creazione."
+            }
+        },
+        "liquidazioneIva": {
+            "index": {
+                "aiuto": "La liquidazione somma l'IVA dei registri per data di competenza, riporta credito e debito rinviato del periodo precedente e registra il versamento nell'archivio di Deleghe F24; il giroconto in prima nota è facoltativo.",
+                "etichettaGiroconto": "Registra il giroconto in prima nota",
+                "accontoTitolo": "Acconto IVA",
+                "accontoNonCalcolato": "Acconto non calcolato.",
+                "accontoNonDovuto": "non dovuto (inferiore a 103,29 euro)",
+                "calcolaAcconto": "Calcola l'acconto"
+            },
+            "common": {
+                "titoloVentilazione": "Ventilazione dei corrispettivi",
+                "acquistiRivendita": "Acquisti per rivendita dal 1° gennaio",
+                "corrispettiviVentilati": "Corrispettivi ripartiti",
+                "aiutoVentilazione": "Corrispettivi del periodo ripartiti in proporzione agli acquisti di beni per la rivendita, comprensivi dell'imposta, registrati dall'inizio dell'anno; imposta scorporata per aliquota (art. 24, c. 3, D.P.R. 633/1972; art. 3 D.M. 24 febbraio 1973).",
+                "titoloRiepilogo": "Riepilogo per registro e codice IVA",
+                "variata": "I registri del periodo sono cambiati dopo l'elaborazione: rielaborare la liquidazione.",
+                "titoloVersamenti": "Versamenti registrati per le deleghe F24",
+                "nessunVersamento": "Nessun versamento.",
+                "titoloGiroconto": "Giroconto in prima nota"
+            }
+        },
+        "accontoIva": {
+            "form": {
+                "aiuto": "L'acconto (art. 6, c. 2, L. 405/1990) è dell'88% con i metodi storico e previsionale, del 100% della liquidazione al 20 dicembre con il metodo analitico; non è dovuto se inferiore a 103,29 euro.",
+                "proposta": "Base proposta"
+            }
+        },
+        "fatturaElettronica": {
+            "index": {
+                "aiuto": "Si caricano i file delle fatture emesse e ricevute (XML, firmati .p7m o archivi ZIP scaricati dal portale Fatture e corrispettivi): la direzione si riconosce dalla partita IVA dell'azienda, i clienti e fornitori mancanti si creano.",
+                "segnapostoRicerca": "Controparte o numero"
+            },
+            "show": {
+                "riepiloghi": "Riepiloghi IVA",
+                "descrizioni": "Prime righe del documento",
+                "titoloRegistrazione": "Registrazione"
+            }
+        },
+        "stampaContabile": {
+            "common": {
+                "periodo": "Periodo",
+                "risultato": "Risultato del periodo",
+                "utile": "utile",
+                "perdita": "perdita",
+                "saldoIniziale": "Saldo iniziale",
+                "saldoFinale": "Saldo finale"
+            },
+            "giornale": {
+                "aiuto": "Registrazioni del periodo in ordine di data e numero."
+            },
+            "bilancio": {
+                "aiuto": "Totali e saldi dei conti movimentati nel periodo; il risultato è la differenza tra ricavi e costi."
+            }
+        },
+        "corrispettivi": {
+            "mese": {
+                "titolo": "Corrispettivi di",
+                "aiuto": "Corrispettivi giornalieri comprensivi dell'imposta, per codice IVA. Il mese si registra con un'unica registrazione all'ultimo giorno (art. 6, c. 4, D.P.R. 695/1996: entro il 15 del mese successivo), con l'imposta scorporata dal totale mensile di ciascuna aliquota (art. 27, c. 4, D.P.R. 633/1972); il dettaglio giornaliero compare nella stampa del registro. Salvando di nuovo il mese la registrazione si aggiorna, azzerando tutti gli importi si elimina.",
+                "registrata": "Mese registrato:",
+                "mesePrecedente": "Mese precedente",
+                "meseSuccessivo": "Mese successivo",
+                "aggiungiCodice": "Aggiungi un codice IVA",
+                "aggiungiColonna": "Aggiungi la colonna",
+                "aiutoVentilazione": "Ventilazione dei corrispettivi: i corrispettivi senza distinzione di aliquota si indicano nella colonna VEN; la liquidazione li ripartisce in proporzione agli acquisti per rivendita dall'inizio dell'anno (art. 3 D.M. 24 febbraio 1973)."
+            }
+        }
+    }
+}

@@ -25,7 +25,9 @@ use SismaFramework\Orm\CustomTypes\SismaDate;
  * le liquidazioni dell'IVA, la periodicità; inoltre se il soggetto applica
  * gli ISA (anche con cause di esclusione), se è sostituto d'imposta e, per
  * le società di capitali, se ha optato per la trasparenza fiscale (artt.
- * 115-116 TUIR).
+ * 115-116 TUIR); per i commercianti al minuto ammessi, se applica la
+ * ventilazione dei corrispettivi (art. 24, c. 3, D.P.R. 633/1972, D.M. 24
+ * febbraio 1973).
  */
 class DatiFiscali extends BaseEntity implements Storicizzabile
 {
@@ -48,6 +50,7 @@ class DatiFiscali extends BaseEntity implements Storicizzabile
     protected bool $soggettoIsa = false;
     protected bool $sostitutoImposta = false;
     protected bool $trasparenzaFiscale = false;
+    protected bool $ventilazioneCorrispettivi = false;
 
     #[\Override]
     protected function setEncryptedProperties(): void

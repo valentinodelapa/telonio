@@ -73,10 +73,12 @@ class EntitiesAndEnumerationsTest extends SuiteTestCase
         $this->assertSame('/contribuente/index', ModuloSuite::deleghe->getUrl());
         $this->assertSame('/contribuente-imu/index', ModuloSuite::imu->getUrl());
         $this->assertSame('/defunto/index', ModuloSuite::successioni->getUrl());
+        $this->assertTrue(ModuloSuite::contabilita->isDisponibile());
+        $this->assertSame('/azienda/index', ModuloSuite::contabilita->getUrl());
 
         // Moduli futuri non in MODULE_FOLDERS
-        $this->assertFalse(ModuloSuite::contabilita->isDisponibile());
-        $this->assertSame('#', ModuloSuite::contabilita->getUrl());
+        $this->assertFalse(ModuloSuite::bilancio->isDisponibile());
+        $this->assertSame('#', ModuloSuite::bilancio->getUrl());
     }
 
     public function testAutenticazioneRichiestaExceptionReindirizzaALogin(): void

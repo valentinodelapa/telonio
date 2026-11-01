@@ -134,10 +134,10 @@ require Layout::percorso('header');
                             <dt class="col-sm-5"><?= Html::e($campi['regimeFiscale']) ?></dt>
                             <dd class="col-sm-7"><?= Html::e($datiFiscaliVigenti->regimeFiscale->getLabel()) ?><?php if ($datiFiscaliVigenti->periodicitaIva !== null): ?> · <?= Html::e($campi['iva']) ?> <?= Html::e(mb_strtolower($datiFiscaliVigenti->periodicitaIva->getLabel())) ?><?php endif; ?></dd>
                         <?php endif; ?>
-                        <?php if ($datiFiscaliVigenti->soggettoIsa || $datiFiscaliVigenti->sostitutoImposta || $datiFiscaliVigenti->trasparenzaFiscale): ?>
+                        <?php if ($datiFiscaliVigenti->soggettoIsa || $datiFiscaliVigenti->sostitutoImposta || $datiFiscaliVigenti->trasparenzaFiscale || $datiFiscaliVigenti->ventilazioneCorrispettivi): ?>
                             <dt class="col-sm-5"></dt>
                             <dd class="col-sm-7">
-                                <?php foreach (['soggettoIsa' => $etichettaIsa, 'sostitutoImposta' => $etichettaSostituto, 'trasparenzaFiscale' => $etichettaTrasparenza] as $proprieta => $etichetta): ?>
+                                <?php foreach (['soggettoIsa' => $etichettaIsa, 'sostitutoImposta' => $etichettaSostituto, 'trasparenzaFiscale' => $etichettaTrasparenza, 'ventilazioneCorrispettivi' => $etichettaVentilazione] as $proprieta => $etichetta): ?>
                                     <?php if ($datiFiscaliVigenti->$proprieta): ?><span class="badge text-bg-light border me-1"><?= Html::e($etichetta) ?></span><?php endif; ?>
                                 <?php endforeach; ?>
                             </dd>
