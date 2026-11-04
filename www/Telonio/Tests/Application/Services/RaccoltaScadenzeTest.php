@@ -48,7 +48,7 @@ class RaccoltaScadenzeTest extends SuiteTestCase
     public function testScopreLeFontiDeiModuliDisponibili(): void
     {
         $fonti = (new RaccoltaScadenze($this->dataMapper))->getFonti();
-        $this->assertSame(['Deleghe', 'Imu', 'Successioni', 'GestioneStudio'], array_keys($fonti));
+        $this->assertSame(['Deleghe', 'Imu', 'Successioni', 'Dichiarativi', 'GestioneStudio'], array_keys($fonti));
         foreach ($fonti as $fonte) {
             $this->assertInstanceOf(FonteScadenze::class, $fonte);
         }

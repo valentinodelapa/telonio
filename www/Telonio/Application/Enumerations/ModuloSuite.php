@@ -45,7 +45,7 @@ enum ModuloSuite: string
             self::imu => 'Calcolo IMU sugli immobili dell\'anagrafica, aliquote dei comuni e versamenti di acconto e saldo',
             self::successioni => 'Dichiarazioni di successione e volture catastali, autoliquidazione e file telematico',
             self::contabilita => 'Contabilità in partita doppia, registri e liquidazioni IVA, fatture elettroniche, giornale e bilancio di verifica',
-            self::dichiarativi => 'Redditi, IVA annuale, 770 e invii telematici',
+            self::dichiarativi => 'Dichiarazione IVA annuale dalla contabilità e Redditi persone fisiche, file telematici e versamenti per le deleghe',
             self::bilancio => 'Bilancio CEE, nota integrativa e analisi di bilancio',
             self::parcellazione => 'Parcelle, fatture elettroniche e incassi dello studio',
             self::gestioneStudio => 'Scadenzario, pratiche, attività e controllo di gestione',
@@ -75,6 +75,7 @@ enum ModuloSuite: string
             self::imu => '/contribuente-imu/index',
             self::successioni => '/defunto/index',
             self::contabilita => '/azienda/index',
+            self::dichiarativi => '/contribuente-dichiarativi/index',
             self::gestioneStudio => '/scadenzario/index',
             default => '#',
         };

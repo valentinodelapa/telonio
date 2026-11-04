@@ -13,7 +13,8 @@ use SismaFramework\Orm\HelperClasses\DataMapper;
  * Regime IVA dell'azienda nell'anno, dai dati fiscali storicizzati
  * dell'Anagrafica: la periodicità delle liquidazioni è un'opzione annuale
  * e si legge al 1° gennaio (o, per le attività iniziate nell'anno, al 31
- * dicembre).
+ * dicembre). Con le attività separate l'azienda liquida mensilmente se
+ * almeno un'attività è mensile (AttivitaSeparate).
  */
 class RegimeIva
 {
@@ -49,7 +50,29 @@ class RegimeIva
         if ($datiFiscali->regimeFiscale->isLiquidazioneIva() === false) {
             throw new \DomainException('Nel ' . $anno . ' l\'azienda è nel regime ' . mb_strtolower($datiFiscali->regimeFiscale->getLabel()) . ', che non prevede le liquidazioni IVA.');
         }
-        return $datiFiscali->regimeFiscale->getPeriodicitaObbligata() ?? $datiFiscali->periodicitaIva
+        $periodicita = $datiFiscali->regimeFiscale->getPeriodicitaObbligata() ?? $datiFiscali->periodicitaIva
                 ?? throw new \DomainException('Nei dati fiscali dell\'Anagrafica per il ' . $anno . ' manca la periodicità IVA.');
+        // attività separate: mensile se almeno un'attività liquida mensilmente
+        $separate = new AttivitaSeparate($this->dataMapper);
+        $attivita = $separate->getAttivita($soggetto, $anno);
+        if (count($attivita) === 0) {
+            return $periodicita;
+        }
+        foreach ($attivita as $singola) {
+            if ($separate->getPeriodicita($singola, $periodicita) === PeriodicitaIva::mensile) {
+                return PeriodicitaIva::mensile;
+            }
+        }
+        return PeriodicitaIva::trimestrale;
+    }
+
+    /**
+     * Periodicità dell'azienda dai dati fiscali, senza le attività
+     * separate.
+     */
+    public function getPeriodicitaAzienda(Soggetto $soggetto, int $anno): PeriodicitaIva
+    {
+        $datiFiscali = $this->getDatiFiscali($soggetto, $anno);
+        return $datiFiscali?->regimeFiscale?->getPeriodicitaObbligata() ?? $datiFiscali?->periodicitaIva ?? $this->getPeriodicita($soggetto, $anno);
     }
 }

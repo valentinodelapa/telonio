@@ -32,10 +32,14 @@ scheda dell'azienda, per esercizio, ha le sezioni:
   direzione, registrazione o scarto;
 - **Clienti e fornitori**: controparti con i sottoconti del partitario;
 - **Registri IVA**: registri e sezionali, stampa per mese o periodo,
-  corrispettivi del mese in una sola maschera;
+  corrispettivi del mese in una sola maschera, attività con contabilità
+  separata;
 - **Liquidazioni IVA**: periodi dell'anno con elaborazione, prospetto,
-  acconto, limiti della ventilazione e comunicazioni delle liquidazioni
-  periodiche;
+  acconto, pro-rata, limiti della ventilazione e comunicazioni delle
+  liquidazioni periodiche;
+- **IVA di gruppo**: per la controllante opzione, società partecipanti,
+  liquidazioni, acconto e comunicazioni del gruppo; per le controllate il
+  gruppo a cui partecipano;
 - **Giornale** e **Bilancio di verifica** per periodo, con le schede
   contabili dei sottoconti;
 - **Stampe definitive** del libro giornale e dei registri IVA;
@@ -55,7 +59,18 @@ esistente:
 1. `Contabilita/Database/schema.sql` (per i database della versione 0.1,
    prima `Contabilita/Database/aggiornamento-0.2.sql`: comunicazioni
    delle liquidazioni periodiche, stampe definitive, colonna
-   `riga_iva.altri_prodotti`)
+   `riga_iva.altri_prodotti`; per quelli delle versioni 0.1 e 0.2
+   `Contabilita/Database/aggiornamento-0.3.sql`: colonne
+   `riga_iva.natura_inversione`, `riga_iva.qualifica`,
+   `riga_iva.aliquota_teorica`, `riga_iva.ripartizione`,
+   `registrazione_contabile.importazione`, `registro_iva.unita_locale_id`,
+   `registro_iva.attivita_iva_id`, `liquidazione_iva.trimestre_anticipato`,
+   `liquidazione_iva.trimestre_separato`, `liquidazione_iva.credito_trimestrale`,
+   `liquidazione_iva.gruppo_iva_id`, `acconto_iva.gruppo_iva_id`,
+   `comunicazione_lipe.gruppo_iva_id`, `modulo_lipe.liquidazione_gruppo_iva_id`,
+   tabelle `prorata_iva`, `attivita_iva`, `gruppo_iva` e
+   `liquidazione_gruppo_iva`; `liquidazione_attivita` e
+   `partecipante_gruppo_iva` le crea `schema.sql`)
 2. `Contabilita/Database/dati-riferimento.sql` (piano dei conti standard e
    codici IVA della suite, generato da `sisma tabelle-contabilita --sql`)
 
@@ -112,17 +127,23 @@ Le fixture (`sisma fixtures`) coprono tutte le funzioni del modulo:
 | `Conto` | mastro (`NN`), conto (`NN.NN`) o sottoconto (`NN.NN.NNNN`) con il conto superiore (`parentConto`, entità autoreferenziata del framework), natura, funzione nelle proposte e voce CEE |
 | `CodiceIva` | aliquota o natura (N1-N7), detraibilità proposta, integrazione dell'imposta (inversione contabile) o corrispettivi da ventilare; della suite (id sotto 1000) o dello studio |
 | `EsercizioContabile` | esercizio dell'azienda per anno di chiusura, con le date e lo stato chiuso |
-| `RegistroIva` | registro vendite, acquisti o corrispettivi dell'azienda, principale o sezionale |
+| `RegistroIva` | registro vendite, acquisti o corrispettivi dell'azienda, principale o sezionale, con l'eventuale unità locale (sede operativa dell'Anagrafica) delle sue operazioni e l'attività separata a cui appartiene |
+| `AttivitaIva` | attività con contabilità separata (art. 36): numero (ordine dei moduli della dichiarazione IVA), codice ATECO, periodicità propria, anni |
+| `LiquidazioneAttivita` | liquidazione di un'attività separata compresa nella liquidazione dell'azienda: periodo dell'attività, IVA esigibile e detraibile, pro-rata, interessi |
+| `GruppoIva` | opzione della controllante per la liquidazione IVA di gruppo (art. 73, c. 3), dal primo anno fino alla revoca, con il soggetto che possiede la maggioranza della controllante (VG1) |
+| `PartecipanteGruppoIva` | controllata del gruppo: anno di ingresso e di uscita, cessazione del controllo in corso d'anno, possesso (data, percentuale, detentore), sola catena di controllo |
+| `LiquidazioneGruppoIva` | liquidazione periodica del gruppo: debiti, crediti e interessi trasferiti, riporti, credito di gruppo dell'anno precedente, acconto, dovuto o credito |
 | `Controparte` | cliente o fornitore dell'azienda con dati fiscali, sede, recapiti per la fatturazione, pubblica amministrazione (scissione dei pagamenti), sottoconti del partitario, costo o ricavo e codice IVA abituali |
 | `RegistrazioneContabile` | registrazione di prima nota: numero nell'esercizio, causale, documento, controparte e, per i documenti IVA, registro, protocollo, data di competenza ed esigibilità; origine e riferimento per le registrazioni generate |
 | `RigaContabile` | riga in partita doppia sul sottoconto, con la controparte delle righe del partitario |
-| `RigaIva` | riga del registro: codice IVA, imponibile e imposta con il segno del documento, detraibilità, acquisto per rivendita (ventilazione) e di altri prodotti, contropartita |
-| `LiquidazioneIva` | liquidazione del mese o trimestre con il prospetto (IVA esigibile, di cui ventilata, e detraibile, riporti, acconto, interessi, dovuto o credito), la scadenza e il giroconto |
-| `AccontoIva` | acconto dell'anno con metodo, base e importo |
+| `RigaIva` | riga del registro: codice IVA, imponibile e imposta con il segno del documento, detraibilità, acquisto per rivendita (ventilazione) e di altri prodotti, qualifica, aliquota teorica, ripartizione degli acquisti promiscui tra le attività, contropartita |
+| `LiquidazioneIva` | liquidazione del mese o trimestre con il prospetto (IVA esigibile, di cui ventilata, e detraibile, riporti, acconto, interessi, dovuto o credito), la scadenza, il giroconto, il trimestre anticipato delle attività trimestrali e il gruppo IVA a cui il risultato è trasferito |
+| `AccontoIva` | acconto dell'anno con metodo, base e importo; con il gruppo IVA l'acconto del gruppo versato dalla controllante |
 | `CorrispettivoGiornaliero` | corrispettivi di una giornata per codice IVA (comprensivi dell'imposta) della registrazione mensile dei corrispettivi |
 | `FatturaElettronica` | fattura importata (una per documento del lotto): dati principali, XML completo, impronta, stato e registrazione |
-| `ComunicazioneLipe` | comunicazione delle liquidazioni periodiche del trimestre: progressivo (identificativo), dichiarante e codice carica, intermediario e impegno, stato, data e protocollo dell'invio |
-| `ModuloLipe` | modulo del quadro VP (mese o trimestre) con i righi da VP2 a VP14 fissati alla preparazione e la liquidazione di origine |
+| `ComunicazioneLipe` | comunicazione delle liquidazioni periodiche del trimestre: progressivo (identificativo), dichiarante e codice carica, intermediario e impegno, stato, data e protocollo dell'invio; con il gruppo la comunicazione della liquidazione del gruppo |
+| `ModuloLipe` | modulo del quadro VP (mese, trimestre o mese con il trimestre anticipato) con i righi da VP2 a VP14 fissati alla preparazione e la liquidazione di origine (dell'azienda o del gruppo) |
+| `ProrataIva` | pro-rata di detrazione provvisorio dell'anno, dell'azienda o dell'attività separata |
 | `StampaDefinitiva` | stampa definitiva di un periodo del libro giornale (esercizio) o di un registro IVA (anno solare) con prima e ultima pagina e righe per pagina |
 
 ### Enum o entità
@@ -341,6 +362,115 @@ competenza nel periodo:
 - acquisti: imposta detraibile e, per i codici di integrazione, la stessa
   imposta anche a debito.
 
+Con il **pro-rata di detrazione provvisorio** dell'anno (`ProrataIva`, art.
+19, c. 5, e art. 19-bis D.P.R. 633/1972), per chi effettua anche
+operazioni esenti, l'IVA detraibile del periodo è ridotta alla percentuale
+indicata, con un avviso nel prospetto: è la percentuale definitiva
+dell'anno precedente, conguagliata nella dichiarazione annuale. Si indica
+nella pagina delle liquidazioni o la registra la dichiarazione IVA del
+modulo Dichiarativi (origine `Dichiarativi`, che non sostituisce quella
+inserita a mano); le liquidazioni già elaborate si rielaborano.
+
+Le righe IVA degli acquisti in inversione contabile interna portano la
+**tipologia** N6.1-N6.9 (`riga_iva.natura_inversione`: rottami, oro,
+subappalto edile, fabbricati, cellulari, prodotti elettronici, comparto
+edile, energia), proposta dall'importazione della fattura elettronica del
+fornitore (natura del riepilogo) e indicata nella prima nota (colonna
+"Tipologia RC"): determina il rigo del quadro VJ della dichiarazione IVA.
+
+Altri dati delle registrazioni IVA usati dalla dichiarazione annuale:
+
+- **qualifica** delle righe delle operazioni attive
+  (`QualificaOperazione`, colonna "Qualifica"): oro da investimento,
+  esenti occasionali o accessorie (art. 10, nn. 1-9), esenti del n.
+  27-quinquies, esenti equiparate alle imponibili e non soggette senza
+  diritto alla detrazione (campi del VF34 per il pro-rata), cessioni di
+  beni ammortizzabili e passaggi interni (VE40, proposta anche dal tipo
+  documento TD26 della fattura elettronica); esenti con la natura N4, non
+  soggette con la N2.1;
+- **aliquota teorica** delle righe degli acquisti con dichiarazione
+  d'intento (N3.5, colonna "Aliq. teor."): l'IVA non assolta del VF35 per
+  il pro-rata (22% se non indicata);
+- **importazione**: casella della testata degli acquisti con documento
+  doganale (VF28 campi 3 e 4, colonna 2 del VC per quelle con
+  dichiarazione d'intento);
+- **unità locale** del registro o sezionale IVA (sede operativa
+  dell'Anagrafica): regione delle operazioni verso consumatori finali nel
+  quadro VT.
+
+## Attività con contabilità separata
+
+Le attività gestite con contabilità separata per obbligo o per opzione
+(art. 36 D.P.R. 633/1972; `AttivitaIva`, nella pagina dei registri) hanno
+ciascuna i propri registri e sezionali: ogni registro appartiene a
+un'attività e un registro degli acquisti senza attività raccoglie gli
+acquisti promiscui, ripartiti riga per riga con le percentuali delle
+attività (criteri oggettivi, art. 36, c. 3; colonne "% n" della prima
+nota). Le vendite di registri senza attività vanno alla prima, con
+l'avviso.
+
+Le liquidazioni periodiche sono distinte per attività e compensate nel
+periodo (`Services\AttivitaSeparate`, `LiquidazioneAttivita`): ciascuna
+con le sue righe, le quote dei promiscui e il proprio pro-rata. La
+periodicità è quella dell'azienda o, quando la separazione è obbligatoria
+(o, per opzione, con il volume d'affari complessivo entro i limiti), quella
+propria dell'attività: l'azienda liquida mensilmente se almeno
+un'attività è mensile e le attività trimestrali sono liquidate nel mese
+di fine trimestre (liquidazione anticipata ai fini della compensazione,
+appendice "Contabilità separate" delle istruzioni IVA), con gli interessi
+dell'1% sulla loro IVA dovuta; il quarto trimestre delle trimestrali si
+chiude con la dichiarazione annuale (VL36). La comunicazione delle
+liquidazioni riepiloga tutte le attività, con il mese e il trimestre
+anticipato nello stesso modulo (rigo VP1).
+
+In alternativa il trimestre si liquida **separatamente** dal mese: la scelta
+si fa per ogni trimestre all'elaborazione del mese di fine trimestre
+(casella "anticipa il trimestre"). La liquidazione del trimestre
+(`trimestre_separato`) ha la propria scadenza e i codici 6031-6033, un modulo
+distinto nella comunicazione e sta nella sequenza dei riporti mese, mese,
+mese, trimestre, mese successivo. Lo stesso vale per il gruppo IVA con
+società trimestrali e controllante mensile.
+
+I passaggi interni di beni tra attività (art. 36, c. 5) si registrano con
+un'autofattura nel registro delle vendite dell'attività cedente (qualifica
+"bene ammortizzabile o passaggio interno", che li esclude dal volume
+d'affari con il VE40) e negli acquisti dell'attività che li riceve.
+
+## IVA di gruppo
+
+Con la liquidazione IVA di gruppo (art. 73, c. 3; D.M. 13 dicembre 1979,
+modificato dal D.M. 13 febbraio 2017) la controllante esercita l'opzione
+nel quadro VG della dichiarazione IVA presentata nel primo anno e la
+mantiene fino a revoca (`GruppoIva`); le controllate (`PartecipanteGruppoIva`)
+entrano o escono dal 1° gennaio, o lasciano il gruppo in corso d'anno
+quando il controllo cessa: l'ultimo mese (o trimestre) di controllo è
+quello precedente la cessazione. Il requisito del controllo (più del 50%
+del capitale dal 1° luglio dell'anno precedente) si verifica sui legami
+"socio" con quota dell'Anagrafica, con un avviso se manca o non basta.
+
+Le liquidazioni delle società partecipanti, compresa la controllante, nel
+periodo di controllo trasferiscono il risultato al gruppo: senza riporto
+del credito o del debito, credito annuale, acconto, rinvio sotto i 100
+euro e versamento in Deleghe; gli interessi dei trimestrali si calcolano
+e si trasferiscono; il giroconto va al conto con funzione "IVA di
+gruppo" (06.04.0004 nel piano standard). La controllante elabora la
+liquidazione del gruppo (`Services\LiquidazioneGruppo`,
+`LiquidazioneGruppoIva`) sommando debiti e crediti trasferiti: mensile se
+almeno una società è mensile, con i trimestri delle società trimestrali
+nel mese di fine trimestre (il quarto con le dichiarazioni annuali),
+riporto del credito e del debito del gruppo, credito di gruppo dell'anno
+precedente indicato, acconto del gruppo (calcolato dalla pagina del
+gruppo, metodo storico sull'ultima liquidazione di gruppo o analitico
+sulle operazioni di tutte le società) e versamento della controllante in
+Deleghe (riferimento `iva-gruppo-<anno>-<periodo>`).
+
+Nelle comunicazioni delle liquidazioni periodiche le società partecipanti
+indicano la partita IVA della controllante (e l'ultimo mese di controllo
+nel trimestre della cessazione) e omettono i righi VP7, VP8, VP9 e VP13;
+la controllante presenta anche la comunicazione del gruppo ("Liquidazione
+del gruppo", VP4 e VP5 con debiti e crediti trasferiti, senza VP2, VP3,
+VP10, VP11 e VP12), preparata dalla pagina del gruppo.
+
 `Services\ElaborazioneLiquidazione` riporta il credito e il debito
 rinviato del periodo precedente, compensa il credito annuale indicato
 (compensazione "verticale" del credito della dichiarazione dell'anno
@@ -379,6 +509,13 @@ approssimato), previsionale (88% del dovuto presunto) o analitico
 trimestrali, al 20 dicembre); non è dovuto sotto 103,29 euro. Le forme
 speciali di periodicità (trimestrali speciali dell'art. 74, c. 4, D.P.R.
 633/1972) non sono gestite.
+
+Il credito chiesto a rimborso o in compensazione con il modello IVA TR è
+annotato dal modulo Dichiarativi sulla liquidazione che chiude il trimestre
+(`credito_trimestrale`, anche di gruppo): resta nel prospetto ma non si
+riporta al periodo successivo (istruzioni della comunicazione, rigo VP8), e
+il riporto dell'acconto storico ne tiene conto. Le liquidazioni successive già
+elaborate vanno rielaborate.
 
 ## Comunicazione delle liquidazioni periodiche
 
@@ -430,8 +567,8 @@ dell'invio la comunicazione non si modifica: per una sostitutiva entro il
 termine la si riporta in bozza e la si riprepara. Termine: ultimo giorno
 del secondo mese successivo al trimestre (30 settembre per il secondo,
 fine di febbraio per il quarto), al primo giorno lavorativo se festivo.
-Le liquidazioni di gruppo, i soggetti con periodicità mista e le
-operazioni straordinarie non sono gestiti.
+Le operazioni straordinarie (casella del rigo VP1 e partita IVA del
+soggetto trasformato) non sono gestite.
 
 ## Stampe definitive
 
@@ -538,6 +675,10 @@ suite sono in sola lettura per tutti.
 - specifiche tecniche della fattura elettronica (allegato A al
   provvedimento AdE 30 aprile 2018 e successive versioni, 1.9.1): nature,
   tipi di documento, esigibilità, schema VFPR12 v1.2.3;
+- art. 36 (attività separate) e art. 73, c. 3 (IVA di gruppo) D.P.R.
+  633/1972, D.M. 13 dicembre 1979 modificato dal D.M. 13 febbraio 2017;
+  istruzioni del modello IVA 2026 (paragrafi 3.2 e 3.4, appendice
+  "Contabilità separate");
 - art. 21-bis D.L. 78/2010; specifiche tecniche e istruzioni della
   comunicazione delle liquidazioni periodiche IVA (provvedimento AdE 14
   marzo 2024, fornitura IVP18, schemi XSD);
@@ -551,16 +692,16 @@ suite sono in sola lettura per tutti.
 - registrazione all'incasso dell'IVA a esigibilità differita e IVA per
   cassa (art. 32-bis D.L. 83/2012); oggi esclusa dalla liquidazione con un
   avviso;
-- dichiarazione IVA annuale (modulo Dichiarativi), pro-rata di
-  detraibilità, plafond;
+- plafond degli esportatori abituali nelle liquidazioni (verifica del
+  plafond disponibile mese per mese; il quadro VC è nella dichiarazione
+  annuale del modulo Dichiarativi);
 - contabilità dei forfetari, cespiti e ammortamenti, ratei e risconti,
   chiusura e riapertura dei conti con le scritture di assestamento
   (base per il modulo Bilancio);
-- trimestrali speciali (art. 74, c. 4, D.P.R. 633/1972) e liquidazione di
-  gruppo;
+- trimestrali speciali (art. 74, c. 4, D.P.R. 633/1972);
 - stampa definitiva del libro degli inventari e dei registri dei beni
   ammortizzabili (con i cespiti);
 - importazione nella maschera mensile dei corrispettivi telematici
   trasmessi (portale Fatture e corrispettivi) e scarico automatico delle
-  fatture; quadro VF della dichiarazione annuale;
+  fatture;
 - adeguamento dei riferimenti normativi al Testo unico IVA (dal 2027).

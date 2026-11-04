@@ -8,14 +8,15 @@ use Contabilita\Application\Entities\FatturaElettronica;
 use Contabilita\Application\Entities\RegistrazioneContabile;
 use Contabilita\Application\Entities\RigaIva;
 use Contabilita\Application\Enumerations\DirezioneFattura;
+use Contabilita\Application\Enumerations\FunzioneConto;
+use Contabilita\Application\Enumerations\QualificaOperazione;
 use Contabilita\Application\Enumerations\TipoDocumentoFattura;
+use Contabilita\Application\Enumerations\TipoRegistroIva;
 use Contabilita\Application\Models\CodiceIvaModel;
 use Contabilita\Application\Models\EsercizioContabileModel;
 use Contabilita\Application\Models\RegistroIvaModel;
 use Contabilita\Application\Services\PropostaRighe;
 use Contabilita\Application\Services\RegimeIva;
-use Contabilita\Application\Enumerations\FunzioneConto;
-use Contabilita\Application\Enumerations\TipoRegistroIva;
 use SismaFramework\Orm\CustomTypes\SismaDate;
 use SismaFramework\Orm\HelperClasses\DataMapper;
 
@@ -85,6 +86,10 @@ class PropostaDaFattura
                     : round($riepilogo['imposta'] * $segno, 2);
             $riga->detraibilita = $riga->codiceIva->detraibilita;
             $riga->rivendita = $rivendita;
+            // cessione di beni ammortizzabili (TD26): fuori dal volume d'affari (VE40) e dal calcolo del pro-rata
+            $riga->qualifica = $fattura->tipoDocumento === TipoDocumentoFattura::cessioneBeniAmmortizzabili ? QualificaOperazione::beneAmmortizzabile : null;
+            // tipologia dell'inversione contabile dalla natura N6 indicata dal fornitore (rigo del quadro VJ)
+            $riga->naturaInversione = $riga->codiceIva->inversioneContabile && ($riepilogo['natura'] !== null) && $riepilogo['natura']->isInversioneContabile() ? $riepilogo['natura'] : null;
             $riga->conto = $fattura->controparte?->contoContropartita;
             $righe[] = $riga;
         }

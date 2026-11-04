@@ -20,7 +20,7 @@ require __DIR__ . '/../commonParts/navAzienda.php';
                     <div class="me-auto">
                         <a href="/registro-iva/update/registro/<?= Html::e($registro->id) ?>" class="fw-semibold text-decoration-none <?= $registro->attivo ? '' : 'text-body-secondary' ?>"><?= Html::e($registro->getEtichetta()) ?></a>
                         <span class="badge text-bg-light border"><?= Html::e($registro->sezionale === '' ? $principale : $campi['sezionale'] . ' ' . $registro->sezionale) ?></span>
-                        <div class="small text-body-secondary"><?= Html::e($registro->tipo->getNorma()) ?></div>
+                        <div class="small text-body-secondary"><?= Html::e($registro->tipo->getNorma()) ?><?= $registro->attivitaIva === null ? (count($attivitaSeparate) > 0 && $registro->tipo->value === 'A' ? ' · ' . Html::e($registroPromiscuo) : '') : ' · ' . Html::e($campi['attivitaIva']) . ' ' . Html::e($registro->attivitaIva->getEtichetta()) ?></div>
                     </div>
                     <?php if ($registro->tipo->value === 'C'): ?>
                         <a href="/corrispettivi/mese/registro/<?= Html::e($registro->id) ?>" class="btn btn-sm btn-outline-primary text-nowrap"><i class="bi bi-calendar3-week me-1"></i><?= Html::e($corrispettiviMese) ?></a>
@@ -39,5 +39,23 @@ require __DIR__ . '/../commonParts/navAzienda.php';
             </li>
         <?php endforeach; ?>
     </ul>
+</div>
+<div class="card shadow-sm mt-3">
+    <div class="card-header bg-white d-flex flex-wrap align-items-center gap-2">
+        <div class="me-auto"><span class="fw-semibold"><?= Html::e($titoloAttivita) ?></span> <span class="small text-body-secondary ms-2"><?= Html::e($aiutoAttivitaSeparate) ?></span></div>
+        <a href="/attivita-iva/create/soggetto/<?= Html::e($soggetto->id) ?>" class="btn btn-sm btn-outline-primary"><i class="bi bi-plus-lg me-1"></i><?= Html::e($nuovaAttivita) ?></a>
+    </div>
+    <?php if (count($attivitaSeparate) === 0): ?>
+        <div class="card-body small text-body-secondary"><?= Html::e($contabilitaUnificata) ?></div>
+    <?php else: ?>
+        <ul class="list-group list-group-flush">
+            <?php foreach ($attivitaSeparate as $attivita): ?>
+                <li class="list-group-item">
+                    <a href="/attivita-iva/update/attivita/<?= Html::e($attivita->id) ?>" class="fw-semibold text-decoration-none"><?= Html::e($attivita->getEtichetta()) ?></a>
+                    <span class="small text-body-secondary"><?= Html::e($attivita->codiceAteco?->codice ?? '') ?> · <?= Html::e($attivita->periodicita?->getLabel() ?? $periodicitaAzienda) ?> · <?= Html::e($campi['dalAnno']) ?> <?= Html::e($attivita->dalAnno) ?><?= $attivita->alAnno === null ? '' : ' · ' . Html::e($campi['alAnno']) . ' ' . Html::e($attivita->alAnno) ?></span>
+                </li>
+            <?php endforeach; ?>
+        </ul>
+    <?php endif; ?>
 </div>
 <?php require Layout::percorso('footer'); ?>

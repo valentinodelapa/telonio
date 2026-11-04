@@ -3,6 +3,7 @@
 namespace Contabilita\Application\Forms;
 
 use Contabilita\Application\Entities\RigaIva;
+use Contabilita\Application\Enumerations\NaturaIva;
 use Deleghe\Application\HelperClasses\Importo;
 use SismaFramework\Core\BaseClasses\BaseForm;
 use SismaFramework\Core\Enumerations\FilterType;
@@ -24,7 +25,7 @@ class RigaIvaForm extends BaseForm
     #[\Override]
     protected function injectRequest(): void
     {
-        foreach (['imponibile', 'imposta', 'detraibilita'] as $campo) {
+        foreach (['imponibile', 'imposta', 'detraibilita', 'aliquotaTeorica'] as $campo) {
             if (isset($this->request->input[$campo]) && is_string($this->request->input[$campo])) {
                 $this->addRequest($campo, Importo::normalizza($this->request->input[$campo]));
             }
@@ -50,6 +51,9 @@ class RigaIvaForm extends BaseForm
                 ->addFilterFieldMode('detraibilita', FilterType::isNumeric)
                 ->addFilterFieldMode('rivendita', FilterType::isBoolean)
                 ->addFilterFieldMode('altriProdotti', FilterType::isBoolean)
+                ->addFilterFieldMode('naturaInversione', FilterType::isEnumeration, [], true)
+                ->addFilterFieldMode('qualifica', FilterType::isEnumeration, [], true)
+                ->addFilterFieldMode('aliquotaTeorica', FilterType::isNumeric, [], true)
                 ->addFilterFieldMode('conto', FilterType::isEntity, [], true);
     }
 
@@ -62,6 +66,21 @@ class RigaIvaForm extends BaseForm
     #[\Override]
     protected function customFilter(): bool
     {
+        $natura = $this->entityData->naturaInversione;
+        if (($natura !== null) && (($natura->isInversioneContabile() === false) || ($this->entityData->codiceIva?->inversioneContabile !== true))) {
+            $this->formFilterError->naturaInversioneCustomMessage = 'La tipologia N6 si indica solo per le integrazioni in inversione contabile.';
+            return false;
+        }
+        $qualifica = $this->entityData->qualifica;
+        if (($qualifica !== null) && ($qualifica->isAmmessa($this->entityData->codiceIva?->natura) === false)) {
+            $this->formFilterError->qualificaCustomMessage = 'Qualifica non compatibile con il codice IVA (esenti: N4; fuori campo: N2.1).';
+            return false;
+        }
+        $aliquota = $this->entityData->aliquotaTeorica;
+        if (($aliquota !== null) && ((($aliquota <= 0) || ($aliquota >= 100)) || ($this->entityData->codiceIva?->natura !== NaturaIva::dichiarazioniIntento))) {
+            $this->formFilterError->aliquotaTeoricaCustomMessage = 'L\'aliquota teorica si indica solo per gli acquisti con dichiarazione d\'intento (N3.5).';
+            return false;
+        }
         return true;
     }
 

@@ -4,6 +4,7 @@ namespace Contabilita\Application\Models;
 
 use Anagrafica\Application\Entities\Soggetto;
 use Contabilita\Application\Entities\AccontoIva;
+use Contabilita\Application\Entities\GruppoIva;
 use SismaFramework\Orm\ExtendedClasses\DependentModel;
 use SismaFramework\Orm\HelperClasses\Query;
 
@@ -22,8 +23,11 @@ class AccontoIvaModel extends DependentModel
 
     }
 
-    public function getPerAnno(Soggetto $soggetto, int $anno): ?AccontoIva
+    /**
+     * Acconto del soggetto o, con il gruppo, quello del gruppo IVA.
+     */
+    public function getPerAnno(Soggetto $soggetto, int $anno, ?GruppoIva $gruppo = null): ?AccontoIva
     {
-        return $this->getBySoggettoAndAnno($soggetto, $anno)[0] ?? null;
+        return $this->getBySoggettoAndAnnoAndGruppoIva($soggetto, $anno, $gruppo)[0] ?? null;
     }
 }

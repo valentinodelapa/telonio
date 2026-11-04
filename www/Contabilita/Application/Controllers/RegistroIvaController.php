@@ -3,10 +3,14 @@
 namespace Contabilita\Application\Controllers;
 
 use Anagrafica\Application\Entities\Soggetto;
+use Anagrafica\Application\Enumerations\TipoIndirizzo;
+use Anagrafica\Application\Models\IndirizzoModel;
 use Contabilita\Application\BaseClasses\ContabilitaController;
+use Contabilita\Application\Entities\AttivitaIva;
 use Contabilita\Application\Entities\RegistroIva;
 use Contabilita\Application\Enumerations\TipoRegistroIva;
 use Contabilita\Application\Forms\RegistroIvaForm;
+use Contabilita\Application\Models\AttivitaIvaModel;
 use Contabilita\Application\Models\RegistrazioneContabileModel;
 use Contabilita\Application\Models\RegistroIvaModel;
 use Contabilita\Application\Models\StampaDefinitivaModel;
@@ -27,6 +31,7 @@ class RegistroIvaController extends ContabilitaController
         }
         $this->getEsercizio($soggetto, 0);
         $this->vars['registri'] = iterator_to_array((new RegistroIvaModel($this->dataMapper))->getElenco($soggetto), false);
+        $this->vars['attivitaSeparate'] = (new AttivitaIvaModel($this->dataMapper))->getElenco($soggetto);
         $this->vars['mesi'] = ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'];
         $this->vars['sezioneAzienda'] = 'registri';
         $this->vars['pageTitle'] = $soggetto->nominativo . ' · Registri IVA';
@@ -89,6 +94,12 @@ class RegistroIvaController extends ContabilitaController
         $form = new RegistroIvaForm($registro);
         if ($this->isInvioValido($request, $form)) {
             $registro = $form->resolveEntity();
+            if (($registro->unitaLocale !== null) && ($registro->unitaLocale->soggetto->id !== $soggetto->id)) {
+                $registro->unitaLocale = null;
+            }
+            if (($registro->attivitaIva !== null) && ($registro->attivitaIva->soggetto->id !== $soggetto->id)) {
+                $registro->attivitaIva = null;
+            }
             $this->dataMapper->save($registro);
             $this->aggiungiMessaggio('Registro salvato.');
             return $this->router->redirect('registro-iva/index/soggetto/' . $soggetto->id);
@@ -97,6 +108,16 @@ class RegistroIvaController extends ContabilitaController
         $this->getEsercizio($soggetto, 0);
         $this->vars['registro'] = $registro;
         $this->vars['tipi'] = TipoRegistroIva::cases();
+        $this->vars['unitaLocali'] = [];
+        foreach ((new IndirizzoModel($this->dataMapper))->getVigentiAl($soggetto, new \DateTimeImmutable()) as $indirizzo) {
+            if (in_array($indirizzo->tipoIndirizzo, [TipoIndirizzo::sedeOperativa, TipoIndirizzo::sedeLegale, TipoIndirizzo::sedeAmministrativa], true)) {
+                $this->vars['unitaLocali'][$indirizzo->id] = $indirizzo->tipoIndirizzo->getLabel() . ': ' . $indirizzo->indirizzo . ' ' . ($indirizzo->numeroCivico ?? '') . ', ' . ($indirizzo->comune?->denominazione ?? $indirizzo->localitaEstera ?? '') . ($indirizzo->comune?->siglaProvincia === null ? '' : ' (' . $indirizzo->comune->siglaProvincia . ')');
+            }
+        }
+        $this->vars['attivitaSeparate'] = [];
+        foreach ((new AttivitaIvaModel($this->dataMapper))->getElenco($soggetto) as $attivita) {
+            $this->vars['attivitaSeparate'][$attivita->id] = $attivita->getEtichetta() . ($attivita->alAnno === null ? '' : ' (fino al ' . $attivita->alAnno . ')');
+        }
         $this->vars['pageTitle'] = $titolo;
         $this->impostaBriciole($soggetto, null, $titolo, ['Registri IVA' => '/registro-iva/index/soggetto/' . $soggetto->id]);
         return $this->render->generateView('registroIva/form', $this->vars, $form->getResponseType());

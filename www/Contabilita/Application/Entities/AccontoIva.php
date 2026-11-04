@@ -34,6 +34,7 @@ class AccontoIva extends BaseEntity
     protected SismaDateTime $dataElaborazione;
     protected ?string $note = null;
     protected ?string $differenze = null;
+    protected ?GruppoIva $gruppoIva = null;
 
     #[\Override]
     protected function setEncryptedProperties(): void
@@ -55,5 +56,14 @@ class AccontoIva extends BaseEntity
     public function isDovuto(): bool
     {
         return $this->importo >= self::IMPORTO_MINIMO;
+    }
+
+    /**
+     * Riferimento del versamento in Deleghe (distinto per l'acconto del
+     * gruppo IVA).
+     */
+    public function getRiferimentoVersamento(): string
+    {
+        return self::getRiferimento($this->anno) . ($this->gruppoIva === null ? '' : '-gruppo');
     }
 }

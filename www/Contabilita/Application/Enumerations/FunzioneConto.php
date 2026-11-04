@@ -24,6 +24,7 @@ enum FunzioneConto: string
     case costi = 'COS';
     case arrotondamentiAttivi = 'ARA';
     case arrotondamentiPassivi = 'ARP';
+    case ivaGruppo = 'IVG';
 
     public function getLabel(): string
     {
@@ -41,6 +42,7 @@ enum FunzioneConto: string
             self::costi => 'Costi di acquisto proposti',
             self::arrotondamentiAttivi => 'Arrotondamenti attivi',
             self::arrotondamentiPassivi => 'Arrotondamenti passivi',
+            self::ivaGruppo => 'IVA di gruppo (debiti e crediti trasferiti alla controllante)',
         };
     }
 

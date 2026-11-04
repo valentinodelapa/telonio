@@ -1,0 +1,17 @@
+{
+  "name": "Dichiarativi",
+  "version": "0.1.0",
+  "framework_version": "12.14.0",
+  "description": "Dichiarazioni fiscali dei contribuenti dello studio: dichiarazione IVA annuale proposta dalla contabilità e Redditi persone fisiche, quadri per campo del modello, controlli, file telematico e versamenti per le deleghe F24",
+  "authors": [
+    "Valentino de Lapa <valentino.delapa@gmail.com>"
+  ],
+  "requires": {
+    "sismaframework": ">=12.14.0",
+    "Telonio": ">=0.6.2",
+    "Anagrafica": ">=0.6.0",
+    "Deleghe": ">=0.5.0",
+    "Contabilita": ">=0.3.0"
+  },
+  "license": "MIT"
+}

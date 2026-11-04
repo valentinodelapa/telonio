@@ -12,9 +12,9 @@ id;codice;descrizione;aliquota;natura;detraibilita;inversione_contabile;ventilaz
 23;N3.1;Non imponibili, esportazioni;0.00;N3.1;100;0;0;art. 8, c. 1, lett. a) e b), D.P.R. 633/1972
 24;N3.2;Non imponibili, cessioni intracomunitarie;0.00;N3.2;100;0;0;art. 41 D.L. 331/1993
 25;N3.3;Non imponibili, cessioni verso San Marino;0.00;N3.3;100;0;0;art. 71 D.P.R. 633/1972; D.M. 21 giugno 2021
-26;N3.4;Non imponibili, operazioni assimilate alle esportazioni;0.00;N3.4;100;0;0;art. 8-bis D.P.R. 633/1972
+26;N3.4;Non imponibili, operazioni assimilate alle esportazioni e servizi internazionali (concorrono al plafond);0.00;N3.4;100;0;0;artt. 8-bis e 9 D.P.R. 633/1972
 27;N3.5;Non imponibili, a seguito di dichiarazione d'intento;0.00;N3.5;100;0;0;art. 8, c. 1, lett. c), D.P.R. 633/1972; art. 1, c. 1, lett. c), D.L. 746/1983
-28;N3.6;Non imponibili, altre operazioni (es. servizi internazionali);0.00;N3.6;100;0;0;art. 9 D.P.R. 633/1972
+28;N3.6;Non imponibili, altre operazioni che non concorrono al plafond;0.00;N3.6;100;0;0;specifiche tecniche della fattura elettronica, natura N3.6 (es. art. 38-quater D.P.R. 633/1972)
 29;N4;Esenti art. 10;0.00;N4;100;0;0;art. 10 D.P.R. 633/1972
 30;N5;Regime del margine;0.00;N5;100;0;0;art. 36 D.L. 41/1995
 31;N6.1;Inversione contabile, rottami;0.00;N6.1;100;0;0;art. 74, c. 7 e 8, D.P.R. 633/1972

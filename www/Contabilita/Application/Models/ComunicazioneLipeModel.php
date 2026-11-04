@@ -4,6 +4,7 @@ namespace Contabilita\Application\Models;
 
 use Anagrafica\Application\Entities\Soggetto;
 use Contabilita\Application\Entities\ComunicazioneLipe;
+use Contabilita\Application\Entities\GruppoIva;
 use SismaFramework\Orm\ExtendedClasses\DependentModel;
 use SismaFramework\Orm\HelperClasses\Query;
 
@@ -22,18 +23,22 @@ class ComunicazioneLipeModel extends DependentModel
 
     }
 
-    public function getPerTrimestre(Soggetto $soggetto, int $anno, int $trimestre): ?ComunicazioneLipe
+    /**
+     * Comunicazione del soggetto o, con il gruppo, quella della
+     * controllante per la liquidazione del gruppo.
+     */
+    public function getPerTrimestre(Soggetto $soggetto, int $anno, int $trimestre, ?GruppoIva $gruppo = null): ?ComunicazioneLipe
     {
-        return $this->getBySoggettoAndAnnoAndTrimestre($soggetto, $anno, $trimestre)[0] ?? null;
+        return $this->getBySoggettoAndAnnoAndTrimestreAndGruppoIva($soggetto, $anno, $trimestre, $gruppo)[0] ?? null;
     }
 
     /**
      * @return array<int, ComunicazioneLipe> comunicazioni dell'anno per trimestre
      */
-    public function getPerAnno(Soggetto $soggetto, int $anno): array
+    public function getPerAnno(Soggetto $soggetto, int $anno, ?GruppoIva $gruppo = null): array
     {
         $elenco = [];
-        foreach ($this->getBySoggettoAndAnno($soggetto, $anno, null, ['trimestre' => 'ASC']) as $comunicazione) {
+        foreach ($this->getBySoggettoAndAnnoAndGruppoIva($soggetto, $anno, $gruppo, null, ['trimestre' => 'ASC']) as $comunicazione) {
             $elenco[$comunicazione->trimestre] = $comunicazione;
         }
         return $elenco;

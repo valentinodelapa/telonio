@@ -17,6 +17,24 @@ require __DIR__ . '/../commonParts/navAzienda.php';
         <?php foreach (['creditoAnnoPrecedente', 'versamentiAuto', 'creditiImposta'] as $campoImporto): ?>
             <input type="text" class="form-control form-control-sm text-end" style="width: 7rem" name="<?= Html::e($campoImporto) ?>" value="<?= $liquidazione->$campoImporto == 0 ? '' : Html::e(Importo::euro($liquidazione->$campoImporto)) ?>" placeholder="<?= Html::e($segnapostoImporti[$campoImporto]) ?>" title="<?= Html::e($campi[$campoImporto]) ?>" inputmode="decimal">
         <?php endforeach; ?>
+        <?php if ($liquidazione->gruppoIva !== null): ?>
+            <div class="alert alert-info small mt-3 mb-0"><?= Html::e(sprintf($trasferitaAlGruppo, $liquidazione->gruppoIva->controllante->nominativo)) ?></div>
+        <?php endif; ?>
+        <?php if (count($dettagliAttivita) > 0): ?>
+            <div class="card shadow-sm mt-3">
+                <div class="card-header bg-white fw-semibold"><?= Html::e($titoloAttivita) ?></div>
+                <div class="table-responsive">
+                    <table class="table table-sm mb-0">
+                        <thead class="table-light"><tr><th><?= Html::e($campi['attivitaIva']) ?></th><th><?= Html::e($campi['periodo']) ?></th><th class="text-end"><?= Html::e($campi['ivaEsigibile']) ?></th><th class="text-end"><?= Html::e($campi['ivaDetraibile']) ?></th><th class="text-end"><?= Html::e($campi['interessi']) ?></th></tr></thead>
+                        <tbody>
+                            <?php foreach ($dettagliAttivita as $dettaglio): ?>
+                                <tr><td><?= Html::e($dettaglio->attivitaIva->getEtichetta()) ?></td><td class="small"><?= Html::e($dettaglio->getDescrizionePeriodo($liquidazione->anno)) ?><?= $dettaglio->percentualeDetrazione < 100 ? ' · pro-rata ' . Html::e($dettaglio->percentualeDetrazione) . '%' : '' ?></td><td class="text-end"><?= Html::e(Importo::euro($dettaglio->ivaEsigibile)) ?></td><td class="text-end"><?= Html::e(Importo::euro($dettaglio->ivaDetraibile)) ?></td><td class="text-end"><?= Html::e(Importo::euro($dettaglio->interessi, true)) ?></td></tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        <?php endif; ?>
         <?php if ($liquidazione->registrazioneContabile !== null): ?><input type="hidden" name="giroconto" value="1"><?php endif; ?>
         <button type="submit" class="btn btn-sm btn-outline-primary"><i class="bi bi-arrow-repeat me-1"></i><?= Html::e($azioni['rielabora']) ?></button>
     </form>

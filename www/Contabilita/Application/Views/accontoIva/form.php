@@ -5,7 +5,7 @@ use Telonio\Application\HelperClasses\Campo;
 use Telonio\Application\HelperClasses\Html;
 use Telonio\Application\HelperClasses\Layout;
 
-$urlAnnulla = '/liquidazione-iva/index/soggetto/' . $soggetto->id . '/anno/' . $annoIva;
+$urlAnnulla = $urlRitorno;
 
 require Layout::percorso('header');
 ?>

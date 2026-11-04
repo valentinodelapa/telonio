@@ -3,6 +3,8 @@
 namespace Contabilita\Application\Entities;
 
 use Anagrafica\Application\Entities\Soggetto;
+use Contabilita\Application\Enumerations\NaturaIva;
+use Contabilita\Application\Enumerations\QualificaOperazione;
 use SismaFramework\Orm\BaseClasses\BaseEntity;
 use SismaFramework\Orm\CustomTypes\SismaDate;
 
@@ -32,6 +34,10 @@ class RigaIva extends BaseEntity
     protected float $detraibilita = 100.0;
     protected bool $rivendita = false;
     protected bool $altriProdotti = false;
+    protected ?NaturaIva $naturaInversione = null;
+    protected ?QualificaOperazione $qualifica = null;
+    protected ?float $aliquotaTeorica = null;
+    protected ?string $ripartizione = null;
     protected ?Conto $conto = null;
 
     #[\Override]
@@ -57,5 +63,41 @@ class RigaIva extends BaseEntity
     public function getImpostaIndetraibile(): float
     {
         return round($this->imposta - $this->getImpostaDetraibile(), 2);
+    }
+
+    /**
+     * Quote degli acquisti promiscui per numero di attività separata.
+     *
+     * @return array<int, float> percentuali (somma 100)
+     */
+    public function getRipartizione(): array
+    {
+        return self::leggiRipartizione($this->ripartizione);
+    }
+
+    /**
+     * @return array<int, float>
+     */
+    public static function leggiRipartizione(?string $ripartizione): array
+    {
+        $quote = [];
+        foreach (array_filter(explode(';', (string) $ripartizione)) as $quota) {
+            [$numero, $percentuale] = array_pad(explode(':', $quota, 2), 2, '0');
+            if (ctype_digit(trim($numero)) && is_numeric(trim($percentuale)) && ((float) $percentuale > 0)) {
+                $quote[(int) $numero] = (float) $percentuale;
+            }
+        }
+        ksort($quote);
+        return $quote;
+    }
+
+    /**
+     * @param array<int, float> $quote
+     */
+    public static function scriviRipartizione(array $quote): ?string
+    {
+        $quote = array_filter($quote, fn(float $percentuale) => $percentuale > 0);
+        ksort($quote);
+        return count($quote) === 0 ? null : implode(';', array_map(fn(int $numero, float $percentuale) => $numero . ':' . rtrim(rtrim(number_format($percentuale, 2, '.', ''), '0'), '.'), array_keys($quote), $quote));
     }
 }

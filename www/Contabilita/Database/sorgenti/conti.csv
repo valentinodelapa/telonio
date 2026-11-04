@@ -192,3 +192,4 @@ piano_conti_id;id;codice;descrizione;natura;funzione;voce_cee
 1;191;40.01.0001;Stato patrimoniale di apertura;S;;
 1;192;40.01.0002;Stato patrimoniale di chiusura;S;;
 1;193;40.01.0003;Conto economico;S;;
+1;194;06.04.0004;IVA di gruppo c/liquidazioni;A;IVG;

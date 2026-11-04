@@ -4,6 +4,8 @@ namespace Contabilita\Application\Services;
 
 use Anagrafica\Application\Entities\Soggetto;
 use Anagrafica\Application\Enumerations\PeriodicitaIva;
+use Contabilita\Application\Entities\AttivitaIva;
+use Contabilita\Application\Entities\LiquidazioneAttivita;
 use Contabilita\Application\Entities\LiquidazioneIva;
 use Contabilita\Application\Entities\RegistrazioneContabile;
 use Contabilita\Application\Entities\RigaContabile;
@@ -12,6 +14,7 @@ use Contabilita\Application\Enumerations\FunzioneConto;
 use Contabilita\Application\Models\AccontoIvaModel;
 use Contabilita\Application\Models\ContoModel;
 use Contabilita\Application\Models\EsercizioContabileModel;
+use Contabilita\Application\Models\LiquidazioneAttivitaModel;
 use Contabilita\Application\Models\LiquidazioneIvaModel;
 use Contabilita\Application\Models\PianoContiModel;
 use Contabilita\Application\Models\RegistrazioneContabileModel;
@@ -46,6 +49,22 @@ use SismaFramework\Orm\HelperClasses\DataMapper;
  * VP10 e VP11 della comunicazione delle liquidazioni periodiche. I crediti
  * d'imposta non superano l'IVA da versare e non si usano nel quarto
  * trimestre dei trimestrali, che si chiude con la dichiarazione annuale.
+ *
+ * Con le attività separate (art. 36) la liquidazione somma quelle delle
+ * attività (LiquidazioneAttivita), ciascuna con le sue righe, le quote
+ * degli acquisti promiscui e il suo pro-rata; le attività trimestrali di
+ * un'azienda che liquida mensilmente entrano nel mese di fine trimestre
+ * (liquidazione anticipata, scelta trimestre per trimestre) con gli
+ * interessi dell'1% sull'IVA dovuta del trimestre, oppure hanno una
+ * liquidazione del trimestre separata (elaboraTrimestre: codici
+ * 6031-6033, termine dei trimestrali), che segue il mese di fine
+ * trimestre nella sequenza dei riporti (mese, mese, mese, trimestre).
+ *
+ * Per le società che partecipano alla liquidazione IVA di gruppo (art.
+ * 73, c. 3) nel periodo di controllo il risultato del periodo è
+ * trasferito alla controllante (LiquidazioneGruppo): niente riporto del
+ * credito o del debito, credito dell'anno precedente, acconto né
+ * versamento in Deleghe; il giroconto va al conto dell'IVA di gruppo.
  */
 class ElaborazioneLiquidazione
 {
@@ -59,41 +78,127 @@ class ElaborazioneLiquidazione
      * @throws \DomainException se l'azienda non liquida l'IVA nell'anno o i crediti d'imposta non sono scomputabili
      * @throws \InvalidArgumentException se il versamento non supera i controlli di Deleghe
      */
-    public function elabora(Soggetto $soggetto, int $anno, int $periodo, float $creditoAnnoPrecedente = 0.0, bool $giroconto = true, float $versamentiAuto = 0.0, float $creditiImposta = 0.0): LiquidazioneIva
+    public function elabora(Soggetto $soggetto, int $anno, int $periodo, float $creditoAnnoPrecedente = 0.0, bool $giroconto = true, float $versamentiAuto = 0.0, float $creditiImposta = 0.0,
+            bool $anticipaTrimestre = true): LiquidazioneIva
     {
-        if (($versamentiAuto < 0) || ($creditiImposta < 0)) {
-            throw new \DomainException('Versamenti auto UE e crediti d\'imposta non possono essere negativi.');
-        }
         $periodicita = (new RegimeIva($this->dataMapper))->getPeriodicita($soggetto, $anno);
         if (($periodo < 1) || ($periodo > PeriodiIva::getNumeroPeriodi($periodicita))) {
             throw new \DomainException('Periodo non valido per la periodicità ' . mb_strtolower($periodicita->getLabel()) . '.');
         }
+        $separata = (new LiquidazioneIvaModel($this->dataMapper))->getPerPeriodo($soggetto, $anno, intdiv($periodo, 3), true);
+        if ($anticipaTrimestre && ($periodicita === PeriodicitaIva::mensile) && ($periodo % 3 === 0) && ($separata !== null)) {
+            throw new \DomainException('Il ' . intdiv($periodo, 3) . '° trimestre delle attività trimestrali ha una liquidazione separata: eliminarla per anticiparlo al mese.');
+        }
+        return $this->elaboraPeriodo($soggetto, $anno, $periodicita, $periodo, false, $anticipaTrimestre, $creditoAnnoPrecedente, $giroconto, $versamentiAuto, $creditiImposta);
+    }
+
+    /**
+     * Liquidazione separata del trimestre delle attività trimestrali di
+     * un'azienda che liquida mensilmente, dopo quella del mese di fine
+     * trimestre elaborata senza anticiparlo.
+     *
+     * @throws \DomainException se l'azienda non ha attività trimestrali o il mese non è elaborato senza anticipare il trimestre
+     */
+    public function elaboraTrimestre(Soggetto $soggetto, int $anno, int $trimestre, float $creditoAnnoPrecedente = 0.0, bool $giroconto = true, float $versamentiAuto = 0.0,
+            float $creditiImposta = 0.0): LiquidazioneIva
+    {
+        if (($trimestre < 1) || ($trimestre > 3)) {
+            throw new \DomainException('Trimestre non valido: il quarto trimestre delle attività trimestrali si liquida con la dichiarazione annuale.');
+        }
+        if ($this->getAttivitaTrimestrali($soggetto, $anno) === []) {
+            throw new \DomainException('L\'azienda non ha attività separate trimestrali in un\'azienda che liquida mensilmente.');
+        }
+        $mese = (new LiquidazioneIvaModel($this->dataMapper))->getPerPeriodo($soggetto, $anno, $trimestre * 3);
+        if (($mese === null) || ($mese->trimestreAnticipato !== null)) {
+            throw new \DomainException('Elaborare prima ' . LiquidazioneIva::descriviPeriodo(PeriodicitaIva::mensile, $anno, $trimestre * 3) . ' senza anticipare il trimestre.');
+        }
+        return $this->elaboraPeriodo($soggetto, $anno, PeriodicitaIva::trimestrale, $trimestre, true, false, $creditoAnnoPrecedente, $giroconto, $versamentiAuto, $creditiImposta);
+    }
+
+    /**
+     * Liquidazione che chiude il trimestre: il trimestre separato delle
+     * attività trimestrali, il mese di fine trimestre o il trimestre. Vi si
+     * annota il credito chiesto con il modello IVA TR, che non si riporta
+     * al periodo successivo (istruzioni della LIPE, rigo VP8).
+     */
+    public function getLiquidazioneTrimestre(Soggetto $soggetto, int $anno, int $trimestre): ?LiquidazioneIva
+    {
+        $model = new LiquidazioneIvaModel($this->dataMapper);
+        return (new RegimeIva($this->dataMapper))->getPeriodicita($soggetto, $anno) === PeriodicitaIva::mensile
+                ? ($model->getPerPeriodo($soggetto, $anno, $trimestre, true) ?? $model->getPerPeriodo($soggetto, $anno, $trimestre * 3))
+                : $model->getPerPeriodo($soggetto, $anno, $trimestre);
+    }
+
+    /**
+     * Attività separate trimestrali di un'azienda che liquida mensilmente.
+     *
+     * @return AttivitaIva[]
+     */
+    public function getAttivitaTrimestrali(Soggetto $soggetto, int $anno): array
+    {
+        $regime = new RegimeIva($this->dataMapper);
+        $separate = new AttivitaSeparate($this->dataMapper);
+        $attivita = $separate->getAttivita($soggetto, $anno);
+        if ((count($attivita) === 0) || ($regime->getPeriodicita($soggetto, $anno) !== PeriodicitaIva::mensile)) {
+            return [];
+        }
+        $azienda = $regime->getPeriodicitaAzienda($soggetto, $anno);
+        return array_filter($attivita, fn(AttivitaIva $singola) => $separate->getPeriodicita($singola, $azienda) === PeriodicitaIva::trimestrale);
+    }
+
+    private function elaboraPeriodo(Soggetto $soggetto, int $anno, PeriodicitaIva $periodicita, int $periodo, bool $separato, bool $anticipaTrimestre, float $creditoAnnoPrecedente,
+            bool $giroconto, float $versamentiAuto, float $creditiImposta): LiquidazioneIva
+    {
+        if (($versamentiAuto < 0) || ($creditiImposta < 0)) {
+            throw new \DomainException('Versamenti auto UE e crediti d\'imposta non possono essere negativi.');
+        }
         $model = new LiquidazioneIvaModel($this->dataMapper);
         $dal = PeriodiIva::getInizio($periodicita, $anno, $periodo);
         $al = PeriodiIva::getFine($periodicita, $anno, $periodo);
-        $risultato = (new CalcoloLiquidazioneIva($this->dataMapper))->calcola($soggetto, $dal, $al);
         $ventilazione = new VentilazioneCorrispettivi($this->dataMapper);
         $ventilata = $ventilazione->calcola($soggetto, $dal, $al);
-        $annuale = (PeriodiIva::isUltimoPeriodo($periodicita, $periodo) && ($periodo > 1)) ? $ventilazione->calcola($soggetto, new SismaDate($anno . '-01-01'), $al) : $ventilata;
-        $liquidazione = $model->getPerPeriodo($soggetto, $anno, $periodo) ?? new LiquidazioneIva($this->dataMapper);
+        $annuale = (PeriodiIva::isUltimoPeriodo($periodicita, $periodo) && ($periodo > 1) && ($separato === false)) ? $ventilazione->calcola($soggetto, new SismaDate($anno . '-01-01'), $al) : $ventilata;
+        $liquidazione = $model->getPerPeriodo($soggetto, $anno, $periodo, $separato) ?? new LiquidazioneIva($this->dataMapper);
         $liquidazione->studio = $soggetto->studio;
         $liquidazione->soggetto = $soggetto;
         $liquidazione->anno = $anno;
         $liquidazione->periodo = $periodo;
         $liquidazione->periodicita = $periodicita;
+        $liquidazione->trimestreSeparato = $separato;
         $liquidazione->dataElaborazione = new SismaDateTime();
-        $liquidazione->ivaVentilata = $ventilata->imposta;
-        $liquidazione->ivaEsigibile = round($risultato->ivaEsigibile + $ventilata->imposta, 2);
-        $liquidazione->ivaDetraibile = $risultato->ivaDetraibile;
-        $avvisi = $risultato->avvisi;
+        $avvisi = [];
+        $dettagli = $this->calcolaAttivita($liquidazione, $ventilazione, $avvisi, $anticipaTrimestre);
+        if ($dettagli === null) {
+            $risultato = (new CalcoloLiquidazioneIva($this->dataMapper))->calcola($soggetto, $dal, $al);
+            $liquidazione->ivaVentilata = $ventilata->imposta;
+            $liquidazione->ivaEsigibile = round($risultato->ivaEsigibile + $ventilata->imposta, 2);
+            $liquidazione->ivaDetraibile = $risultato->ivaDetraibile;
+            array_unshift($avvisi, ...$risultato->avvisi);
+        }
         $this->avvisiVentilazione($liquidazione, $ventilata, $annuale, $avvisi);
-        $precedente = $periodo > 1 ? $model->getPerPeriodo($soggetto, $anno, $periodo - 1) : null;
-        if (($periodo > 1) && ($precedente === null)) {
+        $liquidazione->gruppoIva = (new LiquidazioneGruppo($this->dataMapper))->getGruppoDelPeriodo($soggetto, $anno, $periodicita, $periodo);
+        // sequenza dei riporti: mese, mese, mese, trimestre separato, mese successivo
+        if ($separato) {
+            $precedente = $model->getPerPeriodo($soggetto, $anno, $periodo * 3);
+        } else {
+            $precedente = $periodo > 1 ? $model->getPerPeriodo($soggetto, $anno, $periodo - 1) : null;
+            if (($periodicita === PeriodicitaIva::mensile) && ($periodo > 1) && (($periodo - 1) % 3 === 0)) {
+                $precedente = $model->getPerPeriodo($soggetto, $anno, intdiv($periodo - 1, 3), true) ?? $precedente;
+            }
+        }
+        if (($separato || ($periodo > 1)) && ($precedente === null)) {
             $avvisi[] = 'Liquidazione del periodo precedente non elaborata: credito e debito da riportare non considerati.';
         }
-        $liquidazione->creditoPrecedente = $precedente?->creditoFinale ?? 0.0;
-        $liquidazione->debitoPrecedente = $precedente?->debitoRinviato ?? 0.0;
+        // il risultato trasferito al gruppo non si riporta
+        $riporto = ($liquidazione->gruppoIva === null) && (($precedente?->isTrasferita() ?? false) === false);
+        // il credito chiesto con il modello IVA TR non si riporta (istruzioni della LIPE, rigo VP8)
+        $liquidazione->creditoPrecedente = $riporto ? $precedente?->getCreditoRiportato() ?? 0.0 : 0.0;
+        $liquidazione->debitoPrecedente = $riporto ? ($precedente?->debitoRinviato ?? 0.0) : 0.0;
         $liquidazione->creditoAnnoPrecedente = round(max(0.0, $creditoAnnoPrecedente), 2);
+        if (($liquidazione->gruppoIva !== null) && ($liquidazione->creditoAnnoPrecedente > 0)) {
+            $avvisi[] = 'IVA di gruppo: il credito annuale non si compensa nelle liquidazioni trasferite alla controllante (resta della società, art. 73, c. 3), escluso.';
+            $liquidazione->creditoAnnoPrecedente = 0.0;
+        }
         $liquidazione->versamentiAuto = round($versamentiAuto, 2);
         $liquidazione->creditiImposta = round($creditiImposta, 2);
         if ($creditiImposta > 0) {
@@ -107,23 +212,118 @@ class ElaborazioneLiquidazione
         }
         $primaTransazione = $this->dataMapper->startTransaction();
         $liquidazione->acconto = 0.0;
-        if (PeriodiIva::isUltimoPeriodo($periodicita, $periodo)) {
+        if (PeriodiIva::isUltimoPeriodo($periodicita, $periodo) && ($liquidazione->gruppoIva === null) && ($separato === false)) {
             $acconto = (new AccontoIvaModel($this->dataMapper))->getPerAnno($soggetto, $anno);
             $liquidazione->acconto = ($acconto !== null) && $acconto->isDovuto() ? $acconto->importo : 0.0;
         }
-        $this->determinaImporti($liquidazione);
+        $interessiAnticipati = array_sum(array_map(fn(LiquidazioneAttivita $dettaglio) => $dettaglio->interessi, $dettagli ?? []));
+        $this->determinaImporti($liquidazione, $interessiAnticipati);
         if (($periodicita === PeriodicitaIva::trimestrale) && ($periodo === 4)) {
-            $avvisi[] = 'Quarto trimestre: si versa con il saldo della dichiarazione annuale entro il 16 marzo (codice 6099, con gli interessi dell\'1%).';
+            $avvisi[] = $liquidazione->gruppoIva === null ? 'Quarto trimestre: si versa con il saldo della dichiarazione annuale entro il 16 marzo (codice 6099, con gli interessi dell\'1%).'
+                        : 'Quarto trimestre: il saldo si trasferisce al gruppo con la dichiarazione annuale (rigo VX7 o VX8).';
+        }
+        if ($liquidazione->gruppoIva !== null) {
+            $avvisi[] = sprintf('IVA di gruppo: %s di € %s trasferito alla controllante %s, che lo liquida con il gruppo (nessun versamento della società).',
+                    $liquidazione->getSaldoTrasferito() >= 0 ? 'debito' : 'credito', number_format(abs($liquidazione->getSaldoTrasferito()), 2, ',', '.'), $liquidazione->gruppoIva->controllante->nominativo);
         }
         $liquidazione->scadenza = PeriodiIva::getScadenza($periodicita, $anno, $periodo);
         $this->dataMapper->save($liquidazione);
-        $esito = (new ArchivioVersamenti($this->dataMapper))->registra($soggetto, LiquidazioneIva::ORIGINE, LiquidazioneIva::getRiferimento($anno, $periodo), $this->preparaVersamenti($liquidazione));
+        $dettaglioModel = new LiquidazioneAttivitaModel($this->dataMapper);
+        foreach ($dettaglioModel->getPerLiquidazione($liquidazione) as $vecchio) {
+            $this->dataMapper->delete($vecchio);
+        }
+        foreach ($dettagli ?? [] as $dettaglio) {
+            $dettaglio->liquidazioneIva = $liquidazione;
+            $this->dataMapper->save($dettaglio);
+        }
+        $esito = (new ArchivioVersamenti($this->dataMapper))->registra($soggetto, LiquidazioneIva::ORIGINE, $liquidazione->getRiferimentoVersamento(),
+                $liquidazione->gruppoIva === null ? $this->preparaVersamenti($liquidazione) : []);
         $liquidazione->differenze = count($esito->differenze) > 0 ? implode("\n", $esito->differenze) : null;
         $this->registraGiroconto($liquidazione, $giroconto, $avvisi);
         $liquidazione->avvisi = count($avvisi) > 0 ? implode("\n", $avvisi) : null;
         $this->dataMapper->save($liquidazione);
         $this->dataMapper->commitTransaction($primaTransazione);
         return $liquidazione;
+    }
+
+    /**
+     * Liquidazioni delle attività separate del periodo, con i totali
+     * riportati sulla liquidazione dell'azienda; null con la contabilità
+     * unificata.
+     *
+     * @param string[] $avvisi
+     * @return LiquidazioneAttivita[]|null
+     */
+    private function calcolaAttivita(LiquidazioneIva $liquidazione, VentilazioneCorrispettivi $ventilazione, array &$avvisi, bool $anticipaTrimestre = true): ?array
+    {
+        $soggetto = $liquidazione->soggetto;
+        $anno = $liquidazione->anno;
+        $separate = new AttivitaSeparate($this->dataMapper);
+        $attivita = $separate->getAttivita($soggetto, $anno);
+        if (count($attivita) === 0) {
+            return null;
+        }
+        $periodicitaAzienda = (new RegimeIva($this->dataMapper))->getPeriodicitaAzienda($soggetto, $anno);
+        $ventilazioneAttivita = $separate->getAttivitaVentilazione($soggetto, $anno);
+        $calcolo = new CalcoloLiquidazioneIva($this->dataMapper);
+        $dettagli = [];
+        $liquidazione->trimestreAnticipato = null;
+        $liquidazione->ivaEsigibile = $liquidazione->ivaDetraibile = $liquidazione->ivaVentilata = 0.0;
+        foreach ($attivita as $singola) {
+            $periodicita = $separate->getPeriodicita($singola, $periodicitaAzienda);
+            $periodo = $liquidazione->periodo;
+            if ($liquidazione->trimestreSeparato) {
+                // trimestre separato: solo le attività trimestrali
+                if ($periodicita !== PeriodicitaIva::trimestrale) {
+                    continue;
+                }
+            } elseif ($periodicita !== $liquidazione->periodicita) {
+                // attività trimestrale di un'azienda mensile: liquidata nel mese di fine trimestre o a parte
+                if ($periodo % 3 !== 0) {
+                    continue;
+                }
+                $periodo = intdiv($periodo, 3);
+                if ($periodo === 4) {
+                    $avvisi[] = 'Attività ' . $singola->getEtichetta() . ': il quarto trimestre si liquida con la dichiarazione annuale.';
+                    continue;
+                }
+                if ($anticipaTrimestre === false) {
+                    $avvisi[] = 'Attività ' . $singola->getEtichetta() . ': il ' . $periodo . '° trimestre non è anticipato al mese, si liquida a parte (liquidazione del trimestre, termine dei trimestrali).';
+                    continue;
+                }
+                $liquidazione->trimestreAnticipato = $periodo;
+            }
+            $dal = PeriodiIva::getInizio($periodicita, $anno, $periodo);
+            $al = PeriodiIva::getFine($periodicita, $anno, $periodo);
+            $risultato = $calcolo->calcola($soggetto, $dal, $al, $singola);
+            $ventilata = ($ventilazioneAttivita !== null) && ($ventilazioneAttivita->id === $singola->id) ? $ventilazione->calcola($soggetto, $dal, $al)->imposta : 0.0;
+            $dettaglio = new LiquidazioneAttivita($this->dataMapper);
+            $dettaglio->attivitaIva = $singola;
+            $dettaglio->periodicita = $periodicita;
+            $dettaglio->periodo = $periodo;
+            $dettaglio->ivaVentilata = $ventilata;
+            $dettaglio->ivaEsigibile = round($risultato->ivaEsigibile + $ventilata, 2);
+            $dettaglio->ivaDetraibile = $risultato->ivaDetraibile;
+            $dettaglio->percentualeDetrazione = $risultato->percentualeDetrazione;
+            if (($periodicita === PeriodicitaIva::trimestrale) && ($liquidazione->periodicita === PeriodicitaIva::mensile) && ($dettaglio->getIvaPeriodo() > 0)) {
+                $dettaglio->interessi = round($dettaglio->getIvaPeriodo() * PeriodiIva::INTERESSI_TRIMESTRALI / 100, 2);
+            }
+            foreach ($risultato->avvisi as $avviso) {
+                $avvisi[] = 'Attività ' . $singola->getEtichetta() . ': ' . $avviso;
+            }
+            $liquidazione->ivaEsigibile += $dettaglio->ivaEsigibile;
+            $liquidazione->ivaDetraibile += $dettaglio->ivaDetraibile;
+            $liquidazione->ivaVentilata += $ventilata;
+            $dettagli[] = $dettaglio;
+        }
+        $liquidazione->ivaEsigibile = round($liquidazione->ivaEsigibile, 2);
+        $liquidazione->ivaDetraibile = round($liquidazione->ivaDetraibile, 2);
+        $liquidazione->ivaVentilata = round($liquidazione->ivaVentilata, 2);
+        if ($liquidazione->trimestreAnticipato !== null) {
+            $avvisi[] = 'Attività separate: il ' . $liquidazione->trimestreAnticipato . '° trimestre delle attività trimestrali è liquidato con il mese di ' . LiquidazioneIva::descriviPeriodo(PeriodicitaIva::mensile, $anno, $liquidazione->periodo)
+                    . ' (liquidazione anticipata ai fini della compensazione), con gli interessi dell\'1% sull\'IVA dovuta del trimestre.';
+        }
+        return $dettagli;
     }
 
     /**
@@ -177,23 +377,26 @@ class ElaborazioneLiquidazione
      * soglia si rinvia, gli interessi dei trimestrali si aggiungono al
      * versamento.
      */
-    public function determinaImporti(LiquidazioneIva $liquidazione): void
+    public function determinaImporti(LiquidazioneIva $liquidazione, float $interessiAnticipati = 0.0): void
     {
         $saldo = round($liquidazione->getIvaPeriodo() + $liquidazione->debitoPrecedente - $liquidazione->creditoPrecedente - $liquidazione->creditoAnnoPrecedente
-                - $liquidazione->versamentiAuto - $liquidazione->creditiImposta - $liquidazione->acconto, 2);
-        $liquidazione->importoDovuto = $liquidazione->creditoFinale = $liquidazione->debitoRinviato = $liquidazione->interessi = 0.0;
+                - $liquidazione->versamentiAuto - $liquidazione->creditiImposta - $liquidazione->acconto + $interessiAnticipati, 2);
+        $liquidazione->importoDovuto = $liquidazione->creditoFinale = $liquidazione->debitoRinviato = 0.0;
+        $liquidazione->interessi = round($interessiAnticipati, 2);
         if ($saldo <= 0) {
             $liquidazione->creditoFinale = -$saldo;
             return;
         }
-        if (PeriodiIva::isRinviabile($liquidazione->periodicita, $liquidazione->periodo, $saldo, $liquidazione->anno)) {
+        // il debito trasferito al gruppo non si rinvia (righi VP7 omessi nella comunicazione)
+        if (($liquidazione->gruppoIva === null) && PeriodiIva::isRinviabile($liquidazione->periodicita, $liquidazione->periodo, $saldo, $liquidazione->anno)) {
             $liquidazione->debitoRinviato = $saldo;
             return;
         }
         if ($liquidazione->periodicita === PeriodicitaIva::trimestrale) {
             $liquidazione->interessi = round($saldo * PeriodiIva::INTERESSI_TRIMESTRALI / 100, 2);
+            $saldo += $liquidazione->interessi;
         }
-        $liquidazione->importoDovuto = round($saldo + $liquidazione->interessi, 2);
+        $liquidazione->importoDovuto = round($saldo, 2);
     }
 
     /**
@@ -230,7 +433,7 @@ class ElaborazioneLiquidazione
     {
         $soggetto = $liquidazione->soggetto;
         $salvataggio = new SalvataggioRegistrazione($this->dataMapper);
-        $riferimento = LiquidazioneIva::getRiferimento($liquidazione->anno, $liquidazione->periodo);
+        $riferimento = $liquidazione->getRiferimentoVersamento();
         $esistente = (new RegistrazioneContabileModel($this->dataMapper))->getGenerata($soggetto, LiquidazioneIva::ORIGINE, $riferimento);
         $liquidazione->registrazioneContabile = null;
         if ($esistente !== null) {
@@ -259,6 +462,10 @@ class ElaborazioneLiquidazione
             $avvisi[] = 'Giroconto non registrato: nel piano dei conti manca il conto dei corrispettivi o dei ricavi per la ventilazione.';
             return;
         }
+        $conti[FunzioneConto::ivaGruppo->value] = $liquidazione->gruppoIva === null ? null : $contoModel->getPerFunzione($piano, FunzioneConto::ivaGruppo);
+        if (($liquidazione->gruppoIva !== null) && ($conti[FunzioneConto::ivaGruppo->value] === null)) {
+            $avvisi[] = 'Giroconto: nel piano dei conti manca il conto con funzione "' . FunzioneConto::ivaGruppo->getLabel() . '": il trasferimento al gruppo va a Erario c/IVA.';
+        }
         foreach ([FunzioneConto::ivaVendite, FunzioneConto::ivaAcquisti, FunzioneConto::erarioIva, FunzioneConto::accontoIva] as $funzione) {
             $conti[$funzione->value] = $contoModel->getPerFunzione($piano, $funzione);
             if (($conti[$funzione->value] === null) && (($funzione !== FunzioneConto::accontoIva) || ($liquidazione->acconto > 0))) {
@@ -282,7 +489,7 @@ class ElaborazioneLiquidazione
         $aggiungi(FunzioneConto::ivaVendite, $liquidazione->ivaEsigibile - $liquidazione->ivaVentilata);
         $aggiungi(FunzioneConto::ivaAcquisti, -$liquidazione->ivaDetraibile);
         $aggiungi(FunzioneConto::accontoIva, -$liquidazione->acconto);
-        $aggiungi(FunzioneConto::erarioIva, -($liquidazione->ivaEsigibile - $liquidazione->ivaDetraibile - $liquidazione->acconto));
+        $aggiungi($conti[FunzioneConto::ivaGruppo->value] === null ? FunzioneConto::erarioIva : FunzioneConto::ivaGruppo, -($liquidazione->ivaEsigibile - $liquidazione->ivaDetraibile - $liquidazione->acconto));
         $registrazione = new RegistrazioneContabile($this->dataMapper);
         $registrazione->studio = $soggetto->studio;
         $registrazione->soggetto = $soggetto;
@@ -308,7 +515,7 @@ class ElaborazioneLiquidazione
     public function elimina(LiquidazioneIva $liquidazione): array
     {
         $primaTransazione = $this->dataMapper->startTransaction();
-        $esito = (new ArchivioVersamenti($this->dataMapper))->registra($liquidazione->soggetto, LiquidazioneIva::ORIGINE, LiquidazioneIva::getRiferimento($liquidazione->anno, $liquidazione->periodo), []);
+        $esito = (new ArchivioVersamenti($this->dataMapper))->registra($liquidazione->soggetto, LiquidazioneIva::ORIGINE, $liquidazione->getRiferimentoVersamento(), []);
         $giroconto = $liquidazione->registrazioneContabile;
         $liquidazione->registrazioneContabile = null;
         $this->dataMapper->save($liquidazione);

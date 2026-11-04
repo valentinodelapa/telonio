@@ -42,6 +42,7 @@ class ComunicazioneLipe extends ReferencedEntity
     protected ?string $protocollo = null;
     protected SismaDateTime $dataElaborazione;
     protected ?string $avvisi = null;
+    protected ?GruppoIva $gruppoIva = null;
 
     #[\Override]
     protected function setEncryptedProperties(): void
@@ -62,7 +63,7 @@ class ComunicazioneLipe extends ReferencedEntity
 
     public function getDescrizione(): string
     {
-        return $this->trimestre . '° trimestre ' . $this->anno;
+        return $this->trimestre . '° trimestre ' . $this->anno . ($this->gruppoIva === null ? '' : ' (liquidazione del gruppo)');
     }
 
     /**

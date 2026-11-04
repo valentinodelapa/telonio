@@ -48,7 +48,8 @@ class RegistrazioneContabileForm extends BaseForm
         if ($iva) {
             $this->addFilterFieldMode('registroIva', FilterType::isEntity)
                     ->addFilterFieldMode('dataCompetenzaIva', FilterType::isDate)
-                    ->addFilterFieldMode('esigibilita', FilterType::isEnumeration);
+                    ->addFilterFieldMode('esigibilita', FilterType::isEnumeration)
+                    ->addFilterFieldMode('importazione', FilterType::isBoolean);
         }
     }
 

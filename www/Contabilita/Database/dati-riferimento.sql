@@ -1,9 +1,9 @@
 -- =====================================================
 -- Contabilita - piani dei conti modello e codici IVA
 -- =====================================================
--- Generato con "sisma tabelle-contabilita --sql" il 31/10/2026 23:46: non modificare a mano.
+-- Generato con "sisma tabelle-contabilita --sql" il 03/11/2026 09:26: non modificare a mano.
 -- Fonte: Contabilita/Database/sorgenti (norma indicata per codice IVA).
--- Righe: piano_conti 1, conto 193, codice_iva 36.
+-- Righe: piano_conti 1, conto 194, codice_iva 36.
 -- Idempotente: aggiorna le tabelle della suite senza toccare i dati degli studi.
 -- Da eseguire dopo schema.sql.
 
@@ -13,7 +13,7 @@ INSERT INTO `piano_conti` (`id`, `studio_id`, `soggetto_id`, `denominazione`, `d
 (1, NULL, NULL, 'Piano dei conti standard', 'Piano dei conti per imprese in contabilità ordinaria o semplificata, con il raccordo alle voci degli schemi di bilancio degli artt. 2424 e 2425 c.c.', NULL, '2026-10-31 00:00:00')
 ON DUPLICATE KEY UPDATE `studio_id` = VALUES(`studio_id`), `soggetto_id` = VALUES(`soggetto_id`), `denominazione` = VALUES(`denominazione`), `descrizione` = VALUES(`descrizione`), `piano_origine_id` = VALUES(`piano_origine_id`), `data_creazione` = VALUES(`data_creazione`);
 
-DELETE FROM `conto` WHERE `piano_conti_id` IN (1) AND `id` NOT IN (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193);
+DELETE FROM `conto` WHERE `piano_conti_id` IN (1) AND `id` NOT IN (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194);
 
 INSERT INTO `conto` (`id`, `piano_conti_id`, `parent_conto_id`, `codice`, `descrizione`, `livello`, `natura`, `funzione`, `voce_cee`, `attivo`) VALUES
 (1, 1, NULL, '01', 'Immobilizzazioni immateriali', 'M', 'A', NULL, NULL, 1),
@@ -208,7 +208,8 @@ INSERT INTO `conto` (`id`, `piano_conti_id`, `parent_conto_id`, `codice`, `descr
 (190, 1, 189, '40.01', 'Aperture e chiusure', 'C', 'S', NULL, NULL, 1),
 (191, 1, 190, '40.01.0001', 'Stato patrimoniale di apertura', 'S', 'S', NULL, NULL, 1),
 (192, 1, 190, '40.01.0002', 'Stato patrimoniale di chiusura', 'S', 'S', NULL, NULL, 1),
-(193, 1, 190, '40.01.0003', 'Conto economico', 'S', 'S', NULL, NULL, 1)
+(193, 1, 190, '40.01.0003', 'Conto economico', 'S', 'S', NULL, NULL, 1),
+(194, 1, 62, '06.04.0004', 'IVA di gruppo c/liquidazioni', 'S', 'A', 'IVG', NULL, 1)
 ON DUPLICATE KEY UPDATE `piano_conti_id` = VALUES(`piano_conti_id`), `parent_conto_id` = VALUES(`parent_conto_id`), `codice` = VALUES(`codice`), `descrizione` = VALUES(`descrizione`), `livello` = VALUES(`livello`), `natura` = VALUES(`natura`), `funzione` = VALUES(`funzione`), `voce_cee` = VALUES(`voce_cee`), `attivo` = VALUES(`attivo`);
 
 INSERT INTO `codice_iva` (`id`, `studio_id`, `codice`, `descrizione`, `aliquota`, `natura`, `detraibilita`, `inversione_contabile`, `ventilazione`, `norma`, `attivo`) VALUES
@@ -225,9 +226,9 @@ INSERT INTO `codice_iva` (`id`, `studio_id`, `codice`, `descrizione`, `aliquota`
 (23, NULL, 'N3.1', 'Non imponibili, esportazioni', '0.00', 'N3.1', '100.00', 0, 0, 'art. 8, c. 1, lett. a) e b), D.P.R. 633/1972', 1),
 (24, NULL, 'N3.2', 'Non imponibili, cessioni intracomunitarie', '0.00', 'N3.2', '100.00', 0, 0, 'art. 41 D.L. 331/1993', 1),
 (25, NULL, 'N3.3', 'Non imponibili, cessioni verso San Marino', '0.00', 'N3.3', '100.00', 0, 0, 'art. 71 D.P.R. 633/1972', 1),
-(26, NULL, 'N3.4', 'Non imponibili, operazioni assimilate alle esportazioni', '0.00', 'N3.4', '100.00', 0, 0, 'art. 8-bis D.P.R. 633/1972', 1),
+(26, NULL, 'N3.4', 'Non imponibili, operazioni assimilate alle esportazioni e servizi internazionali (concorrono al plafond)', '0.00', 'N3.4', '100.00', 0, 0, 'artt. 8-bis e 9 D.P.R. 633/1972', 1),
 (27, NULL, 'N3.5', 'Non imponibili, a seguito di dichiarazione d''intento', '0.00', 'N3.5', '100.00', 0, 0, 'art. 8, c. 1, lett. c), D.P.R. 633/1972', 1),
-(28, NULL, 'N3.6', 'Non imponibili, altre operazioni (es. servizi internazionali)', '0.00', 'N3.6', '100.00', 0, 0, 'art. 9 D.P.R. 633/1972', 1),
+(28, NULL, 'N3.6', 'Non imponibili, altre operazioni che non concorrono al plafond', '0.00', 'N3.6', '100.00', 0, 0, 'specifiche tecniche della fattura elettronica, natura N3.6 (es. art. 38-quater D.P.R. 633/1972)', 1),
 (29, NULL, 'N4', 'Esenti art. 10', '0.00', 'N4', '100.00', 0, 0, 'art. 10 D.P.R. 633/1972', 1),
 (30, NULL, 'N5', 'Regime del margine', '0.00', 'N5', '100.00', 0, 0, 'art. 36 D.L. 41/1995', 1),
 (31, NULL, 'N6.1', 'Inversione contabile, rottami', '0.00', 'N6.1', '100.00', 0, 0, 'art. 74, c. 7 e 8, D.P.R. 633/1972', 1),

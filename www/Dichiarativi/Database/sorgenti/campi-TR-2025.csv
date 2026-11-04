@@ -1,0 +1,414 @@
+codice;formato;descrizione
+TA001001;VP;"Imponibile al 4% delle operazioni per le quali si è verificata l'esigibilità dell'imposta"
+TA001003;VP;"Imposta al 4% delle operazioni per le quali si è verificata l'esigibilità dell'imposta"
+TA002001;VP;"Imponibile al 5% delle operazioni per le quali si è verificata l'esigibilità dell'imposta"
+TA002003;VP;"Imposta al 5% delle operazioni per le quali si è verificata l'esigibilità dell'imposta"
+TA003001;VP;"Imponibile al 10% delle operazioni per le quali si è verificata l'esigibilità dell'imposta"
+TA003003;VP;"Imposta al 10% delle operazioni per le quali si è verificata l'esigibilità dell'imposta"
+TA004001;VP;"Imponibile al 22% delle operazioni per le quali si è verificata l'esigibilità dell'imposta"
+TA004003;VP;"Imposta al 22% delle operazioni per le quali si è verificata l'esigibilità dell'imposta"
+TA005001;VP;"TA019 Imponibile"
+TA005002;PC;Aliquota
+TA005003;VP;Imposta
+TA006001;VP;Imponibile
+TA006002;PC;Aliquota
+TA006003;VP;Imposta
+TA007001;VP;Imponibile
+TA007002;PC;Aliquota
+TA007003;VP;Imposta
+TA008001;VP;Imponibile
+TA008002;PC;Aliquota
+TA008003;VP;Imposta
+TA009001;VP;Imponibile
+TA009002;PC;Aliquota
+TA009003;VP;Imposta
+TA010001;VP;Imponibile
+TA010002;PC;Aliquota
+TA010003;VP;Imposta
+TA011001;VP;Imponibile
+TA011002;PC;Aliquota
+TA011003;VP;Imposta
+TA012001;VP;Imponibile
+TA012002;PC;Aliquota
+TA012003;VP;Imposta
+TA013001;VP;Imponibile
+TA013002;PC;Aliquota
+TA013003;VP;Imposta
+TA014001;VP;Imponibile
+TA014002;PC;Aliquota
+TA014003;VP;Imposta
+TA015001;VP;Imponibile
+TA015002;PC;Aliquota
+TA015003;VP;Imposta
+TA016001;VP;Imponibile
+TA016002;PC;Aliquota
+TA016003;VP;Imposta
+TA017001;VP;Imponibile
+TA017002;PC;Aliquota
+TA017003;VP;Imposta
+TA018001;VP;Imponibile
+TA018002;PC;Aliquota
+TA018003;VP;Imposta
+TA019001;VP;Imponibile
+TA019002;PC;Aliquota
+TA019003;VP;"Imposta Operazioni imponibili"
+TA020001;VP;"effettuate senza addebito d'imposta in base a"
+TA021001;VP;"particolari disposizioni Operazioni effettuate ai sensi dell'articolo 17-ter"
+TA022001;VP;"Totale imponibile"
+TA022003;VP;"Totale imposta"
+TA023001;VN;"Variazioni di imposta"
+TA023002;VN;"Variazioni di imposta (di cui differenza di imposta)"
+TA024003;VN;"Totale imposta"
+TA030001;VN;"Operazioni non imponibili di cui agli articoli 8, 8-bis e 9, operazioni assimilate nonché operazioni"
+TA031001;VN;"intracomunitarie Altre operazioni"
+TA032001;VN;"Totale operazioni"
+TA033001;VP;"Cessioni di beni ammortizzabili - Imponibile"
+TA033003;VP;"Cessioni di beni ammortizzabili - Imposta"
+TB001001;VP;"Acquisti e importazioni imponibili (4%)"
+TB001003;VP;"Imposta sugli acquisti e importazioni al 4%"
+TB002001;VP;"Acquisti e importazioni imponibili 5%)"
+TB002003;VP;"Imposta sugli acquisti e importazioni al 5%"
+TB003001;VP;"Acquisti e importazioni imponibili (10%)"
+TB003003;VP;"Imposta sugli acquisti e importazioni al 10%"
+TB004001;VP;"Acquisti e importazioni imponibili (22%)"
+TB004003;VP;"Imposta sugli acquisti e importazioni al 22%"
+TB005001;VP;"TB019 Imponibile"
+TB005002;PC;Aliquota
+TB005003;VP;Imposta
+TB006001;VP;Imponibile
+TB006002;PC;Aliquota
+TB006003;VP;Imposta
+TB007001;VP;Imponibile
+TB007002;PC;Aliquota
+TB007003;VP;Imposta
+TB008001;VP;Imponibile
+TB008002;PC;Aliquota
+TB008003;VP;Imposta
+TB009001;VP;Imponibile
+TB009002;PC;Aliquota
+TB009003;VP;Imposta
+TB010001;VP;Imponibile
+TB010002;PC;Aliquota
+TB010003;VP;Imposta
+TB011001;VP;Imponibile
+TB011002;PC;Aliquota
+TB011003;VP;Imposta
+TB012001;VP;Imponibile
+TB012002;PC;Aliquota
+TB012003;VP;Imposta
+TB013001;VP;Imponibile
+TB013002;PC;Aliquota
+TB013003;VP;Imposta
+TB014001;VP;Imponibile
+TB014002;PC;Aliquota
+TB014003;VP;Imposta
+TB015001;VP;Imponibile
+TB015002;PC;Aliquota
+TB015003;VP;Imposta
+TB016001;VP;Imponibile
+TB016002;PC;Aliquota
+TB016003;VP;Imposta
+TB017001;VP;Imponibile
+TB017002;PC;Aliquota
+TB017003;VP;Imposta
+TB018001;VP;Imponibile
+TB018002;PC;Aliquota
+TB018003;VP;Imposta
+TB019001;VP;Imponibile
+TB019002;PC;Aliquota
+TB019003;VP;Imposta
+TB020001;VP;"Totale imponibile"
+TB020003;VP;"Totale imposta"
+TB021001;VN;"Variazioni di imposta"
+TB021002;VN;"Variazioni di imposta di cui differenze di imposta"
+TB022003;VN;"Totale imposta Acquisti e importazioni"
+TB030001;VN;"imponibili per i quali non è ammessa la detrazione dell'imposta"
+TB031001;NP;"Percentuale di detrazione"
+TB032001;VN;"Imposta ammessa in detrazione"
+TB033001;VP;"Acquisti di beni ammortizzabili imponibili - Imponibile"
+TB033003;VP;"Acquisti di beni ammortizzabili imponibili - Imposta"
+TC001001;VN;"IVA sulle operazioni imponibili"
+TC002001;VN;"IVA relativa a tipologie particolari di operazioni"
+TC003001;VN;"IVA a debito"
+TC004002;VN;"IVA ammessa in detrazione"
+TC005002;VN;"IVA detraibile da parte dei produttori agricoli"
+TC006002;VN;"Iva detraibile"
+TC007002;VP;"Imposta a credito"
+TD001001;CB;media
+TD001002;PC;
+TD001003;PC;
+TD002001;CB;
+TD002002;NP;
+TD003001;CB;ammortizzabili
+TD004001;CB;residenti
+TD005001;CB;"non soggette"
+TD006001;VP;
+TD007001;VP;
+TD008001;N1;prioritaria
+TD008002;VP;"di cui all'art. 17-"
+TD008003;N1;
+TD008004;CB;"Firma attestazione sussistenza condizioni art. 38 bis, terzo comma, lett. a), b), c)"
+TD008005;CF;"Visto di conformità - codice fiscale del responsabile del CAF"
+TD008006;CN;"Visto di conformità - codice fiscale del CAF"
+TD008007;CF;"Visto di conformità - codice fiscale del professionista"
+TD008008;CB;"Visto di conformità - firma"
+TD00804A;CB;"Attestazione sussistenza condizioni art. 38 bis, terzo comma, lett. a), b), c) - Patrimonio netto non diminuito"
+TD00804B;CB;"Attestazione sussistenza condizioni art. 38 bis, terzo comma, lett. a), b), c) - non risultano cedute azioni per un ammontare superiore al 50%"
+TD00804C;CB;"Attestazione sussistenza condizioni art. 38 bis, terzo comma, lett. a), b), c) - i versamenti dei contributi sono stati effettuati"
+TD00809A;N1;"Sottoscrizione organo di controllo - soggetto"
+TD00809B;CF;"Sottoscrizione organo di controllo - codice fiscale"
+TD00809C;CB;"Sottoscrizione organo di controllo - firma"
+TD00810A;N1;"Sottoscrizione organo di controllo - soggetto"
+TD00810B;CF;"Sottoscrizione organo di controllo - codice fiscale"
+TD00810C;CB;"Sottoscrizione organo di controllo - firma"
+TD00811A;N1;"Sottoscrizione organo di controllo - soggetto"
+TD00811B;CF;"Sottoscrizione organo di controllo - codice fiscale"
+TD00811C;CB;"Sottoscrizione organo di controllo - firma"
+TD00812A;N1;"Sottoscrizione organo di controllo - soggetto"
+TD00812B;CF;"Sottoscrizione organo di controllo - codice fiscale"
+TD00812C;CB;"Sottoscrizione organo di controllo - firma"
+TD00813A;N1;"Sottoscrizione organo di controllo - soggetto"
+TD00813B;CF;"Sottoscrizione organo di controllo - codice fiscale"
+TD00813C;CB;"Sottoscrizione organo di controllo - firma"
+TD009001;PI;"Partita IVA del soggetto in possesso dei requisiti per la richiesta di rimborso o compensazione"
+TD009002;VP;Rimborso
+TE001001;PI;"Partita IVA"
+TE001002;AN;"Presupposto rimborso"
+TE001003;N1;"Erogazione prioritaria"
+TE001004;N1;"Esonero garanzie"
+TE001005;VP;Credito
+TE001006;VP;Debito
+TE002001;PI;"Partita IVA"
+TE002002;AN;"Presupposto rimborso"
+TE002003;N1;"Erogazione prioritaria"
+TE002004;N1;"Esonero garanzie"
+TE002005;VP;Credito
+TE002006;VP;Debito
+TE003001;PI;"Partita IVA"
+TE003002;AN;"Presupposto rimborso"
+TE003003;N1;"Erogazione prioritaria"
+TE003004;N1;"Esonero garanzie"
+TE003005;VP;Credito
+TE003006;VP;Debito
+TE004001;PI;"Partita IVA"
+TE004002;AN;"Presupposto rimborso"
+TE004003;N1;"Erogazione prioritaria"
+TE004004;N1;"Esonero garanzie"
+TE004005;VP;Credito
+TE004006;VP;Debito
+TE005001;PI;"Partita IVA"
+TE005002;AN;"Presupposto rimborso"
+TE005003;N1;"Erogazione prioritaria"
+TE005004;N1;"Esonero garanzie"
+TE005005;VP;Credito
+TE005006;VP;Debito
+TE006001;PI;"Partita IVA"
+TE006002;AN;"Presupposto rimborso"
+TE006003;N1;"Erogazione prioritaria"
+TE006004;N1;"Esonero garanzie"
+TE006005;VP;Credito
+TE006006;VP;Debito
+TE007001;PI;"Partita IVA"
+TE007002;AN;"Presupposto rimborso"
+TE007003;N1;"Erogazione prioritaria"
+TE007004;N1;"Esonero garanzie"
+TE007005;VP;Credito
+TE007006;VP;Debito
+TE008001;PI;"Partita IVA"
+TE008002;AN;"Presupposto rimborso"
+TE008003;N1;"Erogazione prioritaria"
+TE008004;N1;"Esonero garanzie"
+TE008005;VP;Credito
+TE008006;VP;Debito
+TE009001;PI;"Partita IVA"
+TE009002;AN;"Presupposto rimborso"
+TE009003;N1;"Erogazione prioritaria"
+TE009004;N1;"Esonero garanzie"
+TE009005;VP;Credito
+TE009006;VP;Debito
+TE010001;PI;"Partita IVA"
+TE010002;AN;"Presupposto rimborso"
+TE010003;N1;"Erogazione prioritaria"
+TE010004;N1;"Esonero garanzie"
+TE010005;VP;Credito
+TE010006;VP;Debito
+TE011001;PI;"Partita IVA"
+TE011002;AN;"Presupposto rimborso"
+TE011003;N1;"Erogazione prioritaria"
+TE011004;N1;"Esonero garanzie"
+TE011005;VP;Credito
+TE011006;VP;Debito
+TE012001;PI;"Partita IVA"
+TE012002;AN;"Presupposto rimborso"
+TE012003;N1;"Erogazione prioritaria"
+TE012004;N1;"Esonero garanzie"
+TE012005;VP;Credito
+TE012006;VP;Debito
+TE013001;PI;"Partita IVA"
+TE013002;AN;"Presupposto rimborso"
+TE013003;N1;"Erogazione prioritaria"
+TE013004;N1;"Esonero garanzie"
+TE013005;VP;Credito
+TE013006;VP;Debito
+TE014001;PI;"Partita IVA"
+TE014002;AN;"Presupposto rimborso"
+TE014003;N1;"Erogazione prioritaria"
+TE014004;N1;"Esonero garanzie"
+TE014005;VP;Credito
+TE014006;VP;Debito
+TE015001;PI;"Partita IVA"
+TE015002;AN;"Presupposto rimborso"
+TE015003;N1;"Erogazione prioritaria"
+TE015004;N1;"Esonero garanzie"
+TE015005;VP;Credito
+TE015006;VP;Debito
+TE016001;PI;"Partita IVA"
+TE016002;AN;"Presupposto rimborso"
+TE016003;N1;"Erogazione prioritaria"
+TE016004;N1;"Esonero garanzie"
+TE016005;VP;Credito
+TE016006;VP;Debito
+TE017001;PI;"Partita IVA"
+TE017002;AN;"Presupposto rimborso"
+TE017003;N1;"Erogazione prioritaria"
+TE017004;N1;"Esonero garanzie"
+TE017005;VP;Credito
+TE017006;VP;Debito
+TE018001;PI;"Partita IVA"
+TE018002;AN;"Presupposto rimborso"
+TE018003;N1;"Erogazione prioritaria"
+TE018004;N1;"Esonero garanzie"
+TE018005;VP;Credito
+TE018006;VP;Debito
+TE019001;PI;"Partita IVA"
+TE019002;AN;"Presupposto rimborso"
+TE019003;N1;"Erogazione prioritaria"
+TE019004;N1;"Esonero garanzie"
+TE019005;VP;Credito
+TE019006;VP;Debito
+TE020001;PI;"Partita IVA"
+TE020002;AN;"Presupposto rimborso"
+TE020003;N1;"Erogazione prioritaria"
+TE020004;N1;"Esonero garanzie"
+TE020005;VP;Credito
+TE020006;VP;Debito
+TE021001;PI;"Partita IVA"
+TE021002;AN;"Presupposto rimborso"
+TE021003;N1;"Erogazione prioritaria"
+TE021004;N1;"Esonero garanzie"
+TE021005;VP;Credito
+TE021006;VP;Debito
+TE022001;PI;"Partita IVA"
+TE022002;AN;"Presupposto rimborso"
+TE022003;N1;"Erogazione prioritaria"
+TE022004;N1;"Esonero garanzie"
+TE022005;VP;Credito
+TE022006;VP;Debito
+TE023001;PI;"Partita IVA"
+TE023002;AN;"Presupposto rimborso"
+TE023003;N1;"Erogazione prioritaria"
+TE023004;N1;"Esonero garanzie"
+TE023005;VP;Credito
+TE023006;VP;Debito
+TE024001;PI;"Partita IVA"
+TE024002;AN;"Presupposto rimborso"
+TE024003;N1;"Erogazione prioritaria"
+TE024004;N1;"Esonero garanzie"
+TE024005;VP;Credito
+TE024006;VP;Debito
+TE025001;PI;"Partita IVA"
+TE025002;AN;"Presupposto rimborso"
+TE025003;N1;"Erogazione prioritaria"
+TE025004;N1;"Esonero garanzie"
+TE025005;VP;Credito
+TE025006;VP;Debito
+TE026001;PI;"Partita IVA"
+TE026002;AN;"Presupposto rimborso"
+TE026003;N1;"Erogazione prioritaria"
+TE026004;N1;"Esonero garanzie"
+TE026005;VP;Credito
+TE026006;VP;Debito
+TE027001;PI;"Partita IVA"
+TE027002;AN;"Presupposto rimborso"
+TE027003;N1;"Erogazione prioritaria"
+TE027004;N1;"Esonero garanzie"
+TE027005;VP;Credito
+TE027006;VP;Debito
+TE028001;PI;"Partita IVA"
+TE028002;AN;"Presupposto rimborso"
+TE028003;N1;"Erogazione prioritaria"
+TE028004;N1;"Esonero garanzie"
+TE028005;VP;Credito
+TE028006;VP;Debito
+TE029001;PI;"Partita IVA"
+TE029002;AN;"Presupposto rimborso"
+TE029003;N1;"Erogazione prioritaria"
+TE029004;N1;"Esonero garanzie"
+TE029005;VP;Credito
+TE029006;VP;Debito
+TE030001;PI;"Partita IVA"
+TE030002;AN;"Presupposto rimborso"
+TE030003;N1;"Erogazione prioritaria"
+TE030004;N1;"Esonero garanzie"
+TE030005;VP;Credito
+TE030006;VP;Debito
+TE031001;PI;"Partita IVA"
+TE031002;AN;"Presupposto rimborso"
+TE031003;N1;"Erogazione prioritaria"
+TE031004;N1;"Esonero garanzie"
+TE031005;VP;Credito
+TE031006;VP;Debito
+TE032001;PI;"Partita IVA"
+TE032002;AN;"Presupposto rimborso"
+TE032003;N1;"Erogazione prioritaria"
+TE032004;N1;"Esonero garanzie"
+TE032005;VP;Credito
+TE032006;VP;Debito
+TE033001;PI;"Partita IVA"
+TE033002;AN;"Presupposto rimborso"
+TE033003;N1;"Erogazione prioritaria"
+TE033004;N1;"Esonero garanzie"
+TE033005;VP;Credito
+TE033006;VP;Debito
+TE034001;PI;"Partita IVA"
+TE034002;AN;"Presupposto rimborso"
+TE034003;N1;"Erogazione prioritaria"
+TE034004;N1;"Esonero garanzie"
+TE034005;VP;Credito
+TE034006;VP;Debito
+TE035001;PI;"Partita IVA"
+TE035002;AN;"Presupposto rimborso"
+TE035003;N1;"Erogazione prioritaria"
+TE035004;N1;"Esonero garanzie"
+TE035005;VP;Credito
+TE035006;VP;Debito
+TE036001;PI;"Partita IVA"
+TE036002;AN;"Presupposto rimborso"
+TE036003;N1;"Erogazione prioritaria"
+TE036004;N1;"Esonero garanzie"
+TE036005;VP;Credito
+TE036006;VP;Debito
+TE037001;PI;"Partita IVA"
+TE037002;AN;"Presupposto rimborso"
+TE037003;N1;"Erogazione prioritaria"
+TE037004;N1;"Esonero garanzie"
+TE037005;VP;Credito
+TE037006;VP;Debito
+TE038001;PI;"Partita IVA"
+TE038002;AN;"Presupposto rimborso"
+TE038003;N1;"Erogazione prioritaria"
+TE038004;N1;"Esonero garanzie"
+TE038005;VP;Credito
+TE038006;VP;Debito
+TE039001;PI;"Partita IVA"
+TE039002;AN;"Presupposto rimborso"
+TE039003;N1;"Erogazione prioritaria"
+TE039004;N1;"Esonero garanzie"
+TE039005;VP;Credito
+TE039006;VP;Debito
+TE040001;VP;"Totale crediti"
+TE041001;VP;"Totale debiti"
+TE042001;VP;"Eccedenza di credito"
+TE043001;VP;"Somma dei righi TC7 dei moduli allegati"
+TE050001;VP;"Importo di cui si chiede il rimborso"
+TE051001;VP;"Importo da utilizzare in compensazione"

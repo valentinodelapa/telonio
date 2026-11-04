@@ -60,6 +60,9 @@ require Layout::percorso('header');
                     <?= Campo::selezioneEnum('esigibilita', $campi['esigibilita'], $formEntity, $errors, $esigibilita, ['richiesto' => true, 'colonna' => 'col-md-6']) ?>
                 <?php else: ?>
                     <input type="hidden" name="esigibilita" value="<?= Html::valore($formEntity, 'esigibilita') ?: 'I' ?>">
+                    <?php if ($causale->getTipoRegistroIva() === TipoRegistroIva::acquisti): ?>
+                        <?= Campo::spunta('importazione', $campi['importazione'], $formEntity, $errors, ['colonna' => 'col-md-6', 'aiuto' => $aiutoImportazione]) ?>
+                    <?php endif; ?>
                 <?php endif; ?>
             <?php endif; ?>
             <?= Campo::testo('descrizione', $campi['descrizione'], $formEntity, $errors, ['colonna' => 'col-md-9', 'attributi' => 'maxlength="255"']) ?>
@@ -72,7 +75,7 @@ require Layout::percorso('header');
             <div class="card-header bg-white"><span class="fw-semibold"><?= Html::e($righeIva) ?></span> <span class="small text-body-secondary ms-2"><?= Html::e($aiutoIva) ?></span></div>
             <div class="table-responsive">
                 <table class="table table-sm mb-0 align-middle" data-righe-iva>
-                    <thead class="table-light"><tr><th style="min-width: 14rem"><?= Html::e($campi['codiceIva']) ?></th><th class="text-end"><?= Html::e($campi['imponibile']) ?></th><th class="text-end"><?= Html::e($campi['imposta']) ?></th><?php if ($acquisti): ?><th class="text-end"><?= Html::e($campi['detraibilita']) ?></th><?php endif; ?><?php if ($acquisti && $ventilazione): ?><th class="text-center" title="<?= Html::e($aiutoRivendita) ?>"><?= Html::e($campi['rivendita']) ?></th><?php endif; ?><th style="min-width: 16rem"><?= Html::e($contropartita) ?></th></tr></thead>
+                    <thead class="table-light"><tr><th style="min-width: 14rem"><?= Html::e($campi['codiceIva']) ?></th><th class="text-end"><?= Html::e($campi['imponibile']) ?></th><th class="text-end"><?= Html::e($campi['imposta']) ?></th><?php if ($acquisti): ?><th class="text-end"><?= Html::e($campi['detraibilita']) ?></th><th title="<?= Html::e($aiutoNaturaInversione) ?>"><?= Html::e($campi['naturaInversione']) ?></th><th class="text-end" title="<?= Html::e($aiutoAliquotaTeorica) ?>"><?= Html::e($campi['aliquotaTeorica']) ?></th><?php else: ?><th title="<?= Html::e($aiutoQualifica) ?>"><?= Html::e($campi['qualifica']) ?></th><?php endif; ?><?php if ($acquisti && $ventilazione): ?><th class="text-center" title="<?= Html::e($aiutoRivendita) ?>"><?= Html::e($campi['rivendita']) ?></th><?php endif; ?><?php if ($acquisti): ?><?php foreach ($attivitaSeparate as $attivita): ?><th class="text-end" title="<?= Html::e($aiutoRipartizione . ' ' . $attivita->getEtichetta()) ?>">% <?= Html::e($attivita->numero) ?></th><?php endforeach; ?><?php endif; ?><th style="min-width: 16rem"><?= Html::e($contropartita) ?></th></tr></thead>
                     <tbody>
                         <?php foreach ($datiIva as $indice => $riga): ?>
                             <?php $prefisso = 'righeIva[' . $indice . ']'; ?>
@@ -89,11 +92,26 @@ require Layout::percorso('header');
                                 <td><input type="text" class="form-control form-control-sm text-end" name="<?= Html::e($prefisso) ?>[imposta]" value="<?= Html::e($riga['imposta'] ?? '') ?>" inputmode="decimal" data-imposta></td>
                                 <?php if ($acquisti): ?>
                                     <td style="width: 6rem"><input type="text" class="form-control form-control-sm text-end" name="<?= Html::e($prefisso) ?>[detraibilita]" value="<?= Html::e($riga['detraibilita'] ?? '') ?>" inputmode="decimal" placeholder="100" data-detraibilita></td>
+                                    <td style="width: 8rem"><select class="form-select form-select-sm" name="<?= Html::e($prefisso) ?>[naturaInversione]" aria-label="<?= Html::e($campi['naturaInversione']) ?>" title="<?= Html::e($aiutoNaturaInversione) ?>">
+                                        <option value="">-</option>
+                                        <?php foreach ($natureInversione as $natura): ?><option value="<?= Html::e($natura->value) ?>" title="<?= Html::e($natura->getLabel()) ?>" <?= ($riga['naturaInversione'] ?? '') === $natura->value ? 'selected' : '' ?>><?= Html::e($natura->value) ?></option><?php endforeach; ?>
+                                    </select></td>
+                                    <td style="width: 5rem"><input type="text" class="form-control form-control-sm text-end" name="<?= Html::e($prefisso) ?>[aliquotaTeorica]" value="<?= Html::e($riga['aliquotaTeorica'] ?? '') ?>" inputmode="decimal" placeholder="22" title="<?= Html::e($aiutoAliquotaTeorica) ?>"></td>
+                                <?php else: ?>
+                                    <td style="width: 9rem"><select class="form-select form-select-sm" name="<?= Html::e($prefisso) ?>[qualifica]" aria-label="<?= Html::e($campi['qualifica']) ?>" title="<?= Html::e($aiutoQualifica) ?>">
+                                        <option value="">-</option>
+                                        <?php foreach ($qualifiche as $qualifica): ?><option value="<?= Html::e($qualifica->value) ?>" title="<?= Html::e($qualifica->getLabel()) ?>" <?= ($riga['qualifica'] ?? '') === $qualifica->value ? 'selected' : '' ?>><?= Html::e($qualifica->getSigla()) ?></option><?php endforeach; ?>
+                                    </select></td>
                                 <?php endif; ?>
                                 <?php if ($acquisti && $ventilazione): ?>
                                     <td style="width: 7rem"><select class="form-select form-select-sm" name="<?= Html::e($prefisso) ?>[rivendita]" aria-label="<?= Html::e($campi['rivendita']) ?>">
                                         <?php foreach (['' => '-', '1' => $rivenditaAmmessa, '2' => $rivenditaAltri] as $valore => $etichetta): ?><option value="<?= Html::e($valore) ?>" <?= ($riga['rivendita'] ?? '') === (string) $valore ? 'selected' : '' ?>><?= Html::e($etichetta) ?></option><?php endforeach; ?>
                                     </select></td>
+                                <?php endif; ?>
+                                <?php if ($acquisti): ?>
+                                    <?php foreach ($attivitaSeparate as $attivita): ?>
+                                        <td style="width: 4.5rem"><input type="text" class="form-control form-control-sm text-end" name="<?= Html::e($prefisso) ?>[ripartizione][<?= Html::e($attivita->numero) ?>]" value="<?= Html::e($riga['ripartizione'][$attivita->numero] ?? '') ?>" inputmode="decimal" title="<?= Html::e($aiutoRipartizione . ' ' . $attivita->getEtichetta()) ?>"></td>
+                                    <?php endforeach; ?>
                                 <?php endif; ?>
                                 <td><?= $autocompleta($prefisso . '[conto]', $urlConti, $riga['conto'] ?? null, $riga['contoEtichetta'] ?? null) ?></td>
                             </tr>

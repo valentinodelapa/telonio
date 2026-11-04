@@ -9,6 +9,8 @@ use Contabilita\Application\Entities\RegistroIva;
 use Contabilita\Application\Entities\RigaIva;
 use Contabilita\Application\Enumerations\CausaleContabile;
 use Contabilita\Application\Enumerations\EsigibilitaIva;
+use Contabilita\Application\Enumerations\NaturaIva;
+use Contabilita\Application\Enumerations\QualificaOperazione;
 use Contabilita\Application\Models\CodiceIvaModel;
 use Contabilita\Application\Models\PianoContiModel;
 use Contabilita\Application\Models\RegistroIvaModel;
@@ -28,7 +30,7 @@ final class RegistrazioneDocumentoIva
 
     /**
      * @param array<string, float> $imponibili codice IVA => imponibile (positivo anche nelle note di credito)
-     * @param array{esigibilita?: EsigibilitaIva, rivendita?: bool, altriProdotti?: bool, registro?: RegistroIva, totale?: float} $opzioni
+     * @param array{esigibilita?: EsigibilitaIva, rivendita?: bool, altriProdotti?: bool, naturaInversione?: NaturaIva, qualifica?: QualificaOperazione, aliquotaTeorica?: float, importazione?: bool, registro?: RegistroIva, totale?: float, ripartizione?: array<int, float>} $opzioni
      * @throws \DomainException se la registrazione non supera i controlli
      */
     public static function registra(DataMapper $dataMapper, EsercizioContabile $esercizio, ?Controparte $controparte, CausaleContabile $causale, string $data, ?string $numero, array $imponibili, array $opzioni = []): RegistrazioneContabile
@@ -49,6 +51,7 @@ final class RegistrazioneDocumentoIva
             $registrazione->registroIva = $opzioni['registro'] ?? (new RegistroIvaModel($dataMapper))->getPerTipo($soggetto, $causale->getTipoRegistroIva())[0];
             $registrazione->dataCompetenzaIva = new SismaDate($data);
             $registrazione->esigibilita = $opzioni['esigibilita'] ?? EsigibilitaIva::immediata;
+            $registrazione->importazione = $opzioni['importazione'] ?? false;
             $segno = $causale->getSegno();
             foreach ($imponibili as $codice => $imponibile) {
                 $riga = new RigaIva($dataMapper);
@@ -59,6 +62,10 @@ final class RegistrazioneDocumentoIva
                 $riga->detraibilita = $riga->codiceIva->detraibilita;
                 $riga->rivendita = ($opzioni['rivendita'] ?? false) || ($opzioni['altriProdotti'] ?? false);
                 $riga->altriProdotti = $opzioni['altriProdotti'] ?? false;
+                $riga->naturaInversione = $riga->codiceIva->inversioneContabile ? ($opzioni['naturaInversione'] ?? null) : null;
+                $riga->qualifica = $opzioni['qualifica'] ?? null;
+                $riga->aliquotaTeorica = $riga->codiceIva->natura === NaturaIva::dichiarazioniIntento ? ($opzioni['aliquotaTeorica'] ?? null) : null;
+                $riga->ripartizione = isset($opzioni['ripartizione']) ? RigaIva::scriviRipartizione($opzioni['ripartizione']) : null;
                 $righeIva[] = $riga;
             }
             $registrazione->totaleDocumento = round(abs(PropostaRighe::totaleDocumento($righeIva)), 2);

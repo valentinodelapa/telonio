@@ -3,6 +3,7 @@
 namespace Contabilita\Application\Models;
 
 use Anagrafica\Application\Entities\Soggetto;
+use Anagrafica\Application\Enumerations\PeriodicitaIva;
 use Contabilita\Application\Entities\LiquidazioneIva;
 use SismaFramework\Orm\ExtendedClasses\DependentModel;
 use SismaFramework\Orm\HelperClasses\Query;
@@ -23,21 +24,69 @@ class LiquidazioneIvaModel extends DependentModel
 
     }
 
-    public function getPerPeriodo(Soggetto $soggetto, int $anno, int $periodo): ?LiquidazioneIva
+    /**
+     * Liquidazione del periodo; con $separato il trimestre separato delle
+     * attività trimestrali di un'azienda mensile.
+     */
+    public function getPerPeriodo(Soggetto $soggetto, int $anno, int $periodo, bool $separato = false): ?LiquidazioneIva
     {
-        return $this->getBySoggettoAndAnnoAndPeriodo($soggetto, $anno, $periodo)[0] ?? null;
+        foreach ($this->getBySoggettoAndAnnoAndPeriodoAndTrimestreSeparato($soggetto, $anno, $periodo, $separato) as $liquidazione) {
+            if ($liquidazione->trimestreSeparato === $separato) {
+                return $liquidazione;
+            }
+        }
+        return null;
     }
 
     /**
-     * @return array<int, LiquidazioneIva> liquidazioni dell'anno per periodo
+     * Liquidazioni dell'anno della periodicità dell'azienda, per periodo.
+     *
+     * @return array<int, LiquidazioneIva>
      */
     public function getPerAnno(Soggetto $soggetto, int $anno): array
     {
         $liquidazioni = [];
-        foreach ($this->getBySoggettoAndAnno($soggetto, $anno, null, ['periodo' => 'ASC']) as $liquidazione) {
-            $liquidazioni[$liquidazione->periodo] = $liquidazione;
+        foreach ($this->getBySoggettoAndAnnoAndTrimestreSeparato($soggetto, $anno, false, null, ['periodo' => 'ASC']) as $liquidazione) {
+            if ($liquidazione->trimestreSeparato === false) {
+                $liquidazioni[$liquidazione->periodo] = $liquidazione;
+            }
         }
         return $liquidazioni;
+    }
+
+    /**
+     * Trimestri separati delle attività trimestrali, per trimestre.
+     *
+     * @return array<int, LiquidazioneIva>
+     */
+    public function getTrimestriSeparati(Soggetto $soggetto, int $anno): array
+    {
+        $liquidazioni = [];
+        foreach ($this->getBySoggettoAndAnnoAndTrimestreSeparato($soggetto, $anno, true, null, ['periodo' => 'ASC']) as $liquidazione) {
+            if ($liquidazione->trimestreSeparato) {
+                $liquidazioni[$liquidazione->periodo] = $liquidazione;
+            }
+        }
+        return $liquidazioni;
+    }
+
+    /**
+     * Tutte le liquidazioni dell'anno nella sequenza dei riporti (mesi e,
+     * dopo il mese di fine trimestre, il trimestre separato).
+     *
+     * @return LiquidazioneIva[]
+     */
+    public function getSequenza(Soggetto $soggetto, int $anno): array
+    {
+        $separati = $this->getTrimestriSeparati($soggetto, $anno);
+        $sequenza = [];
+        foreach ($this->getPerAnno($soggetto, $anno) as $periodo => $liquidazione) {
+            $sequenza[] = $liquidazione;
+            if (($liquidazione->periodicita === PeriodicitaIva::mensile) && ($periodo % 3 === 0) && isset($separati[intdiv($periodo, 3)])) {
+                $sequenza[] = $separati[intdiv($periodo, 3)];
+            }
+        }
+        return $sequenza;
     }
 
     public function contaPerAnno(Studio $studio, int $anno): int

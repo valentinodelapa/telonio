@@ -100,6 +100,76 @@ CREATE TABLE IF NOT EXISTS `esercizio_contabile` (
 COMMENT='Esercizi contabili delle aziende';
 
 -- -----------------------------------------------------
+-- Attività con contabilità separata (art. 36 D.P.R. 633/1972): ogni
+-- registro o sezionale IVA appartiene a un'attività; liquidazioni
+-- periodiche distinte, compensate nel periodo, con la periodicità propria
+-- dell'attività se la separazione è obbligatoria
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `attivita_iva` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `studio_id` INT UNSIGNED NOT NULL,
+  `soggetto_id` INT UNSIGNED NOT NULL,
+  `numero` TINYINT UNSIGNED NOT NULL COMMENT 'Ordine dei moduli della dichiarazione IVA (1 = primo modulo)',
+  `descrizione` VARCHAR(100) NOT NULL,
+  `codice_ateco_id` INT UNSIGNED NULL COMMENT 'Codice attività del rigo VA2 del modulo',
+  `periodicita` CHAR(1) NULL COMMENT 'M mensile, T trimestrale; NULL = periodicità dell''azienda',
+  `dal_anno` SMALLINT UNSIGNED NOT NULL,
+  `al_anno` SMALLINT UNSIGNED NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_attivita_iva` (`soggetto_id`, `numero`),
+  KEY `idx_attivita_iva_studio` (`studio_id`),
+  CONSTRAINT `fk_attivita_iva_studio` FOREIGN KEY (`studio_id`) REFERENCES `studio` (`id`),
+  CONSTRAINT `fk_attivita_iva_soggetto` FOREIGN KEY (`soggetto_id`) REFERENCES `soggetto` (`id`),
+  CONSTRAINT `fk_attivita_iva_ateco` FOREIGN KEY (`codice_ateco_id`) REFERENCES `codice_ateco` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Attività IVA con contabilità separata';
+
+-- -----------------------------------------------------
+-- IVA di gruppo (art. 73, c. 3, D.P.R. 633/1972; D.M. 13 dicembre 1979):
+-- opzione della controllante valida fino a revoca, controllate con anno
+-- di ingresso e di uscita (dal 1° gennaio) o cessazione del controllo in
+-- corso d'anno; liquidazioni periodiche di gruppo della controllante
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `gruppo_iva` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `studio_id` INT UNSIGNED NOT NULL,
+  `controllante_id` INT UNSIGNED NOT NULL,
+  `anno_inizio` SMALLINT UNSIGNED NOT NULL COMMENT 'Primo anno della liquidazione di gruppo (opzione nel quadro VG della dichiarazione dell''anno precedente)',
+  `anno_revoca` SMALLINT UNSIGNED NULL COMMENT 'Primo anno senza liquidazione di gruppo (revoca nel VG8)',
+  `maggioranza_id` INT UNSIGNED NULL COMMENT 'Soggetto che possiede la maggioranza della controllante e rinuncia alla liquidazione di gruppo (VG1)',
+  `data_possesso_maggioranza` DATE NULL,
+  `percentuale_maggioranza` DECIMAL(5,2) NULL,
+  `note` VARCHAR(255) NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_gruppo_iva_studio` (`studio_id`),
+  CONSTRAINT `fk_gruppo_iva_studio` FOREIGN KEY (`studio_id`) REFERENCES `studio` (`id`),
+  CONSTRAINT `fk_gruppo_iva_controllante` FOREIGN KEY (`controllante_id`) REFERENCES `soggetto` (`id`),
+  CONSTRAINT `fk_gruppo_iva_maggioranza` FOREIGN KEY (`maggioranza_id`) REFERENCES `soggetto` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Liquidazioni IVA di gruppo (art. 73)';
+
+CREATE TABLE IF NOT EXISTS `partecipante_gruppo_iva` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `gruppo_iva_id` INT UNSIGNED NOT NULL,
+  `soggetto_id` INT UNSIGNED NOT NULL,
+  `anno_ingresso` SMALLINT UNSIGNED NOT NULL,
+  `anno_uscita` SMALLINT UNSIGNED NULL COMMENT 'Primo anno fuori dalla liquidazione di gruppo (fuoriuscita dal 1° gennaio)',
+  `data_cessazione` DATE NULL COMMENT 'Cessazione del controllo in corso d''anno: ultimo mese o trimestre di controllo quello precedente',
+  `data_possesso` DATE NULL COMMENT 'Inizio del possesso ininterrotto della maggioranza (VG2-VG7 campo 1)',
+  `percentuale_possesso` DECIMAL(5,2) NULL,
+  `detentore_id` INT UNSIGNED NULL COMMENT 'Soggetto che possiede la maggioranza (di default la controllante)',
+  `detentore_estero` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Detentore non residente senza posizione IVA in Italia',
+  `solo_catena` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Partecipa alla catena di controllo ma non alla compensazione (VG sezione II)',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_partecipante_gruppo_iva` (`gruppo_iva_id`, `soggetto_id`, `anno_ingresso`),
+  KEY `idx_partecipante_gruppo_iva_soggetto` (`soggetto_id`),
+  CONSTRAINT `fk_partecipante_gruppo_iva_gruppo` FOREIGN KEY (`gruppo_iva_id`) REFERENCES `gruppo_iva` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_partecipante_gruppo_iva_soggetto` FOREIGN KEY (`soggetto_id`) REFERENCES `soggetto` (`id`),
+  CONSTRAINT `fk_partecipante_gruppo_iva_detentore` FOREIGN KEY (`detentore_id`) REFERENCES `soggetto` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Società controllate partecipanti alla liquidazione IVA di gruppo';
+
+-- -----------------------------------------------------
 -- Registri IVA dell'azienda: vendite, acquisti, corrispettivi, con
 -- eventuali sezionali (art. 23-25 e 24 D.P.R. 633/1972)
 -- -----------------------------------------------------
@@ -111,11 +181,15 @@ CREATE TABLE IF NOT EXISTS `registro_iva` (
   `sezionale` VARCHAR(10) NOT NULL DEFAULT '' COMMENT 'Vuoto = registro principale',
   `descrizione` VARCHAR(100) NOT NULL,
   `attivo` TINYINT(1) NOT NULL DEFAULT 1,
+  `unita_locale_id` INT UNSIGNED NULL COMMENT 'Sede operativa (Anagrafica) delle operazioni del registro: regione nel quadro VT',
+  `attivita_iva_id` INT UNSIGNED NULL COMMENT 'Attività con contabilità separata; NULL con attività separate = registro degli acquisti promiscui',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_registro_iva` (`soggetto_id`, `tipo`, `sezionale`),
   KEY `idx_registro_iva_studio` (`studio_id`),
   CONSTRAINT `fk_registro_iva_studio` FOREIGN KEY (`studio_id`) REFERENCES `studio` (`id`),
-  CONSTRAINT `fk_registro_iva_soggetto` FOREIGN KEY (`soggetto_id`) REFERENCES `soggetto` (`id`)
+  CONSTRAINT `fk_registro_iva_soggetto` FOREIGN KEY (`soggetto_id`) REFERENCES `soggetto` (`id`),
+  CONSTRAINT `fk_registro_iva_unita_locale` FOREIGN KEY (`unita_locale_id`) REFERENCES `indirizzo` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `fk_registro_iva_attivita` FOREIGN KEY (`attivita_iva_id`) REFERENCES `attivita_iva` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Registri IVA e sezionali delle aziende';
 
@@ -182,6 +256,7 @@ CREATE TABLE IF NOT EXISTS `registrazione_contabile` (
   `data_competenza_iva` DATE NULL COMMENT 'Data che determina il periodo di liquidazione',
   `esigibilita` CHAR(1) NOT NULL DEFAULT 'I' COMMENT 'I immediata, D differita, S scissione dei pagamenti',
   `totale_documento` DECIMAL(15,2) NULL,
+  `importazione` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Acquisto con documento doganale (VF28 campi 3-4, VC colonna 2)',
   `origine` VARCHAR(30) NULL COMMENT 'Registrazione generata (es. liquidazione IVA)',
   `riferimento_origine` VARCHAR(50) NULL,
   `data_inserimento` DATETIME NOT NULL,
@@ -236,6 +311,10 @@ CREATE TABLE IF NOT EXISTS `riga_iva` (
   `rivendita` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Acquisto di beni destinati alla rivendita: base della ventilazione dei corrispettivi',
   `altri_prodotti` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Rivendita di beni fuori dalle categorie ammesse alla ventilazione (limite del 50%, art. 4 D.M. 24/2/1973)',
   `conto_id` INT UNSIGNED NULL COMMENT 'Costo o ricavo di contropartita',
+  `natura_inversione` VARCHAR(4) NULL COMMENT 'Acquisti in inversione contabile: tipologia N6.1-N6.9 (rigo del quadro VJ della dichiarazione IVA)',
+  `qualifica` CHAR(1) NULL COMMENT 'Operazioni attive: O oro, E esente occasionale, Q 27-quinquies, A bene ammortizzabile, P esente equiparata, F fuori campo senza detrazione (VF34, VE40)',
+  `aliquota_teorica` DECIMAL(5,2) NULL COMMENT 'Acquisti con dichiarazione d''intento: aliquota dell''IVA non assolta (VF35)',
+  `ripartizione` VARCHAR(255) NULL COMMENT 'Acquisti promiscui tra attività separate: numero attività e percentuale (es. 1:60;2:40)',
   PRIMARY KEY (`id`),
   KEY `idx_riga_iva_registrazione` (`registrazione_contabile_id`, `ordine`),
   KEY `idx_riga_iva_soggetto` (`soggetto_id`, `data_competenza_iva`),
@@ -293,20 +372,85 @@ CREATE TABLE IF NOT EXISTS `liquidazione_iva` (
   `interessi` DECIMAL(15,2) NOT NULL DEFAULT 0.00 COMMENT 'Trimestrali: 1% (art. 7, c. 3, D.P.R. 542/1999)',
   `importo_dovuto` DECIMAL(15,2) NOT NULL DEFAULT 0.00 COMMENT 'Da versare nel periodo',
   `credito_finale` DECIMAL(15,2) NOT NULL DEFAULT 0.00 COMMENT 'Riportato al periodo successivo',
+  `credito_trimestrale` DECIMAL(15,2) NOT NULL DEFAULT 0.00 COMMENT 'Credito del trimestre chiesto a rimborso o in compensazione con il modello IVA TR, non riportato',
   `debito_rinviato` DECIMAL(15,2) NOT NULL DEFAULT 0.00 COMMENT 'Non superiore a 100 euro, versato con il periodo successivo',
   `scadenza` DATE NULL,
   `data_elaborazione` DATETIME NOT NULL,
   `avvisi` TEXT NULL,
   `differenze` TEXT NULL COMMENT 'Differenze con i versamenti già in deleghe non modificabili',
   `registrazione_contabile_id` INT UNSIGNED NULL COMMENT 'Giroconto della liquidazione in prima nota',
+  `trimestre_anticipato` TINYINT UNSIGNED NULL COMMENT 'Attività separate trimestrali: trimestre liquidato con il mese di fine trimestre',
+  `gruppo_iva_id` INT UNSIGNED NULL COMMENT 'IVA di gruppo: risultato trasferito alla controllante, non versato',
+  `trimestre_separato` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Attività separate: liquidazione del trimestre delle attività trimestrali non anticipata al mese',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uq_liquidazione_iva` (`soggetto_id`, `anno`, `periodo`),
+  UNIQUE KEY `uq_liquidazione_iva` (`soggetto_id`, `anno`, `periodo`, `trimestre_separato`),
   KEY `idx_liquidazione_iva_studio` (`studio_id`, `anno`),
   CONSTRAINT `fk_liquidazione_iva_studio` FOREIGN KEY (`studio_id`) REFERENCES `studio` (`id`),
   CONSTRAINT `fk_liquidazione_iva_soggetto` FOREIGN KEY (`soggetto_id`) REFERENCES `soggetto` (`id`),
-  CONSTRAINT `fk_liquidazione_iva_registrazione` FOREIGN KEY (`registrazione_contabile_id`) REFERENCES `registrazione_contabile` (`id`) ON DELETE SET NULL
+  CONSTRAINT `fk_liquidazione_iva_registrazione` FOREIGN KEY (`registrazione_contabile_id`) REFERENCES `registrazione_contabile` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `fk_liquidazione_iva_gruppo` FOREIGN KEY (`gruppo_iva_id`) REFERENCES `gruppo_iva` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Liquidazioni periodiche IVA';
+
+-- -----------------------------------------------------
+-- Liquidazione di ciascuna attività con contabilità separata compresa
+-- nella liquidazione periodica dell'azienda (trimestrali anticipate al
+-- mese di fine trimestre)
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `liquidazione_attivita` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `liquidazione_iva_id` INT UNSIGNED NOT NULL,
+  `attivita_iva_id` INT UNSIGNED NOT NULL,
+  `periodicita` CHAR(1) NOT NULL,
+  `periodo` TINYINT UNSIGNED NOT NULL COMMENT 'Mese o trimestre dell''attività',
+  `iva_esigibile` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+  `iva_detraibile` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+  `iva_ventilata` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+  `percentuale_detrazione` TINYINT UNSIGNED NOT NULL DEFAULT 100,
+  `interessi` DECIMAL(15,2) NOT NULL DEFAULT 0.00 COMMENT 'Attività trimestrali: 1% dell''IVA dovuta del trimestre',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_liquidazione_attivita` (`liquidazione_iva_id`, `attivita_iva_id`),
+  CONSTRAINT `fk_liquidazione_attivita_liquidazione` FOREIGN KEY (`liquidazione_iva_id`) REFERENCES `liquidazione_iva` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_liquidazione_attivita_attivita` FOREIGN KEY (`attivita_iva_id`) REFERENCES `attivita_iva` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Liquidazioni periodiche per attività separata';
+
+-- -----------------------------------------------------
+-- Liquidazioni periodiche del gruppo IVA (art. 73): debiti e crediti
+-- trasferiti dalle società partecipanti, versamento della controllante
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `liquidazione_gruppo_iva` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `studio_id` INT UNSIGNED NOT NULL,
+  `gruppo_iva_id` INT UNSIGNED NOT NULL,
+  `anno` SMALLINT UNSIGNED NOT NULL,
+  `periodo` TINYINT UNSIGNED NOT NULL,
+  `periodicita` CHAR(1) NOT NULL,
+  `trimestre_anticipato` TINYINT UNSIGNED NULL COMMENT 'Trimestre delle società trimestrali compreso nel mese di fine trimestre',
+  `trimestre_separato` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Liquidazione del trimestre delle società trimestrali non anticipata al mese',
+  `debiti_trasferiti` DECIMAL(15,2) NOT NULL DEFAULT 0.00 COMMENT 'Compresi gli interessi dei trimestrali (VP4 della comunicazione del gruppo)',
+  `crediti_trasferiti` DECIMAL(15,2) NOT NULL DEFAULT 0.00 COMMENT 'VP5 della comunicazione del gruppo',
+  `interessi_trasferiti` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+  `debito_precedente` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+  `credito_precedente` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+  `credito_anno_precedente` DECIMAL(15,2) NOT NULL DEFAULT 0.00 COMMENT 'Credito di gruppo dell''anno precedente compensato',
+  `acconto` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+  `importo_dovuto` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+  `credito_finale` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+  `credito_trimestrale` DECIMAL(15,2) NOT NULL DEFAULT 0.00 COMMENT 'Credito del trimestre chiesto con il modello IVA TR della controllante, non riportato',
+  `debito_rinviato` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+  `scadenza` DATE NULL,
+  `data_elaborazione` DATETIME NOT NULL,
+  `avvisi` TEXT NULL,
+  `differenze` TEXT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_liquidazione_gruppo_iva` (`gruppo_iva_id`, `anno`, `periodo`, `trimestre_separato`),
+  KEY `idx_liquidazione_gruppo_iva_studio` (`studio_id`, `anno`),
+  CONSTRAINT `fk_liquidazione_gruppo_iva_studio` FOREIGN KEY (`studio_id`) REFERENCES `studio` (`id`),
+  CONSTRAINT `fk_liquidazione_gruppo_iva_gruppo` FOREIGN KEY (`gruppo_iva_id`) REFERENCES `gruppo_iva` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Liquidazioni periodiche del gruppo IVA';
+
 
 CREATE TABLE IF NOT EXISTS `acconto_iva` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -320,11 +464,13 @@ CREATE TABLE IF NOT EXISTS `acconto_iva` (
   `data_elaborazione` DATETIME NOT NULL,
   `note` TEXT NULL,
   `differenze` TEXT NULL,
+  `gruppo_iva_id` INT UNSIGNED NULL COMMENT 'Acconto del gruppo IVA versato dalla controllante',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uq_acconto_iva` (`soggetto_id`, `anno`),
+  UNIQUE KEY `uq_acconto_iva` (`soggetto_id`, `anno`, `gruppo_iva_id`),
   KEY `idx_acconto_iva_studio` (`studio_id`, `anno`),
   CONSTRAINT `fk_acconto_iva_studio` FOREIGN KEY (`studio_id`) REFERENCES `studio` (`id`),
-  CONSTRAINT `fk_acconto_iva_soggetto` FOREIGN KEY (`soggetto_id`) REFERENCES `soggetto` (`id`)
+  CONSTRAINT `fk_acconto_iva_soggetto` FOREIGN KEY (`soggetto_id`) REFERENCES `soggetto` (`id`),
+  CONSTRAINT `fk_acconto_iva_gruppo` FOREIGN KEY (`gruppo_iva_id`) REFERENCES `gruppo_iva` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Acconti IVA';
 
@@ -350,13 +496,15 @@ CREATE TABLE IF NOT EXISTS `comunicazione_lipe` (
   `protocollo` VARCHAR(50) NULL,
   `data_elaborazione` DATETIME NOT NULL,
   `avvisi` TEXT NULL,
+  `gruppo_iva_id` INT UNSIGNED NULL COMMENT 'Comunicazione della controllante per la liquidazione del gruppo IVA',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uq_comunicazione_lipe` (`soggetto_id`, `anno`, `trimestre`),
+  UNIQUE KEY `uq_comunicazione_lipe` (`soggetto_id`, `anno`, `trimestre`, `gruppo_iva_id`),
   KEY `idx_comunicazione_lipe_studio` (`studio_id`, `anno`),
   CONSTRAINT `fk_comunicazione_lipe_studio` FOREIGN KEY (`studio_id`) REFERENCES `studio` (`id`),
   CONSTRAINT `fk_comunicazione_lipe_soggetto` FOREIGN KEY (`soggetto_id`) REFERENCES `soggetto` (`id`),
   CONSTRAINT `fk_comunicazione_lipe_dichiarante` FOREIGN KEY (`dichiarante_id`) REFERENCES `soggetto` (`id`),
-  CONSTRAINT `fk_comunicazione_lipe_intermediario` FOREIGN KEY (`intermediario_id`) REFERENCES `intermediario` (`id`) ON DELETE SET NULL
+  CONSTRAINT `fk_comunicazione_lipe_intermediario` FOREIGN KEY (`intermediario_id`) REFERENCES `intermediario` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `fk_comunicazione_lipe_gruppo` FOREIGN KEY (`gruppo_iva_id`) REFERENCES `gruppo_iva` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Comunicazioni delle liquidazioni periodiche IVA';
 
@@ -381,10 +529,12 @@ CREATE TABLE IF NOT EXISTS `modulo_lipe` (
   `acconto` DECIMAL(15,2) NOT NULL DEFAULT 0.00 COMMENT 'VP13 col. 2',
   `importo_da_versare` DECIMAL(15,2) NOT NULL DEFAULT 0.00 COMMENT 'VP14 col. 1',
   `importo_a_credito` DECIMAL(15,2) NOT NULL DEFAULT 0.00 COMMENT 'VP14 col. 2',
+  `liquidazione_gruppo_iva_id` INT UNSIGNED NULL COMMENT 'Modulo della comunicazione del gruppo IVA',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_modulo_lipe` (`comunicazione_lipe_id`, `numero_modulo`),
   CONSTRAINT `fk_modulo_lipe_comunicazione` FOREIGN KEY (`comunicazione_lipe_id`) REFERENCES `comunicazione_lipe` (`id`),
-  CONSTRAINT `fk_modulo_lipe_liquidazione` FOREIGN KEY (`liquidazione_iva_id`) REFERENCES `liquidazione_iva` (`id`) ON DELETE SET NULL
+  CONSTRAINT `fk_modulo_lipe_liquidazione` FOREIGN KEY (`liquidazione_iva_id`) REFERENCES `liquidazione_iva` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `fk_modulo_lipe_liquidazione_gruppo` FOREIGN KEY (`liquidazione_gruppo_iva_id`) REFERENCES `liquidazione_gruppo_iva` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Moduli del quadro VP delle comunicazioni delle liquidazioni periodiche';
 
@@ -454,3 +604,25 @@ CREATE TABLE IF NOT EXISTS `fattura_elettronica` (
   CONSTRAINT `fk_fattura_elettronica_registrazione` FOREIGN KEY (`registrazione_contabile_id`) REFERENCES `registrazione_contabile` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Fatture elettroniche importate';
+
+-- -----------------------------------------------------
+-- Percentuale di detrazione provvisoria dell'anno (pro-rata, art. 19,
+-- c. 5, e art. 19-bis D.P.R. 633/1972), applicata nelle liquidazioni
+-- periodiche: quella definitiva dell'anno precedente
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `prorata_iva` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `studio_id` INT UNSIGNED NOT NULL,
+  `soggetto_id` INT UNSIGNED NOT NULL,
+  `anno` SMALLINT UNSIGNED NOT NULL,
+  `percentuale` TINYINT UNSIGNED NOT NULL DEFAULT 100 COMMENT 'Percentuale di detrazione (0-100, arrotondata all''unità)',
+  `origine` VARCHAR(30) NULL COMMENT 'Modulo che l''ha proposta (Dichiarativi), NULL se inserita a mano',
+  `note` VARCHAR(255) NULL,
+  `attivita_iva_id` INT UNSIGNED NULL COMMENT 'Attività con contabilità separata (pro-rata per attività)',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_prorata_iva` (`soggetto_id`, `anno`, `attivita_iva_id`),
+  CONSTRAINT `fk_prorata_iva_studio` FOREIGN KEY (`studio_id`) REFERENCES `studio` (`id`),
+  CONSTRAINT `fk_prorata_iva_soggetto` FOREIGN KEY (`soggetto_id`) REFERENCES `soggetto` (`id`),
+  CONSTRAINT `fk_prorata_iva_attivita` FOREIGN KEY (`attivita_iva_id`) REFERENCES `attivita_iva` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Pro-rata di detrazione provvisorio per azienda e anno';

@@ -23,6 +23,10 @@ require Layout::percorso('header');
             <?php endif; ?>
             <?= Campo::testo('descrizione', $campi['descrizione'], $formEntity, $errors, ['richiesto' => true, 'colonna' => 'col-md-4', 'attributi' => 'maxlength="100"']) ?>
             <?= Campo::spunta('attivo', $campi['attivo'], $formEntity, $errors, ['colonna' => 'col-md-2']) ?>
+            <?= Campo::selezione('unitaLocale', $campi['unitaLocale'], $formEntity, $errors, $unitaLocali, ['colonna' => 'col-md-8', 'vuota' => '—', 'aiuto' => $aiutoUnitaLocale]) ?>
+            <?php if (count($attivitaSeparate) > 0): ?>
+                <?= Campo::selezione('attivitaIva', $campi['attivitaIva'], $formEntity, $errors, $attivitaSeparate, ['colonna' => 'col-md-8', 'vuota' => $registroPromiscuo, 'aiuto' => $aiutoAttivita]) ?>
+            <?php endif; ?>
         </div>
     </div>
     <?php require __DIR__ . '/../commonParts/pulsantiForm.php'; ?>

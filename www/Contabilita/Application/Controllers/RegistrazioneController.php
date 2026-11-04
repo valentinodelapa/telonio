@@ -10,6 +10,8 @@ use Contabilita\Application\Entities\RigaContabile;
 use Contabilita\Application\Entities\RigaIva;
 use Contabilita\Application\Enumerations\CausaleContabile;
 use Contabilita\Application\Enumerations\EsigibilitaIva;
+use Contabilita\Application\Enumerations\NaturaIva;
+use Contabilita\Application\Enumerations\QualificaOperazione;
 use Contabilita\Application\Enumerations\StatoFatturaElettronica;
 use Contabilita\Application\Enumerations\TipoRegistroIva;
 use Contabilita\Application\Forms\RegistrazioneContabileForm;
@@ -23,6 +25,7 @@ use Contabilita\Application\Models\RegistrazioneContabileModel;
 use Contabilita\Application\Models\RegistroIvaModel;
 use Contabilita\Application\Models\RigaContabileModel;
 use Contabilita\Application\Models\RigaIvaModel;
+use Contabilita\Application\Services\AttivitaSeparate;
 use Contabilita\Application\Services\ControlloRegistrazione;
 use Contabilita\Application\Services\CorrispettiviMensili;
 use Contabilita\Application\Services\FatturaPa\PropostaDaFattura;
@@ -282,6 +285,9 @@ class RegistrazioneController extends ContabilitaController
         $this->vars['erroriRighe'] = $erroriRighe;
         $this->vars['registri'] = $registrazione->causale->isIva() ? iterator_to_array((new RegistroIvaModel($this->dataMapper))->getPerTipo($soggetto, $registrazione->causale->getTipoRegistroIva()), false) : [];
         $this->vars['codiciIva'] = (new CodiceIvaModel($this->dataMapper))->getElenco($this->studio);
+        $this->vars['qualifiche'] = QualificaOperazione::cases();
+        $this->vars['attivitaSeparate'] = (new AttivitaSeparate($this->dataMapper))->getAttivita($soggetto, (int) $registrazione->dataRegistrazione->format('Y'));
+        $this->vars['natureInversione'] = array_values(array_filter(NaturaIva::cases(), fn(NaturaIva $natura) => $natura->isInversioneContabile()));
         $this->vars['esigibilita'] = EsigibilitaIva::cases();
         $this->vars['ventilazione'] = (new RegimeIva($this->dataMapper))->isVentilazione($soggetto, (int) $registrazione->dataRegistrazione->format('Y'))
                 || (count(array_filter($this->vars['datiIva'], fn(array $riga) => in_array($riga['rivendita'] ?? '', ['1', '2'], true))) > 0);
@@ -309,7 +315,8 @@ class RegistrazioneController extends ContabilitaController
         $righe = $dati = [];
         $valide = true;
         $contoModel = new ContoModel($this->dataMapper);
-        foreach (self::righeInviate($request, 'righeIva') as $numero => $input) {
+        foreach (self::righeInviate($request, 'righeIva') as $indiceRiga => $input) {
+            $numero = $indiceRiga;
             if (RigaIvaForm::isVuota($input)) {
                 continue;
             }
@@ -339,6 +346,29 @@ class RegistrazioneController extends ContabilitaController
             if ($registrazione->causale->getTipoRegistroIva() !== TipoRegistroIva::acquisti) {
                 $riga->rivendita = false;
                 $riga->altriProdotti = false;
+                $riga->naturaInversione = null;
+                $riga->aliquotaTeorica = null;
+            } else {
+                $riga->qualifica = null;
+            }
+            // acquisti promiscui tra attività separate: quote per numero di attività (solo nei registri senza attività)
+            $riga->ripartizione = null;
+            $attivita = (new AttivitaSeparate($this->dataMapper))->getAttivita($registrazione->soggetto, (int) $registrazione->dataRegistrazione->format('Y'));
+            if (($registrazione->causale->getTipoRegistroIva() === TipoRegistroIva::acquisti) && (count($attivita) > 0) && ($registrazione->registroIva?->attivitaIva === null)) {
+                $quote = [];
+                foreach ((is_array($input['ripartizione'] ?? null) ? $input['ripartizione'] : []) as $numeroAttivita => $percentuale) {
+                    $percentuale = str_replace(',', '.', trim((string) $percentuale));
+                    if (($percentuale !== '') && is_numeric($percentuale) && ((float) $percentuale > 0)) {
+                        $quote[(int) $numeroAttivita] = (float) $percentuale;
+                    }
+                }
+                $errore = AttivitaSeparate::verificaRipartizione($quote, $attivita);
+                if ($errore !== null) {
+                    $errori[] = 'Riga IVA ' . ($indiceRiga + 1) . ': ' . lcfirst($errore);
+                    $valide = false;
+                    continue;
+                }
+                $riga->ripartizione = RigaIva::scriviRipartizione($quote);
             }
             $riga->imponibile = round($riga->imponibile * $segno, 2);
             $riga->imposta = round($riga->imposta * $segno, 2);
@@ -399,7 +429,7 @@ class RegistrazioneController extends ContabilitaController
     private static function datiRigaIva(RigaIva $riga, int $segno): array
     {
         return ['codiceIva' => (string) $riga->codiceIva->id, 'imponibile' => self::importo($riga->imponibile * $segno), 'imposta' => self::importo($riga->imposta * $segno),
-            'detraibilita' => self::importo($riga->detraibilita), 'rivendita' => $riga->rivendita ? ($riga->altriProdotti ? '2' : '1') : '', 'conto' => $riga->conto === null ? '' : (string) $riga->conto->id, 'contoEtichetta' => $riga->conto?->getEtichetta()];
+            'detraibilita' => self::importo($riga->detraibilita), 'rivendita' => $riga->rivendita ? ($riga->altriProdotti ? '2' : '1') : '', 'naturaInversione' => $riga->naturaInversione?->value ?? '', 'qualifica' => $riga->qualifica?->value ?? '', 'aliquotaTeorica' => $riga->aliquotaTeorica === null ? '' : self::importo($riga->aliquotaTeorica), 'ripartizione' => array_map(fn(float $percentuale) => self::importo($percentuale), $riga->getRipartizione()), 'conto' => $riga->conto === null ? '' : (string) $riga->conto->id, 'contoEtichetta' => $riga->conto?->getEtichetta()];
     }
 
     private static function datiRiga(RigaContabile $riga): array

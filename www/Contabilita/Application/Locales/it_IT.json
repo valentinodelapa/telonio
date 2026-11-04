@@ -93,7 +93,35 @@
                 "dataInvio": "Data di invio",
                 "pagine": "Pagine",
                 "versamentiAuto": "Versamenti auto UE (F24 elementi identificativi)",
-                "creditiImposta": "Crediti d'imposta scomputati"
+                "creditiImposta": "Crediti d'imposta scomputati",
+                "naturaInversione": "Tipologia RC",
+                "qualifica": "Qualifica",
+                "aliquotaTeorica": "Aliq. teor.",
+                "importazione": "Importazione (documento doganale)",
+                "unitaLocale": "Unità locale (luogo di esercizio)",
+                "attivitaIva": "Attività",
+                "numeroAttivita": "Numero (ordine dei moduli)",
+                "codiceAteco": "Codice ATECO 2025",
+                "periodicitaAttivita": "Periodicità dell'attività",
+                "dalAnno": "Dal",
+                "alAnno": "Fino al",
+                "controllante": "Controllante",
+                "annoInizio": "Primo anno della liquidazione di gruppo",
+                "annoRevoca": "Revoca dal",
+                "maggioranza": "Soggetto che possiede la maggioranza della controllante",
+                "dataPossesso": "Possesso dal",
+                "percentualePossesso": "Percentuale di possesso",
+                "controllata": "Società controllata",
+                "annoIngresso": "Ingresso dal",
+                "annoUscita": "Uscita dal",
+                "dataCessazione": "Cessazione del controllo",
+                "detentore": "Chi possiede la maggioranza (se non la controllante)",
+                "detentoreEstero": "Detentore non residente senza partita IVA italiana",
+                "soloCatena": "Solo catena di controllo (non compensa)",
+                "debitiTrasferiti": "Debiti trasferiti",
+                "creditiTrasferiti": "Crediti trasferiti",
+                "trimestre": "trimestre",
+                "creditoTrimestrale": "di cui chiesto con il modello IVA TR (non riportato)"
             },
             "azioni": {
                 "salva": "Salva",
@@ -145,7 +173,8 @@
                 "giornale": "Giornale",
                 "stampeDefinitive": "Stampe definitive",
                 "bilancio": "Bilancio di verifica",
-                "piano": "Piano dei conti"
+                "piano": "Piano dei conti",
+                "gruppoIva": "IVA di gruppo"
             },
             "selezionare": "— Seleziona —",
             "nessuno": "— Nessuno —",
@@ -160,7 +189,12 @@
             "totale": "Totale",
             "si": "sì",
             "no": "no",
-            "corrispettiviMese": "Corrispettivi del mese"
+            "corrispettiviMese": "Corrispettivi del mese",
+            "periodicitaAzienda": "Periodicità dell'azienda",
+            "registroPromiscuo": "Acquisti promiscui (ripartiti tra le attività)",
+            "aiutoRipartizione": "Acquisti promiscui: percentuale attribuita all'attività",
+            "trasferitaAlGruppo": "Risultato trasferito alla liquidazione IVA di gruppo della controllante %s: nessun versamento della società.",
+            "gruppoBadge": "gruppo"
         },
         "azienda": {
             "index": {
@@ -245,7 +279,11 @@
                 "proposta": "Proposta dalla fattura elettronica",
                 "aiutoRivendita": "Acquisto di beni destinati alla rivendita, base della ventilazione dei corrispettivi: \"Rivendita\" per i prodotti delle categorie ammesse (alimentari e dietetici, tessili e vestiario, igiene personale e farmaceutici: art. 1 D.M. 24 febbraio 1973), \"Altri prodotti\" per gli altri beni (limite del 50% degli acquisti, art. 4)",
                 "rivenditaAmmessa": "Rivendita",
-                "rivenditaAltri": "Altri prodotti"
+                "rivenditaAltri": "Altri prodotti",
+                "aiutoNaturaInversione": "Per le integrazioni in inversione contabile: natura N6 della fattura del fornitore (subappalto, rottami, cellulari, energia, ...), che determina il rigo del quadro VJ della dichiarazione IVA. Proposta dall'importazione della fattura elettronica.",
+                "aiutoQualifica": "Solo per le operazioni che la dichiarazione IVA tratta a parte: cessioni di beni ammortizzabili (fuori dal volume d'affari, VE40), esenti occasionali (nn. 1-9) e n. 27-quinquies, oro da investimento, esenti equiparate, non soggette senza diritto alla detrazione (pro-rata, VF34).",
+                "aiutoAliquotaTeorica": "Acquisti con dichiarazione d'intento (N3.5): aliquota dell'IVA non assolta, per il rigo VF35 della dichiarazione con il pro-rata. Se vuota si considera il 22%.",
+                "aiutoImportazione": "Acquisto con bolletta doganale: imponibile e imposta nel rigo VF28 (campi 3 e 4) e, con il plafond, nella colonna 2 del quadro VC."
             },
             "show": {
                 "daFattura": "Dalla fattura elettronica",
@@ -259,10 +297,16 @@
                 "nuovoSezionale": "Nuovo sezionale",
                 "principale": "principale",
                 "stampaMese": "Stampa del mese",
-                "corrispettiviMese": "Corrispettivi del mese"
+                "corrispettiviMese": "Corrispettivi del mese",
+                "titoloAttivita": "Attività con contabilità separata (art. 36)",
+                "aiutoAttivitaSeparate": "Ogni registro o sezionale appartiene a un'attività; liquidazioni distinte e compensate nel periodo, un modulo della dichiarazione IVA per attività.",
+                "nuovaAttivita": "Nuova attività",
+                "contabilitaUnificata": "Contabilità unificata: nessuna attività separata."
             },
             "form": {
-                "aiuto": "Tipo e sezionale non si modificano dopo la creazione."
+                "aiuto": "Tipo e sezionale non si modificano dopo la creazione.",
+                "aiutoUnitaLocale": "Sede in cui si svolgono le operazioni del registro (es. il registro dei corrispettivi di un punto vendita): nella dichiarazione IVA le operazioni verso consumatori finali vanno nella regione della sede (quadro VT).",
+                "aiutoAttivita": "Attività separata a cui appartengono le operazioni del registro; un registro degli acquisti senza attività raccoglie gli acquisti promiscui, da ripartire riga per riga."
             }
         },
         "liquidazioneIva": {
@@ -281,7 +325,15 @@
                 "cessioniFatturate": "Cessioni fatturate sul volume d'affari",
                 "requisitiSuperati": "Limite superato: nell'anno la ventilazione non si applica (rivedere l'opzione nei dati fiscali dell'Anagrafica).",
                 "aiutoRequisiti": "Artt. 4 e 5 D.M. 24 febbraio 1973; escluse le cessioni di immobili e beni strumentali (righe con contropartita patrimoniale). Gli altri prodotti sono gli acquisti per la rivendita di beni fuori dalle categorie ammesse.",
-                "aiutoAltriImporti": "versamenti auto UE e crediti d'imposta si indicano rielaborando dalla liquidazione"
+                "aiutoAltriImporti": "versamenti auto UE e crediti d'imposta si indicano rielaborando dalla liquidazione",
+                "prorataTitolo": "Pro-rata di detrazione provvisorio",
+                "prorataAssente": "Detrazione per intero.",
+                "prorataApplicato": "IVA detraibile ridotta al %d%% nelle liquidazioni.",
+                "prorataDaDichiarazione": "dalla dichiarazione IVA dell'anno precedente",
+                "aiutoProrata": "Per chi effettua anche operazioni esenti (art. 19, c. 5, e 19-bis D.P.R. 633/1972): si applica la percentuale definitiva dell'anno precedente, conguagliata nella dichiarazione annuale. Lasciare vuoto per detrarre per intero.",
+                "anticipaTrimestre": "Anticipa il trimestre",
+                "aiutoAnticipa": "Attività trimestrali: liquidare il trimestre con il mese di fine trimestre (compensazione, termine mensile) o a parte (termine dei trimestrali, codici 6031-6033).",
+                "titoloTrimestreSeparato": "liquidazione separata delle attività trimestrali"
             },
             "common": {
                 "titoloVentilazione": "Ventilazione dei corrispettivi",
@@ -299,7 +351,8 @@
                     "creditoAnnoPrecedente": "Cred. anno prec.",
                     "versamentiAuto": "Auto UE",
                     "creditiImposta": "Crediti d'imp."
-                }
+                },
+                "titoloAttivita": "Attività separate"
             }
         },
         "accontoIva": {
@@ -390,6 +443,47 @@
                 "nienteDaStampare": "Prossima stampa dal",
                 "confermaRegistra": "La stampa definitiva numera le pagine e blocca le registrazioni del periodo. Proseguire?",
                 "confermaAnnulla": "Annullare la stampa definitiva? Le pagine già stampate andranno distrutte."
+            }
+        },
+        "attivitaIva": {
+            "form": {
+                "aiuto": "Attività gestita con contabilità separata per obbligo di legge o per opzione (art. 36 D.P.R. 633/1972). Il numero dà l'ordine dei moduli della dichiarazione IVA.",
+                "aiutoAteco": "Codice del rigo VA2 del modulo dell'attività.",
+                "aiutoPeriodicita": "Solo se la separazione è obbligatoria e il volume d'affari dell'attività ne determina una diversa da quella dell'azienda: le attività trimestrali si liquidano nel mese di fine trimestre (liquidazione anticipata)."
+            }
+        },
+        "gruppoIva": {
+            "index": {
+                "aiuto": "Liquidazione IVA di gruppo (art. 73, c. 3, D.P.R. 633/1972; D.M. 13 dicembre 1979): le società partecipanti trasferiscono alla controllante il risultato delle loro liquidazioni, la controllante liquida e versa per il gruppo.",
+                "nuovoGruppo": "Opzione per l'IVA di gruppo",
+                "partecipaA": "Partecipa alla liquidazione IVA di gruppo della controllante %s dal %d",
+                "uscitaDal": ", uscita dal %d",
+                "nessunGruppo": "La società non è controllante di un gruppo IVA.",
+                "gruppoNonAttivo": "Nessun gruppo IVA attivo nell'anno.",
+                "titoloPartecipanti": "Società partecipanti",
+                "nuovaControllata": "Aggiungi controllata",
+                "titoloLiquidazioni": "Liquidazioni del gruppo",
+                "aiutoLiquidazioni": "Elaborare prima le liquidazioni di tutte le società (trasferite al gruppo), poi quella del gruppo; i saldi delle società trimestrali entrano nel mese di fine trimestre.",
+                "accontoGruppo": "Acconto IVA del gruppo",
+                "accontoNonCalcolato": "Acconto non calcolato.",
+                "calcolaAcconto": "Calcola l'acconto",
+                "comunicazioniGruppo": "Comunicazioni delle liquidazioni del gruppo",
+                "anticipaTrimestre": "Anticipa il trimestre",
+                "aiutoAnticipa": "Società trimestrali: il loro trimestre nella liquidazione di gruppo del mese di fine trimestre o in una liquidazione di gruppo separata (termine dei trimestrali).",
+                "titoloTrimestreSeparato": "liquidazione di gruppo separata delle società trimestrali"
+            },
+            "form": {
+                "aiuto": "L'opzione si comunica nel quadro VG della dichiarazione IVA presentata nel primo anno della liquidazione di gruppo e vale fino a revoca.",
+                "aiutoAnnoInizio": "Il controllo deve sussistere dal 1° luglio dell'anno precedente.",
+                "aiutoRevoca": "Primo anno senza liquidazione di gruppo (VG8).",
+                "titoloMaggioranza": "Maggioranza della controllante (rigo VG1)",
+                "aiutoMaggioranza": "Solo se la maggioranza della controllante è posseduta da un soggetto che rinuncia alla liquidazione di gruppo."
+            },
+            "partecipante": {
+                "aiuto": "Società controllata (s.p.a., s.a.p.a., s.r.l., s.n.c., s.a.s.) di cui la controllante possiede più del 50% del capitale dal 1° luglio dell'anno precedente; il requisito si verifica sui legami \"socio\" dell'Anagrafica.",
+                "aiutoUscita": "Fuoriuscita dal 1° gennaio (VG campo 4).",
+                "aiutoCessazione": "Cessazione del controllo in corso d'anno: le liquidazioni del mese (o trimestre) e successive non si trasferiscono.",
+                "aiutoDetentore": "Società della catena che possiede la maggioranza (VG campo 5)."
             }
         }
     }

@@ -40,6 +40,7 @@ class RegistrazioneContabile extends ReferencedEntity
     protected ?SismaDate $dataCompetenzaIva = null;
     protected EsigibilitaIva $esigibilita = EsigibilitaIva::immediata;
     protected ?float $totaleDocumento = null;
+    protected bool $importazione = false;
     protected ?string $origine = null;
     protected ?string $riferimentoOrigine = null;
     protected SismaDateTime $dataInserimento;

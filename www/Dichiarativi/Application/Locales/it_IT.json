@@ -1,0 +1,139 @@
+{
+    "pages": {
+        "common": {
+            "campi": {
+                "contribuente": "Contribuente",
+                "anno": "Anno d'imposta",
+                "annoImposta": "anno d'imposta",
+                "dichiarazioni": "Dichiarazioni dell'anno",
+                "modello": "Modello",
+                "stato": "Stato",
+                "scadenza": "Scadenza",
+                "naturaGiuridica": "Natura giuridica",
+                "dichiarante": "Sottoscrittore (se diverso dal contribuente)",
+                "intermediario": "Intermediario che trasmette",
+                "impegno": "Impegno alla presentazione",
+                "dataImpegno": "Data dell'impegno",
+                "flagConferma": "Trasmettere confermando i dati non coerenti (flag conferma)",
+                "dataPresentazione": "Data di presentazione",
+                "protocollo": "Protocollo telematico",
+                "rigo": "Rigo",
+                "descrizione": "Descrizione",
+                "valore": "Valore",
+                "ripristina": "Ripristina",
+                "tipologia": "Tipo di dichiarazione",
+                "codiceCarica": "Codice di carica",
+                "annotazioni": "Annotazioni",
+                "vistoProfessionista": "Visto di conformità (professionista)",
+                "esoneroVisto": "Esonero dal visto di conformità (premialità ISA)",
+                "tipoSottoscrizione": "Soggetto dell'organo di controllo",
+                "tipoModulo": "Tipo di modulo",
+                "soggettoFonte": "Soggetto da cui proporlo (operazioni straordinarie)",
+                "modalitaSaldo": "Versamento del saldo",
+                "numeroRate": "Rate",
+                "dataDifferimento": "Data del versamento differito",
+                "maggiorazioneUlteriore": "Nei 30 giorni successivi al termine (ulteriore 0,40%)",
+                "vistoCaf": "Visto di conformità del CAF",
+                "vistoResponsabileCaf": "Responsabile dell'assistenza fiscale del CAF",
+                "dataOperazione": "Data dell'operazione",
+                "trimestre": "trimestre",
+                "attestazionePatrimoniale": "Dichiarazione sostitutiva dell'art. 38-bis, c. 3 (condizioni patrimoniali)",
+                "adempimentoCollaborativo": "Adempimento collaborativo",
+                "concordatoBiennale": "Concordato preventivo biennale"
+            },
+            "azioni": {
+                "cerca": "Cerca",
+                "apri": "Apri",
+                "proponi": "Proponi la dichiarazione",
+                "riproponi": "Riproponi i quadri",
+                "stampa": "Stampa",
+                "fileTelematico": "File telematico",
+                "elimina": "Elimina",
+                "registraVersamenti": "Registra saldo e credito in Deleghe",
+                "segnaPresentata": "Segna presentata",
+                "riportaBozza": "Riporta in bozza",
+                "modificaQuadro": "Modifica il quadro",
+                "salva": "Salva",
+                "annulla": "Annulla",
+                "aggiungi": "Aggiungi",
+                "aggiungiModulo": "Aggiungi modulo",
+                "eliminaModulo": "Elimina il modulo"
+            },
+            "confermaElimina": "Eliminare la dichiarazione? Sono eliminati anche i valori dei quadri e il saldo registrato in Deleghe (se non già in una delega confermata).",
+            "daVersare": "da versare",
+            "nessuno": "— Nessuno —",
+            "nessuna": "— Nessuna —",
+            "campiObbligatori": "I campi con * sono obbligatori.",
+            "badgeManuale": "a mano",
+            "segnapostoSoggetto": "Cerca nell'Anagrafica…"
+        },
+        "contribuenteDichiarativi": {
+            "index": {
+                "pageTitle": "Dichiarazioni fiscali",
+                "aiuto": "Scegli il contribuente: la dichiarazione IVA è proposta dalla Contabilità dell'anno, i versamenti e i crediti risultanti sono registrati in Deleghe F24.",
+                "segnapostoRicerca": "Cerca per nominativo, codice fiscale o partita IVA",
+                "etichettaTutti": "Includi i soggetti non clienti",
+                "nessunRisultato": "Nessun contribuente trovato.",
+                "risultati": "contribuenti",
+                "nessunaDichiarazione": "nessuna"
+            },
+            "show": {
+                "schedaAnagrafica": "Scheda anagrafica",
+                "sezioneDichiarazioni": "Dichiarazioni",
+                "nonDovuta": "Non dovuta",
+                "modelloInArrivo": "Modello non ancora gestito dal modulo",
+                "daPredisporre": "Da predisporre",
+                "aiutoDichiarazioni": "La proposta compila i quadri dai dati della suite; i valori corretti a mano restano tali anche nelle proposte successive. La scadenza è il termine ordinario di presentazione telematica.",
+                "sezioneVersamenti": "Versamenti registrati per le deleghe F24",
+                "nessunVersamento": "Nessun versamento registrato dalle dichiarazioni dell'anno."
+            }
+        },
+        "dichiarazione": {
+            "common": {
+                "titoloFrontespizio": "Frontespizio"
+            },
+            "show": {
+                "presentataIl": "presentata il",
+                "propostaIl": "proposta il",
+                "titoloSegnalazioni": "Dati non coerenti con i controlli di rispondenza delle specifiche tecniche: correggerli, oppure confermarli nel frontespizio per generare il file.",
+                "segnalazioniConfermate": "Dati non coerenti confermati nel frontespizio (flag conferma):",
+                "titoloAvvisi": "Avvisi della proposta",
+                "titoloRisultato": "Risultato della dichiarazione",
+                "rigoVx1": "IVA da versare (VX1)",
+                "rigoVx2": "IVA a credito (VX2)",
+                "rigoVx5": "Credito da riportare o compensare (VX5)",
+                "creditoRegistrato": "Credito in Deleghe",
+                "compensabileDal": "compensabile dal",
+                "aiutoVersamenti": "Il saldo (6099) si registra nell'archivio di Deleghe F24 nella modalità scelta: entro il 16 marzo, a rate mensili (piano di rateazione con gli interessi) o differito al termine del saldo delle imposte sui redditi con lo 0,40% per mese o frazione dal 16 marzo. Il credito fino a 5.000 euro si registra subito, oltre alla presentazione; con il pro-rata la percentuale diventa quella provvisoria dell'anno successivo in Contabilità.",
+                "aiutoTelematico": "Il file è la fornitura da controllare con il software di controllo dell'Agenzia delle Entrate e da trasmettere con Entratel; poi si annotano data e protocollo della ricevuta.",
+                "quadroVuoto": "Nessun dato nel quadro.",
+                "aiutoManuale": "Valore inserito o corretto a mano: la proposta non lo modifica.",
+                "titoloOrganoControllo": "Organo di controllo",
+                "nessunaSottoscrizione": "Nessuna sottoscrizione dell'organo di controllo.",
+                "aiutoOrganoControllo": "In alternativa al visto di conformità: revisore (1), responsabile della revisione (2) e società di revisione (3, senza firma), membri del collegio sindacale (4).",
+                "aiutoProponiOrgano": "Proponi dai legami dell'Anagrafica (revisore e sindaci in carica)",
+                "percentualeDetrazione": "Pro-rata di detrazione (VF34)",
+                "altroQuadro": "Altro quadro",
+                "confermaEliminaModulo": "Eliminare il modulo con tutti i suoi valori? I moduli successivi sono rinumerati.",
+                "aiutoModuli": "Modulo per ogni attività con contabilità separata (compilato a mano), per ogni soggetto partecipante a un'operazione straordinaria (proposto dalla sua contabilità, partita IVA nel VA1) o per la prima frazione d'anno della procedura concorsuale (VA3). I risultati del quadro VL e il quadro VX seguono le regole delle specifiche per più moduli. Per le operazioni straordinarie la data dell'operazione limita le operazioni e le liquidazioni proposte del soggetto a quelle precedenti.",
+                "rigoVx7": "IVA dovuta trasferita al gruppo (VX7)",
+                "rigoVx8": "IVA a credito trasferita al gruppo (VX8)",
+                "rigoVy1": "IVA del gruppo da versare (VY1)",
+                "rigoVy5": "Credito del gruppo da riportare o compensare (VY5)"
+            },
+            "quadro": {
+                "aiutoQuadro": "I valori modificati diventano manuali e la proposta non li sovrascrive; spuntare \"Ripristina\" per tornare al valore proposto. Dopo il salvataggio i totali sono ricalcolati. Importi in unità di euro.",
+                "senzaFormato": "formato non indicato dalle specifiche",
+                "aiutoRipristina": "Torna al valore proposto"
+            },
+            "form": {
+                "aiutoDichiarante": "Per società ed enti il rappresentante legale (proposto dai legami dell'Anagrafica); per le persone fisiche solo se firma un altro soggetto (tutore, erede, ...).",
+                "aiutoConferma": "Da spuntare solo dopo aver verificato i dati segnalati come non coerenti: l'Agenzia accetta la dichiarazione con il flag di conferma.",
+                "aiutoVisto": "Per compensare crediti oltre 5.000 euro o chiedere rimborsi oltre 30.000 euro senza garanzia; in alternativa la sottoscrizione dell'organo di controllo (nella dichiarazione).",
+                "aiutoEsonero": "Contribuenti con il punteggio ISA che dà diritto all'esonero dal visto (art. 9-bis, c. 11, D.L. 50/2017).",
+                "aiutoVistoCaf": "In alternativa al professionista: il CAF imprese (codice fiscale numerico) e il suo responsabile dell'assistenza fiscale, dall'Anagrafica.",
+                "aiutoAttestazione": "Con il visto o la sottoscrizione dell'organo di controllo esonera dalla garanzia i rimborsi oltre 30.000 euro (patrimonio netto, cessioni di quote, contributi versati)."
+            }
+        }
+    }
+}

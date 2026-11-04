@@ -14,7 +14,10 @@ use SismaFramework\Orm\HelperClasses\DataMapper;
  * 2024): XML in UTF-8, validato sullo schema ufficiale prima del
  * download. Il file va firmato (con la firma digitale o il sistema
  * dell'intermediario) e trasmesso con Entratel o dal portale Fatture e
- * corrispettivi.
+ * corrispettivi. Per l'IVA di gruppo il frontespizio delle società
+ * partecipanti indica la partita IVA della controllante (e l'ultimo mese
+ * di controllo quando il controllo cessa), quello della comunicazione del
+ * gruppo la casella "Liquidazione del gruppo".
  */
 class GeneratoreLipe
 {
@@ -146,6 +149,10 @@ class GeneratoreLipe
         $this->aggiungi($frontespizio, 'CodiceFiscale', $soggetto->codiceFiscale);
         $this->aggiungi($frontespizio, 'AnnoImposta', (string) $comunicazione->anno);
         $this->aggiungi($frontespizio, 'PartitaIVA', $soggetto->partitaIva);
+        [$partitaIvaControllante, $ultimoMese] = (new PreparazioneLipe($this->dataMapper))->getDatiGruppo($comunicazione, $this->getModuli($comunicazione));
+        $this->aggiungi($frontespizio, 'PIVAControllante', $partitaIvaControllante);
+        $this->aggiungi($frontespizio, 'UltimoMese', ($ultimoMese ?? 0) < 1 ? null : (string) $ultimoMese);
+        $this->aggiungi($frontespizio, 'LiquidazioneGruppo', $comunicazione->gruppoIva === null ? null : '1');
         if ($comunicazione->dichiarante !== null) {
             $this->aggiungi($frontespizio, 'CFDichiarante', $comunicazione->dichiarante->codiceFiscale);
             $this->aggiungi($frontespizio, 'CodiceCaricaDichiarante', $comunicazione->codiceCarica->value);
@@ -165,8 +172,10 @@ class GeneratoreLipe
         $this->aggiungi($nodo, 'NumeroModulo', (string) $modulo->numeroModulo);
         $this->aggiungi($nodo, 'Mese', $modulo->mese === null ? null : (string) $modulo->mese);
         $this->aggiungi($nodo, 'Trimestre', $modulo->trimestre === null ? null : (string) $modulo->trimestre);
-        $this->aggiungi($nodo, 'TotaleOperazioniAttive', self::importo($modulo->operazioniAttive, true));
-        $this->aggiungi($nodo, 'TotaleOperazioniPassive', self::importo($modulo->operazioniPassive, true));
+        // comunicazione del gruppo: righi VP2 e VP3 non compilati
+        $gruppo = $modulo->liquidazioneGruppoIva !== null;
+        $this->aggiungi($nodo, 'TotaleOperazioniAttive', $gruppo ? null : self::importo($modulo->operazioniAttive, true));
+        $this->aggiungi($nodo, 'TotaleOperazioniPassive', $gruppo ? null : self::importo($modulo->operazioniPassive, true));
         $this->aggiungi($nodo, 'IvaEsigibile', self::importo($modulo->ivaEsigibile, true));
         $this->aggiungi($nodo, 'IvaDetratta', self::importo($modulo->ivaDetratta, true));
         $ivaPeriodo = $modulo->getIvaPeriodo();

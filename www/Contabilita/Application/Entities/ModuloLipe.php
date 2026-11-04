@@ -21,6 +21,7 @@ class ModuloLipe extends BaseEntity
     protected ?int $mese = null;
     protected ?int $trimestre = null;
     protected ?LiquidazioneIva $liquidazioneIva = null;
+    protected ?LiquidazioneGruppoIva $liquidazioneGruppoIva = null;
     protected float $operazioniAttive = 0.0;
     protected float $operazioniPassive = 0.0;
     protected float $ivaEsigibile = 0.0;
@@ -51,7 +52,7 @@ class ModuloLipe extends BaseEntity
     public function getDescrizionePeriodo(): string
     {
         if ($this->mese !== null) {
-            return LiquidazioneIva::descriviPeriodo(PeriodicitaIva::mensile, $this->comunicazioneLipe->anno, $this->mese);
+            return LiquidazioneIva::descriviPeriodo(PeriodicitaIva::mensile, $this->comunicazioneLipe->anno, $this->mese) . ($this->trimestre === null ? '' : ' e ' . $this->trimestre . '° trimestre');
         }
         return LiquidazioneIva::descriviPeriodo(PeriodicitaIva::trimestrale, $this->comunicazioneLipe->anno, $this->isQuartoTrimestreTrimestrali() ? 4 : (int) $this->trimestre);
     }
