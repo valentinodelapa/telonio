@@ -73,4 +73,39 @@ require Layout::percorso('header');
         </ul>
     <?php endif; ?>
 </div>
+
+<div class="card shadow-sm mt-3">
+    <div class="card-header bg-white fw-semibold d-flex align-items-center">
+        <span class="me-auto"><?= Html::e($sezioneAccertamenti) ?></span>
+        <a href="/atto-accertamento/create/soggetto/<?= Html::e($soggetto->id) ?>/anno/<?= Html::e($anno) ?>" class="btn btn-sm btn-outline-primary"><i class="bi bi-plus-lg me-1"></i><?= Html::e($azioni['aggiungi']) ?></a>
+    </div>
+    <?php if (count($atti) === 0): ?>
+        <div class="card-body small text-body-secondary"><?= Html::e($nessunAtto) ?></div>
+    <?php else: ?>
+        <div class="table-responsive">
+            <table class="table mb-0 align-middle small">
+                <thead class="table-light">
+                    <tr><th><?= Html::e($campi['dataNotifica']) ?></th><th><?= Html::e($campi['annoImposta']) ?></th><th><?= Html::e($campi['estremiAtto']) ?></th><th class="text-end"><?= Html::e($campi['importoDichiarato']) ?></th><th class="text-end"><?= Html::e($campi['importoAccertato']) ?></th><th></th><th></th></tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($atti as $atto): ?>
+                        <tr>
+                            <td><?= Html::data($atto->dataNotifica) ?></td>
+                            <td><?= Html::e($atto->annoImposta) ?></td>
+                            <td><?= Html::e($atto->estremi ?? '') ?></td>
+                            <td class="text-end text-nowrap"><?= Html::e(Importo::euro($atto->importoDichiarato)) ?></td>
+                            <td class="text-end text-nowrap"><?= Html::e(Importo::euro($atto->importoAccertato)) ?></td>
+                            <td><?php if ($atto->isOltreSoglia()): ?><span class="badge text-bg-warning"><?= Html::e($oltreSoglia) ?></span><?php endif; ?></td>
+                            <td class="text-end text-nowrap">
+                                <a href="/atto-accertamento/update/atto/<?= Html::e($atto->id) ?>/anno/<?= Html::e($anno) ?>" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+                                <form method="post" action="/atto-accertamento/delete/atto/<?= Html::e($atto->id) ?>/anno/<?= Html::e($anno) ?>" class="d-inline" data-conferma="<?= Html::e($confermaElimina) ?>"><?= $campoCsrf ?><button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    <?php endif; ?>
+    <div class="card-footer bg-white small text-body-secondary"><?= Html::e($aiutoAccertamenti) ?></div>
+</div>
 <?php require Layout::percorso('footer'); ?>

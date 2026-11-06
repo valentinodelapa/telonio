@@ -286,6 +286,8 @@ class RegistrazioneController extends ContabilitaController
         $this->vars['registri'] = $registrazione->causale->isIva() ? iterator_to_array((new RegistroIvaModel($this->dataMapper))->getPerTipo($soggetto, $registrazione->causale->getTipoRegistroIva()), false) : [];
         $this->vars['codiciIva'] = (new CodiceIvaModel($this->dataMapper))->getElenco($this->studio);
         $this->vars['qualifiche'] = QualificaOperazione::cases();
+        $this->vars['percentualiCompensazione'] = RigaIva::PERCENTUALI_COMPENSAZIONE;
+        $this->vars['regimeAgricolo'] = (new AttivitaSeparate($this->dataMapper))->hasCompensazione($soggetto, (int) $registrazione->dataRegistrazione->format('Y'));
         $this->vars['attivitaSeparate'] = (new AttivitaSeparate($this->dataMapper))->getAttivita($soggetto, (int) $registrazione->dataRegistrazione->format('Y'));
         $this->vars['natureInversione'] = array_values(array_filter(NaturaIva::cases(), fn(NaturaIva $natura) => $natura->isInversioneContabile()));
         $this->vars['esigibilita'] = EsigibilitaIva::cases();
@@ -348,8 +350,10 @@ class RegistrazioneController extends ContabilitaController
                 $riga->altriProdotti = false;
                 $riga->naturaInversione = null;
                 $riga->aliquotaTeorica = null;
+                $riga->operazioneDiversa = false;
             } else {
                 $riga->qualifica = null;
+                $riga->percentualeCompensazione = null;
             }
             // acquisti promiscui tra attività separate: quote per numero di attività (solo nei registri senza attività)
             $riga->ripartizione = null;
@@ -429,7 +433,7 @@ class RegistrazioneController extends ContabilitaController
     private static function datiRigaIva(RigaIva $riga, int $segno): array
     {
         return ['codiceIva' => (string) $riga->codiceIva->id, 'imponibile' => self::importo($riga->imponibile * $segno), 'imposta' => self::importo($riga->imposta * $segno),
-            'detraibilita' => self::importo($riga->detraibilita), 'rivendita' => $riga->rivendita ? ($riga->altriProdotti ? '2' : '1') : '', 'naturaInversione' => $riga->naturaInversione?->value ?? '', 'qualifica' => $riga->qualifica?->value ?? '', 'aliquotaTeorica' => $riga->aliquotaTeorica === null ? '' : self::importo($riga->aliquotaTeorica), 'ripartizione' => array_map(fn(float $percentuale) => self::importo($percentuale), $riga->getRipartizione()), 'conto' => $riga->conto === null ? '' : (string) $riga->conto->id, 'contoEtichetta' => $riga->conto?->getEtichetta()];
+            'detraibilita' => self::importo($riga->detraibilita), 'rivendita' => $riga->rivendita ? ($riga->altriProdotti ? '2' : '1') : '', 'naturaInversione' => $riga->naturaInversione?->value ?? '', 'qualifica' => $riga->qualifica?->value ?? '', 'percentualeCompensazione' => $riga->percentualeCompensazione === null ? '' : self::importo($riga->percentualeCompensazione), 'operazioneDiversa' => $riga->operazioneDiversa ? '1' : '', 'aliquotaTeorica' => $riga->aliquotaTeorica === null ? '' : self::importo($riga->aliquotaTeorica), 'ripartizione' => array_map(fn(float $percentuale) => self::importo($percentuale), $riga->getRipartizione()), 'conto' => $riga->conto === null ? '' : (string) $riga->conto->id, 'contoEtichetta' => $riga->conto?->getEtichetta()];
     }
 
     private static function datiRiga(RigaContabile $riga): array

@@ -3,8 +3,11 @@
 namespace Contabilita\Application\Services;
 
 use Anagrafica\Application\Entities\Soggetto;
+use Anagrafica\Application\Enumerations\RegimeDetrazioneIva;
 use Contabilita\Application\Entities\AttivitaIva;
+use Contabilita\Application\Entities\RigaIva;
 use Contabilita\Application\Enumerations\EsigibilitaIva;
+use Contabilita\Application\Enumerations\QualificaOperazione;
 use Contabilita\Application\Enumerations\TipoRegistroIva;
 use Contabilita\Application\Models\ProrataIvaModel;
 use Contabilita\Application\Models\RigaIvaModel;
@@ -28,6 +31,16 @@ use SismaFramework\Orm\HelperClasses\DataMapper;
  * liquidazione. Con le attività separate (art. 36) il calcolo è per
  * attività: righe dei suoi registri, quote degli acquisti promiscui e
  * pro-rata dell'attività.
+ *
+ * Nei regimi speciali agricoli gli acquisti non si detraggono:
+ *
+ * - regime dell'art. 34: detrazione forfetizzata con la percentuale di
+ *   compensazione sulle cessioni di prodotti agricoli (anche non imponibili:
+ *   IVA teorica, c. 9), più l'imposta degli acquisti destinati alle
+ *   operazioni diverse delle imprese miste (c. 5) e il 50% delle attività
+ *   connesse occasionali (art. 34-bis);
+ * - art. 34-bis, agriturismo, enoturismo, oleoturismo e associazioni:
+ *   quota forfetaria dell'imposta sulle operazioni imponibili.
  */
 class CalcoloLiquidazioneIva
 {
@@ -43,6 +56,7 @@ class CalcoloLiquidazioneIva
         $differite = $nonRipartite = [];
         $anno = (int) $dal->format('Y');
         $separate = new AttivitaSeparate($this->dataMapper);
+        $regime = $separate->getRegimeDetrazione($soggetto, $anno, $attivita);
         foreach ((new RigaIvaModel($this->dataMapper))->getPerPeriodo($soggetto, $dal, $al) as $riga) {
             $quota = 1.0;
             if ($attivita !== null) {
@@ -63,8 +77,13 @@ class CalcoloLiquidazioneIva
                 'imponibile' => 0.0, 'imposta' => 0.0, 'esigibile' => 0.0, 'detraibile' => 0.0];
             $voce['imponibile'] += $riga->imponibile * $quota;
             $voce['imposta'] += $riga->imposta * $quota;
+            if ($regime !== null) {
+                $voce['detraibile'] += self::getDetrazioneRegime($riga, $regime, $risultato) * $quota;
+            }
             if ($tipo === TipoRegistroIva::acquisti) {
-                $voce['detraibile'] += $riga->getImpostaDetraibile() * $quota;
+                if ($regime === null) {
+                    $voce['detraibile'] += $riga->getImpostaDetraibile() * $quota;
+                }
                 if ($riga->codiceIva->inversioneContabile) {
                     $voce['esigibile'] += $riga->imposta * $quota;
                 }
@@ -86,7 +105,7 @@ class CalcoloLiquidazioneIva
         $risultato->ivaEsigibile = round($risultato->ivaEsigibile, 2);
         $risultato->ivaDetraibile = round($risultato->ivaDetraibile, 2);
         $prorata = (new ProrataIvaModel($this->dataMapper))->getPerAnno($soggetto, $anno, $attivita);
-        if (($prorata !== null) && ($prorata->percentuale < 100)) {
+        if (($regime === null) && ($prorata !== null) && ($prorata->percentuale < 100)) {
             $intera = $risultato->ivaDetraibile;
             $risultato->ivaDetraibile = $prorata->applica($intera);
             $risultato->percentualeDetrazione = $prorata->percentuale;
@@ -100,5 +119,32 @@ class CalcoloLiquidazioneIva
             $risultato->avvisi[] = 'IVA a esigibilità differita esclusa (diventa esigibile all\'incasso, da liquidare a parte): ' . implode('; ', $differite) . '.';
         }
         return $risultato;
+    }
+
+    /**
+     * Imposta detraibile della riga nel regime speciale agricolo.
+     */
+    private static function getDetrazioneRegime(RigaIva $riga, RegimeDetrazioneIva $regime, RisultatoLiquidazione $risultato): float
+    {
+        $acquisto = $riga->registroIva->tipo === TipoRegistroIva::acquisti;
+        $quotaForfetaria = $regime->getQuotaForfetaria();
+        if ($quotaForfetaria !== null) {
+            return $acquisto ? 0.0 : round($riga->imposta * $quotaForfetaria, 2);
+        }
+        if ($acquisto) {
+            return $riga->operazioneDiversa ? $riga->getImpostaDetraibile() : 0.0;
+        }
+        if ($riga->qualifica === QualificaOperazione::connessaOccasionale) {
+            return round($riga->imposta * 0.5, 2);
+        }
+        $percentuale = $riga->percentualeCompensazione ?? ($riga->qualifica === QualificaOperazione::conferimentoAgricolo ? $riga->codiceIva->aliquota : null);
+        if ($percentuale === null) {
+            return 0.0;
+        }
+        $detrazione = round($riga->imponibile * $percentuale / 100, 2);
+        if ($riga->codiceIva->natura !== null) {
+            $risultato->ivaTeorica = round($risultato->ivaTeorica + $detrazione, 2);
+        }
+        return $detrazione;
     }
 }

@@ -1,6 +1,7 @@
 <?php
 
 use Anagrafica\Application\Enumerations\PeriodicitaIva;
+use Anagrafica\Application\Enumerations\RegimeDetrazioneIva;
 use Anagrafica\Application\Enumerations\RegimeFiscale;
 use Anagrafica\Application\Enumerations\TipoAttivita;
 use Anagrafica\Application\Enumerations\TipoSoggetto;
@@ -20,6 +21,11 @@ $regimiAmmessi = RegimeFiscale::perSoggetto($soggetto->tipoSoggetto, TipoAttivit
 <?= Campo::spunta('soggettoIsa', $campi['soggettoIsa'], $origineRegime, $erroriRegime, ['colonna' => 'col-md-6']) ?>
 <?= Campo::spunta('sostitutoImposta', $campi['sostitutoImposta'], $origineRegime, $erroriRegime, ['colonna' => 'col-md-6']) ?>
 <?= Campo::spunta('ventilazioneCorrispettivi', $campi['ventilazioneCorrispettivi'], $origineRegime, $erroriRegime, ['colonna' => 'col-md-6']) ?>
+<?= Campo::selezioneEnum('regimeDetrazioneIva', $campi['regimeDetrazioneIva'], $origineRegime, $erroriRegime, RegimeDetrazioneIva::cases(), ['vuota' => $campi['nessunRegimeDetrazione'], 'colonna' => 'col-md-6']) ?>
+<?= Campo::spunta('nonResidenteIva', $campi['nonResidenteIva'], $origineRegime, $erroriRegime, ['colonna' => 'col-md-6']) ?>
+<?= Campo::spunta('gruppoIvaArt70bis', $campi['gruppoIvaArt70bis'], $origineRegime, $erroriRegime, ['colonna' => 'col-md-6']) ?>
+<?= Campo::spunta('startupInnovativa', $campi['startupInnovativa'], $origineRegime, $erroriRegime, ['colonna' => 'col-md-6']) ?>
+<?= Campo::data('dataInizioAttivita', $campi['dataInizioAttivita'], $origineRegime, $erroriRegime, ['colonna' => 'col-md-4']) ?>
 <?php if ($soggetto->tipoSoggetto === TipoSoggetto::societaCapitali): ?>
     <?= Campo::spunta('trasparenzaFiscale', $campi['trasparenzaFiscale'], $origineRegime, $erroriRegime, ['colonna' => 'col-md-6']) ?>
 <?php endif; ?>

@@ -39,7 +39,12 @@
                 "trimestre": "trimestre",
                 "attestazionePatrimoniale": "Dichiarazione sostitutiva dell'art. 38-bis, c. 3 (condizioni patrimoniali)",
                 "adempimentoCollaborativo": "Adempimento collaborativo",
-                "concordatoBiennale": "Concordato preventivo biennale"
+                "concordatoBiennale": "Concordato preventivo biennale",
+                "dataNotifica": "Data di notifica",
+                "estremiAtto": "Estremi dell'atto",
+                "importoDichiarato": "Importo dichiarato",
+                "importoAccertato": "Importo accertato",
+                "verificaAccertamenti": "Verificati gli atti notificati nei due anni precedenti"
             },
             "azioni": {
                 "cerca": "Cerca",
@@ -85,7 +90,11 @@
                 "daPredisporre": "Da predisporre",
                 "aiutoDichiarazioni": "La proposta compila i quadri dai dati della suite; i valori corretti a mano restano tali anche nelle proposte successive. La scadenza è il termine ordinario di presentazione telematica.",
                 "sezioneVersamenti": "Versamenti registrati per le deleghe F24",
-                "nessunVersamento": "Nessun versamento registrato dalle dichiarazioni dell'anno."
+                "nessunVersamento": "Nessun versamento registrato dalle dichiarazioni dell'anno.",
+                "sezioneAccertamenti": "Atti di accertamento",
+                "nessunAtto": "Nessun atto in archivio.",
+                "oltreSoglia": "Oltre soglia",
+                "aiutoAccertamenti": "Per i rimborsi IVA oltre 30.000 euro: un atto notificato nei due anni precedenti con la differenza oltre il 10%, il 5% o l'1% del dichiarato rende dovuta la garanzia (art. 38-bis, c. 4, lett. b)."
             }
         },
         "dichiarazione": {
@@ -132,7 +141,13 @@
                 "aiutoVisto": "Per compensare crediti oltre 5.000 euro o chiedere rimborsi oltre 30.000 euro senza garanzia; in alternativa la sottoscrizione dell'organo di controllo (nella dichiarazione).",
                 "aiutoEsonero": "Contribuenti con il punteggio ISA che dà diritto all'esonero dal visto (art. 9-bis, c. 11, D.L. 50/2017).",
                 "aiutoVistoCaf": "In alternativa al professionista: il CAF imprese (codice fiscale numerico) e il suo responsabile dell'assistenza fiscale, dall'Anagrafica.",
-                "aiutoAttestazione": "Con il visto o la sottoscrizione dell'organo di controllo esonera dalla garanzia i rimborsi oltre 30.000 euro (patrimonio netto, cessioni di quote, contributi versati)."
+                "aiutoAttestazione": "Con il visto o la sottoscrizione dell'organo di controllo esonera dalla garanzia i rimborsi oltre 30.000 euro (patrimonio netto, cessioni di quote, contributi versati).",
+                "aiutoVerificaAccertamenti": "Da spuntare dopo aver controllato gli atti del contribuente: senza la spunta i rimborsi oltre 30.000 euro restano con l'avviso, anche se l'archivio è vuoto."
+            }
+        },
+        "attoAccertamento": {
+            "form": {
+                "aiutoDichiarato": "L'imposta dovuta o il credito dichiarato per l'anno."
             }
         }
     }

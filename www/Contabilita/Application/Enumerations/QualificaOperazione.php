@@ -17,6 +17,9 @@ enum QualificaOperazione: string
     case beneAmmortizzabile = 'A';
     case esenteEquiparata = 'P';
     case fuoriCampoSenzaDetrazione = 'F';
+    case prestazioneNonStabiliti = 'S';
+    case conferimentoAgricolo = 'C';
+    case connessaOccasionale = 'K';
 
     public function getLabel(): string
     {
@@ -27,6 +30,9 @@ enum QualificaOperazione: string
             self::beneAmmortizzabile => 'Cessione di bene ammortizzabile o passaggio interno (VE40; esente: VF34 campo 4)',
             self::esenteEquiparata => 'Esente equiparata alle imponibili (art. 19, c. 3, lett. a-bis e d-bis; VF34 campo 7)',
             self::fuoriCampoSenzaDetrazione => 'Non soggetta senza diritto alla detrazione (art. 19, c. 3, lett. b; VF34 campo 8)',
+            self::prestazioneNonStabiliti => 'Prestazione verso soggetti non stabiliti: lavorazioni, trasporti, intermediazioni e accessori, art. 19, c. 3, lett. a-bis (art. 30, c. 2, lett. d; modello IVA TR, TD5)',
+            self::conferimentoAgricolo => 'Conferimento a cooperative o consorzi con la percentuale di compensazione (art. 34, c. 2; VE sezione 1)',
+            self::connessaOccasionale => 'Attività agricola connessa occasionale (art. 34-bis; VF62)',
         };
     }
 
@@ -39,6 +45,9 @@ enum QualificaOperazione: string
             self::beneAmmortizzabile => 'Bene amm.',
             self::esenteEquiparata => 'Equiparata',
             self::fuoriCampoSenzaDetrazione => 'Fuori campo',
+            self::prestazioneNonStabiliti => 'Non stabiliti',
+            self::conferimentoAgricolo => 'Conferimento',
+            self::connessaOccasionale => 'Connessa occ.',
         };
     }
 
@@ -51,6 +60,8 @@ enum QualificaOperazione: string
         return match ($this) {
             self::beneAmmortizzabile => true,
             self::fuoriCampoSenzaDetrazione => $natura === NaturaIva::nonSoggetteTerritorialita,
+            self::prestazioneNonStabiliti => in_array($natura, [NaturaIva::nonSoggetteTerritorialita, NaturaIva::esenti], true),
+            self::conferimentoAgricolo, self::connessaOccasionale => $natura === null,
             default => $natura === NaturaIva::esenti,
         };
     }

@@ -25,6 +25,7 @@ require Layout::percorso('header');
                 <div class="form-text"><?= Html::e($aiutoAteco) ?></div>
             </div>
             <?= Campo::selezioneEnum('periodicita', $campi['periodicitaAttivita'], $formEntity, $errors, $periodicita, ['colonna' => 'col-md-4', 'vuota' => $periodicitaAzienda, 'aiuto' => $aiutoPeriodicita]) ?>
+            <?= Campo::selezioneEnum('regimeDetrazioneIva', $campi['regimeDetrazioneAttivita'], $formEntity, $errors, $regimiDetrazione, ['colonna' => 'col-md-4', 'vuota' => $campi['regimeDatiFiscali']]) ?>
             <?= Campo::testo('dalAnno', $campi['dalAnno'], $formEntity, $errors, ['richiesto' => true, 'colonna' => 'col-md-2', 'tipo' => 'number']) ?>
             <?= Campo::testo('alAnno', $campi['alAnno'], $formEntity, $errors, ['colonna' => 'col-md-2', 'tipo' => 'number']) ?>
         </div>

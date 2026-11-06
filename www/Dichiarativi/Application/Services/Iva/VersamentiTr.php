@@ -3,8 +3,7 @@
 namespace Dichiarativi\Application\Services\Iva;
 
 use Contabilita\Application\Models\GruppoIvaModel;
-use Contabilita\Application\Services\ElaborazioneLiquidazione;
-use Contabilita\Application\Services\LiquidazioneGruppo;
+use Contabilita\Application\Services\CreditoTrimestrale;
 use Deleghe\Application\Entities\Credito;
 use Deleghe\Application\Enumerations\SezioneCodiceTributo;
 use Deleghe\Application\Enumerations\SezioneF24;
@@ -23,8 +22,7 @@ use SismaFramework\Orm\HelperClasses\DataMapper;
  * euro di crediti trimestrali nell'anno, dal decimo giorno successivo (art.
  * 17, c. 1, D.Lgs. 241/1997). Il rimborso (TD6, TE50) lo eroga l'Agenzia.
  * Con la presentazione il credito chiesto (rimborso e compensazione) esce
- * dal riporto delle liquidazioni: si annota sulla liquidazione che chiude
- * il trimestre, della società o del gruppo.
+ * dal riporto delle liquidazioni della società o del gruppo.
  */
 class VersamentiTr
 {
@@ -97,25 +95,15 @@ class VersamentiTr
     }
 
     /**
-     * Credito chiesto sulla liquidazione che chiude il trimestre.
+     * Credito chiesto escluso dal riporto delle liquidazioni, con la
+     * rielaborazione di quelle successive.
      *
      * @return string[] messaggi per l'utente
      */
     private function aggiornaLiquidazione(Dichiarazione $dichiarazione, float $importo): array
     {
         $gruppo = (new GruppoIvaModel($this->dataMapper))->getPerControllante($dichiarazione->soggetto, $dichiarazione->anno);
-        $liquidazione = $gruppo !== null ? (new LiquidazioneGruppo($this->dataMapper))->getLiquidazioneTrimestre($gruppo, $dichiarazione->anno, $dichiarazione->trimestre)
-                : (new ElaborazioneLiquidazione($this->dataMapper))->getLiquidazioneTrimestre($dichiarazione->soggetto, $dichiarazione->anno, $dichiarazione->trimestre);
-        if ($liquidazione === null) {
-            return $importo > 0 ? [sprintf('Liquidazione del %d° trimestre non elaborata: il credito chiesto non è stato annotato, il riporto va corretto dopo l\'elaborazione.', $dichiarazione->trimestre)] : [];
-        }
-        $importo = round($importo, 2);
-        if (abs($liquidazione->creditoTrimestrale - $importo) < 0.005) {
-            return [];
-        }
-        $liquidazione->creditoTrimestrale = $importo;
-        $this->dataMapper->save($liquidazione);
-        return [sprintf('Credito chiesto con il modello IVA TR (€ %s) annotato sulla liquidazione di %s: rielaborare le liquidazioni successive per aggiornare il riporto.', number_format($importo, 2, ',', '.'), $liquidazione->getDescrizionePeriodo())];
+        return (new CreditoTrimestrale($this->dataMapper))->registra($dichiarazione->soggetto, $gruppo, $dichiarazione->anno, $dichiarazione->trimestre, $importo);
     }
 
     public function getCredito(Dichiarazione $dichiarazione): ?Credito

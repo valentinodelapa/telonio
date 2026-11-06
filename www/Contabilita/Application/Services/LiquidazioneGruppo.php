@@ -268,6 +268,10 @@ class LiquidazioneGruppo
         $liquidazione->differenze = count($esito->differenze) > 0 ? implode("\n", $esito->differenze) : null;
         $liquidazione->avvisi = count($avvisi) > 0 ? implode("\n", $avvisi) : null;
         $this->dataMapper->save($liquidazione);
+        $trimestre = CreditoTrimestrale::getTrimestreChiuso($liquidazione);
+        if ($trimestre !== null) {
+            (new CreditoTrimestrale($this->dataMapper))->sincronizzaGruppo($gruppo, $anno, $trimestre, $liquidazione);
+        }
         $this->dataMapper->commitTransaction($primaTransazione);
         return $liquidazione;
     }
@@ -368,7 +372,13 @@ class LiquidazioneGruppo
     {
         $primaTransazione = $this->dataMapper->startTransaction();
         $esito = (new ArchivioVersamenti($this->dataMapper))->registra($liquidazione->gruppoIva->controllante, GruppoIva::ORIGINE, $liquidazione->getRiferimentoVersamento(), []);
+        $gruppo = $liquidazione->gruppoIva;
+        $anno = $liquidazione->anno;
+        $trimestre = CreditoTrimestrale::getTrimestreChiuso($liquidazione);
         $this->dataMapper->delete($liquidazione);
+        if ($trimestre !== null) {
+            (new CreditoTrimestrale($this->dataMapper))->sincronizzaGruppo($gruppo, $anno, $trimestre);
+        }
         $this->dataMapper->commitTransaction($primaTransazione);
         return $esito->differenze;
     }

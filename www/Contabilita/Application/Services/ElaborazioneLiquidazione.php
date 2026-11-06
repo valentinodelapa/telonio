@@ -242,6 +242,11 @@ class ElaborazioneLiquidazione
         $this->registraGiroconto($liquidazione, $giroconto, $avvisi);
         $liquidazione->avvisi = count($avvisi) > 0 ? implode("\n", $avvisi) : null;
         $this->dataMapper->save($liquidazione);
+        // il credito chiesto con il modello IVA TR sta sulla liquidazione che chiude il trimestre
+        $trimestre = CreditoTrimestrale::getTrimestreChiuso($liquidazione);
+        if ($trimestre !== null) {
+            (new CreditoTrimestrale($this->dataMapper))->sincronizza($soggetto, $anno, $trimestre, $liquidazione);
+        }
         $this->dataMapper->commitTransaction($primaTransazione);
         return $liquidazione;
     }
@@ -522,7 +527,14 @@ class ElaborazioneLiquidazione
         if (($giroconto !== null) && $giroconto->isModificabile() && ((new StampeDefinitive($this->dataMapper))->getBlocco($giroconto) === null)) {
             (new SalvataggioRegistrazione($this->dataMapper))->elimina($giroconto);
         }
+        $soggetto = $liquidazione->soggetto;
+        $anno = $liquidazione->anno;
+        $trimestre = CreditoTrimestrale::getTrimestreChiuso($liquidazione);
         $this->dataMapper->delete($liquidazione);
+        // eliminato il trimestre separato, il credito chiesto torna sul mese che chiude il trimestre
+        if ($trimestre !== null) {
+            (new CreditoTrimestrale($this->dataMapper))->sincronizza($soggetto, $anno, $trimestre);
+        }
         $this->dataMapper->commitTransaction($primaTransazione);
         return $esito->differenze;
     }

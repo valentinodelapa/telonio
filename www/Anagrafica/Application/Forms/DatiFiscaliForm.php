@@ -49,6 +49,11 @@ class DatiFiscaliForm extends BaseForm
                 ->addFilterFieldMode('periodicitaIva', FilterType::isEnumeration, [], true)
                 ->addFilterFieldMode('soggettoIsa', FilterType::isBoolean)
                 ->addFilterFieldMode('ventilazioneCorrispettivi', FilterType::isBoolean)
+                ->addFilterFieldMode('regimeDetrazioneIva', FilterType::isEnumeration, [], true)
+                ->addFilterFieldMode('dataInizioAttivita', FilterType::isDate, [], true)
+                ->addFilterFieldMode('nonResidenteIva', FilterType::isBoolean)
+                ->addFilterFieldMode('startupInnovativa', FilterType::isBoolean)
+                ->addFilterFieldMode('gruppoIvaArt70bis', FilterType::isBoolean)
                 ->addFilterFieldMode('sostitutoImposta', FilterType::isBoolean);
         if ($this->entity->soggetto->tipoSoggetto === TipoSoggetto::societaCapitali) {
             $this->addFilterFieldMode('trasparenzaFiscale', FilterType::isBoolean);

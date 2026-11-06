@@ -43,6 +43,7 @@ class DichiarazioneForm extends BaseForm
                 ->addFilterFieldMode('vistoResponsabileCaf', FilterType::isEntity, [], true)
                 ->addFilterFieldMode('esoneroVisto', FilterType::isBoolean)
                 ->addFilterFieldMode('attestazionePatrimoniale', FilterType::isBoolean)
+                ->addFilterFieldMode('verificaAccertamenti', FilterType::isBoolean)
                 ->addFilterFieldMode('adempimentoCollaborativo', FilterType::isBoolean)
                 ->addFilterFieldMode('concordatoBiennale', FilterType::isBoolean)
                 ->addFilterFieldMode('annotazioni', FilterType::isMaxLimitString, [500], true);

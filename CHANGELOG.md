@@ -2,6 +2,59 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.17.0-alpha] - 2026-11-06 - Rimborsi IVA, Accertamenti e Regimi Agricoli
+
+Diciassettesima versione alpha: in `Dichiarativi` la dichiarazione IVA si completa con il rimborso annuale e le sue causali, l'archivio degli atti di accertamento e i regimi speciali agricoli, esonerati compresi; in `Contabilita` il credito chiesto con il modello IVA TR esce dal riporto con la rielaborazione automatica delle liquidazioni. Corregge diversi righi della 0.16.0-alpha. Valgono le avvertenze della 0.1.0-alpha: la versione non è indicata per l'uso in produzione su dati reali.
+
+Versioni dei moduli: `Anagrafica` 0.7.0, `Contabilita` 0.4.0, `Dichiarativi` 0.2.0; `Telonio` 0.6.2, `Deleghe` 0.5.0, `Imu` 0.3.2, `Successioni` 0.3.2 e `GestioneStudio` 0.1.1 invariati.
+
+**Aggiornamento del database**: `sisma aggiorna-database` esegue `Anagrafica/Database/aggiornamento-0.7.sql` (colonne `dati_fiscali.data_inizio_attivita`, `dati_fiscali.non_residente_iva`, `dati_fiscali.startup_innovativa`, `dati_fiscali.gruppo_iva_art70bis`, `dati_fiscali.regime_detrazione_iva`), `Contabilita/Database/aggiornamento-0.4.sql` (tabella `credito_trimestrale_iva`, con i crediti già annotati sulle liquidazioni; colonne `riga_iva.percentuale_compensazione`, `riga_iva.operazione_diversa`, `attivita_iva.regime_detrazione_iva`) e `Dichiarativi/Database/aggiornamento-0.2.sql` (tabella `atto_accertamento`, colonna `dichiarazione.verifica_accertamenti`), tutti idempotenti; `Contabilita/Database/dati-riferimento.sql` aggiunge i codici IVA dei conferimenti agricoli (`C2`-`C12.3`).
+
+Dopo l'aggiornamento conviene riproporre le dichiarazioni IVA e i modelli IVA TR non ancora presentati: VL8, VL9, VL10, VL22, VL25, VW22, VW24, VS30, il rigo TA30 e i presupposti TD2 e TD5 possono cambiare. Nei dati fiscali conviene indicare la data di inizio attività delle imprese individuali: senza, i rimborsi oltre 30.000 euro segnalano il rischio.
+
+### ✨ Nuove Funzionalità
+
+#### `Anagrafica` 0.7.0
+
+- nei **dati fiscali** storicizzati: regime speciale agricolo, inizio dell'attività, start-up innovativa, non residente con identificazione diretta o rappresentante fiscale, partecipazione a un Gruppo IVA (artt. 70-bis e seguenti).
+
+#### `Contabilita` 0.4.0
+
+- **rielaborazione automatica delle liquidazioni** dopo la presentazione o l'annullamento di un modello IVA TR, per la società e per il gruppo: si ferma alla prima con la comunicazione inviata, un versamento in una delega trasmessa o il giroconto stampato in definitiva, segnalandola;
+- **credito chiesto con il modello IVA TR registrato a parte** (`credito_trimestrale_iva`): vale anche se la liquidazione che chiude il trimestre è elaborata dopo la presentazione, o eliminata e rielaborata;
+- nuova **qualifica** delle righe IVA per le prestazioni verso soggetti non stabiliti dell'art. 30, c. 2, lett. d);
+- **regimi speciali agricoli**, per azienda o per attività separata: art. 34 con la percentuale di compensazione sulle righe IVA, conferimenti, imprese miste con gli acquisti destinati alle operazioni diverse, IVA teorica delle cessioni non imponibili, connesse occasionali; art. 34-bis, agriturismo, enoturismo e oleoturismo con la detrazione del 50%, associazioni con un terzo; agricoltori esonerati senza liquidazioni, con la verifica dei limiti.
+
+#### `Dichiarativi` 0.2.0
+
+- **causale 11** del rimborso annuale per le persone fisiche che passano al regime forfetario dall'anno successivo;
+- **causale 6** e rigo **TD4** per i non residenti, **causale 13** per l'ingresso in un Gruppo IVA (VX2 e VY2 campo 2, VY4 campo 3, credito ripartito al netto della parte da trasferire), **causale 10** per il credito non trasferibile di chi partecipa all'IVA di gruppo;
+- **erogazione prioritaria** 2, 3, 4, 5 e 7 dal codice ATECO con il raccordo ufficiale ISTAT, nel modello IVA TR e nella dichiarazione annuale;
+- **regimi speciali agricoli**: un modulo per regime con la casella del VF30, sezione 3-B del quadro VF (VF38-VF55), sezione 1 del VE per conferimenti ed esonerati, VF62, VF71 forfetario, TC5 del modello IVA TR, **causale 7** con il limite dell'IVA teorica, dichiarazione degli esonerati solo oltre i limiti e senza il quadro VH;
+- **archivio degli atti di accertamento** nella scheda del contribuente, con le soglie dell'art. 38-bis, c. 4, lett. b), e casella del frontespizio che attesta la verifica degli atti;
+- **rischi dei rimborsi oltre 30.000 euro** (art. 38-bis, c. 4): impresa attiva da meno di due anni, salvo le start-up innovative, cessazione e atti di accertamento oltre le soglie rendono dovuta la garanzia anche con visto e attestazione; **limite annuale di 2.000.000 di euro** per la procedura semplificata con le compensazioni in Deleghe;
+- fixture: Adria Logistica (TD5 e causale 5), Cinema Odeon (TD3, causale 4 e priorità 7), Alberto Conti (causale 11), Nordic Trade (TD4, causale 6, garanzia dovuta), Beta Partecipata (causale 13), gruppo Delta (credito non trasferibile con VL9, VL10 e causale 10; credito di gruppo con VW24, VW25, VS30 e quadro VZ), Tenuta Colli Berici (cinque moduli per regime, comunicazione delle liquidazioni), Cantina Export (IVA teorica, causale 7), due agricoltori esonerati; i modelli TR di Omega Export e del gruppo Verde sono presentati con le liquidazioni dell'anno già elaborate.
+
+### 🐛 Correzioni
+
+#### `Dichiarativi` 0.2.0
+
+- il **credito di gruppo** dell'anno precedente della controllante era contato anche nel suo VL8, oltre che nel VW25: ora il VL8 ne è al netto;
+- il **credito dell'anno precedente** di chi partecipa al gruppo per l'intero anno finiva nel VL25 e si trasferiva al gruppo: ora è nel VL10 e nel VX2 (art. 73, ultimo comma);
+- **VL22 e VW22** contavano tutti gli utilizzi dei crediti 6036-6038: ora solo quelli nelle deleghe trasmesse o quietanzate fino alla presentazione della dichiarazione, con un avviso per gli esclusi; stesso criterio per **VL9** e **VW24**;
+- il rigo **TA30** e i presupposti **TD2** comprendevano le altre non imponibili (N3.6), che vanno nel TA31;
+- **causale 3** dai righi VE30 e VE31 sulla somma in valore assoluto di VE40 e VE50, come dicono le istruzioni, e non dalle nature delle righe IVA;
+- **TD5** comprendeva tutte le operazioni non soggette per territorialità: ora solo le prestazioni verso soggetti non stabiliti dell'art. 30, c. 2, lett. d), dalla qualifica della riga IVA; **causale 5** dalle operazioni non soggette (VE34) con le operazioni degli artt. 8, 8-bis, 9, 41 e 58 D.L. 331/1993;
+- **VS30** dalle eccedenze di debito delle società (VK22), compreso il conguaglio annuale, invece che dai debiti lordi delle sole liquidazioni periodiche;
+- nei Limiti Noti della 0.16.0-alpha la prevalenza del TD5 e della causale 5 è descritta come una lettura delle istruzioni: la regola è esplicita ed era il calcolo a semplificarla.
+
+### ⚠️ Limiti Noti
+
+- **File telematici**: i file "IVA26" e "IVT25" non sono ancora verificati con il software di controllo dell'Agenzia delle Entrate;
+- **Regimi agricoli**: la percentuale di compensazione si sceglie sulla riga, senza una tabella dei prodotti; le opzioni del quadro VO, lo spostamento nel VF18 per il VF62, la rettifica nel passaggio tra regimi (art. 19-bis2) e le autofatture degli acquirenti dagli esonerati sono a mano;
+- **Rimborso annuale**: la gestione delle garanzie (polizza, importo, scadenza) non è prevista;
+- **Redditi PF**: solo il catalogo dei campi; proposta e file telematico non sono ancora disponibili.
+
 ## [0.16.0-alpha] - 2026-11-04 - Dichiarazioni Fiscali
 
 Sedicesima versione alpha: il nuovo modulo `Dichiarativi` con la dichiarazione IVA annuale proposta dalla contabilità, il prospetto IVA 26 PR del gruppo, il rimborso annuale e il modello IVA TR; in `Contabilita` attività con contabilità separata, IVA di gruppo e pro-rata di detrazione. Valgono le avvertenze della 0.1.0-alpha: la versione non è indicata per l'uso in produzione su dati reali.

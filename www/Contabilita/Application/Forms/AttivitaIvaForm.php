@@ -31,6 +31,7 @@ class AttivitaIvaForm extends BaseForm
         $this->addFilterFieldMode('numero', FilterType::isInteger)
                 ->addFilterFieldMode('descrizione', FilterType::isLimitString, [2, 100])
                 ->addFilterFieldMode('periodicita', FilterType::isEnumeration, [], true)
+                ->addFilterFieldMode('regimeDetrazioneIva', FilterType::isEnumeration, [], true)
                 ->addFilterFieldMode('dalAnno', FilterType::isInteger)
                 ->addFilterFieldMode('alAnno', FilterType::isInteger, [], true);
     }

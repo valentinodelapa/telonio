@@ -5,6 +5,7 @@ namespace Contabilita\Application\Controllers;
 use Anagrafica\Application\Entities\Soggetto;
 use Anagrafica\Application\Enumerations\ClassificazioneAteco;
 use Anagrafica\Application\Enumerations\PeriodicitaIva;
+use Anagrafica\Application\Enumerations\RegimeDetrazioneIva;
 use Anagrafica\Application\Models\CodiceAtecoModel;
 use Contabilita\Application\BaseClasses\ContabilitaController;
 use Contabilita\Application\Entities\AttivitaIva;
@@ -81,6 +82,7 @@ class AttivitaIvaController extends ContabilitaController
         $this->vars['attivita'] = $attivita;
         $this->vars['codiceAteco'] = $codiceAteco;
         $this->vars['periodicita'] = PeriodicitaIva::cases();
+        $this->vars['regimiDetrazione'] = array_values(array_filter(RegimeDetrazioneIva::cases(), fn(RegimeDetrazioneIva $regime) => $regime !== RegimeDetrazioneIva::agricoloEsonerato));
         $this->vars['pageTitle'] = $titolo;
         $this->impostaBriciole($soggetto, null, $titolo, ['Registri IVA' => '/registro-iva/index/soggetto/' . $soggetto->id]);
         return $this->render->generateView('attivitaIva/form', $this->vars, $form->getResponseType());

@@ -21,6 +21,20 @@ use Telonio\Tests\TestResultSet;
 class ProrataENaturaInversioneTest extends ContabilitaTestCase
 {
 
+    public function testQualifichePerNaturaESigle(): void
+    {
+        foreach (QualificaOperazione::cases() as $qualifica) {
+            $this->assertNotSame('', $qualifica->getLabel());
+            $this->assertNotSame('', $qualifica->getSigla());
+            $this->assertIsBool($qualifica->isAmmessa(null));
+        }
+        // prestazioni dell'art. 30, c. 2, lett. d): non soggette per territorialità o esenti (art. 19, c. 3, lett. a-bis)
+        $this->assertTrue(QualificaOperazione::prestazioneNonStabiliti->isAmmessa(NaturaIva::nonSoggetteTerritorialita));
+        $this->assertTrue(QualificaOperazione::prestazioneNonStabiliti->isAmmessa(NaturaIva::esenti));
+        $this->assertFalse(QualificaOperazione::prestazioneNonStabiliti->isAmmessa(NaturaIva::esportazioni));
+        $this->assertFalse(QualificaOperazione::prestazioneNonStabiliti->isAmmessa(null));
+    }
+
     public function testProrataProvvisorioRiduceLIvaDetraibile(): void
     {
         $vendita = $this->creaRegistrazione(CausaleContabile::fatturaVendita);

@@ -98,15 +98,12 @@ class DichiarazioneIvaOmega2025Fixture extends BaseFixture
             RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $servizi, $acquisto, $data, 'SI/' . ($indice + 1), ['22' => 10000.0]);
         }
         $elaborazione = new ElaborazioneLiquidazione($this->dataMapper);
-        for ($mese = 1; $mese <= 9; $mese++) {
+        for ($mese = 1; $mese <= 12; $mese++) {
             $elaborazione->elabora($omega, 2025, $mese, 0.0, false);
         }
-        // credito del terzo trimestre con il modello IVA TR: non si riporta a ottobre
+        // credito del terzo trimestre con il modello IVA TR: non si riporta a ottobre, le liquidazioni successive si rielaborano
         $tr = $demo->presentaTr($omega, 2025, 3, ['TD006001' => 1300.0, 'TD007001' => 2000.0], '2025-10-28');
         $demo->compensaCreditoTr($tr, 2000.0, '2025-11-17');
-        for ($mese = 10; $mese <= 12; $mese++) {
-            $elaborazione->elabora($omega, 2025, $mese, 0.0, false);
-        }
         // Logistica: operazioni del primo semestre, fino all'incorporazione
         $esercizioLogistica = $demo->apriContabilita($logistica, 2025);
         RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizioLogistica, $demo->controparte($logistica, 'Servizi Industriali S.r.l.', '09778899006', false), $acquisto,

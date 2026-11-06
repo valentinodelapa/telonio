@@ -60,6 +60,7 @@ CREATE TABLE IF NOT EXISTS `dichiarazione` (
   `visto_caf_id` INT UNSIGNED NULL COMMENT 'CAF che appone il visto di conformità (in alternativa al professionista)',
   `visto_responsabile_caf_id` INT UNSIGNED NULL COMMENT 'Responsabile dell''assistenza fiscale del CAF',
   `esonero_visto` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Esonero dal visto di conformità (premialità ISA)',
+  `verifica_accertamenti` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Verificati gli atti notificati nei due anni precedenti',
   `attestazione_patrimoniale` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Dichiarazione sostitutiva dell''art. 38-bis, c. 3 (rimborsi senza garanzia)',
   `adempimento_collaborativo` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Regime di adempimento collaborativo (D.Lgs. 128/2015)',
   `concordato_biennale` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Adesione al concordato preventivo biennale (D.Lgs. 13/2024) prima dell''anno',
@@ -135,3 +136,19 @@ CREATE TABLE IF NOT EXISTS `sottoscrizione_controllo` (
   CONSTRAINT `fk_sottoscrizione_soggetto` FOREIGN KEY (`soggetto_id`) REFERENCES `soggetto` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Sottoscrizioni dell''organo di controllo delle dichiarazioni';
+
+CREATE TABLE IF NOT EXISTS `atto_accertamento` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `studio_id` INT UNSIGNED NOT NULL,
+  `soggetto_id` INT UNSIGNED NOT NULL,
+  `anno_imposta` SMALLINT UNSIGNED NOT NULL,
+  `data_notifica` DATE NOT NULL,
+  `estremi` VARCHAR(60) NULL COMMENT 'Numero dell''atto',
+  `importo_dichiarato` DECIMAL(15,2) NOT NULL DEFAULT 0.00 COMMENT 'Imposta dovuta o credito dichiarato',
+  `importo_accertato` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+  PRIMARY KEY (`id`),
+  KEY `idx_atto_accertamento_soggetto` (`soggetto_id`, `data_notifica`),
+  CONSTRAINT `fk_atto_accertamento_studio` FOREIGN KEY (`studio_id`) REFERENCES `studio` (`id`),
+  CONSTRAINT `fk_atto_accertamento_soggetto` FOREIGN KEY (`soggetto_id`) REFERENCES `soggetto` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Avvisi di accertamento o rettifica per i rischi dei rimborsi IVA (art. 38-bis, c. 4, lett. b)';

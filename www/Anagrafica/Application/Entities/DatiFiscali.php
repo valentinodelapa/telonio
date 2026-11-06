@@ -4,6 +4,7 @@ namespace Anagrafica\Application\Entities;
 
 use Anagrafica\Application\Enumerations\NaturaGiuridica;
 use Anagrafica\Application\Enumerations\PeriodicitaIva;
+use Anagrafica\Application\Enumerations\RegimeDetrazioneIva;
 use Anagrafica\Application\Enumerations\RegimeFiscale;
 use Anagrafica\Application\Enumerations\TipoAttivita;
 use Anagrafica\Application\Interfaces\Storicizzabile;
@@ -51,6 +52,11 @@ class DatiFiscali extends BaseEntity implements Storicizzabile
     protected bool $sostitutoImposta = false;
     protected bool $trasparenzaFiscale = false;
     protected bool $ventilazioneCorrispettivi = false;
+    protected ?RegimeDetrazioneIva $regimeDetrazioneIva = null;
+    protected ?SismaDate $dataInizioAttivita = null;
+    protected bool $nonResidenteIva = false;
+    protected bool $startupInnovativa = false;
+    protected bool $gruppoIvaArt70bis = false;
 
     #[\Override]
     protected function setEncryptedProperties(): void

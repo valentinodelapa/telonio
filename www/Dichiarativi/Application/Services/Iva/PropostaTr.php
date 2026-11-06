@@ -73,6 +73,9 @@ class PropostaTr
 
     public const QUADRI = ['TA', 'TB', 'TC', 'TD'];
 
+    /** Erogazione prioritaria per codice ATECO 2007 o 2025 */
+    private const PRIORITA_ATECO = ['38.32.10' => '2', '38.21.20' => '2', '24.43.00' => '3', '24.42.00' => '4', '30.30.09' => '5', '59.14.00' => '7'];
+
     /** @var string[] */
     private array $avvisi = [];
 
@@ -132,7 +135,7 @@ class PropostaTr
         $righe = iterator_to_array((new RigaIvaModel($this->dataMapper))->getPerPeriodo($soggetto, $dal, $al), false);
         $attive = $passive = $inversione = [];
         $impostaAttive = $impostaPassive = $integrazioni = $indetraibile = $scissione = $impostaScissione = 0.0;
-        $altre = ['TA020001' => 0.0, 'TA030001' => 0.0, 'TA031001' => 0.0, 'TA033001' => 0.0, 'TA033003' => 0.0];
+        $altre = ['TA020001' => 0.0, 'TA030001' => 0.0, 'TA031001' => 0.0, 'TA033001' => 0.0, 'TA033003' => 0.0, 'nonStabiliti' => 0.0];
         $ventilare = false;
         $acquisti = [];
         foreach ($righe as $riga) {
@@ -178,12 +181,13 @@ class PropostaTr
             if (str_starts_with($natura, 'N6')) {
                 $altre['TA020001'] += $riga->imponibile;
                 $inversione[$natura] = true;
-            } elseif (str_starts_with($natura, 'N3')) {
+            } elseif (str_starts_with($natura, 'N3') && ($codice->natura !== NaturaIva::nonImponibiliAltre)) {
+                // rigo TA30: artt. 8, 8-bis, 9, 71, 72 e artt. 41 e 58 D.L. 331/1993; le altre non imponibili nel TA31
                 $altre['TA030001'] += $riga->imponibile;
             } elseif ($natura !== 'N1') {
                 $altre['TA031001'] += $riga->imponibile;
-                if ($codice->natura === NaturaIva::nonSoggetteTerritorialita) {
-                    $altre['TA031001N21'] = ($altre['TA031001N21'] ?? 0.0) + $riga->imponibile;
+                if ($riga->qualifica === QualificaOperazione::prestazioneNonStabiliti) {
+                    $altre['nonStabiliti'] += $riga->imponibile;
                 }
             }
         }
@@ -230,17 +234,35 @@ class PropostaTr
         $quadri->proponi('TC006002', round($quadri->getDecimale('TC004002') + $quadri->getDecimale('TC005002'), 2));
         $saldo = round($quadri->getDecimale('TC006002') - $quadri->getDecimale('TC003001'), 2);
         $quadri->proponi('TC007002', max(0.0, $saldo));
-        $presupposti = $this->proponiPresupposti($quadri, $altre, $etichetta);
+        $presupposti = $this->proponiPresupposti($quadri, $altre, (new RegimeIva($this->dataMapper))->getDatiFiscali($soggetto, $anno)?->nonResidenteIva ?? false);
         // TD8: erogazione prioritaria
         $priorita = match (true) {
             $scissione > 0 => '6',
             isset($inversione['N6.3']) => '1',
             isset($inversione['N6.7']) => '8',
-            default => null,
+            default => $this->getPrioritaAttivita($soggetto, $anno, $etichetta),
         };
         $quadri->proponi('TD008001', $priorita);
         $quadri->proponi('TD008002', $priorita === '6' ? round($impostaScissione, 2) : null);
         return ['credito' => max(0.0, $saldo), 'debito' => max(0.0, -$saldo), 'ammortizzabili' => $impostaAmmortizzabili, 'presupposti' => $presupposti, 'scissione' => $impostaScissione];
+    }
+
+    /**
+     * Erogazione prioritaria per codice di attività: le istruzioni usano
+     * ATECOFIN 2004 e ATECO 2007, qui con il raccordo ufficiale ISTAT verso
+     * ATECO 2007 e 2025. Dove il raccordo è parziale solo un avviso.
+     */
+    private function getPrioritaAttivita(Soggetto $soggetto, int $anno, string $etichetta): ?string
+    {
+        $codice = (new RegimeIva($this->dataMapper))->getDatiFiscali($soggetto, $anno)?->codiceAteco?->codice;
+        $verifica = ['30.31.00' => '5', '30.32.00' => '5', '38.31.10' => '2', '38.21.12' => '2'];
+        if ($codice === null) {
+            return null;
+        }
+        if (isset($verifica[$codice])) {
+            $this->avvisi[] = sprintf('%sATECO %s: il raccordo con i codici delle istruzioni è parziale, verificare se spetta l\'erogazione prioritaria con il codice %s.', $etichetta, $codice, $verifica[$codice]);
+        }
+        return self::PRIORITA_ATECO[$codice] ?? null;
     }
 
     /**
@@ -312,17 +334,27 @@ class PropostaTr
     /**
      * Imposta ammessa in detrazione (TB32): con il pro-rata provvisorio la
      * percentuale (TB31), con le attività separate la somma della detrazione
-     * delle attività.
+     * delle attività, nei regimi speciali agricoli quella del regime, con
+     * l'IVA teorica delle cessioni non imponibili nel TC5.
      */
     private function getImpostaDetraibile(QuadriDichiarazione $quadri, Soggetto $soggetto, int $anno, SismaDate $dal, SismaDate $al, string $etichetta): float
     {
-        $attivita = (new AttivitaSeparate($this->dataMapper))->getAttivita($soggetto, $anno);
+        $separate = new AttivitaSeparate($this->dataMapper);
+        $attivita = $separate->getAttivita($soggetto, $anno);
+        if ((count($attivita) === 0) && ($separate->getRegimeDetrazione($soggetto, $anno) !== null)) {
+            $risultato = (new CalcoloLiquidazioneIva($this->dataMapper))->calcola($soggetto, $dal, $al);
+            $quadri->proponi('TC005002', $risultato->ivaTeorica);
+            return round($risultato->ivaDetraibile - $risultato->ivaTeorica, 2);
+        }
         if (count($attivita) > 0) {
             $calcolo = new CalcoloLiquidazioneIva($this->dataMapper);
-            $detraibile = 0.0;
+            $detraibile = $teorica = 0.0;
             foreach ($attivita as $singola) {
-                $detraibile += $calcolo->calcola($soggetto, $dal, $al, $singola)->ivaDetraibile;
+                $risultato = $calcolo->calcola($soggetto, $dal, $al, $singola);
+                $detraibile += $risultato->ivaDetraibile - $risultato->ivaTeorica;
+                $teorica += $risultato->ivaTeorica;
             }
+            $quadri->proponi('TC005002', round($teorica, 2));
             $this->avvisi[] = $etichetta . 'attività separate: rigo TB32 con la somma dell\'imposta detraibile delle attività (con il pro-rata di ciascuna).';
             return round($detraibile, 2);
         }
@@ -339,7 +371,7 @@ class PropostaTr
      *
      * @return string[] caselle dei presupposti barrate
      */
-    private function proponiPresupposti(QuadriDichiarazione $quadri, array $altre, string $etichetta): array
+    private function proponiPresupposti(QuadriDichiarazione $quadri, array $altre, bool $nonResidente): array
     {
         $presupposti = [];
         // aliquota media delle operazioni attive maggiorata del 10% e delle passive, alla seconda cifra decimale
@@ -370,11 +402,15 @@ class PropostaTr
             $quadri->proponi('TD003001', true);
             $presupposti[] = 'TD003001';
         }
-        // operazioni non soggette (artt. 7-7-septies) oltre il 50%
-        if (($totale > 0) && (($altre['TA031001N21'] ?? 0.0) > $totale / 2)) {
+        // prestazioni dell'art. 30, c. 2, lett. d) verso soggetti non stabiliti oltre il 50%, dalla qualifica delle righe IVA
+        if (($totale > 0) && ($altre['nonStabiliti'] > $totale / 2)) {
             $quadri->proponi('TD005001', true);
             $presupposti[] = 'TD005001';
-            $this->avvisi[] = $etichetta . 'presupposto del TD5 proposto dalle operazioni non soggette per territorialità: verificare che siano le prestazioni dell\'art. 30, c. 2, lett. d) verso soggetti non stabiliti.';
+        }
+        // non residenti identificati direttamente o con il rappresentante fiscale (art. 30, c. 2, lett. e)
+        if ($nonResidente) {
+            $quadri->proponi('TD004001', true);
+            $presupposti[] = 'TD004001';
         }
         // casella barrata a mano: il presupposto vale comunque
         foreach (array_keys(self::PRESUPPOSTI) as $codice) {
@@ -418,7 +454,9 @@ class PropostaTr
     private function proponiFirme(QuadriDichiarazione $quadri, Dichiarazione $dichiarazione, int $modulo): void
     {
         $sottoscrizioni = isset($dichiarazione->id) ? (new SottoscrizioneControlloModel($this->dataMapper))->getSottoscrizioni($dichiarazione) : [];
-        $quadri->proponi('TD008003', $dichiarazione->getCodiceEsoneroGaranzie(['visto' => '1', 'collaborativo' => '4', 'isa' => '5', 'concordato' => '6'], count($sottoscrizioni) > 0), $modulo);
+        $esonero = $dichiarazione->getCodiceEsoneroGaranzie(['visto' => '1', 'collaborativo' => '4', 'isa' => '5', 'concordato' => '6'], count($sottoscrizioni) > 0);
+        // nelle situazioni di rischio il visto con l'attestazione non esonera dalla garanzia
+        $quadri->proponi('TD008003', ($esonero === '1') && (count((new RimborsoIva($this->dataMapper))->getRischi($dichiarazione)) > 0) ? null : $esonero, $modulo);
         if ($dichiarazione->attestazionePatrimoniale) {
             foreach (['TD008004', 'TD00804A', 'TD00804B', 'TD00804C'] as $codice) {
                 $quadri->proponi($codice, true, $modulo);

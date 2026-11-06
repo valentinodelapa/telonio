@@ -6,9 +6,11 @@ use Contabilita\Application\Enumerations\CausaleContabile;
 use Contabilita\Application\Enumerations\EsigibilitaIva;
 use Deleghe\Application\Entities\CodiceTributo;
 use Deleghe\Application\Entities\Credito;
+use Deleghe\Application\Entities\Delega;
 use Deleghe\Application\Entities\Versamento;
 use Deleghe\Application\Enumerations\SezioneCodiceTributo;
 use Deleghe\Application\Enumerations\SezioneF24;
+use Deleghe\Application\Enumerations\StatoDelega;
 use Dichiarativi\Application\Services\Iva\PropostaIva;
 use Dichiarativi\Application\Services\Iva\VersamentiIva;
 use SismaFramework\Orm\CustomTypes\SismaDate;
@@ -70,6 +72,8 @@ class PropostaIvaTest extends DichiarativiTestCase
         $utilizzo->codiceTributo = $this->codiceTributo(1001, '1001');
         $utilizzo->annoRiferimento = 2025;
         $utilizzo->importoCredito = 100.0;
+        $utilizzo->delega = new Delega($this->dataMapper);
+        $utilizzo->delega->stato = StatoDelega::trasmessa;
         $utilizzo->credito = $credito;
         $this->rispondi([
             'dati_fiscali' => [$this->creaDatiFiscali()],

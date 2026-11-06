@@ -279,7 +279,7 @@ class PropostaGruppoIva
         $totali = array_fill_keys(['VL001001', 'VL002001', 'VL027001', 'VL011001', 'VL029001', 'VL036001'], 0);
         $mancanti = [];
         $rigo = 0;
-        $conCompensazione = $esonerate = $conRimborso = $rimborsi = 0;
+        $conCompensazione = $esonerate = $conRimborso = $rimborsi = $eccedenzeDebito = 0;
         foreach ($societa as ['soggetto' => $soggetto, 'partecipante' => $partecipante]) {
             // dodici società per quadro VS: le successive nei quadri VS n. 2, 3, ...
             [$modulo, $riga] = self::getPosizione($rigo, 12, 1);
@@ -296,8 +296,11 @@ class PropostaGruppoIva
             }
             if ($proprie === null) {
                 $mancanti[] = $soggetto->nominativo;
+                $trasferimenti = self::getTrasferimenti((new LiquidazioneIvaModel($this->dataMapper))->getSequenza($soggetto, $anno));
+                $eccedenzeDebito += (int) round(max(0.0, $trasferimenti['debiti'] - $trasferimenti['crediti']));
                 continue;
             }
+            $eccedenzeDebito += $proprie->getImporto('VK022001', 1);
             // esonero dalle garanzie della società (istruzioni quadro VS, campo 8)
             $sottoscritta = isset($proprie->getDichiarazione()->id) && (count((new SottoscrizioneControlloModel($this->dataMapper))->getSottoscrizioni($proprie->getDichiarazione())) > 0);
             $quadri->proponi(sprintf('VS%03d008', $riga), $proprie->getDichiarazione()->getCodiceEsoneroGaranzie(['visto' => '1', 'collaborativo' => '2', 'isa' => '3', 'concordato' => '4'], $sottoscritta), $modulo);
@@ -309,7 +312,7 @@ class PropostaGruppoIva
             if ($quotaRimborso > 0) {
                 $rimborsi += $quotaRimborso;
                 $conRimborso++;
-                $presupposti = (new RimborsoIva($this->dataMapper))->getPresuppostiSocieta($soggetto, $anno, $proprie->getImporto('VK023001', 1) - $proprie->getImporto('VK024001', 1));
+                $presupposti = (new RimborsoIva($this->dataMapper))->getPresuppostiSocieta($soggetto, $anno, $proprie->getImporto('VK023001', 1) - $proprie->getImporto('VK024001', 1), $proprie);
                 $quadri->proponi(sprintf('VS%03d009', $riga), $presupposti['causale'], $modulo);
                 $quadri->proponi(sprintf('VS%03d011', $riga), $presupposti['priorita'], $modulo);
                 $quadri->proponi(sprintf('VS%03d012', $riga), $presupposti['priorita'] === '6' ? $presupposti['scissione'] : null, $modulo);
@@ -351,9 +354,10 @@ class PropostaGruppoIva
         // crediti trimestrali del gruppo: rimborsi richiesti (TE50) e compensati in F24 dalla controllante
         $trimestrali = new CreditiTrimestrali($this->dataMapper);
         $quadri->proponi('VW020001', $trimestrali->getRimborsiRichiesti($gruppo->controllante, $anno));
-        $quadri->proponi('VW022001', $trimestrali->getCompensati($gruppo->controllante, $anno));
+        $entro = CreditiTrimestrali::getDataLimite($dichiarazione);
+        $quadri->proponi('VW022001', $trimestrali->getCompensati($gruppo->controllante, $anno, $entro));
         $quadri->proponi('VW025001', $this->getCreditoGruppoPrecedente($gruppo, $dichiarazione));
-        $this->proponiGaranzie($quadri, $gruppo->controllante, $anno, $liquidazioni);
+        $this->proponiGaranzie($quadri, $gruppo->controllante, $anno, $eccedenzeDebito, $entro);
         $quadri->proponi('VW027001', $totali['VL027001']);
         $quadri->proponi('VW028002', $totali['VL011001']);
         $quadri->proponi('VW028001', $totali['VL011001']);
@@ -375,16 +379,14 @@ class PropostaGruppoIva
     /**
      * Credito di gruppo dell'anno precedente: parte compensata in F24
      * (VW24, oltre la parte del VL9 della controllante) e parte compensata
-     * con i debiti trasferiti nell'anno, garantita dalla controllante
-     * (VS30): si presume compensata con precedenza sugli altri crediti.
-     *
-     * @param LiquidazioneGruppoIva[] $liquidazioni
+     * con le eccedenze di debito delle società nell'anno (VK22, compreso il
+     * conguaglio annuale), garantita dalla controllante (VS30): si presume
+     * compensata con precedenza sugli altri crediti.
      */
-    public function proponiGaranzie(QuadriDichiarazione $quadri, Soggetto $controllante, int $anno, array $liquidazioni): void
+    public function proponiGaranzie(QuadriDichiarazione $quadri, Soggetto $controllante, int $anno, int $eccedenzeDebito, SismaDate $entro): void
     {
-        $quadri->proponi('VW024001', min($quadri->getImporto('VW025001'), max(0, $this->getCompensatoAnnoPrecedente($controllante, $anno) - $quadri->getImporto('VL009001', 1))));
-        $debitiTrasferiti = (int) round(array_sum(array_map(fn(LiquidazioneGruppoIva $liquidazione) => $liquidazione->debitiTrasferiti, $liquidazioni)));
-        $quadri->proponi('VS030001', min(max(0, $quadri->getImporto('VW025001') - $quadri->getImporto('VW024001')), $debitiTrasferiti));
+        $quadri->proponi('VW024001', min($quadri->getImporto('VW025001'), max(0, $this->getCompensatoAnnoPrecedente($controllante, $anno, $entro) - $quadri->getImporto('VL009001', 1))));
+        $quadri->proponi('VS030001', min(max(0, $quadri->getImporto('VW025001') - $quadri->getImporto('VW024001')), $eccedenzeDebito));
         if ($quadri->getImporto('VS030001') > 0) {
             $this->avvisi[] = 'Rigo VS30: credito di gruppo dell\'anno precedente compensato con i debiti trasferiti dalle società; la controllante presta le garanzie dell\'art. 6 del D.M. 13 dicembre 1979.';
         }
@@ -399,6 +401,13 @@ class PropostaGruppoIva
     public function proponiRimborsoGruppo(QuadriDichiarazione $quadri, Dichiarazione $dichiarazione, GruppoIva $gruppo): void
     {
         $quadri->proponi('VY004001', $quadri->getImporto('VS020001'));
+        $regime = new RegimeIva($this->dataMapper);
+        if (RimborsoIva::isIngressoGruppoIva($regime->getDatiFiscali($gruppo->controllante, $dichiarazione->anno), $regime->getDatiFiscali($gruppo->controllante, $dichiarazione->anno + 1))) {
+            // controllante che entra in un Gruppo IVA: il resto del credito si trasferisce
+            $quadri->proponi('VY002002', max(0, $quadri->getImporto('VY002001') - $quadri->getImporto('VY004001')));
+            $quadri->proponi('VY004003', $quadri->getImporto('VY004001') > 0 ? true : null);
+            return;
+        }
         $triennio = $quadri->getImporto('VY004001') > $quadri->getImporto('VS020001');
         $model = new DichiarazioneModel($this->dataMapper);
         $precedente = $model->getPerModello($gruppo->controllante, ModelloDichiarativo::iva, $dichiarazione->anno - 1);
@@ -448,15 +457,15 @@ class PropostaGruppoIva
 
     /**
      * Credito IVA dell'anno precedente della controllante (codice 6099)
-     * utilizzato in compensazione nelle deleghe F24.
+     * utilizzato in compensazione nelle deleghe F24 fino alla data.
      */
-    private function getCompensatoAnnoPrecedente(Soggetto $controllante, int $anno): int
+    private function getCompensatoAnnoPrecedente(Soggetto $controllante, int $anno, SismaDate $entro): int
     {
-        $model = new CreditoModel($this->dataMapper);
+        $trimestrali = new CreditiTrimestrali($this->dataMapper);
         $centesimi = 0;
-        foreach ($model->getElenco($controllante) as $credito) {
+        foreach ((new CreditoModel($this->dataMapper))->getElenco($controllante) as $credito) {
             if (($credito->codiceTributo?->codice === '6099') && ($credito->annoRiferimento === $anno - 1)) {
-                $centesimi += $model->getUtilizzato($credito);
+                $centesimi += $trimestrali->getUtilizzatoEntro($credito, $entro);
             }
         }
         return (int) round($centesimi / 100);
@@ -519,7 +528,7 @@ class PropostaGruppoIva
      * Credito di gruppo dell'anno precedente non chiesto a rimborso (VY5
      * della dichiarazione dell'anno precedente della controllante).
      */
-    private function getCreditoGruppoPrecedente(GruppoIva $gruppo, Dichiarazione $dichiarazione): int
+    public function getCreditoGruppoPrecedente(GruppoIva $gruppo, Dichiarazione $dichiarazione): int
     {
         if ($gruppo->annoInizio >= $dichiarazione->anno) {
             return 0;

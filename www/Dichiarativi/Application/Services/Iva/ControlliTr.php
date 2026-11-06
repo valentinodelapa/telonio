@@ -134,6 +134,12 @@ class ControlliTr
         $avvertenze = [];
         $rimborso = $quadri->getDecimale('TD006001', 1) + $quadri->getDecimale('TE050001', 1);
         if (($rimborso > 30000) && ($quadri->get('TD008003', 1) === null)) {
+            foreach (($dichiarazione === null ? [] : (new RimborsoIva($this->dataMapper))->getRischi($dichiarazione)) as $rischio) {
+                $avvertenze[] = 'Rimborso oltre 30.000 euro: garanzia dovuta (art. 38-bis, c. 4) per ' . $rischio . '.';
+            }
+            if (($dichiarazione !== null) && (new RimborsoIva($this->dataMapper))->isVerificaDaFare($dichiarazione)) {
+                $avvertenze[] = RimborsoIva::AVVISO_VERIFICA;
+            }
             $avvertenze[] = 'Rimborso oltre 30.000 euro senza codice di esonero dalla garanzia (TD8 campo 3): serve il visto o la sottoscrizione dell\'organo di controllo con l\'attestazione patrimoniale, altrimenti la garanzia nei casi di rischio (art. 38-bis, c. 3 e 4).';
         }
         return $avvertenze;

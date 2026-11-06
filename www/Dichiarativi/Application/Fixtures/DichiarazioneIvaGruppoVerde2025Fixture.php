@@ -141,12 +141,10 @@ class DichiarazioneIvaGruppoVerde2025Fixture extends BaseFixture
             if ($mese === 9) {
                 $liquidazioneGruppo->elaboraTrimestre($gruppo, 2025, 3);
             }
-            // credito del primo trimestre del gruppo con il modello IVA TR: non si riporta ad aprile
-            if ($mese === 3) {
-                $tr = $demo->presentaTr($holding, 2025, 1, ['TE051001' => 6600.0], '2025-04-28', $this->getEntityByFixtureName(ProfessionistaMariniFixture::class));
-                $demo->compensaCreditoTr($tr, 6600.0, '2025-05-16');
-            }
         }
+        // credito del primo trimestre del gruppo con il modello IVA TR: non si riporta ad aprile, le liquidazioni successive si rielaborano
+        $tr = $demo->presentaTr($holding, 2025, 1, ['TE051001' => 6600.0], '2025-04-28', $this->getEntityByFixtureName(ProfessionistaMariniFixture::class));
+        $demo->compensaCreditoTr($tr, 6600.0, '2025-05-16');
         $lipe = new PreparazioneLipe($this->dataMapper);
         for ($trimestre = 1; $trimestre <= 3; $trimestre++) {
             $comunicazione = $lipe->preparaGruppo($gruppo, 2025, $trimestre);

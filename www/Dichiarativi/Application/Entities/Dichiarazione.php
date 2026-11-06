@@ -50,6 +50,7 @@ class Dichiarazione extends ReferencedEntity
     protected ?Soggetto $vistoResponsabileCaf = null;
     protected bool $esoneroVisto = false;
     protected bool $attestazionePatrimoniale = false;
+    protected bool $verificaAccertamenti = false;
     protected bool $adempimentoCollaborativo = false;
     protected bool $concordatoBiennale = false;
     protected ModalitaSaldo $modalitaSaldo = ModalitaSaldo::unicaSoluzione;

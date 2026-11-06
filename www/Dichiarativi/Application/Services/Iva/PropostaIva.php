@@ -4,6 +4,7 @@ namespace Dichiarativi\Application\Services\Iva;
 
 use Anagrafica\Application\Entities\Soggetto;
 use Anagrafica\Application\Enumerations\PeriodicitaIva;
+use Anagrafica\Application\Enumerations\RegimeDetrazioneIva;
 use Anagrafica\Application\Enumerations\TipoIndirizzo;
 use Anagrafica\Application\Models\DatiFiscaliModel;
 use Anagrafica\Application\Models\IndirizzoModel;
@@ -102,6 +103,9 @@ class PropostaIva
 
     /** Righi della sezione 2 del quadro VE per aliquota */
     public const RIGHI_VE = ['4' => 20, '5' => 21, '10' => 22, '22' => 23];
+
+    /** Righi VE1-VE11 per percentuale di compensazione; i righi VF39-VF49 sono gli stessi più 38 */
+    public const RIGHI_COMPENSAZIONE = ['2' => 1, '4' => 2, '6.4' => 3, '7' => 4, '7.3' => 5, '7.5' => 6, '8.3' => 7, '8.5' => 8, '8.8' => 9, '10' => 10, '12.3' => 11];
 
     /** Righi VF1-VF13 per aliquota o percentuale di compensazione */
     public const RIGHI_VF = ['2' => 1, '4' => 2, '5' => 3, '6.4' => 4, '7' => 5, '7.3' => 6, '7.5' => 7, '8.3' => 8, '8.5' => 9, '8.8' => 10, '10' => 11, '12.3' => 12, '22' => 13];
@@ -320,9 +324,14 @@ class PropostaIva
         if (count($righe) === 0) {
             $this->avvisa($etichetta . 'nessuna registrazione IVA del ' . $anno . ' in Contabilità: quadri VE e VF da compilare a mano.');
         }
-        $this->proponiOperazioniAttive($quadri, $soggetto, $anno, $righe, $regime->isVentilazione($soggetto, $anno), $etichetta);
+        $regimeDetrazione = (new AttivitaSeparate($this->dataMapper))->getRegimeDetrazione($soggetto, $anno, $attivita);
+        $this->proponiOperazioniAttive($quadri, $soggetto, $anno, $righe, $regime->isVentilazione($soggetto, $anno), $etichetta, $regimeDetrazione);
         $this->proponiOperazioniPassive($quadri, $righe, $etichetta);
-        $this->proponiProrata($quadri, $etichetta);
+        if ($regimeDetrazione === null) {
+            $this->proponiProrata($quadri, $etichetta);
+        } else {
+            $this->proponiRegimeDetrazione($quadri, $regimeDetrazione, $righe, $etichetta);
+        }
         if (($attivita !== null) && ($quadri->getModuloCorrente() > 1)) {
             // attività separate: VH e sezioni 2 e 3 del VL nel solo primo modulo
             $this->proponiImpostaAnnuale($quadri);
@@ -332,7 +341,8 @@ class PropostaIva
             $periodicita = $regime->getPeriodicita($soggetto, $anno);
         } catch (\DomainException $errore) {
             $periodicita = null;
-            $this->avvisa($etichetta . $errore->getMessage() . ' Righi delle liquidazioni periodiche (VH, VL) da compilare a mano.');
+            $this->avvisa($etichetta . ($regimeDetrazione === RegimeDetrazioneIva::agricoloEsonerato ? 'agricoltore esonerato tenuto alla dichiarazione: il quadro VH non si compila.'
+                                : $errore->getMessage() . ' Righi delle liquidazioni periodiche (VH, VL) da compilare a mano.'));
         }
         $this->trimestrali[$quadri->getModuloCorrente()] = $periodicita === PeriodicitaIva::trimestrale;
         $liquidazioni = $periodicita === null ? [] : (new LiquidazioneIvaModel($this->dataMapper))->getPerAnno($soggetto, $anno);
@@ -353,9 +363,9 @@ class PropostaIva
     /**
      * @param RigaIva[] $righe
      */
-    private function proponiOperazioniAttive(QuadriDichiarazione $quadri, Soggetto $soggetto, int $anno, array $righe, bool $ventilazione, string $etichetta): void
+    private function proponiOperazioniAttive(QuadriDichiarazione $quadri, Soggetto $soggetto, int $anno, array $righe, bool $ventilazione, string $etichetta, ?RegimeDetrazioneIva $regimeDetrazione = null): void
     {
-        $sezione2 = $altre = [];
+        $sezione1 = $sezione2 = $altre = [];
         $impostaRegistri = 0.0;
         $ventilare = false;
         $registroCorrispettivi = null;
@@ -405,8 +415,15 @@ class PropostaIva
                 $altre['VE037001'] = ($altre['VE037001'] ?? 0) + $riga->imponibile;
                 continue;
             }
-            $this->accumula($sezione2, $codice->aliquota, $riga->imponibile);
-            $impostaRegistri += $riga->imposta;
+            // sezione 1: conferimenti alle cooperative e cessioni degli esonerati, con la percentuale di compensazione come aliquota
+            $compensazione = $qualifica === QualificaOperazione::conferimentoAgricolo ? $codice->aliquota : ($regimeDetrazione === RegimeDetrazioneIva::agricoloEsonerato ? $riga->percentualeCompensazione : null);
+            if ($compensazione !== null) {
+                $this->accumula($sezione1, $compensazione, $riga->imponibile);
+                $impostaRegistri += $riga->imponibile * $compensazione / 100;
+            } else {
+                $this->accumula($sezione2, $codice->aliquota, $riga->imponibile);
+                $impostaRegistri += $riga->imposta;
+            }
             // consumatori finali: corrispettivi e fatture a clienti senza partita IVA (quadro VT)
             $this->vt['imponibile'] += $riga->imponibile;
             $this->vt['imposta'] += $riga->imposta;
@@ -434,6 +451,16 @@ class PropostaIva
         } elseif ($ventilare) {
             $this->avvisa($etichetta . 'corrispettivi da ventilare registrati senza l\'opzione per la ventilazione nei dati fiscali: non compresi nel quadro VE.');
         }
+        foreach ($sezione1 as $percentuale => $imponibile) {
+            $rigo = self::RIGHI_COMPENSAZIONE[$percentuale] ?? null;
+            if ($rigo === null) {
+                $this->avvisa($etichetta . 'operazioni con la percentuale di compensazione del ' . $percentuale . '% senza un rigo nella sezione 1 del quadro VE: indicarle a mano.');
+                continue;
+            }
+            $imponibileRigo = (int) round($imponibile);
+            $quadri->proponi(sprintf('VE%03d001', $rigo), $imponibileRigo);
+            $quadri->proponi(sprintf('VE%03d002', $rigo), (int) round($imponibileRigo * (float) $percentuale / 100));
+        }
         foreach ($sezione2 as $aliquota => $imponibile) {
             $rigo = self::RIGHI_VE[$aliquota] ?? null;
             if ($rigo === null) {
@@ -447,7 +474,7 @@ class PropostaIva
         foreach ($altre as $campo => $importo) {
             $quadri->proponi($campo, (int) round($importo));
         }
-        $this->proponiTotaliVe($quadri, count($sezione2) > 0 ? $impostaRegistri : null);
+        $this->proponiTotaliVe($quadri, count($sezione1) + count($sezione2) > 0 ? $impostaRegistri : null);
     }
 
     /**
@@ -616,6 +643,93 @@ class PropostaIva
     }
 
     /**
+     * IVA ammessa in detrazione nei regimi speciali agricoli (casella del
+     * VF30 e VF71): la quota forfetaria del VE26 o, con il regime dell'art.
+     * 34, la sezione 3-B del quadro VF: operazioni diverse e loro detrazione
+     * (VF38, VF53), detrazione forfetizzata per percentuale di compensazione
+     * (VF39-VF49), IVA teorica delle cessioni non imponibili (VF54), attività
+     * connesse occasionali (VF62).
+     *
+     * @param RigaIva[] $righe
+     */
+    private function proponiRegimeDetrazione(QuadriDichiarazione $quadri, RegimeDetrazioneIva $regime, array $righe, string $etichetta): void
+    {
+        $quadri->proponi($regime->getCasellaVf30(), true);
+        if ($regime->isCompensazione() === false) {
+            $quadri->proponi('VF071002', (int) round($quadri->getImporto('VE026002') * $regime->getQuotaForfetaria()) + $quadri->getImporto('VF070002'));
+            $this->avvisa($etichetta . mb_strtolower($regime->getLabel()) . ': IVA detraibile forfetaria sulle operazioni imponibili (VF71), gli acquisti non si detraggono.');
+            return;
+        }
+        $compensazione = [];
+        $diverseImponibile = $diverseImposta = $detraibili = $teorica = $connesseImponibile = $connesseImposta = 0.0;
+        foreach ($righe as $riga) {
+            if ($riga->registroIva->tipo === TipoRegistroIva::acquisti) {
+                $detraibili += $riga->operazioneDiversa ? $riga->getImpostaDetraibile() : 0.0;
+                continue;
+            }
+            if ($riga->qualifica === QualificaOperazione::connessaOccasionale) {
+                $connesseImponibile += $riga->imponibile;
+                $connesseImposta += $riga->imposta;
+                continue;
+            }
+            $percentuale = $riga->percentualeCompensazione ?? ($riga->qualifica === QualificaOperazione::conferimentoAgricolo ? $riga->codiceIva->aliquota : null);
+            if ($percentuale === null) {
+                if ($riga->codiceIva->natura === null) {
+                    $diverseImponibile += $riga->imponibile;
+                    $diverseImposta += $riga->imposta;
+                }
+            } elseif ($riga->codiceIva->natura !== null) {
+                $teorica += $riga->imponibile * $percentuale / 100;
+            } else {
+                $this->accumula($compensazione, $percentuale, $riga->imponibile);
+            }
+        }
+        $quadri->proponi('VF038001', (int) round($diverseImponibile));
+        $quadri->proponi('VF038002', (int) round($diverseImposta));
+        foreach ($compensazione as $percentuale => $imponibile) {
+            $rigo = (self::RIGHI_COMPENSAZIONE[$percentuale] ?? null) === null ? null : self::RIGHI_COMPENSAZIONE[$percentuale] + 38;
+            if ($rigo === null) {
+                $this->avvisa($etichetta . 'cessioni con la percentuale di compensazione del ' . $percentuale . '% senza un rigo VF39-VF49: indicarle a mano.');
+                continue;
+            }
+            $quadri->proponi(sprintf('VF%03d001', $rigo), (int) round($imponibile));
+            $quadri->proponi(sprintf('VF%03d002', $rigo), (int) round(round($imponibile) * (float) $percentuale / 100));
+        }
+        $totaleImponibile = $totaleImposta = 0;
+        for ($rigo = 39; $rigo <= 49; $rigo++) {
+            $totaleImponibile += $quadri->getImporto(sprintf('VF%03d001', $rigo));
+            $totaleImposta += $quadri->getImporto(sprintf('VF%03d002', $rigo));
+        }
+        $quadri->proponi('VF052001', $totaleImponibile);
+        $quadri->proponi('VF052002', $totaleImposta + $quadri->getImporto('VF051002'));
+        $quadri->proponi('VF053002', (int) round($detraibili));
+        $quadri->proponi('VF054002', (int) round($teorica));
+        $quadri->proponi('VF055002', $quadri->somma('VF052002', 'VF053002', 'VF054002'));
+        $quadri->proponi('VF062001', (int) round($connesseImponibile));
+        $quadri->proponi('VF062002', (int) round($connesseImposta));
+        $quadri->proponi('VF071002', $quadri->getImporto('VF055002') + (int) round($quadri->getImporto('VF062002') * 0.5) + $quadri->getImporto('VF070002'));
+        if ($quadri->getImporto('VF062002') > 0) {
+            $this->avvisa($etichetta . 'attività connesse occasionali (VF62): gli acquisti afferenti vanno spostati a mano nel rigo VF18, campo 1.');
+        }
+        if (($diverseImponibile > 0) && ($detraibili <= 0)) {
+            $this->avvisa($etichetta . 'operazioni diverse (VF38) senza acquisti destinati: indicarli nella prima nota, altrimenti non c\'è detrazione (VF53).');
+        }
+    }
+
+    /**
+     * Quota forfetaria dei regimi speciali barrati nel VF30, null senza.
+     */
+    public static function getQuotaForfetaria(QuadriDichiarazione $quadri): ?float
+    {
+        foreach (RegimeDetrazioneIva::cases() as $regime) {
+            if (($regime->getQuotaForfetaria() !== null) && ($quadri->get($regime->getCasellaVf30()) !== null)) {
+                return $regime->getQuotaForfetaria();
+            }
+        }
+        return null;
+    }
+
+    /**
      * Pro-rata di detrazione (art. 19, c. 5, e 19-bis D.P.R. 633/1972) con
      * operazioni esenti nel VE33: casella 3 del VF30, percentuale del VF34
      * campo 9 con la formula delle istruzioni (i campi da 1 a 8 si
@@ -749,15 +863,30 @@ class PropostaIva
      */
     private function proponiLiquidazioneAnnuale(QuadriDichiarazione $quadri, Dichiarazione $dichiarazione, Soggetto $soggetto, ?PeriodicitaIva $periodicita, array $liquidazioni): void
     {
-        [$credito, $compensato] = $this->getCreditoAnnoPrecedente($soggetto, $dichiarazione->anno);
+        [$credito, $compensato] = $this->getCreditoAnnoPrecedente($soggetto, $dichiarazione->anno, CreditiTrimestrali::getDataLimite($dichiarazione));
+        // controllante: il credito di gruppo dell'anno precedente va nel VW25, non nel VL8
+        $gruppi = new PropostaGruppoIva($this->dataMapper);
+        $partecipazione = $gruppi->getPartecipazione($soggetto, $dichiarazione->anno);
+        if (($partecipazione !== null) && ($partecipazione['partecipante'] === null)) {
+            $credito = max(0, $credito - $gruppi->getCreditoGruppoPrecedente($partecipazione['gruppo'], $dichiarazione));
+        }
         $quadri->proponi('VL008001', $credito);
         $quadri->proponi('VL009001', min($compensato, $quadri->getImporto('VL008001')));
-        $quadri->proponi('VL025001', $quadri->getImporto('VL008001') - $quadri->getImporto('VL009001'));
+        // chi partecipa al gruppo per l'intero anno non vi fa confluire il credito precedente (art. 73, ultimo comma): VL10 invece del VL25, riportato nel VX2
+        $eccedenza = $quadri->getImporto('VL008001') - $quadri->getImporto('VL009001');
+        $nonTrasferibile = ($partecipazione !== null) && ($partecipazione['ultimoMese'] >= 12);
+        $quadri->proponi('VL010001', $nonTrasferibile ? $eccedenza : 0);
+        $quadri->proponi('VL025001', $nonTrasferibile ? 0 : $eccedenza);
         // crediti trimestrali dei modelli IVA TR (per le società del gruppo nel prospetto IVA 26 PR della controllante)
-        if (($soggetto->id === $dichiarazione->soggetto->id) && ((new PropostaGruppoIva($this->dataMapper))->getPartecipazione($soggetto, $dichiarazione->anno) === null)) {
+        if (($soggetto->id === $dichiarazione->soggetto->id) && ($partecipazione === null)) {
             $trimestrali = new CreditiTrimestrali($this->dataMapper);
             $quadri->proponi('VL020001', $trimestrali->getRimborsiRichiesti($soggetto, $dichiarazione->anno));
-            $quadri->proponi('VL022001', $trimestrali->getCompensati($soggetto, $dichiarazione->anno));
+            $entro = CreditiTrimestrali::getDataLimite($dichiarazione);
+            $quadri->proponi('VL022001', $trimestrali->getCompensati($soggetto, $dichiarazione->anno, $entro));
+            $esclusi = $trimestrali->getEsclusi($soggetto, $dichiarazione->anno, $entro);
+            if ($esclusi > 0) {
+                $this->avvisa(sprintf('Rigo VL22: € %s di crediti trimestrali non compresi, in deleghe non trasmesse o successive al %s.', number_format($esclusi, 0, ',', '.'), $entro->format('d/m/Y')));
+            }
             if ($quadri->getImporto('VL020001') + $quadri->getImporto('VL022001') > 0) {
                 $this->avvisa('Righi VL20 e VL22 dai modelli IVA TR presentati (rimborsi richiesti) e dagli utilizzi in F24 dei crediti 6036-6038 dell\'anno.');
             }
@@ -1090,10 +1219,20 @@ class PropostaIva
         $rimborso = new RimborsoIva($this->dataMapper);
         $rimborso->proponiVx4($quadri, $dichiarazione);
         array_push($this->avvisi, ...$rimborso->getAvvisi());
-        $quadri->proponi('VX005001', max(0, $quadri->getImporto('VX002001') + $quadri->getImporto('VX003001') - $quadri->getImporto('VX004001') - $quadri->getImporto('VX006002')));
+        $quadri->proponi('VX005001', max(0, self::getCreditoRipartibile($quadri) - $quadri->getImporto('VX004001') - $quadri->getImporto('VX006002')));
         if (($imposta > 0) && ($imposta <= 10)) {
             $this->avvisa('IVA da versare non superiore a 10,33 euro: il saldo non è dovuto.');
         }
+    }
+
+    /**
+     * Credito da ripartire tra i righi VX4, VX5 e VX6: VX2 più VX3 o, con
+     * l'ingresso in un Gruppo IVA, la differenza tra i campi 1 e 2 del VX2.
+     */
+    public static function getCreditoRipartibile(QuadriDichiarazione $quadri, ?int $modulo = null): int
+    {
+        return $quadri->getImporto('VX002002', $modulo) > 0 ? $quadri->getImporto('VX002001', $modulo) - $quadri->getImporto('VX002002', $modulo)
+                : $quadri->getImporto('VX002001', $modulo) + $quadri->getImporto('VX003001', $modulo);
     }
 
     /**
@@ -1174,19 +1313,20 @@ class PropostaIva
      *
      * @return array{0: int, 1: int}
      */
-    private function getCreditoAnnoPrecedente(Soggetto $soggetto, int $anno): array
+    private function getCreditoAnnoPrecedente(Soggetto $soggetto, int $anno, SismaDate $entro): array
     {
         $creditoModel = new CreditoModel($this->dataMapper);
+        $trimestrali = new CreditiTrimestrali($this->dataMapper);
         $importo = 0.0;
         $utilizzato = 0;
         foreach ($creditoModel->getElenco($soggetto) as $credito) {
             if (($credito->codiceTributo?->codice === '6099') && ($credito->annoRiferimento === $anno - 1)) {
                 $importo += $credito->importo;
-                $utilizzato += $creditoModel->getUtilizzato($credito);
+                $utilizzato += $trimestrali->getUtilizzatoEntro($credito, $entro);
             }
         }
         if ($importo > 0) {
-            $this->avvisa(sprintf('Credito IVA %d di %s dall\'archivio dei crediti di Deleghe (rigo VL8), utilizzato in F24 per € %s (VL9): verificare che le compensazioni siano anteriori alla presentazione.',
+            $this->avvisa(sprintf('Credito IVA %d di %s dall\'archivio dei crediti di Deleghe (rigo VL8), utilizzato in F24 per € %s (VL9) nelle deleghe trasmesse fino alla presentazione.',
                             $anno - 1, $soggetto->nominativo, number_format($utilizzato / 100, 2, ',', '.')));
         }
         return [(int) round($importo), (int) round($utilizzato / 100)];

@@ -94,7 +94,13 @@
                 "soggettoIsa": "Applica gli ISA (anche con cause di esclusione)",
                 "sostitutoImposta": "Sostituto d'imposta",
                 "trasparenzaFiscale": "Opzione per la trasparenza fiscale (artt. 115-116 TUIR)",
-                "ventilazioneCorrispettivi": "Ventilazione dei corrispettivi (commercio al minuto, D.M. 24/2/1973)"
+                "ventilazioneCorrispettivi": "Ventilazione dei corrispettivi (commercio al minuto, D.M. 24/2/1973)",
+                "dataInizioAttivita": "Inizio dell'attività",
+                "nonResidenteIva": "Non residente con identificazione diretta o rappresentante fiscale (art. 17, c. 3)",
+                "startupInnovativa": "Start-up innovativa (art. 25 D.L. 179/2012)",
+                "gruppoIvaArt70bis": "Partecipa a un Gruppo IVA (artt. 70-bis e seguenti)",
+                "regimeDetrazioneIva": "Regime speciale agricolo",
+                "nessunRegimeDetrazione": "Nessuno"
             },
             "azioni": {
                 "salva": "Salva",

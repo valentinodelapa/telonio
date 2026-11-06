@@ -5,6 +5,7 @@ namespace Contabilita\Application\Services;
 use Anagrafica\Application\Entities\DatiFiscali;
 use Anagrafica\Application\Entities\Soggetto;
 use Anagrafica\Application\Enumerations\PeriodicitaIva;
+use Anagrafica\Application\Enumerations\RegimeDetrazioneIva;
 use Anagrafica\Application\Models\DatiFiscaliModel;
 use SismaFramework\Orm\CustomTypes\SismaDate;
 use SismaFramework\Orm\HelperClasses\DataMapper;
@@ -49,6 +50,9 @@ class RegimeIva
         }
         if ($datiFiscali->regimeFiscale->isLiquidazioneIva() === false) {
             throw new \DomainException('Nel ' . $anno . ' l\'azienda è nel regime ' . mb_strtolower($datiFiscali->regimeFiscale->getLabel()) . ', che non prevede le liquidazioni IVA.');
+        }
+        if ($datiFiscali->regimeDetrazioneIva === RegimeDetrazioneIva::agricoloEsonerato) {
+            throw new \DomainException('Nel ' . $anno . ' l\'azienda è un agricoltore esonerato (art. 34, c. 6): nessuna liquidazione IVA.');
         }
         $periodicita = $datiFiscali->regimeFiscale->getPeriodicitaObbligata() ?? $datiFiscali->periodicitaIva
                 ?? throw new \DomainException('Nei dati fiscali dell\'Anagrafica per il ' . $anno . ' manca la periodicità IVA.');

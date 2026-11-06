@@ -5,6 +5,7 @@ namespace Contabilita\Application\Entities;
 use Anagrafica\Application\Entities\CodiceAteco;
 use Anagrafica\Application\Entities\Soggetto;
 use Anagrafica\Application\Enumerations\PeriodicitaIva;
+use Anagrafica\Application\Enumerations\RegimeDetrazioneIva;
 use SismaFramework\Orm\ExtendedClasses\ReferencedEntity;
 use Telonio\Application\Entities\Studio;
 
@@ -26,6 +27,7 @@ class AttivitaIva extends ReferencedEntity
     protected string $descrizione;
     protected ?CodiceAteco $codiceAteco = null;
     protected ?PeriodicitaIva $periodicita = null;
+    protected ?RegimeDetrazioneIva $regimeDetrazioneIva = null;
     protected int $dalAnno;
     protected ?int $alAnno = null;
 

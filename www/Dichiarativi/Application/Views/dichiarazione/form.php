@@ -45,6 +45,8 @@ require Layout::percorso('header');
             <?= Campo::autocompleta('vistoProfessionista', $campi['vistoProfessionista'], $formEntity, $errors, '/soggetto/cerca', $vistoCorrente, ['colonna' => 'col-md-6', 'aiuto' => $aiutoVisto]) ?>
             <?= Campo::spunta('esoneroVisto', $campi['esoneroVisto'], $formEntity, $errors, ['colonna' => 'col-md-6', 'aiuto' => $aiutoEsonero]) ?>
             <?= Campo::spunta('attestazionePatrimoniale', $campi['attestazionePatrimoniale'], $formEntity, $errors, ['colonna' => 'col-md-6', 'aiuto' => $aiutoAttestazione]) ?>
+            <?= Campo::spunta('verificaAccertamenti', $campi['verificaAccertamenti'], $formEntity, $errors, ['colonna' => 'col-md-6', 'aiuto' => $aiutoVerificaAccertamenti]) ?>
+            <div class="w-100 m-0"></div>
             <?= Campo::spunta('adempimentoCollaborativo', $campi['adempimentoCollaborativo'], $formEntity, $errors, ['colonna' => 'col-md-3']) ?>
             <?= Campo::spunta('concordatoBiennale', $campi['concordatoBiennale'], $formEntity, $errors, ['colonna' => 'col-md-3']) ?>
             <?= Campo::autocompleta('vistoCaf', $campi['vistoCaf'], $formEntity, $errors, '/soggetto/cerca', $cafCorrente, ['colonna' => 'col-md-6', 'aiuto' => $aiutoVistoCaf]) ?>

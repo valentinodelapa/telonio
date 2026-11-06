@@ -2,17 +2,32 @@
 
 namespace Dichiarativi\Tests;
 
+use Anagrafica\Application\Entities\CodiceAteco;
+use Anagrafica\Application\Entities\DatiFiscali;
+use Anagrafica\Application\Enumerations\ClassificazioneAteco;
+use Anagrafica\Application\Enumerations\PeriodicitaIva;
+use Anagrafica\Application\Enumerations\RegimeFiscale;
+use Anagrafica\Application\Enumerations\TipoAttivita;
 use Contabilita\Application\Entities\CodiceIva;
+use Contabilita\Application\Entities\ComunicazioneLipe;
+use Contabilita\Application\Entities\CreditoTrimestraleIva;
 use Contabilita\Application\Entities\GruppoIva;
 use Contabilita\Application\Entities\LiquidazioneGruppoIva;
 use Contabilita\Application\Entities\LiquidazioneIva;
+use Contabilita\Application\Entities\PartecipanteGruppoIva;
 use Contabilita\Application\Enumerations\CausaleContabile;
 use Contabilita\Application\Enumerations\NaturaIva;
+use Contabilita\Application\Enumerations\QualificaOperazione;
+use Contabilita\Application\Enumerations\StatoComunicazioneLipe;
+use Contabilita\Application\Services\CreditoTrimestrale;
 use Deleghe\Application\Entities\CodiceTributo;
 use Deleghe\Application\Entities\Credito;
+use Deleghe\Application\Entities\Delega;
 use Deleghe\Application\Entities\Versamento;
 use Deleghe\Application\Enumerations\SezioneCodiceTributo;
 use Deleghe\Application\Enumerations\SezioneF24;
+use Deleghe\Application\Enumerations\StatoDelega;
+use Dichiarativi\Application\Entities\AttoAccertamento;
 use Dichiarativi\Application\Entities\Dichiarazione;
 use Dichiarativi\Application\Entities\ValoreDichiarazione;
 use Dichiarativi\Application\Enumerations\ModelloDichiarativo;
@@ -21,6 +36,7 @@ use Dichiarativi\Application\Services\Iva\ControlliIva;
 use Dichiarativi\Application\Services\Iva\ControlliTr;
 use Dichiarativi\Application\Services\Iva\CreditiTrimestrali;
 use Dichiarativi\Application\Services\Iva\PropostaGruppoIva;
+use Dichiarativi\Application\Services\Iva\PropostaIva;
 use Dichiarativi\Application\Services\Iva\PropostaTr;
 use Dichiarativi\Application\Services\Iva\RimborsoIva;
 use Dichiarativi\Application\Services\Iva\VersamentiTr;
@@ -113,6 +129,364 @@ class ModelloTrERimborsiTest extends DichiarativiTestCase
         $credito->annoRiferimento = $anno;
         $credito->importo = $importo;
         return $credito;
+    }
+
+    private function delega(StatoDelega $stato): Delega
+    {
+        $delega = new Delega($this->dataMapper);
+        $delega->stato = $stato;
+        return $delega;
+    }
+
+    private function datiRegime(RegimeFiscale $regime): DatiFiscali
+    {
+        $dati = $this->creaDatiFiscali();
+        $dati->regimeFiscale = $regime;
+        return $dati;
+    }
+
+    public function testAltreNonImponibiliFuoriDalRigoTa30(): void
+    {
+        $tabelle = $this->righeEsportatore();
+        $altre = clone $this->codiciIva['N3.1'];
+        $altre->id = 301;
+        $altre->codice = 'N3.6';
+        $altre->natura = NaturaIva::nonImponibiliAltre;
+        $this->codiciIva['N3.6'] = $altre;
+        $vendita = $tabelle['riga_iva'][0]->registrazioneContabile;
+        $tabelle['riga_iva'][0] = $this->creaRigaIva('N3.6', 20000.0, 1, null, $vendita);
+        $this->rispondi($tabelle);
+        $quadri = $this->quadriTr();
+        $dati = (new PropostaTr($this->dataMapper))->proponiModulo($quadri, $this->azienda, 2025, 3, '');
+        $this->assertSame(0.0, $quadri->getDecimale('TA030001'));
+        $this->assertSame(20000.0, $quadri->getDecimale('TA031001'));
+        $this->assertNotContains('TD002001', $dati['presupposti']);
+    }
+
+    public function testPresuppostoTd5DallaQualifica(): void
+    {
+        $tabelle = $this->righeEsportatore();
+        $nonSoggetta = clone $this->codiciIva['N3.1'];
+        $nonSoggetta->id = 302;
+        $nonSoggetta->codice = 'N2.1';
+        $nonSoggetta->natura = NaturaIva::nonSoggetteTerritorialita;
+        $this->codiciIva['N2.1'] = $nonSoggetta;
+        $vendita = $tabelle['riga_iva'][0]->registrazioneContabile;
+        $tabelle['riga_iva'][0] = $this->creaRigaIva('N2.1', 20000.0, 1, null, $vendita);
+        $this->rispondi($tabelle);
+        // operazioni non soggette qualsiasi: nessun presupposto
+        $dati = (new PropostaTr($this->dataMapper))->proponiModulo($this->quadriTr(), $this->azienda, 2025, 3, '');
+        $this->assertNotContains('TD005001', $dati['presupposti']);
+        $tabelle['riga_iva'][0]->qualifica = QualificaOperazione::prestazioneNonStabiliti;
+        $dati = (new PropostaTr($this->dataMapper))->proponiModulo($this->quadriTr(), $this->azienda, 2025, 3, '');
+        $this->assertContains('TD005001', $dati['presupposti']);
+    }
+
+    public function testCausaliDaiRighiVe(): void
+    {
+        $quadri = $this->creaQuadri();
+        $quadri->imposta('VE030001', 2000);
+        $quadri->imposta('VE050001', 10000);
+        $this->assertSame([], RimborsoIva::getCausaliDaiRighiVe($quadri));
+        // la percentuale si arrotonda all'unità superiore: 25,01% diventa 26%
+        $quadri->imposta('VE030001', 2501);
+        $this->assertSame(['3'], RimborsoIva::getCausaliDaiRighiVe($quadri));
+        // prevalenza con le non soggette più esportazioni e operazioni assimilate
+        $quadri->imposta('VE030001', 2000);
+        $quadri->imposta('VE034001', 3100);
+        $this->assertSame(['5'], RimborsoIva::getCausaliDaiRighiVe($quadri));
+        // senza non soggette le sole esportazioni non danno la causale 5
+        $quadri->imposta('VE030001', 6000);
+        $quadri->imposta('VE034001', 0);
+        $this->assertSame(['3'], RimborsoIva::getCausaliDaiRighiVe($quadri));
+    }
+
+    public function testPassaggioAlRegimeForfetario(): void
+    {
+        $ordinario = $this->datiRegime(RegimeFiscale::ordinario);
+        $forfetario = $this->datiRegime(RegimeFiscale::forfetario);
+        $this->assertTrue(RimborsoIva::isPassaggioForfetario($ordinario, $forfetario));
+        $this->assertFalse(RimborsoIva::isPassaggioForfetario($forfetario, $forfetario));
+        $this->assertFalse(RimborsoIva::isPassaggioForfetario($ordinario, $ordinario));
+        $this->assertFalse(RimborsoIva::isPassaggioForfetario(null, $forfetario));
+    }
+
+    public function testErogazionePrioritariaPerAttivita(): void
+    {
+        $tabelle = $this->righeEsportatore();
+        foreach (['59.14.00' => '7', '30.30.09' => '5', '46.64.99' => null] as $codice => $atteso) {
+            $ateco = new CodiceAteco($this->dataMapper);
+            $ateco->id = 1;
+            $ateco->classificazione = ClassificazioneAteco::ateco2025;
+            $ateco->codice = $codice;
+            $tabelle['dati_fiscali'][0]->codiceAteco = $ateco;
+            $this->rispondi($tabelle);
+            $quadri = $this->quadriTr();
+            (new PropostaTr($this->dataMapper))->proponiModulo($quadri, $this->azienda, 2025, 3, '');
+            $this->assertSame($atteso, $quadri->get('TD008001'));
+        }
+    }
+
+    public function testPrioritaDalRaccordoAteco(): void
+    {
+        $tabelle = $this->righeEsportatore();
+        foreach (['38.32.10' => '2', '38.21.20' => '2', '24.43.00' => '3', '24.42.00' => '4', '38.31.10' => null] as $codice => $atteso) {
+            $ateco = new CodiceAteco($this->dataMapper);
+            $ateco->id = 1;
+            $ateco->classificazione = ClassificazioneAteco::ateco2025;
+            $ateco->codice = $codice;
+            $tabelle['dati_fiscali'][0]->codiceAteco = $ateco;
+            $this->rispondi($tabelle);
+            $quadri = $this->quadriTr();
+            (new PropostaTr($this->dataMapper))->proponiModulo($quadri, $this->azienda, 2025, 3, '');
+            $this->assertSame($atteso, $quadri->get('TD008001'));
+        }
+    }
+
+    public function testNonResidenti(): void
+    {
+        $tabelle = $this->righeEsportatore();
+        $tabelle['dati_fiscali'][0]->nonResidenteIva = true;
+        $this->rispondi($tabelle);
+        $quadri = $this->quadriTr();
+        $dati = (new PropostaTr($this->dataMapper))->proponiModulo($quadri, $this->azienda, 2025, 3, '');
+        $this->assertContains('TD004001', $dati['presupposti']);
+        $servizio = new RimborsoIva($this->dataMapper);
+        // causale 6, con la soglia dell'art. 30, c. 2
+        $annuale = $this->creaQuadri();
+        $this->assertSame('6', $servizio->getPresupposti($this->azienda, 2025, 5000, $annuale)['causale']);
+        $this->assertNull($servizio->getPresupposti($this->azienda, 2025, 2000, $annuale)['causale']);
+    }
+
+    public function testIngressoInUnGruppoIva(): void
+    {
+        $attuale = $this->creaDatiFiscali();
+        $successivo = $this->creaDatiFiscali();
+        $successivo->gruppoIvaArt70bis = true;
+        $this->assertTrue(RimborsoIva::isIngressoGruppoIva($attuale, $successivo));
+        $this->assertFalse(RimborsoIva::isIngressoGruppoIva($successivo, $successivo));
+        $this->assertFalse(RimborsoIva::isIngressoGruppoIva($attuale, $attuale));
+        // tra VX4, VX5 e VX6 si ripartisce la differenza tra i campi 1 e 2 del VX2, senza il VX3
+        $quadri = $this->creaQuadri();
+        $quadri->imposta('VX002001', 5000);
+        $quadri->imposta('VX003001', 300);
+        $this->assertSame(5300, PropostaIva::getCreditoRipartibile($quadri));
+        $quadri->imposta('VX002002', 4000);
+        $this->assertSame(1000, PropostaIva::getCreditoRipartibile($quadri));
+    }
+
+    public function testRischiDeiRimborsiOltreLimite(): void
+    {
+        $dati = $this->creaDatiFiscali();
+        $this->rispondi(['dati_fiscali' => [$dati]]);
+        $servizio = new RimborsoIva($this->dataMapper);
+        $dichiarazione = $this->creaDichiarazione();
+        // senza data non si può escludere il rischio
+        $this->assertStringContainsString('mancante', implode(' ', $servizio->getRischi($dichiarazione)));
+        // alla scadenza del 30 aprile 2026 l'attività iniziata il 1° settembre 2024 non ha due anni
+        $dati->dataInizioAttivita = new SismaDate('2024-09-01');
+        $this->assertStringContainsString('meno di due anni', implode(' ', $servizio->getRischi($dichiarazione)));
+        $dichiarazione->dataPresentazione = new SismaDate('2026-09-30');
+        $this->assertSame([], $servizio->getRischi($dichiarazione));
+        $dichiarazione->dataPresentazione = null;
+        // start-up innovative e lavoratori autonomi esclusi
+        $dati->startupInnovativa = true;
+        $this->assertSame([], $servizio->getRischi($dichiarazione));
+        $dati->startupInnovativa = false;
+        $dati->tipoAttivita = TipoAttivita::lavoroAutonomo;
+        $this->assertSame([], $servizio->getRischi($dichiarazione));
+        // cessazione nell'anno
+        $this->azienda->dataCessazione = new SismaDate('2025-10-31');
+        $this->assertContains('cessazione dell' . chr(39) . 'attività', $servizio->getRischi($dichiarazione));
+    }
+
+    public function testVistoNonEsoneraNelleSituazioniDiRischio(): void
+    {
+        $tabelle = $this->righeEsportatore();
+        $tabelle['dati_fiscali'][0]->dataInizioAttivita = new SismaDate('2025-01-15');
+        $this->rispondi($tabelle);
+        $dichiarazione = $this->creaDichiarazione();
+        $dichiarazione->attestazionePatrimoniale = true;
+        $dichiarazione->vistoProfessionista = $this->azienda;
+        $quadri = $this->creaQuadri($dichiarazione);
+        $quadri->imposta('VX002001', 40000);
+        $quadri->imposta('VX004001', 35000);
+        $servizio = new RimborsoIva($this->dataMapper);
+        $servizio->proponiVx4($quadri, $dichiarazione);
+        $this->assertNull($quadri->get('VX004007'));
+        $this->assertStringContainsString('garanzia dovuta', implode(' ', $servizio->getAvvisi()));
+    }
+
+    public function testLimiteDelleCompensazioni(): void
+    {
+        $credito = $this->creaCredito('6099', 2025, 1900000.0);
+        $utilizzo = new Versamento($this->dataMapper);
+        $utilizzo->id = 1;
+        $utilizzo->studio = $this->studioPredefinito;
+        $utilizzo->soggetto = $this->azienda;
+        $utilizzo->scadenza = new SismaDate('2026-03-16');
+        $utilizzo->sezione = SezioneF24::erario;
+        $utilizzo->importoCredito = 1900000.0;
+        $utilizzo->credito = $credito;
+        $this->rispondi(['dati_fiscali' => [$this->creaDatiFiscali()], 'credito' => [$credito], 'versamento' => [$utilizzo]]);
+        $this->assertSame(1900000, (new CreditiTrimestrali($this->dataMapper))->getCompensatiNellAnno($this->azienda, 2026));
+        $this->assertSame(0, (new CreditiTrimestrali($this->dataMapper))->getCompensatiNellAnno($this->azienda, 2025));
+        $dichiarazione = $this->creaDichiarazione();
+        $quadri = $this->creaQuadri($dichiarazione);
+        $quadri->imposta('VX004002', 150000);
+        $this->assertStringContainsString('2.000.000', implode(' ', (new ControlliIva($this->dataMapper))->getAvvertenze($quadri, $dichiarazione)));
+        $quadri->imposta('VX004002', 50000);
+        $this->assertStringNotContainsString('2.000.000', implode(' ', (new ControlliIva($this->dataMapper))->getAvvertenze($quadri, $dichiarazione)));
+        // semplificata oltre il rimborso e con la cessazione
+        $quadri->imposta('VX004001', 40000);
+        $errori = implode(' ', (new ControlliIva($this->dataMapper))->getErrori($dichiarazione, $quadri));
+        $this->assertStringContainsString('procedura semplificata', $errori);
+        $quadri->imposta('VX004002', 10000);
+        $quadri->imposta('VX004003', '1');
+        $errori = implode(' ', (new ControlliIva($this->dataMapper))->getErrori($dichiarazione, $quadri));
+        $this->assertStringContainsString('campo 2 non va compilato', $errori);
+    }
+
+    public function testCausale10PerChiPartecipaAlGruppo(): void
+    {
+        $precedente = $this->creaDichiarazione(2024);
+        $precedente->id = 50;
+        $partecipante = new PartecipanteGruppoIva($this->dataMapper);
+        $partecipante->id = 1;
+        $partecipante->gruppoIva = new GruppoIva($this->dataMapper);
+        $partecipante->gruppoIva->annoInizio = 2024;
+        $partecipante->soggetto = $this->azienda;
+        $partecipante->annoIngresso = 2024;
+        $this->rispondi(['dati_fiscali' => [$this->creaDatiFiscali()], 'dichiarazione' => [$precedente], 'partecipante_gruppo_iva' => [$partecipante],
+            'valore_dichiarazione' => [$this->valore($precedente, 'VX005001', '4000'), $this->valore($precedente, 'VY005001', '6000')]]);
+        $servizio = new RimborsoIva($this->dataMapper);
+        $quadri = $this->creaQuadri();
+        // anche sotto soglia, per la minore delle tre eccedenze
+        $presupposti = $servizio->getPresupposti($this->azienda, 2025, 2000, $quadri);
+        $this->assertSame('10', $presupposti['causale']);
+        $this->assertSame(2000, $presupposti['limite']);
+        // l'ex controllante parte dal VY5 del prospetto
+        $this->assertSame(4000, $servizio->getMinoreEccedenza($this->azienda, 2025, 9000, $quadri, true));
+        $this->assertSame(4000, $servizio->getMinoreEccedenza($this->azienda, 2025, 9000, $quadri));
+        $altro = $this->valore($precedente, 'VX005001', '7000');
+        $this->rispondi(['dichiarazione' => [$precedente], 'valore_dichiarazione' => [$altro, $this->valore($precedente, 'VY005001', '6000')]]);
+        $this->assertSame(6000, $servizio->getMinoreEccedenza($this->azienda, 2025, 9000, $quadri, true));
+        // nel quadro VS del prospetto le causali sono solo da 1 a 7
+        $this->assertNull($servizio->getPresuppostiSocieta($this->azienda, 2025, 2000, $quadri)['causale']);
+    }
+
+    public function testCreditoPrecedenteNonTrasferibileAlGruppo(): void
+    {
+        $quadri = $this->creaQuadri();
+        $quadri->imposta('VK001001', '09222333008');
+        $quadri->imposta('VK001002', 12);
+        $quadri->imposta('VL010001', 4000);
+        // credito del VL10 nel VX2, mai nel VX8 trasferito al gruppo
+        $this->assertSame([-4000, 0], PropostaIva::calcolaImposteVx($quadri, [1]));
+    }
+
+    private function creaAtto(string $notifica, float $dichiarato, float $accertato): AttoAccertamento
+    {
+        $atto = new AttoAccertamento($this->dataMapper);
+        $atto->id = 1;
+        $atto->studio = $this->studioPredefinito;
+        $atto->soggetto = $this->azienda;
+        $atto->annoImposta = 2022;
+        $atto->dataNotifica = new SismaDate($notifica);
+        $atto->importoDichiarato = $dichiarato;
+        $atto->importoAccertato = $accertato;
+        return $atto;
+    }
+
+    public function testSoglieDegliAttiDiAccertamento(): void
+    {
+        $this->assertFalse($this->creaAtto('2025-06-01', 100000.0, 110000.0)->isOltreSoglia());
+        $this->assertTrue($this->creaAtto('2025-06-01', 100000.0, 110000.01)->isOltreSoglia());
+        $this->assertSame(15000.0, $this->creaAtto('2025-06-01', 150000.0, 0.0)->getSoglia());
+        $this->assertSame(10000.0, $this->creaAtto('2025-06-01', 200000.0, 0.0)->getSoglia());
+        $this->assertSame(75000.0, $this->creaAtto('2025-06-01', 1500000.0, 0.0)->getSoglia());
+        $this->assertSame(20000.0, $this->creaAtto('2025-06-01', 2000000.0, 0.0)->getSoglia());
+        $this->assertSame(150000.0, $this->creaAtto('2025-06-01', 20000000.0, 0.0)->getSoglia());
+        // conta anche un minor credito: la differenza è in valore assoluto
+        $this->assertTrue($this->creaAtto('2025-06-01', 100000.0, 80000.0)->isOltreSoglia());
+        $richiesta = new SismaDate('2026-04-30');
+        $this->assertTrue($this->creaAtto('2024-04-30', 1.0, 1.0)->isNelBiennio($richiesta));
+        $this->assertFalse($this->creaAtto('2024-04-29', 1.0, 1.0)->isNelBiennio($richiesta));
+        $this->assertFalse($this->creaAtto('2026-05-01', 1.0, 1.0)->isNelBiennio($richiesta));
+    }
+
+    public function testVerificaDegliAccertamenti(): void
+    {
+        $dati = $this->creaDatiFiscali();
+        $dati->dataInizioAttivita = new SismaDate('2018-03-01');
+        $servizio = new RimborsoIva($this->dataMapper);
+        $dichiarazione = $this->creaDichiarazione();
+        // archivio vuoto e casella non barrata: la verifica resta da fare
+        $this->rispondi(['dati_fiscali' => [$dati]]);
+        $this->assertSame([], $servizio->getRischi($dichiarazione));
+        $this->assertTrue($servizio->isVerificaDaFare($dichiarazione));
+        $dichiarazione->verificaAccertamenti = true;
+        $this->assertFalse($servizio->isVerificaDaFare($dichiarazione));
+        // atto oltre soglia: garanzia dovuta, la casella non conta
+        $dichiarazione->verificaAccertamenti = false;
+        $this->rispondi(['dati_fiscali' => [$dati], 'atto_accertamento' => [$this->creaAtto('2025-06-01', 100000.0, 125000.0)]]);
+        $this->assertStringContainsString('accertamento notificato il 01/06/2025', implode(' ', $servizio->getRischi($dichiarazione)));
+        $this->assertFalse($servizio->isVerificaDaFare($dichiarazione));
+        // atto sotto soglia o fuori dal biennio: come l'archivio vuoto
+        $this->rispondi(['dati_fiscali' => [$dati], 'atto_accertamento' => [$this->creaAtto('2025-06-01', 100000.0, 105000.0), $this->creaAtto('2023-06-01', 100000.0, 125000.0)]]);
+        $this->assertSame([], $servizio->getRischi($dichiarazione));
+        $this->assertTrue($servizio->isVerificaDaFare($dichiarazione));
+    }
+
+    public function testRielaborazioneFermataDallaComunicazioneInviata(): void
+    {
+        $crea = function (int $id, int $periodo): LiquidazioneIva {
+            $liquidazione = new LiquidazioneIva($this->dataMapper);
+            $liquidazione->id = $id;
+            $liquidazione->studio = $this->studioPredefinito;
+            $liquidazione->soggetto = $this->azienda;
+            $liquidazione->periodicita = PeriodicitaIva::mensile;
+            $liquidazione->anno = 2025;
+            $liquidazione->periodo = $periodo;
+            return $liquidazione;
+        };
+        $settembre = $crea(9, 9);
+        $settembre->creditoFinale = 9900.0;
+        $ottobre = $crea(10, 10);
+        $inviata = new ComunicazioneLipe($this->dataMapper);
+        $inviata->stato = StatoComunicazioneLipe::inviata;
+        $this->rispondi(['dati_fiscali' => [$this->creaDatiFiscali()], 'liquidazione_iva' => [$settembre, $ottobre], 'comunicazione_lipe' => [$inviata]]);
+        $messaggi = (new CreditoTrimestrale($this->dataMapper))->registra($this->azienda, null, 2025, 3, 3300.0);
+        $testo = implode(' ', $messaggi);
+        $this->assertStringContainsString('comunicazione del trimestre già inviata', $testo);
+        $this->assertStringContainsString('corretto a mano', $testo);
+        $this->assertStringNotContainsString('Riporto aggiornato', $testo);
+    }
+
+    public function testCreditoRegistratoSenzaLiquidazione(): void
+    {
+        $this->rispondi(['dati_fiscali' => [$this->creaDatiFiscali()]]);
+        $messaggi = (new CreditoTrimestrale($this->dataMapper))->registra($this->azienda, null, 2025, 3, 3300.0);
+        $this->assertStringContainsString('alla sua elaborazione', $messaggi[0]);
+        // la liquidazione elaborata dopo lo riprende dal registro
+        $liquidazione = new LiquidazioneIva($this->dataMapper);
+        $liquidazione->id = 9;
+        $liquidazione->studio = $this->studioPredefinito;
+        $liquidazione->soggetto = $this->azienda;
+        $liquidazione->periodicita = PeriodicitaIva::mensile;
+        $liquidazione->anno = 2025;
+        $liquidazione->periodo = 9;
+        $registrato = new CreditoTrimestraleIva($this->dataMapper);
+        $registrato->id = 1;
+        $registrato->studio = $this->studioPredefinito;
+        $registrato->soggetto = $this->azienda;
+        $registrato->anno = 2025;
+        $registrato->trimestre = 3;
+        $registrato->importo = 3300.0;
+        $this->rispondi(['dati_fiscali' => [$this->creaDatiFiscali()], 'liquidazione_iva' => [$liquidazione], 'credito_trimestrale_iva' => [$registrato]]);
+        (new CreditoTrimestrale($this->dataMapper))->sincronizza($this->azienda, 2025, 3, $liquidazione);
+        $this->assertSame(3300.0, $liquidazione->creditoTrimestrale);
+        $this->assertSame(3, CreditoTrimestrale::getTrimestreChiuso($liquidazione));
     }
 
     public function testCreditoChiestoNonRiportato(): void
@@ -222,6 +596,8 @@ class ModelloTrERimborsiTest extends DichiarativiTestCase
         // operazioni non imponibili oltre il 25%: causale 3 proposta con l'importo indicato
         $dichiarazione = $this->creaDichiarazione();
         $quadri = $this->creaQuadri($dichiarazione);
+        $quadri->imposta('VE030001', 20000);
+        $quadri->imposta('VE050001', 20000);
         $quadri->imposta('VX002001', 5000);
         $quadri->imposta('VX004001', 3000);
         $servizio->proponiVx4($quadri, $dichiarazione);
@@ -229,6 +605,8 @@ class ModelloTrERimborsiTest extends DichiarativiTestCase
         $this->assertNull($quadri->get('VX004007'));
         // senza importo: solo l'avviso
         $senza = $this->creaQuadri($dichiarazione);
+        $senza->imposta('VE030001', 20000);
+        $senza->imposta('VE050001', 20000);
         $senza->imposta('VX002001', 5000);
         $avvisi = new RimborsoIva($this->dataMapper);
         $avvisi->proponiVx4($senza, $dichiarazione);
@@ -239,6 +617,8 @@ class ModelloTrERimborsiTest extends DichiarativiTestCase
         // oltre 30.000 euro: adempimento collaborativo (codice 4) e attestazione con il visto
         $dichiarazione->adempimentoCollaborativo = true;
         $quadri = $this->creaQuadri($dichiarazione);
+        $quadri->imposta('VE030001', 20000);
+        $quadri->imposta('VE050001', 20000);
         $quadri->imposta('VX002001', 40000);
         $quadri->imposta('VX004001', 35000);
         $servizio->proponiVx4($quadri, $dichiarazione);
@@ -247,7 +627,10 @@ class ModelloTrERimborsiTest extends DichiarativiTestCase
         $dichiarazione->adempimentoCollaborativo = false;
         $dichiarazione->attestazionePatrimoniale = true;
         $dichiarazione->vistoProfessionista = $this->azienda;
+        $this->azienda->dataCostituzione = new SismaDate('2018-03-01');
         $quadri = $this->creaQuadri($dichiarazione);
+        $quadri->imposta('VE030001', 20000);
+        $quadri->imposta('VE050001', 20000);
         $quadri->imposta('VX002001', 40000);
         $quadri->imposta('VX004001', 35000);
         $servizio->proponiVx4($quadri, $dichiarazione);
@@ -327,21 +710,23 @@ class ModelloTrERimborsiTest extends DichiarativiTestCase
         $utilizzo->sezione = SezioneF24::erario;
         $utilizzo->importoCredito = 1500.0;
         $utilizzo->credito = $credito;
+        $utilizzo->delega = $this->delega(StatoDelega::trasmessa);
         $this->rispondi(['credito' => [$credito], 'versamento' => [$utilizzo]]);
-        $liquidazione = new LiquidazioneGruppoIva($this->dataMapper);
-        $liquidazione->debitiTrasferiti = 2000.0;
         $quadri = $this->creaQuadri();
         $quadri->imposta('VL009001', 500);
         $quadri->imposta('VW025001', 6000);
         $servizio = new PropostaGruppoIva($this->dataMapper);
-        $servizio->proponiGaranzie($quadri, $this->azienda, 2025, [$liquidazione]);
+        $entro = new SismaDate('2026-04-30');
+        $servizio->proponiGaranzie($quadri, $this->azienda, 2025, 2000, $entro);
         // 1.500 utilizzati in F24, di cui 500 nel VL9 della controllante
         $this->assertSame(1000, $quadri->getImporto('VW024001'));
-        // credito residuo di 5.000, compensato nei limiti dei debiti trasferiti
+        // credito residuo di 5.000, compensato nei limiti delle eccedenze di debito delle società (VK22)
         $this->assertSame(2000, $quadri->getImporto('VS030001'));
-        $liquidazione->debitiTrasferiti = 9000.0;
-        $servizio->proponiGaranzie($quadri, $this->azienda, 2025, [$liquidazione]);
+        $servizio->proponiGaranzie($quadri, $this->azienda, 2025, 9000, $entro);
         $this->assertSame(5000, $quadri->getImporto('VS030001'));
+        // compensazione successiva alla presentazione: non conta
+        $servizio->proponiGaranzie($quadri, $this->azienda, 2025, 9000, new SismaDate('2025-05-15'));
+        $this->assertSame(0, $quadri->getImporto('VW024001'));
     }
 
     public function testQuadroVzPerLaMinoreEccedenzaDelGruppo(): void
@@ -378,6 +763,26 @@ class ModelloTrERimborsiTest extends DichiarativiTestCase
         $this->assertNull($quadri->get('VZ001001'));
     }
 
+    public function testCreditoDiGruppoFuoriDalVl8DellaControllante(): void
+    {
+        $gruppo = new GruppoIva($this->dataMapper);
+        $gruppo->id = 1;
+        $gruppo->studio = $this->studioPredefinito;
+        $gruppo->controllante = $this->azienda;
+        $gruppo->annoInizio = 2023;
+        $precedente = $this->creaDichiarazione(2024);
+        $precedente->id = 50;
+        $credito = $this->creaCredito('6099', 2024, 8000.0);
+        $this->rispondi(['dati_fiscali' => [$this->creaDatiFiscali()], 'gruppo_iva' => [$gruppo], 'dichiarazione' => [$precedente], 'credito' => [$credito],
+            'valore_dichiarazione' => [$this->valore($precedente, 'VY005001', '5000')]]);
+        $dichiarazione = $this->creaDichiarazione();
+        $quadri = $this->creaQuadri($dichiarazione);
+        (new PropostaIva($this->dataMapper))->proponi($dichiarazione, $quadri, []);
+        // 8.000 in Deleghe, di cui 5.000 del gruppo (VY5 del prospetto precedente)
+        $this->assertSame(5000, $quadri->getImporto('VW025001'));
+        $this->assertSame(3000, $quadri->getImporto('VL008001'));
+    }
+
     public function testCreditiTrimestraliNellaDichiarazioneAnnuale(): void
     {
         $presentata = $this->creaTr();
@@ -395,11 +800,27 @@ class ModelloTrERimborsiTest extends DichiarativiTestCase
         $utilizzo->sezione = SezioneF24::erario;
         $utilizzo->importoCredito = 1500.0;
         $utilizzo->credito = $credito;
-        $this->rispondi(['dichiarazione' => [$presentata, $bozza], 'valore_dichiarazione' => [$this->valore($presentata, 'TD006001', '1300.00')], 'credito' => [$credito, $altro], 'versamento' => [$utilizzo]]);
+        $utilizzo->delega = $this->delega(StatoDelega::trasmessa);
+        $inBozza = clone $utilizzo;
+        $inBozza->id = 2;
+        $inBozza->importoCredito = 200.0;
+        $inBozza->delega = $this->delega(StatoDelega::bozza);
+        $tardivo = clone $utilizzo;
+        $tardivo->id = 3;
+        $tardivo->scadenza = new SismaDate('2026-05-18');
+        $tardivo->importoCredito = 300.0;
+        $this->rispondi(['dichiarazione' => [$presentata, $bozza], 'valore_dichiarazione' => [$this->valore($presentata, 'TD006001', '1300.00')], 'credito' => [$credito, $altro], 'versamento' => [$utilizzo, $inBozza, $tardivo]]);
         $servizio = new CreditiTrimestrali($this->dataMapper);
         // solo i modelli presentati e i soli crediti trimestrali
         $this->assertSame(1300, $servizio->getRimborsiRichiesti($this->azienda, 2025));
-        $this->assertSame(1500, $servizio->getCompensati($this->azienda, 2025));
+        // fino alla presentazione e nelle sole deleghe trasmesse (VL22)
+        $entro = new SismaDate('2026-04-30');
+        $this->assertSame(1500, $servizio->getCompensati($this->azienda, 2025, $entro));
+        $this->assertSame(500, $servizio->getEsclusi($this->azienda, 2025, $entro));
+        $dichiarazione = $this->creaDichiarazione();
+        $this->assertSame('2026-04-30', CreditiTrimestrali::getDataLimite($dichiarazione)->format('Y-m-d'));
+        $dichiarazione->dataPresentazione = new SismaDate('2026-03-10');
+        $this->assertSame('2026-03-10', CreditiTrimestrali::getDataLimite($dichiarazione)->format('Y-m-d'));
     }
 
     public function testPresentazioneAnnotaLaLiquidazione(): void
@@ -423,8 +844,16 @@ class ModelloTrERimborsiTest extends DichiarativiTestCase
         $dichiarazione->dataPresentazione = new SismaDate('2025-10-28');
         $messaggi = $servizio->registraCredito($dichiarazione, $quadri);
         $this->assertSame(3300.0, $liquidazione->creditoTrimestrale);
-        $this->assertStringContainsString('rielaborare', $messaggi[0]);
+        $this->assertStringContainsString('annotato', $messaggi[0]);
         $this->assertSame(6600.0, $liquidazione->getCreditoRiportato());
+        $registrato = new CreditoTrimestraleIva($this->dataMapper);
+        $registrato->id = 1;
+        $registrato->studio = $this->studioPredefinito;
+        $registrato->soggetto = $this->azienda;
+        $registrato->anno = 2025;
+        $registrato->trimestre = 3;
+        $registrato->importo = 3300.0;
+        $this->rispondi(['dati_fiscali' => [$this->creaDatiFiscali()], 'liquidazione_iva' => [$liquidazione], 'credito_trimestrale_iva' => [$registrato]]);
         $servizio->annullaCredito($dichiarazione);
         $this->assertSame(0.0, $liquidazione->creditoTrimestrale);
     }

@@ -1,9 +1,9 @@
 -- =====================================================
 -- Contabilita - piani dei conti modello e codici IVA
 -- =====================================================
--- Generato con "sisma tabelle-contabilita --sql" il 03/11/2026 09:26: non modificare a mano.
+-- Generato con "sisma tabelle-contabilita --sql" il 06/11/2026 00:14: non modificare a mano.
 -- Fonte: Contabilita/Database/sorgenti (norma indicata per codice IVA).
--- Righe: piano_conti 1, conto 194, codice_iva 36.
+-- Righe: piano_conti 1, conto 194, codice_iva 45.
 -- Idempotente: aggiorna le tabelle della suite senza toccare i dati degli studi.
 -- Da eseguire dopo schema.sql.
 
@@ -248,8 +248,17 @@ INSERT INTO `codice_iva` (`id`, `studio_id`, `codice`, `descrizione`, `aliquota`
 (64, NULL, 'UE10', 'Acquisto intracomunitario 10% (integrazione)', '10.00', NULL, '100.00', 1, 0, 'artt. 38, 46 e 47 D.L. 331/1993', 1),
 (65, NULL, 'UE4', 'Acquisto intracomunitario 4% (integrazione)', '4.00', NULL, '100.00', 1, 0, 'artt. 38, 46 e 47 D.L. 331/1993', 1),
 (66, NULL, 'ES22', 'Acquisto di servizi o beni dall''estero 22% (integrazione o autofattura)', '22.00', NULL, '100.00', 1, 0, 'art. 17, c. 2, D.P.R. 633/1972', 1),
-(70, NULL, 'VEN', 'Corrispettivi da ventilare (ripartiti in proporzione agli acquisti per rivendita)', '0.00', NULL, '100.00', 0, 1, 'art. 24, c. 3, D.P.R. 633/1972', 1)
+(70, NULL, 'VEN', 'Corrispettivi da ventilare (ripartiti in proporzione agli acquisti per rivendita)', '0.00', NULL, '100.00', 0, 1, 'art. 24, c. 3, D.P.R. 633/1972', 1),
+(80, NULL, 'C2', 'Conferimento agricolo con percentuale di compensazione 2%', '2.00', NULL, '100.00', 0, 0, 'art. 34, c. 1 e 2, D.P.R. 633/1972', 1),
+(81, NULL, 'C6.4', 'Conferimento agricolo con percentuale di compensazione 6,4%', '6.40', NULL, '100.00', 0, 0, 'art. 34, c. 1 e 2, D.P.R. 633/1972', 1),
+(82, NULL, 'C7', 'Conferimento agricolo con percentuale di compensazione 7%', '7.00', NULL, '100.00', 0, 0, 'art. 34, c. 1 e 2, D.P.R. 633/1972', 1),
+(83, NULL, 'C7.3', 'Conferimento agricolo con percentuale di compensazione 7,3%', '7.30', NULL, '100.00', 0, 0, 'art. 34, c. 1 e 2, D.P.R. 633/1972', 1),
+(84, NULL, 'C7.5', 'Conferimento agricolo con percentuale di compensazione 7,5%', '7.50', NULL, '100.00', 0, 0, 'art. 34, c. 1 e 2, D.P.R. 633/1972', 1),
+(85, NULL, 'C8.3', 'Conferimento agricolo con percentuale di compensazione 8,3%', '8.30', NULL, '100.00', 0, 0, 'art. 34, c. 1 e 2, D.P.R. 633/1972', 1),
+(86, NULL, 'C8.5', 'Conferimento agricolo con percentuale di compensazione 8,5%', '8.50', NULL, '100.00', 0, 0, 'art. 34, c. 1 e 2, D.P.R. 633/1972', 1),
+(87, NULL, 'C8.8', 'Conferimento agricolo con percentuale di compensazione 8,8%', '8.80', NULL, '100.00', 0, 0, 'art. 34, c. 1 e 2, D.P.R. 633/1972', 1),
+(88, NULL, 'C12.3', 'Conferimento agricolo con percentuale di compensazione 12,3%', '12.30', NULL, '100.00', 0, 0, 'art. 34, c. 1 e 2, D.P.R. 633/1972', 1)
 ON DUPLICATE KEY UPDATE `studio_id` = VALUES(`studio_id`), `codice` = VALUES(`codice`), `descrizione` = VALUES(`descrizione`), `aliquota` = VALUES(`aliquota`), `natura` = VALUES(`natura`), `detraibilita` = VALUES(`detraibilita`), `inversione_contabile` = VALUES(`inversione_contabile`), `ventilazione` = VALUES(`ventilazione`), `norma` = VALUES(`norma`), `attivo` = VALUES(`attivo`);
 
-UPDATE `codice_iva` SET `attivo` = 0 WHERE `studio_id` IS NULL AND `id` NOT IN (1, 2, 3, 4, 5, 6, 7, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 60, 61, 62, 63, 64, 65, 66, 70);
+UPDATE `codice_iva` SET `attivo` = 0 WHERE `studio_id` IS NULL AND `id` NOT IN (1, 2, 3, 4, 5, 6, 7, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 60, 61, 62, 63, 64, 65, 66, 70, 80, 81, 82, 83, 84, 85, 86, 87, 88);
 

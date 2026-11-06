@@ -113,6 +113,7 @@ CREATE TABLE IF NOT EXISTS `attivita_iva` (
   `descrizione` VARCHAR(100) NOT NULL,
   `codice_ateco_id` INT UNSIGNED NULL COMMENT 'Codice attività del rigo VA2 del modulo',
   `periodicita` CHAR(1) NULL COMMENT 'M mensile, T trimestrale; NULL = periodicità dell''azienda',
+  `regime_detrazione_iva` CHAR(3) NULL COMMENT 'Regime speciale agricolo dell''attività (rigo VF30 del suo modulo)',
   `dal_anno` SMALLINT UNSIGNED NOT NULL,
   `al_anno` SMALLINT UNSIGNED NULL,
   PRIMARY KEY (`id`),
@@ -312,7 +313,9 @@ CREATE TABLE IF NOT EXISTS `riga_iva` (
   `altri_prodotti` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Rivendita di beni fuori dalle categorie ammesse alla ventilazione (limite del 50%, art. 4 D.M. 24/2/1973)',
   `conto_id` INT UNSIGNED NULL COMMENT 'Costo o ricavo di contropartita',
   `natura_inversione` VARCHAR(4) NULL COMMENT 'Acquisti in inversione contabile: tipologia N6.1-N6.9 (rigo del quadro VJ della dichiarazione IVA)',
-  `qualifica` CHAR(1) NULL COMMENT 'Operazioni attive: O oro, E esente occasionale, Q 27-quinquies, A bene ammortizzabile, P esente equiparata, F fuori campo senza detrazione (VF34, VE40)',
+  `qualifica` CHAR(1) NULL COMMENT 'Operazioni attive: O oro, E esente occasionale, Q 27-quinquies, A bene ammortizzabile, P esente equiparata, F fuori campo senza detrazione, S prestazione verso soggetti non stabiliti dell''art. 30, c. 2, lett. d), C conferimento agricolo, K connessa occasionale (VF34, VE40, TD5, VE sezione 1, VF62)',
+  `percentuale_compensazione` DECIMAL(4,2) NULL COMMENT 'Vendite in regime agricolo: percentuale di compensazione dei prodotti della Tabella A, parte I',
+  `operazione_diversa` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Acquisti in regime agricolo destinati alle operazioni diverse (art. 34, c. 5)',
   `aliquota_teorica` DECIMAL(5,2) NULL COMMENT 'Acquisti con dichiarazione d''intento: aliquota dell''IVA non assolta (VF35)',
   `ripartizione` VARCHAR(255) NULL COMMENT 'Acquisti promiscui tra attività separate: numero attività e percentuale (es. 1:60;2:40)',
   PRIMARY KEY (`id`),
@@ -626,3 +629,19 @@ CREATE TABLE IF NOT EXISTS `prorata_iva` (
   CONSTRAINT `fk_prorata_iva_attivita` FOREIGN KEY (`attivita_iva_id`) REFERENCES `attivita_iva` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Pro-rata di detrazione provvisorio per azienda e anno';
+
+CREATE TABLE IF NOT EXISTS `credito_trimestrale_iva` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `studio_id` INT UNSIGNED NOT NULL,
+  `soggetto_id` INT UNSIGNED NOT NULL COMMENT 'Con il gruppo IVA la controllante',
+  `gruppo_iva_id` INT UNSIGNED NULL COMMENT 'Credito del gruppo IVA chiesto dalla controllante',
+  `anno` SMALLINT UNSIGNED NOT NULL,
+  `trimestre` TINYINT UNSIGNED NOT NULL COMMENT 'Da 1 a 3',
+  `importo` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_credito_trimestrale_iva` (`soggetto_id`, `anno`, `trimestre`),
+  CONSTRAINT `fk_credito_trimestrale_iva_studio` FOREIGN KEY (`studio_id`) REFERENCES `studio` (`id`),
+  CONSTRAINT `fk_credito_trimestrale_iva_soggetto` FOREIGN KEY (`soggetto_id`) REFERENCES `soggetto` (`id`),
+  CONSTRAINT `fk_credito_trimestrale_iva_gruppo` FOREIGN KEY (`gruppo_iva_id`) REFERENCES `gruppo_iva` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Credito del trimestre chiesto con il modello IVA TR, escluso dal riporto delle liquidazioni';

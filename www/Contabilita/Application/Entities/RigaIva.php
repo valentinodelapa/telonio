@@ -22,6 +22,9 @@ use SismaFramework\Orm\CustomTypes\SismaDate;
 class RigaIva extends BaseEntity
 {
 
+    /** Percentuali di compensazione del regime agricolo (art. 34; righi VE1-VE11, VF39-VF49) */
+    public const PERCENTUALI_COMPENSAZIONE = [2.0, 4.0, 6.4, 7.0, 7.3, 7.5, 8.3, 8.5, 8.8, 10.0, 12.3];
+
     protected int $id;
     protected RegistrazioneContabile $registrazioneContabile;
     protected Soggetto $soggetto;
@@ -37,6 +40,8 @@ class RigaIva extends BaseEntity
     protected ?NaturaIva $naturaInversione = null;
     protected ?QualificaOperazione $qualifica = null;
     protected ?float $aliquotaTeorica = null;
+    protected ?float $percentualeCompensazione = null;
+    protected bool $operazioneDiversa = false;
     protected ?string $ripartizione = null;
     protected ?Conto $conto = null;
 

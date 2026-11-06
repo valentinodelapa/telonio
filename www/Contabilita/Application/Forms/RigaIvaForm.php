@@ -25,7 +25,7 @@ class RigaIvaForm extends BaseForm
     #[\Override]
     protected function injectRequest(): void
     {
-        foreach (['imponibile', 'imposta', 'detraibilita', 'aliquotaTeorica'] as $campo) {
+        foreach (['imponibile', 'imposta', 'detraibilita', 'aliquotaTeorica', 'percentualeCompensazione'] as $campo) {
             if (isset($this->request->input[$campo]) && is_string($this->request->input[$campo])) {
                 $this->addRequest($campo, Importo::normalizza($this->request->input[$campo]));
             }
@@ -40,6 +40,7 @@ class RigaIvaForm extends BaseForm
         $rivendita = (string) ($this->request->input['rivendita'] ?? '');
         $this->addRequest('rivendita', in_array($rivendita, ['1', '2'], true) ? '1' : '0');
         $this->addRequest('altriProdotti', $rivendita === '2' ? '1' : '0');
+        $this->addRequest('operazioneDiversa', ($this->request->input['operazioneDiversa'] ?? '') === '1' ? '1' : '0');
     }
 
     #[\Override]
@@ -54,6 +55,8 @@ class RigaIvaForm extends BaseForm
                 ->addFilterFieldMode('naturaInversione', FilterType::isEnumeration, [], true)
                 ->addFilterFieldMode('qualifica', FilterType::isEnumeration, [], true)
                 ->addFilterFieldMode('aliquotaTeorica', FilterType::isNumeric, [], true)
+                ->addFilterFieldMode('percentualeCompensazione', FilterType::isNumeric, [], true)
+                ->addFilterFieldMode('operazioneDiversa', FilterType::isBoolean)
                 ->addFilterFieldMode('conto', FilterType::isEntity, [], true);
     }
 
@@ -79,6 +82,11 @@ class RigaIvaForm extends BaseForm
         $aliquota = $this->entityData->aliquotaTeorica;
         if (($aliquota !== null) && ((($aliquota <= 0) || ($aliquota >= 100)) || ($this->entityData->codiceIva?->natura !== NaturaIva::dichiarazioniIntento))) {
             $this->formFilterError->aliquotaTeoricaCustomMessage = 'L\'aliquota teorica si indica solo per gli acquisti con dichiarazione d\'intento (N3.5).';
+            return false;
+        }
+        $percentuale = $this->entityData->percentualeCompensazione;
+        if (($percentuale !== null) && (in_array(round((float) $percentuale, 2), RigaIva::PERCENTUALI_COMPENSAZIONE, true) === false)) {
+            $this->formFilterError->percentualeCompensazioneCustomMessage = 'Percentuale di compensazione non prevista.';
             return false;
         }
         return true;

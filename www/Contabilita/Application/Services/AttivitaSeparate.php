@@ -4,6 +4,7 @@ namespace Contabilita\Application\Services;
 
 use Anagrafica\Application\Entities\Soggetto;
 use Anagrafica\Application\Enumerations\PeriodicitaIva;
+use Anagrafica\Application\Enumerations\RegimeDetrazioneIva;
 use Contabilita\Application\Entities\AttivitaIva;
 use Contabilita\Application\Entities\RigaIva;
 use Contabilita\Application\Enumerations\TipoRegistroIva;
@@ -53,6 +54,27 @@ class AttivitaSeparate
     public function getPeriodicita(AttivitaIva $attivita, PeriodicitaIva $periodicitaAzienda): PeriodicitaIva
     {
         return $attivita->periodicita ?? $periodicitaAzienda;
+    }
+
+    /**
+     * Regime speciale agricolo dell'attività o, senza, dell'azienda.
+     */
+    public function getRegimeDetrazione(Soggetto $soggetto, int $anno, ?AttivitaIva $attivita = null): ?RegimeDetrazioneIva
+    {
+        return $attivita?->regimeDetrazioneIva ?? (new RegimeIva($this->dataMapper))->getDatiFiscali($soggetto, $anno)?->regimeDetrazioneIva;
+    }
+
+    /**
+     * L'azienda o una sua attività applica le percentuali di compensazione.
+     */
+    public function hasCompensazione(Soggetto $soggetto, int $anno): bool
+    {
+        foreach ([null, ...array_values($this->getAttivita($soggetto, $anno))] as $attivita) {
+            if ($this->getRegimeDetrazione($soggetto, $anno, $attivita)?->isCompensazione() ?? false) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

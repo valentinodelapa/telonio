@@ -163,6 +163,18 @@ di regime è una nuova variazione (di norma dal 1° gennaio).
   oltre il 50%, vendite fatturate non oltre il 20% dell'anno precedente)
   non sono verificate.
 
+Il **regime speciale agricolo** (art. 34 e 34-bis, esonerati, agriturismo,
+enoturismo, oleoturismo, associazioni) si affianca al regime fiscale e guida
+detrazione e rigo VF30 in Contabilità e Dichiarativi.
+
+Per il rimborso IVA del modulo Dichiarativi i dati fiscali hanno anche la data
+di **inizio dell'attività** e l'indicazione di **start-up innovativa** (rischi
+dell'art. 38-bis, c. 4, D.P.R. 633/1972), di **non residente** identificato
+direttamente o con il rappresentante fiscale (art. 17, c. 3) e di
+partecipazione a un **Gruppo IVA** (artt. 70-bis e seguenti): storicizzati,
+l'ingresso nel gruppo o il passaggio di regime dal 1° gennaio si riconoscono
+dal periodo successivo.
+
 Senza partita IVA regime, periodicità, ISA, trasparenza e ventilazione non sono
 previsti. Gli altri moduli leggono i dati in vigore con
 `DatiFiscaliModel::getVigenteAl` (es. `GestioneStudio` per proporre gli

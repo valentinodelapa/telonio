@@ -121,7 +121,11 @@
                 "debitiTrasferiti": "Debiti trasferiti",
                 "creditiTrasferiti": "Crediti trasferiti",
                 "trimestre": "trimestre",
-                "creditoTrimestrale": "di cui chiesto con il modello IVA TR (non riportato)"
+                "creditoTrimestrale": "di cui chiesto con il modello IVA TR (non riportato)",
+                "percentualeCompensazione": "% comp.",
+                "operazioneDiversa": "Op. diverse",
+                "regimeDetrazioneAttivita": "Regime speciale agricolo dell'attività",
+                "regimeDatiFiscali": "Come nei dati fiscali"
             },
             "azioni": {
                 "salva": "Salva",
@@ -283,7 +287,9 @@
                 "aiutoNaturaInversione": "Per le integrazioni in inversione contabile: natura N6 della fattura del fornitore (subappalto, rottami, cellulari, energia, ...), che determina il rigo del quadro VJ della dichiarazione IVA. Proposta dall'importazione della fattura elettronica.",
                 "aiutoQualifica": "Solo per le operazioni che la dichiarazione IVA tratta a parte: cessioni di beni ammortizzabili (fuori dal volume d'affari, VE40), esenti occasionali (nn. 1-9) e n. 27-quinquies, oro da investimento, esenti equiparate, non soggette senza diritto alla detrazione (pro-rata, VF34).",
                 "aiutoAliquotaTeorica": "Acquisti con dichiarazione d'intento (N3.5): aliquota dell'IVA non assolta, per il rigo VF35 della dichiarazione con il pro-rata. Se vuota si considera il 22%.",
-                "aiutoImportazione": "Acquisto con bolletta doganale: imponibile e imposta nel rigo VF28 (campi 3 e 4) e, con il plafond, nella colonna 2 del quadro VC."
+                "aiutoImportazione": "Acquisto con bolletta doganale: imponibile e imposta nel rigo VF28 (campi 3 e 4) e, con il plafond, nella colonna 2 del quadro VC.",
+                "aiutoCompensazione": "Prodotti agricoli della Tabella A, parte I: percentuale del gruppo di prodotti (D.M. 12 maggio 1992 e successivi). Senza percentuale è un'operazione diversa.",
+                "aiutoOperazioneDiversa": "Acquisto destinato solo alle operazioni diverse da quelle agricole: l'IVA si detrae (art. 34, c. 5). Gli altri acquisti non danno detrazione."
             },
             "show": {
                 "daFattura": "Dalla fattura elettronica",

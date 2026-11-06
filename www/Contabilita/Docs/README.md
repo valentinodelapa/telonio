@@ -70,7 +70,11 @@ esistente:
    `comunicazione_lipe.gruppo_iva_id`, `modulo_lipe.liquidazione_gruppo_iva_id`,
    tabelle `prorata_iva`, `attivita_iva`, `gruppo_iva` e
    `liquidazione_gruppo_iva`; `liquidazione_attivita` e
-   `partecipante_gruppo_iva` le crea `schema.sql`)
+   `partecipante_gruppo_iva` le crea `schema.sql`; per quelli della versione
+   0.3 `Contabilita/Database/aggiornamento-0.4.sql`: tabella
+   `credito_trimestrale_iva`, con i crediti già annotati sulle liquidazioni,
+   colonne `riga_iva.percentuale_compensazione`, `riga_iva.operazione_diversa`,
+   `attivita_iva.regime_detrazione_iva`)
 2. `Contabilita/Database/dati-riferimento.sql` (piano dei conti standard e
    codici IVA della suite, generato da `sisma tabelle-contabilita --sql`)
 
@@ -144,6 +148,7 @@ Le fixture (`sisma fixtures`) coprono tutte le funzioni del modulo:
 | `ComunicazioneLipe` | comunicazione delle liquidazioni periodiche del trimestre: progressivo (identificativo), dichiarante e codice carica, intermediario e impegno, stato, data e protocollo dell'invio; con il gruppo la comunicazione della liquidazione del gruppo |
 | `ModuloLipe` | modulo del quadro VP (mese, trimestre o mese con il trimestre anticipato) con i righi da VP2 a VP14 fissati alla preparazione e la liquidazione di origine (dell'azienda o del gruppo) |
 | `ProrataIva` | pro-rata di detrazione provvisorio dell'anno, dell'azienda o dell'attività separata |
+| `CreditoTrimestraleIva` | credito del trimestre chiesto con il modello IVA TR, della società o del gruppo, escluso dal riporto delle liquidazioni |
 | `StampaDefinitiva` | stampa definitiva di un periodo del libro giornale (esercizio) o di un registro IVA (anno solare) con prima e ultima pagina e righe per pagina |
 
 ### Enum o entità
@@ -436,6 +441,27 @@ un'autofattura nel registro delle vendite dell'attività cedente (qualifica
 "bene ammortizzabile o passaggio interno", che li esclude dal volume
 d'affari con il VE40) e negli acquisti dell'attività che li riceve.
 
+## Regimi speciali agricoli
+
+Con un regime speciale nei dati fiscali o sull'attività separata (più regimi
+nella stessa impresa richiedono la contabilità separata) gli acquisti non si
+detraggono e `Services\CalcoloLiquidazioneIva` determina la detrazione:
+
+- **art. 34**: sulle cessioni di prodotti agricoli la percentuale di
+  compensazione indicata sulla riga IVA (dalle percentuali dei decreti), anche
+  per le non imponibili (IVA teorica, art. 34, c. 9); i conferimenti con la
+  qualifica dedicata e i codici IVA `C2`-`C12.3` hanno la percentuale come
+  aliquota. Nelle imprese miste (c. 5) le vendite senza percentuale sono
+  operazioni diverse e si detrae l'IVA degli acquisti segnati nella prima nota.
+  Le attività connesse occasionali (qualifica) danno il 50% dell'imposta;
+- **art. 34-bis, agriturismo, enoturismo e oleoturismo**: 50% dell'imposta sulle
+  operazioni imponibili; **associazioni** in agricoltura: un terzo.
+
+Gli **agricoltori esonerati** (art. 34, c. 6) non hanno liquidazioni; le righe
+IVA registrate servono a `Services\EsoneroAgricolo` per verificare il limite
+di un terzo e il volume di 7.000 euro. Comunicazione delle liquidazioni: VP4 e VP5
+con l'imposta del regime.
+
 ## IVA di gruppo
 
 Con la liquidazione IVA di gruppo (art. 73, c. 3; D.M. 13 dicembre 1979,
@@ -511,11 +537,15 @@ speciali di periodicità (trimestrali speciali dell'art. 74, c. 4, D.P.R.
 633/1972) non sono gestite.
 
 Il credito chiesto a rimborso o in compensazione con il modello IVA TR è
-annotato dal modulo Dichiarativi sulla liquidazione che chiude il trimestre
-(`credito_trimestrale`, anche di gruppo): resta nel prospetto ma non si
-riporta al periodo successivo (istruzioni della comunicazione, rigo VP8), e
-il riporto dell'acconto storico ne tiene conto. Le liquidazioni successive già
-elaborate vanno rielaborate.
+registrato dal modulo Dichiarativi (`CreditoTrimestraleIva`, anche di gruppo)
+e `Services\CreditoTrimestrale` lo annota sulla liquidazione che chiude il
+trimestre (`credito_trimestrale`), anche se è elaborata dopo o rielaborata:
+resta nel prospetto ma non si riporta al periodo successivo (istruzioni della
+comunicazione, rigo VP8), e il riporto dell'acconto storico ne tiene conto.
+Le liquidazioni successive sono rielaborate con i loro dati; ci si ferma alla
+prima con la comunicazione inviata, un versamento in una delega trasmessa o
+il giroconto stampato in definitiva, con un messaggio: da lì il riporto va
+corretto a mano.
 
 ## Comunicazione delle liquidazioni periodiche
 

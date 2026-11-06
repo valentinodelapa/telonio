@@ -303,8 +303,9 @@ Contabilità (`PropostaGruppoIva`, paragrafi 3.4, 4.2.9, 4.2.14, 4.2.16 e
   modelli IVA TR presentati (VS campo 5, VW20) e dalle deleghe (VW22); la
   quota di rimborso per società (VS campo 10) si indica a mano, causale,
   erogazione prioritaria ed esonero (campi 8, 9, 11, 12), VS20, VS22, VY4 e il
-  VK25 delle controllate sono proposti, con VW24 e VS30 da Deleghe e il quadro
-  VZ dai prospetti dei due anni precedenti se il VY4 supera le quote; le
+  VK25 delle controllate sono proposti, con VW24 da Deleghe, VS30 dalle
+  eccedenze di debito delle società (VK22) e il quadro VZ dai prospetti dei
+  due anni precedenti se il VY4 supera le quote; le
   dichiarazioni delle controllate vanno predisposte prima di quella della
   controllante.
 
@@ -380,25 +381,68 @@ senza importo un avviso segnala che il credito sarebbe rimborsabile):
 
 - **causale** (campo 3) calcolata dalle righe IVA dell'intero anno con le
   stesse regole dei presupposti del modello IVA TR, oltre 2.582,28 euro di
-  credito: 2 aliquota media, 3 operazioni non imponibili oltre il 25%
-  (anche sul totale dei righi VE40 e VE50, come dicono le istruzioni), 5
-  operazioni non soggette prevalenti, 4 beni ammortizzabili nei limiti
-  della relativa imposta. Senza soglia: 1 cessazione nell'anno, 8 minore
-  eccedenza del triennio dalle dichiarazioni dei due anni precedenti, 9 se
-  ricorrono la 8 e la 4;
+  credito: 2 aliquota media, 4 beni ammortizzabili nei limiti della relativa
+  imposta, 3 operazioni non imponibili oltre il 25% (VE30 e VE31 sulla somma
+  in valore assoluto dei righi VE40 e VE50), 5 operazioni non soggette
+  prevalenti (VE34 più VE30 e VE31, come dicono le istruzioni), 6 non residenti
+  dai dati fiscali, 7 produttori agricoli entro l'IVA teorica (VF54), che
+  prevale sulla 3. Senza soglia: 1 cessazione nell'anno, 11 persona fisica
+  che passa al regime forfetario dall'anno successivo, 13 ingresso in un Gruppo
+  IVA dall'anno successivo (il resto del credito nel VX2 campo 2, da trasferire
+  al gruppo), 8 minore eccedenza del triennio dalle dichiarazioni dei due anni
+  precedenti, 10 se è il credito non trasferibile di chi partecipa all'IVA di
+  gruppo (per l'ex controllante dal VY5 del prospetto), 9 se ricorrono la 8 e
+  la 4;
 - **erogazione prioritaria** (campi 4 e 5): 6 per le operazioni in
   scissione dei pagamenti con la relativa imposta, 1 e 8 per il reverse
-  charge del subappalto e dei servizi agli edifici;
+  charge del subappalto e dei servizi agli edifici, 2, 3, 4, 5 e 7 dal codice
+  ATECO con il raccordo ufficiale ISTAT tra ATECOFIN 2004 e ATECO 2007 (dove il
+  raccordo è parziale, come per le demolizioni 38.31.10, solo un avviso);
 - oltre 30.000 euro **esonero dalle garanzie** (campo 7, codici 1 e 4) e
   **attestazione patrimoniale** (campo 10) dai flag del frontespizio:
   attestazione patrimoniale, adempimento collaborativo, concordato
   biennale. Nel quadro VS il campo 8 ha codici propri (1 visto e
-  attestazione, 2 adempimento collaborativo, 3 ISA, 4 concordato).
+  attestazione, 2 adempimento collaborativo, 3 ISA, 4 concordato). Il visto
+  non esonera nelle **situazioni di rischio** dell'art. 38-bis, c. 4:
+  impresa attiva da meno di due anni alla richiesta (dalla data di inizio
+  attività dei dati fiscali, salvo le start-up innovative), cessazione e
+  atti dell'**archivio degli accertamenti** della scheda del contribuente
+  notificati nei due anni precedenti con la differenza oltre il 10%, il 5% o
+  l'1% del dichiarato (`AttoAccertamento`). La casella del frontespizio
+  attesta la verifica degli atti: con l'archivio vuoto e senza la casella resta
+  un avviso, perché un archivio vuoto può essere solo non aggiornato;
+- **procedura semplificata** (campo 2, a scelta del contribuente):
+  un'avvertenza se con le compensazioni dell'anno in Deleghe supera i
+  2.000.000 di euro.
 
 I controlli bloccano una causale dell'art. 30, c. 2 con il credito sotto
 soglia, un rimborso oltre il credito, il campo 5 senza il codice 6, un VY4
 diverso dal VS20 senza il quadro VZ e un VK25 oltre l'eccedenza non
 compensata.
+
+### Regimi speciali agricoli
+
+Il regime è nei dati fiscali o sull'attività separata (`RegimeDetrazioneIva`):
+ogni regime ha il suo modulo, con la casella del rigo VF30, perché le istruzioni
+non ammettono più di una casella per modulo.
+
+- **Art. 34** (casella 8): sezione 3-B del quadro VF dalle righe IVA.
+  Cessioni con la percentuale di compensazione scelta sulla riga nei righi
+  VF39-VF49; conferimenti a cooperative e consorzi (qualifica dedicata, codici
+  IVA `C2`-`C12.3`) anche nella sezione 1 del VE; senza percentuale sono
+  operazioni diverse delle imprese miste (VF38), con la detrazione degli
+  acquisti segnati come destinati (VF53); non imponibili con la percentuale
+  nell'IVA teorica (VF54); connesse occasionali nel VF62, con il 50% nel VF71.
+- **Art. 34-bis, agriturismo, enoturismo, oleoturismo** (caselle 7, 4, 9, 10):
+  VF71 pari al 50% del VE26; **associazioni** in agricoltura (casella 5): un
+  terzo.
+- **Esonerati** (art. 34, c. 6): niente liquidazioni né modello TR; la
+  dichiarazione è dovuta solo se dalle righe IVA le operazioni diverse superano
+  un terzo o il volume dell'anno precedente supera 7.000 euro: agricole nella
+  sezione 1 del VE, diverse nella sezione 2, sezione 3-B, senza il quadro VH.
+
+Il modello IVA TR riporta l'IVA teorica nel TC5. Le opzioni del quadro VO e gli
+spostamenti nel VF18 per il VF62 restano a mano.
 
 ## Modello IVA TR
 
@@ -410,8 +454,10 @@ usa i formati VP e VN: importi in unità e centesimi separati dalla virgola.
 - `Services\Iva\PropostaTr` propone i quadri TA, TB, TC e TD dalle righe IVA
   del trimestre: presupposti TD1 (aliquota media), TD2 (non imponibili oltre
   il 25%, percentuale arrotondata all'unità superiore), TD3 (beni
-  ammortizzabili oltre i 2/3) e TD5 (non soggette oltre il 50%); il TD4
-  (non residenti) si barra a mano. In mancanza di indicazioni il credito è
+  ammortizzabili oltre i 2/3) e TD5 (prestazioni dell'art. 30, c. 2, lett.
+  d) verso soggetti non stabiliti oltre il 50%, dalla qualifica delle righe
+  IVA) e TD4 (non residenti, dai dati fiscali). Il rigo TA30 esclude le altre
+  non imponibili (N3.6), che vanno nel TA31. In mancanza di indicazioni il credito è
   proposto in compensazione (TD7);
 - per la controllante del gruppo IVA il modello ha il prospetto TE con il
   saldo trasferito da ogni società e un modulo per ogni società con i
@@ -424,14 +470,16 @@ usa i formati VP e VN: importi in unità e centesimi separati dalla virgola.
 - `Services\Iva\VersamentiTr`: alla presentazione la compensazione entra
   nell'archivio dei crediti di Deleghe con il codice 6036, 6037 o 6038,
   usabile da quel giorno o, oltre 5.000 euro, dal decimo giorno successivo;
-  tutto il credito chiesto è annotato sulla liquidazione che chiude il
-  trimestre e **non si riporta** al periodo successivo (LIPE, rigo VP8). Le
-  liquidazioni successive già elaborate vanno rielaborate: il messaggio lo
-  ricorda.
+  tutto il credito chiesto **non si riporta** al periodo successivo (LIPE,
+  rigo VP8): Contabilità lo registra e rielabora le liquidazioni successive
+  (`Services\CreditoTrimestrale`).
 
 Nella dichiarazione annuale `Services\Iva\CreditiTrimestrali` propone VL20
-dai modelli presentati e VL22 dagli utilizzi in F24 dei crediti 6036-6038
-(per il gruppo VW20, VW22 e VS campo 5).
+dai modelli presentati e VL22 dagli utilizzi dei crediti 6036-6038 nelle
+deleghe trasmesse o quietanzate fino alla presentazione della dichiarazione
+(alla sua scadenza finché non è presentata), con un avviso per quelli esclusi;
+per il gruppo VW20, VW22 e VS campo 5. Con lo stesso criterio si propongono
+VL9 e VW24.
 
 ## Fixture
 
@@ -491,12 +539,43 @@ dai modelli presentati e VL22 dagli utilizzi in F24 dei crediti 6036-6038
   rimborso di Verde Servizi, esonerata dalla garanzia per il concordato
   biennale (VS campi 8-10, VK25, VY4 di 10.000 euro).
 - **Omega Export**: modello IVA TR del terzo trimestre (TD2, 1.300 euro a
-  rimborso e 2.000 in compensazione, utilizzati in F24: VL20 e VL22), con i
-  3.300 euro esclusi dal riporto di ottobre, e rimborso annuale di 4.000
-  euro con la causale 3 proposta.
+  rimborso e 2.000 in compensazione, utilizzati in F24: VL20 e VL22),
+  presentato con le liquidazioni dell'anno già elaborate: i 3.300 euro escono
+  dal riporto di ottobre con la rielaborazione automatica. Rimborso annuale di
+  4.000 euro con la causale 3 proposta.
+- **Adria Logistica S.r.l.**: prestazioni verso committenti non stabiliti con
+  la qualifica della riga IVA (TD5, modello TR del secondo trimestre
+  compensato in F24) e causale 5.
+- **Cinema Odeon S.r.l.**: proiettore nel primo trimestre (TD3, rimborso con
+  il modello TR, VL20), causale 4 ed erogazione prioritaria 7 dal codice
+  ATECO.
+- **Alberto Conti**: professionista che passa al regime forfetario dal 2026,
+  causale 11.
+- **Nordic Trade S.r.l.**: non residente con il rappresentante fiscale (TD4,
+  causale 6), attività iniziata nel settembre 2024: rimborso di 35.000 euro
+  con la garanzia dovuta nonostante visto e attestazione.
+- **Beta Partecipata S.r.l.**: entra in un Gruppo IVA dal 2026 (causale 13,
+  resto del credito nel VX2 campo 2).
+- **Gruppo Delta**, dal 2023. Delta Servizi S.r.l., entrata nel 2024, ha il
+  credito precedente non trasferibile compensato in parte in F24 (VL9, VL10,
+  VX2) e la causale 10; Delta Commerciale S.r.l. è a debito; Delta Holding S.r.l.
+  ha il credito di gruppo del 2024 (VW25), in parte compensato in F24 (VW24) e
+  in parte con i debiti delle società (VS30), e chiede la minore eccedenza del
+  triennio (VY4, quadro VZ). Le dichiarazioni 2023 e 2024 hanno solo gli importi
+  che servono al calcolo (VX5, VY5), senza catalogo di quegli anni: non generano
+  il file.
+- **Tenuta Colli Berici S.r.l.**: cinque moduli per regime (art. 34 con
+  compensazione, conferimento, esportazione, operazioni diverse e connessa
+  occasionale; agriturismo, connesse, enoturismo, oleoturismo); il VF71 dei
+  moduli coincide con la detrazione delle liquidazioni, comunicazione del terzo
+  trimestre in bozza con l'imposta dei regimi nei righi VP4 e VP5.
+- **Cantina Export S.r.l.**: IVA teorica delle esportazioni (TC5, VF54), modello
+  TR con il rimborso e causale 7.
+- **Rosa Fiore** ed **Gino Orti**: esonerati, nei limiti (dichiarazione non
+  dovuta) e oltre il limite di un terzo (dichiarazione senza il VH).
+- Accertamenti: su **Nordic Trade** un atto oltre le soglie e uno sotto.
 
-I casi senza dati demo perché richiedono i prospetti degli anni precedenti
-(quadro VZ, VW24, VS30) sono coperti dai test.
+
 
 ## Scadenzario dello studio
 
@@ -530,6 +609,8 @@ dei moduli devono essere dello stesso studio.
   <https://www.agenziaentrate.gov.it/portale/documents/d/guest/specifiche_ivt25_2026>;
 - istruzioni alla compilazione della comunicazione delle liquidazioni
   periodiche IVA (rigo VP8, crediti chiesti con il modello IVA TR);
+- tabella di raccordo ISTAT tra ATECOFIN 2004 e ATECO 2007:
+  <https://www.istat.it/wp-content/uploads/2022/03/Tavola-di-raccordo-ATECOFIN-2004-ATECO-2007.pdf>;
 - elenco delle province e delle città metropolitane (ISTAT) per il
   raccordo con i righi regionali del quadro VT.
 
@@ -539,16 +620,12 @@ dei moduli devono essere dello stesso studio.
   quadri RA e RB dagli immobili e dai possessi dell'Anagrafica, RC, RN
   (IRPEF con le detrazioni), RV (addizionali regionale e comunale), RX,
   acconti e versamenti in Deleghe, record B e file telematico "RPF26";
-- rimborso annuale: causali 6, 7, 10, 11 e 13, codici di erogazione
-  prioritaria per attività (2, 3, 4, 5, 7) e procedura semplificata (VX4
-  campo 2) a mano;
-- rigo VS30 stimato sui debiti trasferiti con le liquidazioni di gruppo
-  dell'anno: il conguaglio del quarto trimestre non è considerato;
-- da confermare: il calcolo del VS30 e la prevalenza delle operazioni non
-  soggette (TD5 del modello IVA TR, causale 5) sono letture delle
-  istruzioni, non regole esplicite;
-- rielaborazione automatica delle liquidazioni successive alla
-  presentazione di un modello IVA TR;
+- tabella dei prodotti con la percentuale di compensazione: oggi la
+  percentuale si sceglie sulla riga;
+- rettifica della detrazione nel passaggio tra regimi (art. 19-bis2) e
+  autofatture degli acquirenti dagli agricoltori esonerati;
+- gestione delle garanzie (polizza, importo, scadenza);
+
 - verifica dei file con il software di controllo dell'Agenzia delle
   Entrate;
 - modelli 2027: nuovo catalogo dalle specifiche quando pubblicate e

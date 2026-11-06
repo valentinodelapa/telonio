@@ -12,6 +12,9 @@ class RisultatoLiquidazione
     public float $ivaEsigibile = 0.0;
     public float $ivaDetraibile = 0.0;
 
+    /** IVA teorica delle cessioni agricole non imponibili, compresa nella detraibile (art. 34, c. 9) */
+    public float $ivaTeorica = 0.0;
+
     /** Pro-rata provvisorio applicato all'IVA detraibile (100 senza pro-rata) */
     public int $percentualeDetrazione = 100;
 

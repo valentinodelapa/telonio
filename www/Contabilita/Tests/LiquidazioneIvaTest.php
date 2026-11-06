@@ -85,6 +85,9 @@ class LiquidazioneIvaTest extends ContabilitaTestCase
         $acquisto->id = 4;
         $nota = $this->creaRegistrazione(CausaleContabile::notaCreditoRicevuta);
         $nota->id = 5;
+        // dati fiscali dell'azienda (regime speciale agricolo), al 1° gennaio e al 31 dicembre
+        $this->testAdapter->accodaSelect(new TestResultSet([]));
+        $this->testAdapter->accodaSelect(new TestResultSet([]));
         $this->testAdapter->accodaSelect(new TestResultSet([
                     $this->creaRigaIva('22', 1000.0, 1, null, $vendita),
                     $this->creaRigaIva('22', 500.0, 1, null, $split),

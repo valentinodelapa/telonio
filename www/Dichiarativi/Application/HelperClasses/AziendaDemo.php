@@ -16,6 +16,7 @@ use Anagrafica\Application\Enumerations\TipoIndirizzo;
 use Anagrafica\Application\Enumerations\TipoSoggetto;
 use Anagrafica\Application\Models\CodiceAtecoModel;
 use Anagrafica\Application\Models\ComuneModel;
+use Anagrafica\Application\Models\DatiFiscaliModel;
 use Anagrafica\Application\Models\NazioneModel;
 use Contabilita\Application\Entities\AttivitaIva;
 use Contabilita\Application\Entities\Controparte;
@@ -27,6 +28,7 @@ use Contabilita\Application\Models\PianoContiModel;
 use Contabilita\Application\Models\RegistroIvaModel;
 use Contabilita\Application\Services\AperturaContabilita;
 use Contabilita\Application\Services\Partitario;
+use Deleghe\Application\Entities\Credito;
 use Deleghe\Application\Entities\Delega;
 use Deleghe\Application\Entities\Versamento;
 use Deleghe\Application\Enumerations\SezioneCodiceTributo;
@@ -91,6 +93,30 @@ class AziendaDemo
         $sede->nazione = (new NazioneModel($this->dataMapper))->getItalia();
         $this->dataMapper->save($sede);
         return $soggetto;
+    }
+
+    /**
+     * Nuovo periodo dei dati fiscali dalla data, con le proprietà indicate
+     * diverse dal periodo vigente, che si chiude il giorno prima.
+     *
+     * @param array<string, mixed> $variazioni
+     */
+    public function variaDatiFiscali(Soggetto $soggetto, string $dal, array $variazioni): DatiFiscali
+    {
+        $vigenti = (new DatiFiscaliModel($this->dataMapper))->getVigenteAl($soggetto, new SismaDate($dal));
+        $nuovi = new DatiFiscali($this->dataMapper);
+        foreach (['denominazione', 'naturaGiuridica', 'tipoAttivita', 'partitaIva', 'codiceAteco', 'regimeFiscale', 'periodicitaIva', 'soggettoIsa', 'dataInizioAttivita'] as $proprieta) {
+            $nuovi->$proprieta = $vigenti->$proprieta;
+        }
+        $vigenti->validoAl = new SismaDate((new \DateTimeImmutable($dal))->modify('-1 day')->format('Y-m-d'));
+        $this->dataMapper->save($vigenti);
+        $nuovi->soggetto = $soggetto;
+        $nuovi->validoDal = new SismaDate($dal);
+        foreach ($variazioni as $proprieta => $valore) {
+            $nuovi->$proprieta = $valore;
+        }
+        $this->dataMapper->save($nuovi);
+        return $nuovi;
     }
 
     /**
@@ -196,17 +222,25 @@ class AziendaDemo
      */
     public function compensaCreditoTr(Dichiarazione $dichiarazione, float $importo, string $scadenza): void
     {
+        $this->compensaCredito((new VersamentiTr($this->dataMapper))->getCredito($dichiarazione), $importo, $scadenza);
+    }
+
+    /**
+     * Delega trasmessa con il credito compensato con le ritenute del mese.
+     */
+    public function compensaCredito(Credito $credito, float $importo, string $scadenza): void
+    {
         $data = new SismaDate($scadenza);
         $delega = new Delega($this->dataMapper);
-        $delega->studio = $dichiarazione->studio;
-        $delega->soggetto = $dichiarazione->soggetto;
+        $delega->studio = $credito->studio;
+        $delega->soggetto = $credito->soggetto;
         $delega->scadenza = $data;
         $delega->stato = StatoDelega::trasmessa;
-        $delega->descrizione = 'Ritenute compensate con il credito IVA trimestrale';
+        $delega->descrizione = 'Ritenute compensate con il credito IVA';
         $this->dataMapper->save($delega);
         $codici = new CodiceTributoModel($this->dataMapper);
         $mese = (int) $data->format('n') - 1;
-        foreach ([['1040', $importo, null, null], [VersamentiTr::CODICI[$dichiarazione->trimestre], null, $importo, (new VersamentiTr($this->dataMapper))->getCredito($dichiarazione)]] as $indice => [$codice, $debito, $compensato, $credito]) {
+        foreach ([[$codici->getByCodice(SezioneCodiceTributo::erario, '1040'), $importo, null], [$credito->codiceTributo, null, $importo]] as $indice => [$codice, $debito, $compensato]) {
             $riga = new Versamento($this->dataMapper);
             $riga->delega = $delega;
             $riga->studio = $delega->studio;
@@ -214,12 +248,12 @@ class AziendaDemo
             $riga->scadenza = $data;
             $riga->sezione = SezioneF24::erario;
             $riga->ordine = $indice + 1;
-            $riga->codiceTributo = $codici->getByCodice(SezioneCodiceTributo::erario, $codice);
-            $riga->rateazione = $credito === null ? sprintf('00%02d', $mese) : null;
-            $riga->annoRiferimento = $credito === null ? (int) $data->format('Y') : $dichiarazione->anno;
+            $riga->codiceTributo = $codice;
+            $riga->rateazione = $compensato === null ? sprintf('00%02d', $mese) : null;
+            $riga->annoRiferimento = $compensato === null ? (int) $data->format('Y') : $credito->annoRiferimento;
             $riga->importoDebito = $debito ?? 0.0;
             $riga->importoCredito = $compensato ?? 0.0;
-            $riga->credito = $credito;
+            $riga->credito = $compensato === null ? null : $credito;
             $this->dataMapper->save($riga);
         }
     }

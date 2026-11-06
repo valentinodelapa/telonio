@@ -35,3 +35,12 @@ id;codice;descrizione;aliquota;natura;detraibilita;inversione_contabile;ventilaz
 65;UE4;Acquisto intracomunitario 4% (integrazione);4.00;;100;1;0;artt. 38, 46 e 47 D.L. 331/1993
 66;ES22;Acquisto di servizi o beni dall'estero 22% (integrazione o autofattura);22.00;;100;1;0;art. 17, c. 2, D.P.R. 633/1972
 70;VEN;Corrispettivi da ventilare (ripartiti in proporzione agli acquisti per rivendita);0.00;;100;0;1;art. 24, c. 3, D.P.R. 633/1972; D.M. 24 febbraio 1973
+80;C2;Conferimento agricolo con percentuale di compensazione 2%;2.00;;100;0;0;art. 34, c. 1 e 2, D.P.R. 633/1972
+81;C6.4;Conferimento agricolo con percentuale di compensazione 6,4%;6.40;;100;0;0;art. 34, c. 1 e 2, D.P.R. 633/1972
+82;C7;Conferimento agricolo con percentuale di compensazione 7%;7.00;;100;0;0;art. 34, c. 1 e 2, D.P.R. 633/1972
+83;C7.3;Conferimento agricolo con percentuale di compensazione 7,3%;7.30;;100;0;0;art. 34, c. 1 e 2, D.P.R. 633/1972
+84;C7.5;Conferimento agricolo con percentuale di compensazione 7,5%;7.50;;100;0;0;art. 34, c. 1 e 2, D.P.R. 633/1972
+85;C8.3;Conferimento agricolo con percentuale di compensazione 8,3%;8.30;;100;0;0;art. 34, c. 1 e 2, D.P.R. 633/1972
+86;C8.5;Conferimento agricolo con percentuale di compensazione 8,5%;8.50;;100;0;0;art. 34, c. 1 e 2, D.P.R. 633/1972
+87;C8.8;Conferimento agricolo con percentuale di compensazione 8,8%;8.80;;100;0;0;art. 34, c. 1 e 2, D.P.R. 633/1972
+88;C12.3;Conferimento agricolo con percentuale di compensazione 12,3%;12.30;;100;0;0;art. 34, c. 1 e 2, D.P.R. 633/1972

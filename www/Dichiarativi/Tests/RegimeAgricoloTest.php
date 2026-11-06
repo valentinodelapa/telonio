@@ -1,0 +1,257 @@
+<?php
+
+namespace Dichiarativi\Tests;
+
+use Anagrafica\Application\Enumerations\RegimeDetrazioneIva;
+use Contabilita\Application\Entities\CodiceIva;
+use Contabilita\Application\Enumerations\CausaleContabile;
+use Contabilita\Application\Enumerations\NaturaIva;
+use Contabilita\Application\Enumerations\QualificaOperazione;
+use Contabilita\Application\Services\CalcoloLiquidazioneIva;
+use Contabilita\Application\Services\EsoneroAgricolo;
+use Contabilita\Application\Services\RegimeIva;
+use Dichiarativi\Application\Enumerations\ModelloDichiarativo;
+use Dichiarativi\Application\Services\Iva\ControlliIva;
+use Dichiarativi\Application\Services\Iva\PropostaIva;
+use Dichiarativi\Application\Services\Iva\PropostaTr;
+use Dichiarativi\Application\Services\Iva\RimborsoIva;
+use Dichiarativi\Application\Services\ModelliContribuente;
+use Dichiarativi\Application\Services\QuadriDichiarazione;
+use SismaFramework\Orm\CustomTypes\SismaDate;
+use Telonio\Tests\TestResultSet;
+
+/**
+ * Regimi speciali agricoli (art. 34, 34-bis, agriturismo, enoturismo,
+ * oleoturismo, associazioni, esonerati): liquidazione e dichiarazione.
+ */
+class RegimeAgricoloTest extends DichiarativiTestCase
+{
+
+    private function datiRegime(?RegimeDetrazioneIva $regime)
+    {
+        $dati = $this->creaDatiFiscali(\Anagrafica\Application\Enumerations\PeriodicitaIva::trimestrale);
+        $dati->regimeDetrazioneIva = $regime;
+        return $dati;
+    }
+
+    private function rispondi(array $tabelle): void
+    {
+        $this->testAdapter->impostaSelectCallback(function (string $cmd) use ($tabelle): TestResultSet {
+            if (str_contains($cmd, 'COUNT(')) {
+                return TestResultSet::conteggio(0);
+            }
+            return new TestResultSet(preg_match('/FROM `([a-z_]+)`/', $cmd, $tabella) === 1 ? ($tabelle[$tabella[1]] ?? []) : []);
+        });
+    }
+
+    private function codiceNatura(string $codice, NaturaIva $natura, int $id): void
+    {
+        $base = $this->codiciIva['N4'];
+        $nuovo = new CodiceIva($this->dataMapper);
+        $nuovo->id = $id;
+        $nuovo->studio = $base->studio;
+        $nuovo->codice = $codice;
+        $nuovo->descrizione = $codice;
+        $nuovo->aliquota = 0.0;
+        $nuovo->natura = $natura;
+        $nuovo->detraibilita = 100.0;
+        $this->codiciIva[$codice] = $nuovo;
+    }
+
+    /**
+     * Vendita al 22% con compensazione 12,3%, esportazione con compensazione,
+     * operazione diversa, connessa occasionale, conferimento, due acquisti.
+     *
+     * @return array<int, \Contabilita\Application\Entities\RigaIva>
+     */
+    private function righe(): array
+    {
+        $this->codiceNatura('N3.1', NaturaIva::esportazioni, 310);
+        $vendita = $this->creaRegistrazione(CausaleContabile::fatturaVendita, null, '2025-03-10');
+        $vendita->id = 1;
+        $acquisto = $this->creaRegistrazione(CausaleContabile::fatturaAcquisto, null, '2025-03-12');
+        $acquisto->id = 2;
+        $agricola = $this->creaRigaIva('22', 10000.0, 1, null, $vendita);
+        $agricola->percentualeCompensazione = 12.3;
+        $esportazione = $this->creaRigaIva('N3.1', 5000.0, 1, null, $vendita);
+        $esportazione->percentualeCompensazione = 12.3;
+        $diversa = $this->creaRigaIva('22', 2000.0, 1, null, $vendita);
+        $connessa = $this->creaRigaIva('22', 1000.0, 1, null, $vendita);
+        $connessa->qualifica = QualificaOperazione::connessaOccasionale;
+        $conferimento = $this->creaRigaIva('10', 1000.0, 1, null, $vendita);
+        $conferimento->qualifica = QualificaOperazione::conferimentoAgricolo;
+        $generico = $this->creaRigaIva('22', 3000.0, 1, null, $acquisto);
+        $destinato = $this->creaRigaIva('22', 500.0, 1, null, $acquisto);
+        $destinato->operazioneDiversa = true;
+        return [$agricola, $esportazione, $diversa, $connessa, $conferimento, $generico, $destinato];
+    }
+
+    public function testLiquidazioneRegimeArticolo34(): void
+    {
+        $this->rispondi(['dati_fiscali' => [$this->datiRegime(RegimeDetrazioneIva::agricolo)], 'riga_iva' => $this->righe()]);
+        $risultato = (new CalcoloLiquidazioneIva($this->dataMapper))->calcola($this->azienda, new SismaDate('2025-01-01'), new SismaDate('2025-03-31'));
+        // 1.230 di compensazione + 615 di IVA teorica + 110 dell'acquisto destinato + 110 (50% della connessa) + 100 del conferimento al 10%
+        $this->assertSame(2165.0, $risultato->ivaDetraibile);
+        $this->assertSame(615.0, $risultato->ivaTeorica);
+        // l'acquisto generico non si detrae, l'imposta delle vendite resta a debito
+        $this->assertSame(2200.0 + 440.0 + 220.0 + 100.0, $risultato->ivaEsigibile);
+    }
+
+    public function testLiquidazioneForfetaria(): void
+    {
+        foreach ([[RegimeDetrazioneIva::agriturismo, 1650.0], [RegimeDetrazioneIva::attivitaConnesse, 1650.0], [RegimeDetrazioneIva::enoturismo, 1650.0], [RegimeDetrazioneIva::oleoturismo, 1650.0], [RegimeDetrazioneIva::associazioniAgricole, 1100.0]] as [$regime, $atteso]) {
+            $vendita = $this->creaRegistrazione(CausaleContabile::fatturaVendita, null, '2025-03-10');
+            $vendita->id = 1;
+            $acquisto = $this->creaRegistrazione(CausaleContabile::fatturaAcquisto, null, '2025-03-12');
+            $acquisto->id = 2;
+            $this->rispondi(['dati_fiscali' => [$this->datiRegime($regime)], 'riga_iva' => [$this->creaRigaIva('22', 15000.0, 1, null, $vendita), $this->creaRigaIva('22', 9000.0, 1, null, $acquisto)]]);
+            $risultato = (new CalcoloLiquidazioneIva($this->dataMapper))->calcola($this->azienda, new SismaDate('2025-01-01'), new SismaDate('2025-03-31'));
+            $this->assertSame($atteso, $risultato->ivaDetraibile);
+        }
+    }
+
+    public function testDichiarazioneRegimeArticolo34(): void
+    {
+        $this->rispondi(['dati_fiscali' => [$this->datiRegime(RegimeDetrazioneIva::agricolo)], 'riga_iva' => $this->righe()]);
+        $dichiarazione = $this->creaDichiarazione();
+        $quadri = $this->creaQuadri($dichiarazione);
+        (new PropostaIva($this->dataMapper))->proponi($dichiarazione, $quadri, []);
+        // casella del regime, conferimento nella sezione 1 del VE, le altre nella sezione 2
+        $this->assertNotNull($quadri->get('VF030008'));
+        $this->assertSame(1000, $quadri->getImporto('VE010001'));
+        $this->assertSame(13000, $quadri->getImporto('VE023001'));
+        // sezione 3-B: operazioni diverse senza la connessa, compensazione, IVA teorica
+        $this->assertSame(2000, $quadri->getImporto('VF038001'));
+        $this->assertSame(440, $quadri->getImporto('VF038002'));
+        $this->assertSame(10000, $quadri->getImporto('VF049001'));
+        $this->assertSame(1230, $quadri->getImporto('VF049002'));
+        $this->assertSame(1000, $quadri->getImporto('VF048001'));
+        $this->assertSame(100, $quadri->getImporto('VF048002'));
+        $this->assertSame(1330, $quadri->getImporto('VF052002'));
+        $this->assertSame(110, $quadri->getImporto('VF053002'));
+        $this->assertSame(615, $quadri->getImporto('VF054002'));
+        $this->assertSame(2055, $quadri->getImporto('VF055002'));
+        $this->assertSame(1000, $quadri->getImporto('VF062001'));
+        $this->assertSame(220, $quadri->getImporto('VF062002'));
+        // VF71 = VF55 + 50% del VF62, come la liquidazione
+        $this->assertSame(2165, $quadri->getImporto('VF071002'));
+        $this->assertSame(2165, $quadri->getImporto('VL002001'));
+        $segnalazioni = (new ControlliIva($this->dataMapper))->getSegnalazioni($quadri);
+        $this->assertEmpty(array_filter($segnalazioni, fn(string $segnalazione) => str_starts_with($segnalazione, 'VF')));
+        $quadri->imposta('VF071002', 3000);
+        $this->assertNotEmpty(array_filter((new ControlliIva($this->dataMapper))->getSegnalazioni($quadri), fn(string $segnalazione) => str_starts_with($segnalazione, 'VF071002')));
+    }
+
+    public function testDichiarazioneForfetaria(): void
+    {
+        $vendita = $this->creaRegistrazione(CausaleContabile::fatturaVendita, null, '2025-03-10');
+        $vendita->id = 1;
+        $acquisto = $this->creaRegistrazione(CausaleContabile::fatturaAcquisto, null, '2025-03-12');
+        $acquisto->id = 2;
+        foreach ([[RegimeDetrazioneIva::agriturismo, 'VF030004', 1650], [RegimeDetrazioneIva::attivitaConnesse, 'VF030007', 1650], [RegimeDetrazioneIva::enoturismo, 'VF030009', 1650], [RegimeDetrazioneIva::oleoturismo, 'VF030010', 1650], [RegimeDetrazioneIva::associazioniAgricole, 'VF030005', 1100]] as [$regime, $casella, $atteso]) {
+            $this->rispondi(['dati_fiscali' => [$this->datiRegime($regime)], 'riga_iva' => [$this->creaRigaIva('22', 15000.0, 1, null, $vendita), $this->creaRigaIva('22', 9000.0, 1, null, $acquisto)]]);
+            $dichiarazione = $this->creaDichiarazione();
+            $quadri = $this->creaQuadri($dichiarazione);
+            (new PropostaIva($this->dataMapper))->proponi($dichiarazione, $quadri, []);
+            $this->assertNotNull($quadri->get($casella));
+            $this->assertSame($atteso, $quadri->getImporto('VF071002'));
+            $segnalazioni = (new ControlliIva($this->dataMapper))->getSegnalazioni($quadri);
+            $this->assertEmpty(array_filter($segnalazioni, fn(string $segnalazione) => str_starts_with($segnalazione, 'VF071002')));
+        }
+    }
+
+    public function testEsoneratoSenzaLiquidazioniEDichiarazioneOltreLimite(): void
+    {
+        $dati = $this->datiRegime(RegimeDetrazioneIva::agricoloEsonerato);
+        $vendita = $this->creaRegistrazione(CausaleContabile::fatturaVendita, null, '2025-05-10');
+        $vendita->id = 1;
+        $agricola = $this->creaRigaIva('10', 4000.0, 1, null, $vendita);
+        $agricola->percentualeCompensazione = 4.0;
+        $this->rispondi(['dati_fiscali' => [$dati], 'riga_iva' => [$agricola]]);
+        // niente liquidazioni, dichiarazione non dovuta nei limiti
+        try {
+            (new RegimeIva($this->dataMapper))->getPeriodicita($this->azienda, 2025);
+            $this->fail('L\'esonerato non liquida l\'IVA');
+        } catch (\DomainException $errore) {
+            $this->assertStringContainsString('esonerato', $errore->getMessage());
+        }
+        $modelli = (new ModelliContribuente($this->dataMapper))->getModelli($this->azienda, 2025);
+        $this->assertNotNull($modelli['IVA']);
+        $this->assertNotNull($modelli['TR']);
+        // limite di un terzo per le operazioni diverse
+        $this->assertFalse(EsoneroAgricolo::isLimiteSuperato(6000.0, 3000.0));
+        $this->assertTrue(EsoneroAgricolo::isLimiteSuperato(6000.0, 3001.0));
+        $diversa = $this->creaRigaIva('22', 3000.0, 1, null, $vendita);
+        $this->rispondi(['dati_fiscali' => [$dati], 'riga_iva' => [$agricola, $diversa]]);
+        $modelli = (new ModelliContribuente($this->dataMapper))->getModelli($this->azienda, 2025);
+        $this->assertNull($modelli['IVA']);
+        $this->assertNotNull($modelli['TR']);
+        // dichiarazione: agricole nella sezione 1 con la percentuale come aliquota, diverse nella 2, niente VH
+        $dichiarazione = $this->creaDichiarazione();
+        $quadri = $this->creaQuadri($dichiarazione);
+        $avvisi = (new PropostaIva($this->dataMapper))->proponi($dichiarazione, $quadri, []);
+        $this->assertSame(4000, $quadri->getImporto('VE002001'));
+        $this->assertSame(160, $quadri->getImporto('VE002002'));
+        $this->assertSame(3000, $quadri->getImporto('VE023001'));
+        $this->assertSame(160, $quadri->getImporto('VF040002'));
+        $this->assertSame(3000, $quadri->getImporto('VF038001'));
+        $this->assertNotEmpty(array_filter($avvisi, fn(string $avviso) => str_contains($avviso, 'VH non si compila')));
+        // volume dell'anno precedente oltre 7.000 euro: esonero non spettante
+        $this->assertNotNull((new EsoneroAgricolo($this->dataMapper))->getMotivoDichiarazione($this->azienda, 2025));
+    }
+
+    public function testCausale7DellaTeorica(): void
+    {
+        $this->codiceNatura('N3.1', NaturaIva::esportazioni, 311);
+        $vendita = $this->creaRegistrazione(CausaleContabile::fatturaVendita, null, '2025-03-10');
+        $vendita->id = 1;
+        $esportazione = $this->creaRigaIva('N3.1', 50000.0, 1, null, $vendita);
+        $esportazione->percentualeCompensazione = 12.3;
+        $this->rispondi(['dati_fiscali' => [$this->datiRegime(RegimeDetrazioneIva::agricolo)], 'riga_iva' => [$esportazione]]);
+        $dichiarazione = $this->creaDichiarazione();
+        $quadri = $this->creaQuadri($dichiarazione);
+        $quadri->imposta('VX004001', 4000);
+        (new PropostaIva($this->dataMapper))->proponi($dichiarazione, $quadri, []);
+        $this->assertSame(6150, $quadri->getImporto('VF054002'));
+        $this->assertSame('7', $quadri->get('VX004003'));
+        $presupposti = (new RimborsoIva($this->dataMapper))->getPresupposti($this->azienda, 2025, 6150, $quadri);
+        $this->assertSame(6150, $presupposti['limite']);
+        // oltre l'IVA teorica il rimborso non compete
+        $quadri->imposta('VX004001', 7000);
+        $errori = implode(' ', (new ControlliIva($this->dataMapper))->getErrori($dichiarazione, $quadri));
+        $this->assertStringContainsString('IVA teorica', $errori);
+    }
+
+    public function testIvaTeoricaNelModelloTr(): void
+    {
+        $this->codiceNatura('N3.1', NaturaIva::esportazioni, 312);
+        $vendita = $this->creaRegistrazione(CausaleContabile::fatturaVendita, null, '2025-02-10');
+        $vendita->id = 1;
+        $esportazione = $this->creaRigaIva('N3.1', 50000.0, 1, null, $vendita);
+        $esportazione->percentualeCompensazione = 12.3;
+        $this->rispondi(['dati_fiscali' => [$this->datiRegime(RegimeDetrazioneIva::agricolo)], 'riga_iva' => [$esportazione]]);
+        $dichiarazione = $this->creaDichiarazione();
+        $dichiarazione->modello = ModelloDichiarativo::ivaTr;
+        $dichiarazione->trimestre = 1;
+        $quadri = new QuadriDichiarazione($dichiarazione, $this->dataMapper, $this->getCatalogoTr());
+        $dati = (new PropostaTr($this->dataMapper))->proponiModulo($quadri, $this->azienda, 2025, 1, '');
+        // l'IVA teorica sta nel TC5, non nell'imposta detraibile degli acquisti (TB32)
+        $this->assertSame(0.0, $quadri->getDecimale('TB032001'));
+        $this->assertSame(6150.0, $quadri->getDecimale('TC005002'));
+        $this->assertSame(6150.0, $quadri->getDecimale('TC006002'));
+        $this->assertSame(6150.0, $dati['credito']);
+    }
+
+    public function testEnumDelRegime(): void
+    {
+        foreach (RegimeDetrazioneIva::cases() as $regime) {
+            $this->assertNotSame('', $regime->getLabel());
+            $this->assertStringStartsWith('VF030', $regime->getCasellaVf30());
+        }
+        $this->assertTrue(RegimeDetrazioneIva::agricolo->isCompensazione());
+        $this->assertTrue(RegimeDetrazioneIva::agricoloEsonerato->isCompensazione());
+        $this->assertFalse(RegimeDetrazioneIva::agriturismo->isCompensazione());
+        $this->assertSame(0.5, RegimeDetrazioneIva::attivitaConnesse->getQuotaForfetaria());
+        $this->assertSame(1 / 3, RegimeDetrazioneIva::associazioniAgricole->getQuotaForfetaria());
+    }
+}

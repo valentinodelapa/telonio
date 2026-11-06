@@ -89,8 +89,17 @@ class ControlliIva
         if (in_array($quadri->get('VX004003', 1), ['2', '3', '4', '5', '6', '7'], true) && ($quadri->getImporto('VX002001', 1) <= RimborsoIva::SOGLIA)) {
             $errori[] = 'Rigo VX4: con la causale indicata il rimborso compete solo se il credito dell\'anno (VX2) supera 2.582,28 euro.';
         }
-        if ($quadri->getImporto('VX004001', 1) > $quadri->getImporto('VX002001', 1) + $quadri->getImporto('VX003001', 1)) {
-            $errori[] = 'Rigo VX4: il rimborso non può superare il credito (VX2 più VX3).';
+        if ($quadri->getImporto('VX004001', 1) > PropostaIva::getCreditoRipartibile($quadri, 1)) {
+            $errori[] = 'Rigo VX4: il rimborso non può superare il credito (VX2 più VX3 o, con l\'ingresso in un Gruppo IVA, VX2 al netto del campo 2).';
+        }
+        if ($quadri->getImporto('VX004002', 1) > $quadri->getImporto('VX004001', 1)) {
+            $errori[] = 'Rigo VX4: la quota della procedura semplificata (campo 2) non può superare il rimborso.';
+        }
+        if (($quadri->get('VX004003', 1) === '7') && ($quadri->getImporto('VX004001', 1) > array_sum(array_map(fn(int $modulo) => $quadri->getImporto('VF054002', $modulo), $quadri->getModuli() ?: [1])))) {
+            $errori[] = 'Rigo VX4: con la causale 7 il rimborso compete per l\'IVA teorica delle cessioni agricole non imponibili (VF54).';
+        }
+        if (($quadri->getImporto('VX004002', 1) > 0) && ($quadri->get('VX004003', 1) === '1')) {
+            $errori[] = 'Rigo VX4: con la cessazione dell\'attività il rimborso spetta agli uffici, il campo 2 non va compilato.';
         }
         if (($quadri->get('VX004005', 1) !== null) && ($quadri->get('VX004004', 1) !== '6')) {
             $errori[] = 'Rigo VX4: l\'imposta delle operazioni in scissione dei pagamenti (campo 5) va indicata solo con il codice 6 di erogazione prioritaria (campo 4).';
@@ -186,7 +195,7 @@ class ControlliIva
         if (($quadri->get('VG008001') !== null) && ($quadri->get('VG002002') !== null)) {
             $segnalazioni[] = 'Quadro VG: con la revoca (VG8) i righi da VG1 a VG7 non vanno compilati.';
         }
-        $verifica('VX005001', $quadri->getImporto('VX002001') + $quadri->getImporto('VX003001') - $quadri->getImporto('VX004001') - $quadri->getImporto('VX006002'));
+        $verifica('VX005001', PropostaIva::getCreditoRipartibile($quadri) - $quadri->getImporto('VX004001') - $quadri->getImporto('VX006002'));
         if ($quadri->get('VT001001') !== null) {
             $verifica('VT001001', $imponibileVe);
             $verifica('VT001002', $impostaVe);
@@ -239,7 +248,13 @@ class ControlliIva
         if ($quadri->somma('VF029001', 'VF029002', 'VF029003', 'VF029004') > 0) {
             $verifica('VF025001', $quadri->somma('VF029001', 'VF029002', 'VF029003', 'VF029004'));
         }
-        if ($quadri->get('VF030003') !== null) {
+        $quotaForfetaria = PropostaIva::getQuotaForfetaria($quadri);
+        if ($quadri->get('VF030008') !== null) {
+            $verifica('VF055002', $quadri->somma('VF052002', 'VF053002', 'VF054002'));
+            $verifica('VF071002', $quadri->getImporto('VF055002') + (int) round($quadri->getImporto('VF062002') * 0.5) + $quadri->getImporto('VF070002'));
+        } elseif ($quotaForfetaria !== null) {
+            $verifica('VF071002', (int) round($quadri->getImporto('VE026002') * $quotaForfetaria) + $quadri->getImporto('VF070002'));
+        } elseif ($quadri->get('VF030003') !== null) {
             $percentuale = PropostaIva::calcolaPercentuale($quadri);
             $verifica('VF034009', $percentuale);
             $base = $quadri->getImporto('VF027002') + $quadri->getImporto('VF035001') - $quadri->getImporto('VF036001');
@@ -257,7 +272,7 @@ class ControlliIva
         $verifica('VL003001', max(0, $differenza));
         $verifica('VL004001', max(0, -$differenza));
         if ($quadri->get('VL008001') !== null) {
-            $verifica('VL025001', $quadri->getImporto('VL008001') - $quadri->getImporto('VL009001'));
+            $verifica('VL025001', $quadri->getImporto('VL008001') - $quadri->getImporto('VL009001') - $quadri->getImporto('VL010001'));
         }
         $verifica('VL030001', max($quadri->getImporto('VL030002'), $quadri->somma('VL030003', 'VL030004', 'VL030005')));
     }
@@ -276,6 +291,23 @@ class ControlliIva
         }
         if (($quadri->getImporto('VX004001', 1) > 30000) && (($dichiarazione?->hasVisto() ?? false) === false) && ($sottoscritta === false) && ($quadri->get('VX004007', 1) === null)) {
             $avvertenze[] = 'Rimborso oltre 30.000 euro senza garanzia: servono il visto di conformità (o la sottoscrizione dell\'organo di controllo) e la dichiarazione sostitutiva delle condizioni dell\'art. 38-bis, c. 3 (VX4, campo 10).';
+        }
+        if ($dichiarazione !== null) {
+            $rimborso = new RimborsoIva($this->dataMapper);
+            if (($quadri->getImporto('VX004001', 1) > RimborsoIva::LIMITE_GARANZIA) || ($quadri->getImporto('VY004001', 1) > RimborsoIva::LIMITE_GARANZIA)) {
+                foreach ($rimborso->getRischi($dichiarazione) as $rischio) {
+                    $avvertenze[] = 'Rimborso oltre 30.000 euro: garanzia dovuta (art. 38-bis, c. 4) per ' . $rischio . '.';
+                }
+                if ($rimborso->isVerificaDaFare($dichiarazione)) {
+                    $avvertenze[] = RimborsoIva::AVVISO_VERIFICA;
+                }
+            }
+            $semplificata = $quadri->getImporto('VX004002', 1) + $quadri->getImporto('VY004002', 1);
+            $compensati = $semplificata > 0 ? (new CreditiTrimestrali($this->dataMapper))->getCompensatiNellAnno($dichiarazione->soggetto, $dichiarazione->anno + 1) : 0;
+            if ($semplificata + $compensati > RimborsoIva::LIMITE_COMPENSAZIONI) {
+                $avvertenze[] = sprintf('Procedura semplificata di € %s con compensazioni in F24 di € %s nel %d: oltre il limite annuale di 2.000.000 di euro (art. 34, c. 1, L. 388/2000).',
+                        number_format($semplificata, 0, ',', '.'), number_format($compensati, 0, ',', '.'), $dichiarazione->anno + 1);
+            }
         }
         return $avvertenze;
     }
