@@ -28,6 +28,9 @@ require Layout::percorso('header');
             <?= Campo::selezioneEnum('regimeDetrazioneIva', $campi['regimeDetrazioneAttivita'], $formEntity, $errors, $regimiDetrazione, ['colonna' => 'col-md-4', 'vuota' => $campi['regimeDatiFiscali']]) ?>
             <?= Campo::testo('dalAnno', $campi['dalAnno'], $formEntity, $errors, ['richiesto' => true, 'colonna' => 'col-md-2', 'tipo' => 'number']) ?>
             <?= Campo::testo('alAnno', $campi['alAnno'], $formEntity, $errors, ['colonna' => 'col-md-2', 'tipo' => 'number']) ?>
+            <?= Campo::selezioneEnum('opzioneOrdinaria', $campi['opzioneOrdinaria'], $formEntity, $errors, $regimiOpzione, ['colonna' => 'col-md-4', 'vuota' => $campi['nessunaOpzione']]) ?>
+            <?= Campo::testo('opzioneDal', $campi['opzioneDal'], $formEntity, $errors, ['colonna' => 'col-md-2', 'tipo' => 'number']) ?>
+            <?= Campo::testo('opzioneAl', $campi['opzioneAl'], $formEntity, $errors, ['colonna' => 'col-md-2', 'tipo' => 'number']) ?>
         </div>
     </div>
     <?php require __DIR__ . '/../commonParts/pulsantiForm.php'; ?>

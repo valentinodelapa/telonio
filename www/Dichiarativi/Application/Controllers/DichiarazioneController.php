@@ -9,9 +9,12 @@ use Contabilita\Application\Enumerations\ImpegnoPresentazione;
 use Deleghe\Application\Models\IntermediarioModel;
 use Deleghe\Application\Models\VersamentoModel;
 use Deleghe\Application\Services\ArchivioVersamenti;
+use Contabilita\Application\Entities\AttivitaIva;
+use Contabilita\Application\Services\AttivitaSeparate;
 use Dichiarativi\Application\BaseClasses\DichiarativiController;
 use Dichiarativi\Application\Entities\Dichiarazione;
 use Dichiarativi\Application\Entities\ModuloDichiarazione;
+use Dichiarativi\Application\Entities\RettificaDetrazione;
 use Dichiarativi\Application\Entities\SottoscrizioneControllo;
 use Dichiarativi\Application\Enumerations\ModalitaSaldo;
 use Dichiarativi\Application\Enumerations\ModelloDichiarativo;
@@ -23,6 +26,7 @@ use Dichiarativi\Application\Models\CampoModelloModel;
 use Dichiarativi\Application\Models\DichiarazioneModel;
 use Dichiarativi\Application\Models\ModuloDichiarazioneModel;
 use Dichiarativi\Application\Models\QuadroModelloModel;
+use Dichiarativi\Application\Models\RettificaDetrazioneModel;
 use Dichiarativi\Application\Models\SottoscrizioneControlloModel;
 use Dichiarativi\Application\Models\ValoreDichiarazioneModel;
 use Dichiarativi\Application\Services\Frontespizio;
@@ -30,6 +34,7 @@ use Dichiarativi\Application\Services\Iva\ControlliIva;
 use Dichiarativi\Application\Services\Iva\ControlliTr;
 use Dichiarativi\Application\Services\Iva\PropostaIva;
 use Dichiarativi\Application\Services\Iva\PropostaTr;
+use Dichiarativi\Application\Services\Iva\ProspettoRettifiche;
 use Dichiarativi\Application\Services\Iva\VersamentiIva;
 use Dichiarativi\Application\Services\Iva\VersamentiTr;
 use Dichiarativi\Application\Services\ModelliContribuente;
@@ -199,6 +204,101 @@ class DichiarazioneController extends DichiarativiController
         $this->vars['pageTitle'] = 'Quadro ' . $quadro . ' · ' . $dichiarazione->getDescrizione();
         $this->impostaBricioleContribuente($dichiarazione->soggetto, $dichiarazione->anno, $this->vars['pageTitle']);
         return $this->render->generateView('dichiarazione/quadro', $this->vars);
+    }
+
+    /**
+     * Prospetto D delle rettifiche della detrazione: il totale va nel rigo
+     * VF70 del modulo, ricalcolando i quadri.
+     */
+    public function rettifiche(Request $request, Dichiarazione $dichiarazione, int $modulo = 1): Response
+    {
+        $this->autorizza($dichiarazione);
+        if (($bloccata = $this->verificaModificabile($dichiarazione)) !== null) {
+            return $bloccata;
+        }
+        $moduli = $this->getModuli($dichiarazione);
+        if (($dichiarazione->modello->isTrimestrale()) || (isset($moduli[$modulo]) === false)) {
+            return $this->vaiAllaDichiarazione($dichiarazione);
+        }
+        $model = new RettificaDetrazioneModel($this->dataMapper);
+        $esistenti = $model->getRighi($dichiarazione, $modulo);
+        $errori = [];
+        $prospetto = new ProspettoRettifiche($this->dataMapper);
+        $proposta = $prospetto->getProposta($dichiarazione->soggetto, $dichiarazione->anno, $this->getAttivitaModulo($dichiarazione, $modulo));
+        if (($request->server['REQUEST_METHOD'] ?? 'GET') === 'POST') {
+            $this->verificaCsrf($request);
+            $importi = is_array($request->input['importi'] ?? null) ? $request->input['importi'] : [];
+            $note = is_array($request->input['note'] ?? null) ? $request->input['note'] : [];
+            $valori = [];
+            foreach (array_keys(ProspettoRettifiche::RIGHI) as $rigo) {
+                $testo = str_replace(['.', ','], ['', '.'], trim((string) ($importi[$rigo] ?? '')));
+                if (($testo !== '') && (is_numeric($testo) === false)) {
+                    $errori[$rigo] = 'Importo non valido nel rigo ' . $rigo . '.';
+                }
+                $valori[$rigo] = $testo === '' ? null : (float) $testo;
+            }
+            if (count($errori) === 0) {
+                $primaTransazione = $this->dataMapper->startTransaction();
+                $aggiornata = $prospetto->salvaEsclusi($proposta, is_array($request->input['esclusi'] ?? null) ? $request->input['esclusi'] : []);
+                // il rigo 3 segue la proposta finché non è stato cambiato a mano
+                if (($valori[3] !== null) && (count($proposta['beni']) > 0) && (abs($valori[3] - $proposta['totale']) < 0.005)) {
+                    $valori[3] = (float) $aggiornata['totale'];
+                }
+                foreach ($valori as $rigo => $valore) {
+                    $this->salvaRettifica($dichiarazione, $modulo, $rigo, $valore, trim((string) ($note[$rigo] ?? '')), $esistenti[$rigo] ?? null);
+                }
+                $this->proponiQuadri($dichiarazione);
+                $this->dataMapper->commitTransaction($primaTransazione);
+                $this->aggiungiMessaggio('Prospetto D salvato e quadri ricalcolati.');
+                return $this->vaiAllaDichiarazione($dichiarazione, 'VF', $modulo);
+            }
+        }
+        $this->vars['dichiarazione'] = $dichiarazione;
+        $this->vars['soggetto'] = $dichiarazione->soggetto;
+        $this->vars['anno'] = $dichiarazione->anno;
+        $this->vars['modulo'] = $modulo;
+        $this->vars['etichettaModulo'] = $moduli[$modulo];
+        $this->vars['righi'] = ProspettoRettifiche::RIGHI;
+        $this->vars['esistenti'] = $esistenti;
+        $this->vars['proposta'] = $proposta;
+        $this->vars['erroriCampi'] = $errori;
+        $this->vars['pageTitle'] = 'Prospetto D · ' . $dichiarazione->getDescrizione();
+        $this->impostaBricioleContribuente($dichiarazione->soggetto, $dichiarazione->anno, $this->vars['pageTitle']);
+        return $this->render->generateView('dichiarazione/rettifiche', $this->vars);
+    }
+
+    /**
+     * Attività separata del modulo: la prima è il modulo 1.
+     */
+    private function getAttivitaModulo(Dichiarazione $dichiarazione, int $modulo): ?AttivitaIva
+    {
+        if ($modulo === 1) {
+            $attivita = (new AttivitaSeparate($this->dataMapper))->getAttivita($dichiarazione->soggetto, $dichiarazione->anno);
+            return count($attivita) === 0 ? null : reset($attivita);
+        }
+        foreach ((new ModuloDichiarazioneModel($this->dataMapper))->getModuli($dichiarazione) as $moduloDichiarazione) {
+            if ($moduloDichiarazione->numero === $modulo) {
+                return $moduloDichiarazione->attivitaIva;
+            }
+        }
+        return null;
+    }
+
+    private function salvaRettifica(Dichiarazione $dichiarazione, int $modulo, int $rigo, ?float $importo, string $nota, ?RettificaDetrazione $rettifica): void
+    {
+        if ($importo === null) {
+            if ($rettifica !== null) {
+                $this->dataMapper->delete($rettifica);
+            }
+            return;
+        }
+        $rettifica ??= new RettificaDetrazione($this->dataMapper);
+        $rettifica->dichiarazione = $dichiarazione;
+        $rettifica->modulo = $modulo;
+        $rettifica->rigo = $rigo;
+        $rettifica->importo = $importo;
+        $rettifica->nota = $nota === '' ? null : mb_substr($nota, 0, 255);
+        $this->dataMapper->save($rettifica);
     }
 
     /**

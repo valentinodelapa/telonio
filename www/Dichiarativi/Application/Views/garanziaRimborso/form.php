@@ -22,9 +22,12 @@ require Layout::percorso('header');
             <?= Campo::testo('estremi', $campi['estremiGaranzia'], $formEntity, $errors, ['colonna' => 'col-md-3', 'attributi' => 'maxlength="60"']) ?>
             <?= Campo::testo('importo', $campi['importoGarantito'], $formEntity, $errors, ['richiesto' => true, 'colonna' => 'col-md-3', 'attributi' => 'inputmode="decimal"']) ?>
             <?= Campo::data('dataRilascio', $campi['dataRilascio'], $formEntity, $errors, ['richiesto' => true, 'colonna' => 'col-md-3']) ?>
-            <?= Campo::data('dataRimborso', $campi['dataRimborso'], $formEntity, $errors, ['colonna' => 'col-md-3']) ?>
+            <?= Campo::spunta('compensazioneGruppo', $campi['compensazioneGruppo'], $formEntity, $errors, ['colonna' => 'col-12']) ?>
+            <?= Campo::data('dataRimborso', $campi['dataRimborso'], $formEntity, $errors, ['colonna' => 'col-md-3', 'aiuto' => $aiutoDataRimborso]) ?>
             <?= Campo::data('dataScadenza', $campi['dataScadenzaGaranzia'], $formEntity, $errors, ['colonna' => 'col-md-3', 'aiuto' => $aiutoScadenza]) ?>
             <?= Campo::data('dataSvincolo', $campi['dataSvincolo'], $formEntity, $errors, ['colonna' => 'col-md-3']) ?>
+            <?= Campo::data('dataRichiestaDocumenti', $campi['dataRichiestaDocumenti'], $formEntity, $errors, ['colonna' => 'col-md-3', 'aiuto' => $aiutoDocumenti]) ?>
+            <?= Campo::data('dataConsegnaDocumenti', $campi['dataConsegnaDocumenti'], $formEntity, $errors, ['colonna' => 'col-md-3']) ?>
         </div>
     </div>
     <?php require __DIR__ . '/../commonParts/pulsantiForm.php'; ?>

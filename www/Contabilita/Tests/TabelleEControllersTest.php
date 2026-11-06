@@ -25,6 +25,13 @@ class TabelleEControllersTest extends ContabilitaTestCase
         $this->assertSame('CLI', $conti['06.01']['funzione']);
         $this->assertSame($conti['06']['id'], $conti['06.01']['parent_conto_id']);
         $this->assertSame('S', $conti['07.01.0001']['livello']);
+        $prodotti = array_column($dati['prodotti'], null, 'descrizione');
+        $this->assertGreaterThan(200, count($dati['prodotti']));
+        $this->assertSame('7.00', $prodotti['Bovini vivi']['percentuale']);
+        // il pollame del D.P.R. 587/1993 è escluso dal D.M. 2005: 7,3% e 8,3% solo per gli altri
+        $this->assertSame('7.50', $prodotti['Piccioni vivi destinati all\'alimentazione umana']['percentuale']);
+        $this->assertSame('8.50', $prodotti['Frattaglie di fagiani, pernici, piccioni']['percentuale']);
+        $this->assertSame('4.00', $prodotti['Rane vive']['percentuale']);
         $codici = array_column($dati['codiciIva'], null, 'codice');
         $this->assertSame('22.00', $codici['22']['aliquota']);
         $this->assertSame(1, $codici['RC22']['inversione_contabile']);

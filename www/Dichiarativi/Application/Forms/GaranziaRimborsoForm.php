@@ -26,6 +26,7 @@ class GaranziaRimborsoForm extends BaseForm
         if (isset($this->request->input['importo']) && is_string($this->request->input['importo'])) {
             $this->addRequest('importo', Importo::normalizza($this->request->input['importo']));
         }
+        $this->addRequest('compensazioneGruppo', ($this->request->input['compensazioneGruppo'] ?? '') === '1' ? '1' : '0');
     }
 
     #[\Override]
@@ -37,7 +38,10 @@ class GaranziaRimborsoForm extends BaseForm
                 ->addFilterFieldMode('estremi', FilterType::isMaxLimitString, [60], true)
                 ->addFilterFieldMode('importo', FilterType::isNumeric)
                 ->addFilterFieldMode('dataRilascio', FilterType::isDate)
+                ->addFilterFieldMode('compensazioneGruppo', FilterType::isBoolean)
                 ->addFilterFieldMode('dataRimborso', FilterType::isDate, [], true)
+                ->addFilterFieldMode('dataRichiestaDocumenti', FilterType::isDate, [], true)
+                ->addFilterFieldMode('dataConsegnaDocumenti', FilterType::isDate, [], true)
                 ->addFilterFieldMode('dataScadenza', FilterType::isDate, [], true)
                 ->addFilterFieldMode('dataSvincolo', FilterType::isDate, [], true);
     }
@@ -61,6 +65,31 @@ class GaranziaRimborsoForm extends BaseForm
                 $this->formFilterError->{$campo . 'CustomMessage'} = $etichetta . ' non può precedere il rilascio.';
                 return false;
             }
+        }
+        return $this->verificaDocumenti();
+    }
+
+    /**
+     * Il differimento riguarda i rimborsi e richiede entrambe le date.
+     */
+    private function verificaDocumenti(): bool
+    {
+        $richiesta = $this->entityData->dataRichiestaDocumenti;
+        $consegna = $this->entityData->dataConsegnaDocumenti;
+        if (($richiesta === null) && ($consegna === null)) {
+            return true;
+        }
+        if ((bool) $this->entityData->compensazioneGruppo) {
+            $this->formFilterError->dataRichiestaDocumentiCustomMessage = 'Il differimento riguarda i rimborsi, non le compensazioni di gruppo.';
+            return false;
+        }
+        if (($richiesta === null) || ($consegna === null)) {
+            $this->formFilterError->dataConsegnaDocumentiCustomMessage = 'Indicare sia la notifica della richiesta sia la consegna.';
+            return false;
+        }
+        if ($consegna->format('Y-m-d') < $richiesta->format('Y-m-d')) {
+            $this->formFilterError->dataConsegnaDocumentiCustomMessage = 'La consegna non può precedere la notifica della richiesta.';
+            return false;
         }
         return true;
     }

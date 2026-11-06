@@ -82,6 +82,7 @@ class AttivitaIvaController extends ContabilitaController
         $this->vars['attivita'] = $attivita;
         $this->vars['codiceAteco'] = $codiceAteco;
         $this->vars['periodicita'] = PeriodicitaIva::cases();
+        $this->vars['regimiOpzione'] = RegimeDetrazioneIva::getOpzionabili();
         $this->vars['regimiDetrazione'] = array_values(array_filter(RegimeDetrazioneIva::cases(), fn(RegimeDetrazioneIva $regime) => $regime !== RegimeDetrazioneIva::agricoloEsonerato));
         $this->vars['pageTitle'] = $titolo;
         $this->impostaBriciole($soggetto, null, $titolo, ['Registri IVA' => '/registro-iva/index/soggetto/' . $soggetto->id]);

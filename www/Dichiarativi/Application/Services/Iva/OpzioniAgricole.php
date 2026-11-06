@@ -5,6 +5,8 @@ namespace Dichiarativi\Application\Services\Iva;
 use Anagrafica\Application\Entities\DatiFiscali;
 use Anagrafica\Application\Entities\Soggetto;
 use Anagrafica\Application\Enumerations\RegimeDetrazioneIva;
+use Contabilita\Application\Entities\AttivitaIva;
+use Contabilita\Application\Services\AttivitaSeparate;
 use Contabilita\Application\Services\EsoneroAgricolo;
 use Contabilita\Application\Services\RegimeIva;
 use Dichiarativi\Application\Services\QuadriDichiarazione;
@@ -18,8 +20,9 @@ use SismaFramework\Orm\HelperClasses\DataMapper;
  * (VO32), enoturismo (VO35) e oleoturismo (VO36). Le opzioni vincolano per
  * almeno un triennio: una revoca anticipata è segnalata.
  *
- * Il ritorno all'esonero (VO3, casella 2) non si distingue dal rientro nei
- * limiti senza che ci fosse stata una rinuncia: resta un avviso.
+ * La rinuncia all'esonero si indica nei dati fiscali: la sua fine è la revoca
+ * (VO3, casella 2). Le attività separate hanno la propria opzione, con il
+ * primo e l'ultimo anno.
  */
 class OpzioniAgricole
 {
@@ -49,13 +52,72 @@ class OpzioniAgricole
             $quadri->proponi($casella, true);
         }
         $avvisi = $esito['avvisi'];
+        if (self::isRinunciaRevocata($corrente, $precedente) && ($this->getInizioRinuncia($regime, $soggetto, $anno) > $anno - self::VINCOLO_ANNI)) {
+            $avvisi[] = 'Quadro VO: revoca della rinuncia all\'esonero prima del triennio minimo.';
+        }
         foreach ($esito['revocate'] as $opzione) {
             $inizio = $this->getInizioOpzione($regime, $soggetto, $anno, $opzione);
             if ($anno - $inizio < self::VINCOLO_ANNI) {
                 $avvisi[] = sprintf('Quadro VO: revoca dell\'opzione "%s" applicata dal %d, prima del triennio minimo.', $opzione->getLabel(), $inizio);
             }
         }
+        return [...$avvisi, ...$this->proponiAttivita($quadri, $soggetto, $anno)];
+    }
+
+    /**
+     * Opzioni e revoche delle attività separate.
+     *
+     * @return string[] avvisi
+     */
+    private function proponiAttivita(QuadriDichiarazione $quadri, Soggetto $soggetto, int $anno): array
+    {
+        $avvisi = [];
+        foreach ((new AttivitaSeparate($this->dataMapper))->getAttivita($soggetto, $anno) as $attivita) {
+            $esito = self::calcolaAttivita($attivita, $anno);
+            foreach ($esito['caselle'] as $casella) {
+                $quadri->proponi($casella, true);
+            }
+            $avvisi = [...$avvisi, ...$esito['avvisi']];
+        }
         return $avvisi;
+    }
+
+    /**
+     * @return array{caselle: string[], avvisi: string[]}
+     */
+    public static function calcolaAttivita(AttivitaIva $attivita, int $anno): array
+    {
+        $esito = ['caselle' => [], 'avvisi' => []];
+        $caselle = $attivita->opzioneOrdinaria?->getCaselleOpzione();
+        if ($caselle === null) {
+            return $esito;
+        }
+        if ($attivita->opzioneDal === $anno) {
+            $esito['caselle'][] = $caselle['opzione'];
+        } elseif ($attivita->opzioneAl === $anno - 1) {
+            $esito['caselle'][] = $caselle['revoca'];
+            if ($anno - $attivita->opzioneDal < self::VINCOLO_ANNI) {
+                $esito['avvisi'][] = sprintf('Quadro VO: revoca dell\'opzione "%s" dell\'attività %s applicata dal %d, prima del triennio minimo.', $attivita->opzioneOrdinaria->getLabel(), $attivita->descrizione, $attivita->opzioneDal);
+            }
+        }
+        return $esito;
+    }
+
+    private static function isRinunciaRevocata(DatiFiscali $corrente, ?DatiFiscali $precedente): bool
+    {
+        return (($precedente?->rinunciaEsonero ?? false) === true) && ($corrente->rinunciaEsonero === false);
+    }
+
+    /**
+     * Primo anno della rinuncia revocata, cercato fino al vincolo minimo.
+     */
+    private function getInizioRinuncia(RegimeIva $regime, Soggetto $soggetto, int $anno): int
+    {
+        $inizio = $anno - 1;
+        while (($anno - $inizio < self::VINCOLO_ANNI) && ($regime->getDatiFiscali($soggetto, $inizio - 1)?->rinunciaEsonero ?? false)) {
+            $inizio--;
+        }
+        return $inizio;
     }
 
     /**
@@ -86,7 +148,13 @@ class OpzioniAgricole
                 $esito['revocate'][] = $opzione;
             }
         }
+        if (self::isRinunciaRevocata($corrente, $precedente)) {
+            $esito['caselle'][] = 'VO003002';
+        } elseif ($corrente->rinunciaEsonero && (($precedente?->rinunciaEsonero ?? false) === false)) {
+            $esito['caselle'][] = 'VO003001';
+        }
         self::verificaPassaggio($esito, $corrente, $precedente, $volumePrecedente, $opzioni, $anno);
+        $esito['caselle'] = array_values(array_unique($esito['caselle']));
         return $esito;
     }
 
@@ -102,7 +170,9 @@ class OpzioniAgricole
             return;
         }
         if (($prima === RegimeDetrazioneIva::agricolo) && ($ora === RegimeDetrazioneIva::agricoloEsonerato)) {
-            $esito['avvisi'][] = sprintf('Quadro VO: passaggio all\'esonero dal %d. Se è la revoca di una rinuncia barrare la casella 2 del rigo VO3.', $anno);
+            if (in_array('VO003002', $esito['caselle'], true) === false) {
+                $esito['avvisi'][] = sprintf('Quadro VO: passaggio all\'esonero dal %d senza una rinuncia nei dati fiscali: se c\'era va indicata, per la revoca nella casella 2 del rigo VO3.', $anno);
+            }
             return;
         }
         $esonerato = $prima === RegimeDetrazioneIva::agricoloEsonerato;

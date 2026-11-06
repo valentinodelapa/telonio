@@ -54,6 +54,7 @@ class DatiFiscali extends BaseEntity implements Storicizzabile
     protected bool $ventilazioneCorrispettivi = false;
     protected ?RegimeDetrazioneIva $regimeDetrazioneIva = null;
     protected ?string $opzioniOrdinarie = null;
+    protected bool $rinunciaEsonero = false;
     protected ?SismaDate $dataInizioAttivita = null;
     protected bool $nonResidenteIva = false;
     protected bool $startupInnovativa = false;

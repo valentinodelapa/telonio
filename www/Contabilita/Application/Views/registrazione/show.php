@@ -13,6 +13,9 @@ require __DIR__ . '/../commonParts/navAzienda.php';
 ?>
 <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
     <h1 class="h4 mb-0 me-auto"><?= Html::e($campi['numero']) ?> <?= Html::e($registrazione->numero) ?> · <?= Html::e($registrazione->causale->getLabel()) ?></h1>
+    <?php if ($autofattura): ?>
+        <a href="/registrazione/autofattura/registrazione/<?= Html::e($registrazione->id) ?>" class="btn btn-sm btn-outline-secondary"><i class="bi bi-filetype-xml me-1"></i><?= Html::e($campi['autofattura']) ?></a>
+    <?php endif; ?>
     <?php if ($registrazione->isModificabile() && (($registrazione->isGenerata() === false) || ($registrazione->origine === 'Corrispettivi'))): ?>
         <a href="/registrazione/update/registrazione/<?= Html::e($registrazione->id) ?>" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil me-1"></i><?= Html::e($azioni['modifica']) ?></a>
     <?php endif; ?>

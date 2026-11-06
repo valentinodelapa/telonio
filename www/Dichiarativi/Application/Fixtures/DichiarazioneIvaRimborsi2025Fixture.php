@@ -126,7 +126,11 @@ class DichiarazioneIvaRimborsi2025Fixture extends BaseFixture
         $this->atto($nordic, 2022, '2025-06-10', 'TK3AB0001', 100000.0, 104000.0);
         $this->atto($nordic, 2023, '2025-11-20', 'TK3AB0002', 100000.0, 125000.0);
         $this->garanzia($nordic, 2024, TipoGaranzia::fideiussioneBancaria, 'Banca Adriatica S.p.A.', 12000.0, '2025-02-10', '2025-03-20', '2026-03-02');
-        $this->garanzia($nordic, 2025, TipoGaranzia::polizzaAssicurativa, 'Assicurazioni del Nord S.p.A.', 35000.0, '2026-06-10', '2026-07-15', null);
+        $garanziaDocumenti = $this->garanzia($nordic, 2025, TipoGaranzia::polizzaAssicurativa, 'Assicurazioni del Nord S.p.A.', 35000.0, '2026-06-10', '2026-07-15', null);
+        // documenti consegnati 28 giorni dopo la richiesta: decadenza differita di 13 giorni
+        $garanziaDocumenti->dataRichiestaDocumenti = new SismaDate('2026-05-04');
+        $garanziaDocumenti->dataConsegnaDocumenti = new SismaDate('2026-06-01');
+        $this->dataMapper->save($garanziaDocumenti);
         $annuale = $this->dichiara($nordic, 35000, function (Dichiarazione $dichiarazione): void {
             $dichiarazione->attestazionePatrimoniale = true;
             $dichiarazione->verificaAccertamenti = true;
@@ -181,6 +185,9 @@ class DichiarazioneIvaRimborsi2025Fixture extends BaseFixture
         $this->dichiara($servizi, 2500);
         $this->dichiara($commerciale, 0);
         // Delta Holding: credito di gruppo riportato dai prospetti del 2023 e del 2024, chiesto a rimborso per la minore eccedenza del triennio
+        $garanziaGruppo = $this->garanzia($holding, 2024, TipoGaranzia::fideiussioneBancaria, 'Banca Adriatica S.p.A.', 8000.0, '2025-04-30', '2025-04-30', null);
+        $garanziaGruppo->compensazioneGruppo = true;
+        $this->dataMapper->save($garanziaGruppo);
         $this->dichiarazionePrecedente($holding, 2023, ['VY005001' => 6000]);
         $this->dichiarazionePrecedente($holding, 2024, ['VY005001' => 8000]);
         $demo->compensaCredito($this->credito($holding, 8000.0, 'Credito IVA di gruppo 2024'), 2000.0, '2025-02-17');
@@ -188,7 +195,7 @@ class DichiarazioneIvaRimborsi2025Fixture extends BaseFixture
         $this->addEntity($annuale);
     }
 
-    private function garanzia(Soggetto $soggetto, int $anno, TipoGaranzia $tipo, string $garante, float $importo, string $rilascio, string $rimborso, ?string $svincolo): void
+    private function garanzia(Soggetto $soggetto, int $anno, TipoGaranzia $tipo, string $garante, float $importo, string $rilascio, string $rimborso, ?string $svincolo): GaranziaRimborso
     {
         $garanzia = new GaranziaRimborso($this->dataMapper);
         $garanzia->studio = $soggetto->studio;
@@ -203,6 +210,7 @@ class DichiarazioneIvaRimborsi2025Fixture extends BaseFixture
         $garanzia->dataScadenza = $garanzia->getScadenzaProposta();
         $garanzia->dataSvincolo = $svincolo === null ? null : new SismaDate($svincolo);
         $this->dataMapper->save($garanzia);
+        return $garanzia;
     }
 
     private function atto(Soggetto $soggetto, int $anno, string $notifica, string $estremi, float $dichiarato, float $accertato): void

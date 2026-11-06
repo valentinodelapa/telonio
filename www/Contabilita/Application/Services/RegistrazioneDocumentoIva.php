@@ -68,6 +68,7 @@ final class RegistrazioneDocumentoIva
                 $riga->ripartizione = isset($opzioni['ripartizione']) ? RigaIva::scriviRipartizione($opzioni['ripartizione']) : null;
                 $riga->percentualeCompensazione = $opzioni['percentualeCompensazione'] ?? null;
                 $riga->operazioneDiversa = $opzioni['operazioneDiversa'] ?? false;
+                $riga->coefficienteElevato = $opzioni['coefficienteElevato'] ?? false;
                 $righeIva[] = $riga;
             }
             $registrazione->totaleDocumento = round(abs(PropostaRighe::totaleDocumento($righeIva)), 2);

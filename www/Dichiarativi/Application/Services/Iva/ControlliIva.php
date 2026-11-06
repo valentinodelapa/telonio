@@ -259,11 +259,11 @@ class ControlliIva
             $verifica('VF034009', $percentuale);
             $base = $quadri->getImporto('VF027002') + $quadri->getImporto('VF035001') - $quadri->getImporto('VF036001');
             $verifica('VF037001', (int) round($base * $quadri->getImporto('VF034009') / 100) - $quadri->getImporto('VF035001') + $quadri->getImporto('VF036001'));
-            $verifica('VF071002', $quadri->getImporto('VF037001') + $quadri->getImporto('VF070002'));
+            $verifica('VF071002', $quadri->getImporto('VF037001') + (int) round($quadri->getImporto('VF062002') * 0.5) + $quadri->getImporto('VF070002'));
         } elseif (($quadri->get('VF032001') !== null) || ($quadri->get('VF033001') !== null)) {
             $verifica('VF071002', $quadri->getImporto('VF070002'));
         } else {
-            $verifica('VF071002', $quadri->getImporto('VF027002') + $quadri->getImporto('VF070002'));
+            $verifica('VF071002', $quadri->getImporto('VF027002') + (int) round($quadri->getImporto('VF062002') * 0.5) + $quadri->getImporto('VF070002'));
         }
         $verifica('VJ019002', array_sum(array_map(fn(int $rigo) => $quadri->getImporto(sprintf('VJ%03d002', $rigo)), range(1, 18))));
         $verifica('VL001001', $quadri->getImporto('VE026002') + $quadri->getImporto('VJ019002'));

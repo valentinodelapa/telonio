@@ -46,6 +46,7 @@ require Layout::percorso('header');
                 <?php endforeach; ?>
                 <div class="form-text"><?= Html::e($aiutoOpzioniOrdinarie) ?></div>
             </fieldset>
+            <?= Campo::spunta('rinunciaEsonero', $campi['rinunciaEsonero'], $formEntity, $errors, ['colonna' => 'col-12']) ?>
         </div>
     </div>
     <?php require __DIR__ . '/../commonParts/pulsantiForm.php'; ?>

@@ -46,6 +46,7 @@ class RigaIvaForm extends BaseForm
         // regime agricolo, acquisti: destinati alle operazioni diverse o alle connesse occasionali
         $destinazione = (string) ($this->request->input['destinazioneAgricola'] ?? '');
         $this->addRequest('operazioneDiversa', (($this->request->input['operazioneDiversa'] ?? '') === '1') || ($destinazione === self::DESTINAZIONE_DIVERSE) ? '1' : '0');
+        $this->addRequest('coefficienteElevato', ($this->request->input['coefficienteElevato'] ?? '') === '1' ? '1' : '0');
         if ($this->isDestinazioneAgricola()) {
             $this->addRequest('qualifica', $destinazione === QualificaOperazione::connessaOccasionale->value ? $destinazione : '');
         }
@@ -65,6 +66,7 @@ class RigaIvaForm extends BaseForm
                 ->addFilterFieldMode('aliquotaTeorica', FilterType::isNumeric, [], true)
                 ->addFilterFieldMode('percentualeCompensazione', FilterType::isNumeric, [], true)
                 ->addFilterFieldMode('operazioneDiversa', FilterType::isBoolean)
+                ->addFilterFieldMode('coefficienteElevato', FilterType::isBoolean)
                 ->addFilterFieldMode('conto', FilterType::isEntity, [], true);
     }
 

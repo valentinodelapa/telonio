@@ -35,8 +35,10 @@ use Deleghe\Application\Models\IntermediarioModel;
 use Deleghe\Application\Models\VersamentoModel;
 use Dichiarativi\Application\Entities\Dichiarazione;
 use Dichiarativi\Application\Entities\ModuloDichiarazione;
+use Dichiarativi\Application\Entities\RettificaDetrazione;
 use Dichiarativi\Application\Enumerations\TipoModulo;
 use Dichiarativi\Application\Models\ModuloDichiarazioneModel;
+use Dichiarativi\Application\Models\RettificaDetrazioneModel;
 use Dichiarativi\Application\Models\SottoscrizioneControlloModel;
 use Dichiarativi\Application\Services\QuadriDichiarazione;
 use SismaFramework\Orm\CustomTypes\SismaDate;
@@ -197,6 +199,7 @@ class PropostaIva
             $quadri->usaModulo($numero);
             $quadri->avviaProposta(...($numero === 1 ? array_merge(self::QUADRI, self::QUADRI_PRIMO_MODULO) : self::QUADRI));
             $etichetta = ($numero === 1 ? '' : 'Modulo ' . $numero . ': ') . ($singola === null ? '' : 'attività ' . $singola->getEtichetta() . ', ');
+            $this->proponiRettifiche($quadri, $dichiarazione, $numero, $singola, $etichetta);
             if ($fonte !== null) {
                 $this->proponiDaContabilita($quadri, $dichiarazione, $fonte, $tipo, $etichetta, $operazione, $singola);
             } else {
@@ -330,9 +333,7 @@ class PropostaIva
         $this->proponiOperazioniPassive($quadri, $righe, $etichetta, $regimeDetrazione);
         if ($regimeDetrazione === null) {
             $this->proponiProrata($quadri, $etichetta);
-            if (count(array_filter($righe, fn(RigaIva $riga) => $riga->qualifica === QualificaOperazione::connessaOccasionale)) > 0) {
-                $this->avvisa($etichetta . 'operazioni connesse occasionali senza il regime speciale agricolo: rigo VF62 e detrazione del 50% da indicare a mano.');
-            }
+            $this->proponiConnesseOrdinarie($quadri, $righe, $etichetta);
         } else {
             $this->proponiRegimeDetrazione($quadri, $regimeDetrazione, $righe, $etichetta);
         }
@@ -518,7 +519,7 @@ class PropostaIva
             }
             $codice = $riga->codiceIva;
             // acquisti delle connesse occasionali (art. 34-bis): tutti nel VF18, campo 1
-            $connessa = ($regimeDetrazione?->isCompensazione() === true) && ($riga->qualifica === QualificaOperazione::connessaOccasionale);
+            $connessa = ($riga->qualifica === QualificaOperazione::connessaOccasionale) && (($regimeDetrazione === null) || $regimeDetrazione->isCompensazione());
             if ($codice->natura !== null) {
                 $campo = self::NATURE_VF[$codice->natura->value] ?? null;
                 $campo = $connessa && ($campo !== null) ? 'VF018001' : $campo;
@@ -654,6 +655,53 @@ class PropostaIva
     }
 
     /**
+     * Rigo VF70 dal prospetto D, se compilato; senza prospetto il rigo resta
+     * da indicare a mano e il cambio di regime è segnalato con la proposta.
+     */
+    private function proponiRettifiche(QuadriDichiarazione $quadri, Dichiarazione $dichiarazione, int $modulo, ?AttivitaIva $attivita, string $etichetta): void
+    {
+        if (isset($dichiarazione->id) === false) {
+            return;
+        }
+        $righi = (new RettificaDetrazioneModel($this->dataMapper))->getRighi($dichiarazione, $modulo);
+        if (count($righi) > 0) {
+            $quadri->proponi('VF070002', (int) round(array_sum(array_map(fn(RettificaDetrazione $rettifica) => $rettifica->importo, $righi))));
+            return;
+        }
+        $proposta = (new ProspettoRettifiche($this->dataMapper))->getProposta($dichiarazione->soggetto, $dichiarazione->anno, $attivita);
+        if (count($proposta['beni']) > 0) {
+            $this->avvisa($etichetta . sprintf('cambio di regime: rettifica della detrazione (art. 19-bis2, c. 3) da indicare nel prospetto D, proposti € %s per i beni ammortizzabili; rimanenze e servizi non utilizzati vanno aggiunti a mano.', number_format($proposta['totale'], 0, ',', '.')));
+        }
+    }
+
+    /**
+     * Operazioni connesse occasionali dell'impresa agricola che applica l'IVA
+     * nei modi ordinari (Appendice, "Attività agricole connesse"): un solo
+     * modulo, rigo VF62, e il 50% dell'imposta si aggiunge alla detrazione.
+     *
+     * @param RigaIva[] $righe
+     */
+    private function proponiConnesseOrdinarie(QuadriDichiarazione $quadri, array $righe, string $etichetta): void
+    {
+        $imponibile = $imposta = 0.0;
+        foreach ($righe as $riga) {
+            if (($riga->registroIva->tipo !== TipoRegistroIva::acquisti) && ($riga->qualifica === QualificaOperazione::connessaOccasionale)) {
+                $imponibile += $riga->imponibile;
+                $imposta += $riga->imposta;
+            }
+        }
+        if ($imposta <= 0) {
+            return;
+        }
+        $quadri->proponi('VF062001', (int) round($imponibile));
+        $quadri->proponi('VF062002', (int) round($imposta));
+        $quadri->proponi('VF071002', $quadri->getImporto('VF071002') + (int) round($quadri->getImporto('VF062002') * 0.5));
+        if ($quadri->get('VF030003') !== null) {
+            $this->avvisa($etichetta . 'rigo VF62 con il pro-rata: le istruzioni li indicano come alternativi (VF30, casella 3), verificare il rigo VF60.');
+        }
+    }
+
+    /**
      * IVA ammessa in detrazione nei regimi speciali agricoli (casella del
      * VF30 e VF71): la quota forfetaria del VE26 o, con il regime dell'art.
      * 34, la sezione 3-B del quadro VF: operazioni diverse e loro detrazione
@@ -673,9 +721,11 @@ class PropostaIva
         }
         $compensazione = [];
         $diverseImponibile = $diverseImposta = $detraibili = $teorica = $connesseImponibile = $connesseImposta = 0.0;
+        $acquistiConnesse = false;
         foreach ($righe as $riga) {
             if ($riga->registroIva->tipo === TipoRegistroIva::acquisti) {
                 $detraibili += $riga->getDetrazioneOperazioneDiversa();
+                $acquistiConnesse = $acquistiConnesse || ($riga->qualifica === QualificaOperazione::connessaOccasionale);
                 if ($riga->operazioneDiversa && $riga->isBeneAmmortizzabile()) {
                     $this->avvisa($etichetta . 'bene ammortizzabile segnato per le operazioni diverse: IVA esclusa dal VF53 (art. 34, c. 5).');
                 }
@@ -722,11 +772,11 @@ class PropostaIva
         $quadri->proponi('VF062001', (int) round($connesseImponibile));
         $quadri->proponi('VF062002', (int) round($connesseImposta));
         $quadri->proponi('VF071002', $quadri->getImporto('VF055002') + (int) round($quadri->getImporto('VF062002') * 0.5) + $quadri->getImporto('VF070002'));
-        if ($quadri->getImporto('VF062002') > 0) {
-            $this->avvisa($etichetta . 'attività connesse occasionali (VF62): gli acquisti afferenti vanno spostati a mano nel rigo VF18, campo 1.');
+        if (($quadri->getImporto('VF062002') > 0) && ($acquistiConnesse === false)) {
+            $this->avvisa($etichetta . 'attività connesse occasionali (VF62) senza acquisti destinati: indicarli nella prima nota, per riportarli nel rigo VF18, campo 1.');
         }
         if (($diverseImponibile > 0) && ($detraibili <= 0)) {
-            $this->avvisa($etichetta . 'operazioni diverse (VF38) senza acquisti destinati: indicarli nella prima nota, altrimenti non c\'è detrazione (VF53).');
+            $this->avvisa($etichetta . 'operazioni diverse (VF38) senza acquisti destinati: indicarli nella prima nota, altrimenti non c\'è detrazione (VF53). Di un acquisto promiscuo si segna, su una riga a parte, solo la quota specificamente imputabile; i costi indivisibili non si detraggono (art. 34, c. 5).');
         }
     }
 

@@ -2,6 +2,62 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.20.0-alpha] - 2026-11-07 - Rettifiche della Detrazione e Autofatture Agricole
+
+Ventesima versione alpha: in `Dichiarativi` il prospetto D delle rettifiche della detrazione con la proposta dei beni ammortizzabili al cambio di regime agricolo, le connesse occasionali nei modi ordinari, il quadro VO proposto dalla rinuncia all'esonero e dalle opzioni delle attività separate, le garanzie delle compensazioni di gruppo e il differimento della decadenza per il ritardo nei documenti; in `Contabilita` la tabella dei prodotti agricoli con la percentuale di compensazione e l'autofattura degli acquisti dagli agricoltori esonerati; in `Anagrafica` la rinuncia all'esonero.
+
+Versioni dei moduli: `Anagrafica` 0.10.0, `Contabilita` 0.6.0 (richiede `Anagrafica` 0.9.0), `Dichiarativi` 0.4.0 (richiede `Anagrafica` 0.10.0 e `Contabilita` 0.6.0); `Telonio` 0.6.2, `Deleghe` 0.6.0, `Imu` 0.4.0, `Successioni` 0.3.2 e `GestioneStudio` 0.1.1 invariati.
+
+**Aggiornamento del database**: `sisma aggiorna-database` esegue `Anagrafica/Database/aggiornamento-0.10.sql` (colonna `dati_fiscali.rinuncia_esonero`), `Contabilita/Database/aggiornamento-0.6.sql` (tabella `prodotto_agricolo`, colonne dell'opzione su `attivita_iva`, `controparte.agricoltore_esonerato`, `riga_iva.coefficiente_elevato`, conto abituale riportato sulle righe IVA senza conto) e `Dichiarativi/Database/aggiornamento-0.4.sql` (tabella `rettifica_detrazione`, colonne `garanzia_rimborso.compensazione_gruppo`, `garanzia_rimborso.data_richiesta_documenti` e `garanzia_rimborso.data_consegna_documenti`), tutti idempotenti, e aggiorna i dati di riferimento con i prodotti. Con `sh aggiorna.sh` (con `sudo` se la cartella dell'installazione appartiene a root) sono compresi.
+
+Dopo l'aggiornamento conviene riproporre le dichiarazioni IVA e rielaborare le liquidazioni delle imprese agricole miste con conti abituali di immobilizzazione, e di chi ha connesse occasionali nei modi ordinari. Nei dati fiscali e sulle attività vanno indicate le rinunce e le opzioni già in corso.
+
+### ✨ Nuove Funzionalità
+
+#### `Dichiarativi` 0.4.0
+
+- **prospetto D** delle rettifiche della detrazione per modulo, con il totale nel rigo VF70. Al passaggio tra il regime ordinario e un regime speciale agricolo del 2025 e del 2026 propone i beni ammortizzabili dei registri, per i quinti mancanti (decimi per terreni e fabbricati). I beni con coefficiente di ammortamento oltre il 25% (art. 19-bis2, c. 5) si segnano sulla proposta ed escono dal totale: la spunta resta sulla riga IVA. Rimanenze e servizi non utilizzati restano a mano;
+- **connesse occasionali nei modi ordinari**: per chi applica l'IVA nei modi ordinari per opzione il rigo VF62, gli acquisti nel VF18 e il 50% nel VF71 non sono più a mano;
+- **quadro VO**: la rinuncia all'esonero indicata nei dati fiscali compila le caselle 1 e 2 del VO3, le attività separate hanno opzioni e revoche proprie;
+- **garanzie delle compensazioni di gruppo**: spunta dedicata, con la durata dalla presentazione della dichiarazione;
+- **differimento della decadenza nelle garanzie**: con la notifica della richiesta di documenti e la consegna oltre i quindici giorni, la decadenza si sposta dal sedicesimo giorno alla consegna (art. 57, c. 3) e la scadenza proposta ne tiene conto;
+- fixture: Le Querce Agricola con l'opzione su un'attività separata, Mario Campi con connessa occasionale, prospetto D e un bene con coefficiente oltre il 25%, Tenuta Colli Berici con un'autofattura, Delta Holding con la garanzia di gruppo, Nordic con i documenti consegnati in ritardo.
+
+#### `Contabilita` 0.6.0
+
+- **tabella dei prodotti agricoli** con la percentuale di compensazione e gli anni di validità (`sorgenti/prodotti-agricoli.csv`): in prima nota il prodotto propone la percentuale, sempre modificabile;
+- **autofatture degli acquisti dagli agricoltori esonerati** (art. 34, c. 6): dalla registrazione si scarica il file FatturaPA validato sullo schema, con soggetto emittente CC, regime del cedente RF04 e la percentuale come aliquota, da caricare sul portale;
+- opzione per i modi ordinari sulle attività separate, con il primo e l'ultimo anno; connesse occasionali anche fuori dal regime speciale.
+
+#### `Anagrafica` 0.10.0
+
+- nei dati fiscali la **rinuncia all'esonero** dell'art. 34, c. 6.
+
+### 🐛 Correzioni
+
+#### `Contabilita` 0.6.0
+
+- **beni ammortizzabili non riconosciuti**: con il conto abituale della controparte e senza un conto sulla riga IVA, un bene ammortizzabile destinato alle operazioni diverse dava detrazione. Il conto abituale ora resta sulla riga.
+
+#### `Dichiarativi` 0.4.0
+
+- **avviso superato sulle connesse occasionali**: dalla 0.3.0 gli acquisti segnati per le connesse vanno da soli nel rigo VF18, ma la proposta chiedeva ancora di spostarli a mano. Ora avvisa solo se ci sono operazioni nel VF62 senza acquisti destinati.
+
+### 🔧 Modifiche
+
+#### `Dichiarativi` 0.4.0
+
+- **limiti della 0.16.0-alpha chiusi dopo la verifica sulle istruzioni**: VS30 (comprende il conguaglio annuale e la precedenza dei crediti di gruppo è quella delle istruzioni), rigo TD5 e causale 5 seguono il testo delle istruzioni, senza modifiche al calcolo;
+- **acquisti promiscui delle imprese agricole miste**: verificato sui testi della circolare 328/E/1997, par. 6.4, e della 44/E/2002, par. 3.1, che la detrazione analitica in uso è corretta: i costi indivisibili non si detraggono e di un acquisto promiscuo si segna, su una riga a parte, solo la quota specificamente imputabile. Il calcolo non cambia; sono aggiornati l'avviso del VF38, la documentazione e i test, e il limite della 0.19.0-alpha è chiuso.
+
+### ⚠️ Limiti Noti
+
+- **Tabella dei prodotti**: i prodotti vengono da una tabella di categoria, controllata sui D.M. 1992, 2005 e 2016. Il testo del D.M. 30 dicembre 1997 non è stato trovato: le misure del 7%, 7,5% e 8,5% sono confermate dal modello 2026 e da Fisco Oggi. Legna e legno squadrato sono al 2% dal 2026 finché un decreto non innalza la misura;
+- **Autofatture**: le specifiche tecniche non trattano il caso e si attende un chiarimento dell'Agenzia; il file si carica sul portale, la suite non trasmette al Sistema di Interscambio;
+- **Rettifica per il cambio di regime**: il modello 2026 non indica il caso nel rigo 3, che è quello delle istruzioni precedenti; rimanenze e servizi restano a mano. La valutazione delle rimanenze viene da fonti di categoria: le circolari fissano l'obbligo, non il metodo;
+- **Garanzie di gruppo**: la decorrenza dei tre anni dalla presentazione della dichiarazione è una lettura, la norma non la indica in modo espresso. La riduzione di due anni della decadenza per chi garantisce la tracciabilità dei pagamenti (art. 293, c. 7, D.Lgs. 141/2026) non è gestita: la scadenza si corregge a mano;
+- **Testi unici dal 2027**: dal 1° gennaio 2027 si applicano il Testo unico IVA (D.Lgs. 10/2026) e il Testo unico adempimenti e accertamento (D.Lgs. 141/2026). I termini non cambiano (art. 293 per l'art. 57), la suite cita ancora il D.P.R. 633/1972 e un decreto correttivo è in corso di approvazione.
+
 ## [0.19.0-alpha] - 2026-11-06 - Garanzie dei Rimborsi e Opzioni Agricole
 
 Diciannovesima versione alpha: in `Dichiarativi` l'archivio delle garanzie dei rimborsi IVA con le scadenze nello scadenzario, le opzioni e revoche agricole del quadro VO proposte dai dati fiscali e gli acquisti delle connesse occasionali nel rigo VF18; in `Contabilita` la correzione della detrazione dei beni ammortizzabili nelle imprese agricole miste; in `Deleghe` la scelta del modello nella generazione della delega. Valgono le avvertenze della 0.1.0-alpha: la versione non è indicata per l'uso in produzione su dati reali.

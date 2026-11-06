@@ -412,7 +412,8 @@ un'attività e un registro degli acquisti senza attività raccoglie gli
 acquisti promiscui, ripartiti riga per riga con le percentuali delle
 attività (criteri oggettivi, art. 36, c. 3; colonne "% n" della prima
 nota). Le vendite di registri senza attività vanno alla prima, con
-l'avviso.
+l'avviso. L'opzione per i modi ordinari di una singola attività si indica
+sull'attività con il primo e l'ultimo anno.
 
 Le liquidazioni periodiche sono distinte per attività e compensate nel
 periodo (`Services\AttivitaSeparate`, `LiquidazioneAttivita`): ciascuna
@@ -453,9 +454,14 @@ detraggono e `Services\CalcoloLiquidazioneIva` determina la detrazione:
   qualifica dedicata e i codici IVA `C2`-`C12.3` hanno la percentuale come
   aliquota. Nelle imprese miste (c. 5) le vendite senza percentuale sono
   operazioni diverse e si detrae l'IVA degli acquisti segnati nella prima nota,
-  esclusi i beni ammortizzabili (conto di immobilizzazione). Gli acquisti per le
+  esclusi i beni ammortizzabili (conto di immobilizzazione). Di un acquisto
+  promiscuo si segna su una riga a parte solo la quota specificamente imputabile
+  (circolare 328/E/1997, par. 6.4). Gli acquisti per le
   connesse occasionali si segnano allo stesso modo e vanno nel rigo VF18.
-  Le attività connesse occasionali (qualifica) danno il 50% dell'imposta;
+  Le attività connesse occasionali (qualifica) danno il 50% dell'imposta, anche
+  per chi applica l'IVA nei modi ordinari per opzione.
+  Con il regime dell'art. 34, in prima nota il **prodotto** propone la
+  percentuale dell'anno (`ProdottoAgricolo`), sempre modificabile;
 - **art. 34-bis, agriturismo, enoturismo e oleoturismo**: 50% dell'imposta sulle
   operazioni imponibili; **associazioni** in agricoltura: un terzo.
 
@@ -463,6 +469,18 @@ Gli **agricoltori esonerati** (art. 34, c. 6) non hanno liquidazioni; le righe
 IVA registrate servono a `Services\EsoneroAgricolo` per verificare il limite
 di un terzo e il volume di 7.000 euro. Comunicazione delle liquidazioni: VP4 e VP5
 con l'imposta del regime.
+
+Chi acquista da un agricoltore esonerato (controparte con la spunta) emette
+l'**autofattura** (`Services\FatturaPa\GeneratoreAutofattura`): dalla
+registrazione si scarica il file FatturaPA, validato sullo schema, con soggetto
+emittente CC e la percentuale di compensazione come aliquota, da caricare sul
+portale con numero e data indicati nella registrazione. La suite non trasmette al
+Sistema di Interscambio. TD01 e CC seguono la FAQ 62 e la prassi di settore, ma
+le specifiche tecniche non trattano il caso; il regime del cedente è RF04, il
+codice dello schema per gli artt. 34 e 34-bis.
+
+Il conto abituale della controparte resta sulla riga IVA: è quello che
+riconosce i beni ammortizzabili anche quando la riga non indica un conto.
 
 ## IVA di gruppo
 
@@ -677,7 +695,18 @@ sorgenti in `Database/sorgenti`:
   conto superiore si ricavano dal codice, le funzioni e le voci CEE si
   controllano (unicità, livello, coerenza con la natura);
 - `codici-iva.csv`: codici della suite con la norma per riga; quelli tolti
-  restano non attivi.
+  restano non attivi;
+- `prodotti-agricoli.csv`: prodotti con la percentuale di compensazione e gli
+  anni di validità. I decreti fissano le percentuali per numero della tabella A,
+  parte I (D.M. 12 maggio 1992, D.M. 23 dicembre 2005, D.M. 26 gennaio 2016): i
+  prodotti vengono dalla tabella della CIA Toscana (2021), controllata su quei
+  testi. Il pollame escluso dal D.M. 2005 è quello dell'art. 2 del D.P.R. 587/1993,
+  compresi quaglie, piccioni, fagiani e pernici; i ratiti sono nella definizione del
+  D.Lgs. 199/2014, che lo ha sostituito. Il testo del D.M. 30 dicembre 1997, che fissa
+  bovini, pollame e carni di pollame, non è stato trovato: 7%, 7,5% e 8,5% sono
+  confermati dal modello 2026 e da Fisco Oggi. Bovini e suini sono al 7% e al 7,3% dal 2023; n. 43 e 45 (legna, legno
+  squadrato) al 2% nel 2023, al 6,4% nel 2024 e 2025 (D.M. 6 agosto 2025) e al 2%
+  dal 2026, la misura ordinaria, finché un nuovo decreto non la innalza.
 
 I piani delle aziende e i modelli e codici degli studi non sono toccati.
 

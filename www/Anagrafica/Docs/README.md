@@ -170,6 +170,8 @@ enoturismo, oleoturismo, associazioni) si affianca al regime fiscale e guida
 detrazione e rigo VF30 in Contabilità e Dichiarativi. Le **opzioni per i modi
 ordinari** indicano i regimi a cui si è rinunciato: storicizzate, dal confronto
 tra un anno e il precedente Dichiarativi compila opzioni e revoche del quadro VO.
+La **rinuncia all'esonero** (art. 34, c. 6) si indica allo stesso modo: la sua
+fine è la revoca del rigo VO3, casella 2.
 
 Per il rimborso IVA del modulo Dichiarativi i dati fiscali hanno anche la data
 di **inizio dell'attività** e l'indicazione di **start-up innovativa** (rischi

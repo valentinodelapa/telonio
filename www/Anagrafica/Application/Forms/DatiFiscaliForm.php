@@ -36,6 +36,7 @@ class DatiFiscaliForm extends BaseForm
         }
         $opzioni = $this->request->input['opzioniOrdinarie'] ?? [];
         $this->addRequest('opzioniOrdinarie', RegimeDetrazioneIva::scriviOpzioni(is_array($opzioni) ? $opzioni : []) ?? '');
+        $this->addRequest('rinunciaEsonero', ($this->request->input['rinunciaEsonero'] ?? '') === '1' ? '1' : '0');
     }
 
     #[\Override]
@@ -54,6 +55,7 @@ class DatiFiscaliForm extends BaseForm
                 ->addFilterFieldMode('ventilazioneCorrispettivi', FilterType::isBoolean)
                 ->addFilterFieldMode('regimeDetrazioneIva', FilterType::isEnumeration, [], true)
                 ->addFilterFieldMode('opzioniOrdinarie', FilterType::isMaxLimitString, [23], true)
+                ->addFilterFieldMode('rinunciaEsonero', FilterType::isBoolean)
                 ->addFilterFieldMode('dataInizioAttivita', FilterType::isDate, [], true)
                 ->addFilterFieldMode('nonResidenteIva', FilterType::isBoolean)
                 ->addFilterFieldMode('startupInnovativa', FilterType::isBoolean)
@@ -99,6 +101,10 @@ class DatiFiscaliForm extends BaseForm
         $regimeSpeciale = $this->entityData->regimeDetrazioneIva ?? null;
         if (($regimeSpeciale !== null) && in_array($regimeSpeciale, RegimeDetrazioneIva::leggiOpzioni($this->entityData->opzioniOrdinarie ?? null), true)) {
             $this->formFilterError->regimeDetrazioneIvaCustomMessage = 'Il regime speciale non può coincidere con un\'opzione per i modi ordinari.';
+            $valido = false;
+        }
+        if (($regimeSpeciale === RegimeDetrazioneIva::agricoloEsonerato) && ($this->entityData->rinunciaEsonero ?? false)) {
+            $this->formFilterError->regimeDetrazioneIvaCustomMessage = 'L\'agricoltore esonerato non può aver rinunciato all\'esonero.';
             $valido = false;
         }
         return $this->verificaCodiceAteco() && $valido;

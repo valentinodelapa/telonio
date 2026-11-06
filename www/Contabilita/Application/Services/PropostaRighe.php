@@ -117,7 +117,9 @@ class PropostaRighe
     private function aggiungiImponibili(array $righeIva, ?Conto $abituale, FunzioneConto $funzione, bool $acquisto): void
     {
         foreach ($righeIva as $riga) {
-            $conto = $riga->conto ?? $abituale ?? $this->conto($funzione);
+            // il conto abituale resta sulla riga: dice se l'acquisto è un bene ammortizzabile
+            $riga->conto ??= $abituale;
+            $conto = $riga->conto ?? $this->conto($funzione);
             $importo = $acquisto ? $riga->imponibile + $riga->getImpostaIndetraibile() : -$riga->imponibile;
             $this->aggiungi($conto, $importo);
         }

@@ -22,6 +22,8 @@ use Contabilita\Application\Models\ContoModel;
 use Contabilita\Application\Models\ControparteModel;
 use Contabilita\Application\Models\FatturaElettronicaModel;
 use Contabilita\Application\Models\RegistrazioneContabileModel;
+use Contabilita\Application\Models\ProdottoAgricoloModel;
+use Contabilita\Application\Services\FatturaPa\GeneratoreAutofattura;
 use Contabilita\Application\Models\RegistroIvaModel;
 use Contabilita\Application\Models\RigaContabileModel;
 use Contabilita\Application\Models\RigaIvaModel;
@@ -178,6 +180,22 @@ class RegistrazioneController extends ContabilitaController
         return $this->gestisci($request, $registrazione, $datiIva, $righe, 'Registrazione della fattura n. ' . $fattura->numero, $fattura);
     }
 
+    /**
+     * Autofattura dell'acquisto da un agricoltore esonerato, da caricare sul portale.
+     */
+    public function autofattura(RegistrazioneContabile $registrazione): Response
+    {
+        $this->caricaAzienda($registrazione->soggetto);
+        try {
+            $this->vars['contenuto'] = (new GeneratoreAutofattura($this->dataMapper))->genera($registrazione);
+        } catch (\InvalidArgumentException $errore) {
+            $this->aggiungiMessaggio('Autofattura non generata: ' . $errore->getMessage(), 'danger');
+            return $this->router->redirect('registrazione/show/registrazione/' . $registrazione->id);
+        }
+        $this->vars['nomeFile'] = GeneratoreAutofattura::getNomeFile($registrazione);
+        return $this->render->generateData('comunicazioneLipe/scarica', $this->vars);
+    }
+
     public function show(RegistrazioneContabile $registrazione): Response
     {
         $soggetto = $registrazione->soggetto;
@@ -187,6 +205,7 @@ class RegistrazioneController extends ContabilitaController
         $this->vars['righeIva'] = iterator_to_array((new RigaIvaModel($this->dataMapper))->getRighe($registrazione), false);
         $this->vars['righe'] = iterator_to_array((new RigaContabileModel($this->dataMapper))->getRighe($registrazione), false);
         $this->vars['fattura'] = (new FatturaElettronicaModel($this->dataMapper))->getPerRegistrazione($registrazione);
+        $this->vars['autofattura'] = GeneratoreAutofattura::isAmmessa($registrazione);
         $this->vars['sezioneAzienda'] = 'primaNota';
         $this->vars['pageTitle'] = 'Registrazione n. ' . $registrazione->numero;
         $this->impostaBriciole($soggetto, $registrazione->esercizioContabile->anno, 'Registrazione n. ' . $registrazione->numero,
@@ -287,8 +306,10 @@ class RegistrazioneController extends ContabilitaController
         $this->vars['codiciIva'] = (new CodiceIvaModel($this->dataMapper))->getElenco($this->studio);
         $this->vars['qualifiche'] = QualificaOperazione::cases();
         $this->vars['percentualiCompensazione'] = RigaIva::PERCENTUALI_COMPENSAZIONE;
+        $this->vars['opzioneAgricola'] = (new AttivitaSeparate($this->dataMapper))->hasOpzioneAgricola($soggetto, (int) $registrazione->dataRegistrazione->format('Y'));
         $this->vars['regimeAgricolo'] = (new AttivitaSeparate($this->dataMapper))->hasCompensazione($soggetto, (int) $registrazione->dataRegistrazione->format('Y'));
         $this->vars['attivitaSeparate'] = (new AttivitaSeparate($this->dataMapper))->getAttivita($soggetto, (int) $registrazione->dataRegistrazione->format('Y'));
+        $this->vars['prodottiAgricoli'] = $this->vars['regimeAgricolo'] ? (new ProdottoAgricoloModel($this->dataMapper))->getPerAnno((int) $registrazione->dataRegistrazione->format('Y')) : [];
         $this->vars['natureInversione'] = array_values(array_filter(NaturaIva::cases(), fn(NaturaIva $natura) => $natura->isInversioneContabile()));
         $this->vars['esigibilita'] = EsigibilitaIva::cases();
         $this->vars['ventilazione'] = (new RegimeIva($this->dataMapper))->isVentilazione($soggetto, (int) $registrazione->dataRegistrazione->format('Y'))
@@ -351,6 +372,7 @@ class RegistrazioneController extends ContabilitaController
                 $riga->naturaInversione = null;
                 $riga->aliquotaTeorica = null;
                 $riga->operazioneDiversa = false;
+                $riga->coefficienteElevato = false;
             } else {
                 $riga->qualifica = $riga->qualifica === QualificaOperazione::connessaOccasionale ? $riga->qualifica : null;
                 $riga->percentualeCompensazione = null;
@@ -433,7 +455,7 @@ class RegistrazioneController extends ContabilitaController
     private static function datiRigaIva(RigaIva $riga, int $segno): array
     {
         return ['codiceIva' => (string) $riga->codiceIva->id, 'imponibile' => self::importo($riga->imponibile * $segno), 'imposta' => self::importo($riga->imposta * $segno),
-            'detraibilita' => self::importo($riga->detraibilita), 'rivendita' => $riga->rivendita ? ($riga->altriProdotti ? '2' : '1') : '', 'naturaInversione' => $riga->naturaInversione?->value ?? '', 'qualifica' => $riga->qualifica?->value ?? '', 'percentualeCompensazione' => $riga->percentualeCompensazione === null ? '' : self::importo($riga->percentualeCompensazione), 'operazioneDiversa' => $riga->operazioneDiversa ? '1' : '', 'aliquotaTeorica' => $riga->aliquotaTeorica === null ? '' : self::importo($riga->aliquotaTeorica), 'ripartizione' => array_map(fn(float $percentuale) => self::importo($percentuale), $riga->getRipartizione()), 'conto' => $riga->conto === null ? '' : (string) $riga->conto->id, 'contoEtichetta' => $riga->conto?->getEtichetta()];
+            'detraibilita' => self::importo($riga->detraibilita), 'rivendita' => $riga->rivendita ? ($riga->altriProdotti ? '2' : '1') : '', 'naturaInversione' => $riga->naturaInversione?->value ?? '', 'qualifica' => $riga->qualifica?->value ?? '', 'percentualeCompensazione' => $riga->percentualeCompensazione === null ? '' : self::importo($riga->percentualeCompensazione), 'operazioneDiversa' => $riga->operazioneDiversa ? '1' : '', 'coefficienteElevato' => $riga->coefficienteElevato ? '1' : '', 'aliquotaTeorica' => $riga->aliquotaTeorica === null ? '' : self::importo($riga->aliquotaTeorica), 'ripartizione' => array_map(fn(float $percentuale) => self::importo($percentuale), $riga->getRipartizione()), 'conto' => $riga->conto === null ? '' : (string) $riga->conto->id, 'contoEtichetta' => $riga->conto?->getEtichetta()];
     }
 
     private static function datiRiga(RigaContabile $riga): array

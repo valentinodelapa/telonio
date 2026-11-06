@@ -415,7 +415,15 @@ senza importo un avviso segnala che il credito sarebbe rimborsabile):
   garante, importo, rilascio, esecuzione del rimborso e svincolo): con la data
   del rimborso la scadenza è proposta in tre anni o, se inferiore, nel periodo
   mancante alla decadenza dell'accertamento, e compare nello scadenzario dello
-  studio finché la garanzia non è svincolata;
+  studio finché la garanzia non è svincolata. Per le eccedenze compensate nella
+  liquidazione di gruppo (art. 6, c. 3, D.M. 13 dicembre 1979) la garanzia si presta
+  entro la presentazione della dichiarazione (risposta 330/2022) per tre anni: con la
+  spunta dedicata la durata decorre da quella data, che la norma non indica in
+  modo espresso. Con la notifica della richiesta di documenti e la consegna oltre i
+  quindici giorni la decadenza si sposta dal sedicesimo giorno alla consegna (art. 57,
+  c. 3; dal 2027 art. 293, c. 5, D.Lgs. 141/2026; circolare 32/E/2014, par. 4.1): conta
+  solo se la decadenza è più vicina dei tre anni. Una scadenza già salvata si
+  ricalcola svuotandola;
 - **procedura semplificata** (campo 2, a scelta del contribuente):
   un'avvertenza se con le compensazioni dell'anno in Deleghe supera i
   2.000.000 di euro.
@@ -436,7 +444,7 @@ non ammettono più di una casella per modulo.
   VF39-VF49; conferimenti a cooperative e consorzi (qualifica dedicata, codici
   IVA `C2`-`C12.3`) anche nella sezione 1 del VE; senza percentuale sono
   operazioni diverse delle imprese miste (VF38), con la detrazione degli
-  acquisti segnati come destinati (VF53); non imponibili con la percentuale
+  acquisti segnati come destinati (VF53, vedi sotto); non imponibili con la percentuale
   nell'IVA teorica (VF54); connesse occasionali nel VF62, con il 50% nel VF71.
 - **Art. 34-bis, agriturismo, enoturismo, oleoturismo** (caselle 7, 4, 9, 10):
   VF71 pari al 50% del VE26; **associazioni** in agricoltura (casella 5): un
@@ -446,19 +454,52 @@ non ammettono più di una casella per modulo.
   un terzo o il volume dell'anno precedente supera 7.000 euro: agricole nella
   sezione 1 del VE, diverse nella sezione 2, sezione 3-B, senza il quadro VH.
 
+La **detrazione delle imprese miste** (art. 34, c. 5) è analitica: spetta per i
+beni non ammortizzabili e i servizi "esattamente individuati ed utilizzati in via
+esclusiva" per le operazioni diverse, e non per i "costi indivisibili (ad esempio
+spese generali)" che non siano specificamente imputabili (circolare 328/E/1997,
+par. 6.4). Non c'è quindi una ripartizione automatica degli acquisti promiscui,
+né in proporzione al volume d'affari: di una fattura si segna, su una riga IVA a
+parte, la sola quota specificamente imputabile, e il resto non si detrae. La
+circolare 44/E/2002, par. 3.1, ha superato il par. 6.4 solo per i prodotti
+acquistati da terzi e trasformati nel rispetto della prevalenza: quelle cessioni
+stanno interamente nel regime speciale e si registrano con la percentuale di
+compensazione. La semplice rivendita di prodotti altrui resta operazione diversa
+(par. 3.2).
+
 Gli **acquisti per le connesse occasionali** vanno nel rigo VF18, campo 1, dalla
 destinazione indicata in prima nota. Gli acquisti destinati alle operazioni
 diverse entrano nel VF53 solo se non sono beni ammortizzabili (art. 34, c. 5).
-Le operazioni connesse occasionali di chi non è nel regime speciale restano a
-mano, con un avviso.
+Chi applica l'IVA nei modi ordinari per opzione ha un solo modulo: le connesse
+occasionali vanno nel rigo VF62, gli acquisti nel VF18 e il 50% si aggiunge al
+VF71. Il rigo è indicato in alternativa al pro-rata: con la casella 3 del VF30 c'è
+un avviso.
+
+Il **prospetto D** (pulsante nella dichiarazione, `Services\Iva\ProspettoRettifiche`)
+raccoglie per modulo i cinque righi delle rettifiche: il totale va nel VF70. Il
+passaggio tra il regime ordinario e un regime speciale comporta la rettifica
+dell'art. 19-bis2, c. 3, abrogato dal 1° gennaio 2027 (D.Lgs. 186/2025, art. 9, e
+art. 4, c. 12-octies, D.L. 200/2025, convertito dalla L. 26/2026, salve le
+rettifiche in corso e i comportamenti precedenti al 1° marzo 2026). Nel 2025 e nel
+2026 si propongono nel rigo 3 i beni ammortizzabili dei registri, per i quinti
+mancanti (decimi per terreni e fabbricati), in più se si recupera la detrazione e
+in meno se si restituisce. Sono esclusi i beni di costo unitario fino a 516,46 euro
+(c. 5); quelli con coefficiente di ammortamento oltre il 25%, che la suite non
+conosce, si segnano sulla proposta: restano in elenco fuori dal totale e il rigo 3
+si aggiorna se è uguale alla proposta. Rimanenze e servizi non utilizzati si
+aggiungono a mano. Il rigo 3 è quello delle istruzioni fino al modello 2025, che vi indicano
+l'adozione o l'abbandono di un regime speciale in agricoltura: il modello 2026 lo
+riserva al forfetario perché è precedente alla proroga.
 
 Il **quadro VO** è proposto dal confronto dei dati fiscali con quelli dell'anno
 precedente (`Services\Iva\OpzioniAgricole`): rinuncia all'esonero nei limiti di
 volume (VO3, casella 1), opzioni per i modi ordinari e revoche per art. 34 e
 34-bis (VO3, caselle 3-6), associazioni (VO31), agriturismo (VO32), enoturismo
-(VO35) e oleoturismo (VO36). Una revoca entro il triennio minimo è segnalata. Il
-ritorno all'esonero (VO3, casella 2) resta un avviso: non si distingue dal
-semplice rientro nei limiti. Gli altri righi del quadro si compilano a mano.
+(VO35) e oleoturismo (VO36). Una revoca entro il triennio minimo è segnalata. La
+rinuncia all'esonero indicata nei dati fiscali dà le caselle 1 e, alla sua fine,
+2 del VO3. Le attività separate hanno la propria opzione con il primo e l'ultimo
+anno: l'anno dell'inizio dà la casella dell'opzione, quello dopo la fine la revoca.
+Gli altri righi del quadro si compilano a mano.
 
 Il modello IVA TR riporta l'IVA teorica nel TC5.
 
@@ -570,7 +611,8 @@ VL9 e VW24.
 - **Alberto Conti**: professionista che passa al regime forfetario dal 2026,
   causale 11.
 - **Garanzie**: Nordic Trade S.r.l. ha una polizza in corso e una fideiussione
-  svincolata.
+  svincolata; Delta Holding S.r.l. una fideiussione per le eccedenze compensate
+  nel gruppo.
 - **Nordic Trade S.r.l.**: non residente con il rappresentante fiscale (TD4,
   causale 6), attività iniziata nel settembre 2024: rimborso di 35.000 euro
   con la garanzia dovuta nonostante visto e attestazione.
@@ -585,9 +627,13 @@ VL9 e VW24.
   che servono al calcolo (VX5, VY5), senza catalogo di quegli anni: non generano
   il file.
 - **Mario Campi**: esonerato fino al 2024, rinuncia e opzione per i modi
-  ordinari dal 2025 (VO3, caselle 1 e 3).
+  ordinari dal 2025 (VO3, caselle 1 e 3), connessa occasionale (VF62, VF18) e
+  prospetto D con il trattore del 2024 e le rimanenze (VF70).
+- **Le Querce Agricola S.r.l.**: agriturismo nei modi ordinari per opzione su
+  un'attività separata (VO32, casella 1).
 - **Tenuta Colli Berici S.r.l.**: revoca dal 2025 dell'opzione dell'agriturismo
-  (VO32, casella 2), acquisto per le connesse occasionali (VF18), cinque moduli
+  (VO32, casella 2), acquisto per le connesse occasionali (VF18), autofattura
+  delle uve da un agricoltore esonerato, cinque moduli
   per regime (art. 34 con
   compensazione, conferimento, esportazione, operazioni diverse e connessa
   occasionale; agriturismo, connesse, enoturismo, oleoturismo); il VF71 dei
@@ -617,6 +663,9 @@ dei moduli devono essere dello stesso studio.
 
 ## Fonti
 
+- circolari 328/E del 24 dicembre 1997, par. 6.4, e 44/E del 14 maggio 2002,
+  par. 3, sulle imprese agricole miste; FAQ 62 dell'Agenzia delle Entrate del 19
+  luglio 2019 sulle autofatture degli acquisti dagli esonerati;
 - D.P.R. 633/1972 (artt. 17, 17-ter, 19, 19-bis, 19-bis1, 24, 36),
   D.P.R. 322/1998 (artt. 3 e 8), D.P.R. 542/1999 (art. 6), D.P.R. 435/2001
   (art. 17), D.Lgs. 241/1997 (artt. 17 e 20), D.L. 78/2009 (art. 10), D.L.
@@ -644,11 +693,8 @@ dei moduli devono essere dello stesso studio.
   quadri RA e RB dagli immobili e dai possessi dell'Anagrafica, RC, RN
   (IRPEF con le detrazioni), RV (addizionali regionale e comunale), RX,
   acconti e versamenti in Deleghe, record B e file telematico "RPF26";
-- tabella dei prodotti con la percentuale di compensazione: oggi la
-  percentuale si sceglie sulla riga;
-- rettifica della detrazione nel passaggio tra regimi (art. 19-bis2, prospetto D
-  per il VF70) e autofatture degli acquirenti dagli agricoltori esonerati;
-- acquisti promiscui delle imprese agricole miste (art. 34, c. 5);
+- calcolo automatico di rimanenze e servizi non utilizzati nella rettifica per
+  il cambio di regime;
 - verifica dei file con il software di controllo dell'Agenzia delle
   Entrate;
 - modelli 2027: nuovo catalogo dalle specifiche quando pubblicate e

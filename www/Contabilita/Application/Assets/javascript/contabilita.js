@@ -53,6 +53,20 @@
         imposta.addEventListener('input', function () {
             imposta.dataset.calcolata = '0';
         });
+
+        // prodotto agricolo: propone la percentuale di compensazione, che resta modificabile
+        const prodotto = riga.querySelector('[data-prodotto]');
+        const compensazione = riga.querySelector('[data-percentuale-compensazione]');
+        if (prodotto && compensazione) {
+            prodotto.addEventListener('change', function () {
+                const scelta = Array.from(document.querySelectorAll('#prodottiAgricoli option')).find(function (opzione) {
+                    return opzione.value === prodotto.value;
+                });
+                if (scelta) {
+                    compensazione.value = scelta.dataset.percentuale;
+                }
+            });
+        }
     });
 
     const tabella = form.querySelector('[data-righe]');

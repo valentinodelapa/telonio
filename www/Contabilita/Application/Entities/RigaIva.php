@@ -42,6 +42,9 @@ class RigaIva extends BaseEntity
     protected ?float $aliquotaTeorica = null;
     protected ?float $percentualeCompensazione = null;
     protected bool $operazioneDiversa = false;
+
+    /** Coefficiente di ammortamento oltre il 25%: non ammortizzabile per la rettifica della detrazione (art. 19-bis2, c. 5) */
+    protected bool $coefficienteElevato = false;
     protected ?string $ripartizione = null;
     protected ?Conto $conto = null;
 

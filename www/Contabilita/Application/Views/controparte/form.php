@@ -43,6 +43,7 @@ require Layout::percorso('header');
         <div class="card-body row g-3">
             <?= Campo::spunta('cliente', $campi['cliente'], $formEntity, $errors, ['colonna' => 'col-md-2']) ?>
             <?= Campo::spunta('fornitore', $campi['fornitore'], $formEntity, $errors, ['colonna' => 'col-md-2']) ?>
+            <?= Campo::spunta('agricoltoreEsonerato', $campi['agricoltoreEsonerato'], $formEntity, $errors, ['colonna' => 'col-md-4']) ?>
             <?= Campo::spunta('pubblicaAmministrazione', $campi['pubblicaAmministrazione'], $formEntity, $errors, ['colonna' => 'col-md-8']) ?>
             <?= Campo::selezione('contoContropartita', $campi['contoContropartita'], $formEntity, $errors, $sceltaContropartite, ['colonna' => 'col-md-6', 'vuota' => $nessuno]) ?>
             <?= Campo::selezione('codiceIva', $campi['codiceIva'], $formEntity, $errors, $sceltaCodici, ['colonna' => 'col-md-6', 'vuota' => $nessuno]) ?>

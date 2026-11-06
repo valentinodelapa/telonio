@@ -16,6 +16,9 @@ require Layout::percorso('header');
     <h1 class="h4 mb-0 me-auto"><?= Html::e($pageTitle) ?></h1>
     <?php if ($modificabile): ?>
         <a href="/dichiarazione/update/dichiarazione/<?= Html::e($id) ?>" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil me-1"></i><?= Html::e($titoloFrontespizio) ?></a>
+        <?php if ($dichiarazione->modello->isTrimestrale() === false): ?>
+            <a href="/dichiarazione/rettifiche/dichiarazione/<?= Html::e($id) ?><?= ($modulo ?? 1) > 1 ? '/modulo/' . Html::e($modulo) : '' ?>" class="btn btn-sm btn-outline-primary"><?= Html::e($prospettoD) ?></a>
+        <?php endif; ?>
         <form method="post" action="/dichiarazione/proponi/dichiarazione/<?= Html::e($id) ?>"><?= $campoCsrf ?><button type="submit" class="btn btn-sm btn-outline-primary"><i class="bi bi-arrow-repeat me-1"></i><?= Html::e($azioni['riproponi']) ?></button></form>
     <?php endif; ?>
     <a href="/dichiarazione/stampa/dichiarazione/<?= Html::e($id) ?>" class="btn btn-sm btn-outline-secondary" target="_blank"><i class="bi bi-printer me-1"></i><?= Html::e($azioni['stampa']) ?></a>

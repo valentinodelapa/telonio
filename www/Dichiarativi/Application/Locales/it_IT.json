@@ -18,6 +18,12 @@
                 "dataPresentazione": "Data di presentazione",
                 "protocollo": "Protocollo telematico",
                 "rigo": "Rigo",
+                "importoRettifica": "Rettifica",
+                "notaRettifica": "Nota",
+                "annoAcquisto": "Anno",
+                "impostaDetratta": "Imposta",
+                "coefficienteElevato": "Coeff. oltre 25%",
+                "totaleProposto": "Totale proposto",
                 "descrizione": "Descrizione",
                 "valore": "Valore",
                 "ripristina": "Ripristina",
@@ -46,11 +52,14 @@
                 "importoAccertato": "Importo accertato",
                 "verificaAccertamenti": "Verificati gli atti notificati nei due anni precedenti",
                 "tipoGaranzia": "Tipo di garanzia",
+                "compensazioneGruppo": "Eccedenze compensate nella liquidazione di gruppo (art. 6 D.M. 13/12/1979)",
                 "garante": "Garante",
                 "estremiGaranzia": "Estremi",
                 "importoGarantito": "Importo garantito",
                 "dataRilascio": "Data di rilascio",
                 "dataRimborso": "Esecuzione del rimborso",
+                "dataRichiestaDocumenti": "Notifica della richiesta di documenti",
+                "dataConsegnaDocumenti": "Consegna dei documenti",
                 "dataScadenzaGaranzia": "Scadenza",
                 "dataSvincolo": "Data di svincolo"
             },
@@ -112,7 +121,13 @@
         },
         "dichiarazione": {
             "common": {
-                "titoloFrontespizio": "Frontespizio"
+                "titoloFrontespizio": "Frontespizio",
+                "prospettoD": "Prospetto D (VF70)"
+            },
+            "rettifiche": {
+                "aiutoProspettoD": "Importi con il segno: più per l'aumento della detrazione, meno per la diminuzione. Il totale va nel rigo VF70. Il cambio di regime (art. 19-bis2, c. 3, in vigore fino al 31/12/2026) va nel rigo 3: ai beni ammortizzabili proposti vanno aggiunti a mano rimanenze e servizi non utilizzati.",
+                "aiutoCoefficienteElevato": "Bene con coefficiente di ammortamento oltre il 25%: non è ammortizzabile ai fini della rettifica (art. 19-bis2, c. 5) ed esce dal totale. Il rigo 3 si aggiorna solo se è uguale alla proposta.",
+                "titoloPropostaRettifica": "Beni ammortizzabili rettificati per il cambio di regime"
             },
             "show": {
                 "presentataIl": "presentata il",
@@ -165,7 +180,9 @@
         },
         "garanziaRimborso": {
             "form": {
-                "aiutoScadenza": "Se vuota si propone con il rimborso: tre anni dall'esecuzione o, se inferiore, il periodo mancante alla decadenza dell'accertamento."
+                "aiutoScadenza": "Se vuota si propone con il rimborso: tre anni dall'esecuzione o, se inferiore, il periodo mancante alla decadenza dell'accertamento. Dopo aver indicato il ritardo nei documenti svuotala per ricalcolarla.",
+                "aiutoDocumenti": "Solo se la consegna supera i quindici giorni dalla notifica: la decadenza è differita dal sedicesimo giorno alla consegna (art. 57, c. 3).",
+                "aiutoDataRimborso": "Esecuzione del rimborso; per le compensazioni di gruppo la presentazione della dichiarazione."
             }
         }
     }

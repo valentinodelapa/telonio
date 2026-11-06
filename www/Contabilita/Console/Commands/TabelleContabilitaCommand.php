@@ -34,6 +34,7 @@ dalle sorgenti del modulo (Contabilita/Database/sorgenti):
   - piani-conti.csv   piani dei conti modello della suite
   - conti.csv         conti dei piani, con funzione e voce CEE
   - codici-iva.csv    codici IVA della suite con la norma
+  - prodotti-agricoli.csv  prodotti con la percentuale di compensazione
 
 I piani delle aziende e i codici e i modelli degli studi non sono toccati.
 

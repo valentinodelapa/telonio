@@ -35,6 +35,7 @@ class Controparte extends ReferencedEntity
     protected bool $cliente = false;
     protected bool $fornitore = false;
     protected bool $pubblicaAmministrazione = false;
+    protected bool $agricoltoreEsonerato = false;
     protected ?Conto $contoCliente = null;
     protected ?Conto $contoFornitore = null;
     protected ?Conto $contoContropartita = null;

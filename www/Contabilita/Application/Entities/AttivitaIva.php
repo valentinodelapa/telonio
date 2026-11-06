@@ -28,6 +28,9 @@ class AttivitaIva extends ReferencedEntity
     protected ?CodiceAteco $codiceAteco = null;
     protected ?PeriodicitaIva $periodicita = null;
     protected ?RegimeDetrazioneIva $regimeDetrazioneIva = null;
+    protected ?RegimeDetrazioneIva $opzioneOrdinaria = null;
+    protected ?int $opzioneDal = null;
+    protected ?int $opzioneAl = null;
     protected int $dalAnno;
     protected ?int $alAnno = null;
 
@@ -41,6 +44,11 @@ class AttivitaIva extends ReferencedEntity
     protected function setPropertyDefaultValue(): void
     {
 
+    }
+
+    public function isOpzioneAttivaNel(int $anno): bool
+    {
+        return ($this->opzioneOrdinaria !== null) && ($this->opzioneDal <= $anno) && (($this->opzioneAl === null) || ($this->opzioneAl >= $anno));
     }
 
     public function isAttivaNel(int $anno): bool

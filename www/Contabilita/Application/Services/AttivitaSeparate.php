@@ -67,6 +67,18 @@ class AttivitaSeparate
     /**
      * L'azienda o una sua attività applica le percentuali di compensazione.
      */
+    /**
+     * Impresa agricola che applica l'IVA nei modi ordinari per opzione: può
+     * avere connesse occasionali (art. 34-bis, rigo VF62).
+     */
+    public function hasOpzioneAgricola(Soggetto $soggetto, int $anno): bool
+    {
+        if (count((new RegimeIva($this->dataMapper))->getDatiFiscali($soggetto, $anno)?->getOpzioniOrdinarie() ?? []) > 0) {
+            return true;
+        }
+        return count(array_filter($this->getAttivita($soggetto, $anno), fn(AttivitaIva $attivita) => $attivita->isOpzioneAttivaNel($anno))) > 0;
+    }
+
     public function hasCompensazione(Soggetto $soggetto, int $anno): bool
     {
         foreach ([null, ...array_values($this->getAttivita($soggetto, $anno))] as $attivita) {

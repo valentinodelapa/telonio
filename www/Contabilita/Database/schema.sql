@@ -114,6 +114,9 @@ CREATE TABLE IF NOT EXISTS `attivita_iva` (
   `codice_ateco_id` INT UNSIGNED NULL COMMENT 'Codice attività del rigo VA2 del modulo',
   `periodicita` CHAR(1) NULL COMMENT 'M mensile, T trimestrale; NULL = periodicità dell''azienda',
   `regime_detrazione_iva` CHAR(3) NULL COMMENT 'Regime speciale agricolo dell''attività (rigo VF30 del suo modulo)',
+  `opzione_ordinaria` CHAR(3) NULL COMMENT 'Regime agricolo a cui l''attività ha rinunciato per i modi ordinari (quadro VO)',
+  `opzione_dal` SMALLINT UNSIGNED NULL COMMENT 'Primo anno dell''opzione',
+  `opzione_al` SMALLINT UNSIGNED NULL COMMENT 'Ultimo anno dell''opzione, l''anno dopo è quello della revoca',
   `dal_anno` SMALLINT UNSIGNED NOT NULL,
   `al_anno` SMALLINT UNSIGNED NULL,
   PRIMARY KEY (`id`),
@@ -216,6 +219,7 @@ CREATE TABLE IF NOT EXISTS `controparte` (
   `codice_destinatario` VARCHAR(7) NULL,
   `cliente` TINYINT(1) NOT NULL DEFAULT 0,
   `fornitore` TINYINT(1) NOT NULL DEFAULT 0,
+  `agricoltore_esonerato` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Produttore agricolo esonerato (art. 34, c. 6): l''acquirente emette l''autofattura',
   `pubblica_amministrazione` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Scissione dei pagamenti proposta sulle vendite (art. 17-ter D.P.R. 633/1972)',
   `conto_cliente_id` INT UNSIGNED NULL,
   `conto_fornitore_id` INT UNSIGNED NULL,
@@ -316,6 +320,7 @@ CREATE TABLE IF NOT EXISTS `riga_iva` (
   `qualifica` CHAR(1) NULL COMMENT 'Operazioni attive: O oro, E esente occasionale, Q 27-quinquies, A bene ammortizzabile, P esente equiparata, F fuori campo senza detrazione, S prestazione verso soggetti non stabiliti dell''art. 30, c. 2, lett. d), C conferimento agricolo, K connessa occasionale (VF34, VE40, TD5, VE sezione 1, VF62)',
   `percentuale_compensazione` DECIMAL(4,2) NULL COMMENT 'Vendite in regime agricolo: percentuale di compensazione dei prodotti della Tabella A, parte I',
   `operazione_diversa` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Acquisti in regime agricolo destinati alle operazioni diverse (art. 34, c. 5)',
+  `coefficiente_elevato` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Coefficiente di ammortamento oltre il 25%: non ammortizzabile per la rettifica della detrazione (art. 19-bis2, c. 5)',
   `aliquota_teorica` DECIMAL(5,2) NULL COMMENT 'Acquisti con dichiarazione d''intento: aliquota dell''IVA non assolta (VF35)',
   `ripartizione` VARCHAR(255) NULL COMMENT 'Acquisti promiscui tra attività separate: numero attività e percentuale (es. 1:60;2:40)',
   PRIMARY KEY (`id`),
@@ -645,3 +650,18 @@ CREATE TABLE IF NOT EXISTS `credito_trimestrale_iva` (
   CONSTRAINT `fk_credito_trimestrale_iva_gruppo` FOREIGN KEY (`gruppo_iva_id`) REFERENCES `gruppo_iva` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Credito del trimestre chiesto con il modello IVA TR, escluso dal riporto delle liquidazioni';
+
+-- -----------------------------------------------------
+-- Prodotti agricoli e ittici con la percentuale di compensazione (art. 34,
+-- tabella A, parte I): dati della suite, da sorgenti/prodotti-agricoli.csv
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `prodotto_agricolo` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `voce` VARCHAR(30) NULL COMMENT 'Voce doganale',
+  `descrizione` VARCHAR(255) NOT NULL,
+  `percentuale` DECIMAL(5,2) NOT NULL,
+  `dal_anno` SMALLINT UNSIGNED NULL,
+  `al_anno` SMALLINT UNSIGNED NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Prodotti agricoli con la percentuale di compensazione';

@@ -122,9 +122,16 @@
                 "creditiTrasferiti": "Crediti trasferiti",
                 "trimestre": "trimestre",
                 "creditoTrimestrale": "di cui chiesto con il modello IVA TR (non riportato)",
+                "prodottoAgricolo": "Prodotto (propone la percentuale)",
+                "agricoltoreEsonerato": "Agricoltore esonerato (autofattura, art. 34, c. 6)",
+                "autofattura": "Autofattura XML",
                 "percentualeCompensazione": "% comp.",
                 "operazioneDiversa": "Destinazione",
                 "regimeDetrazioneAttivita": "Regime speciale agricolo dell'attività",
+                "opzioneOrdinaria": "IVA nei modi ordinari per opzione",
+                "nessunaOpzione": "Nessuna opzione",
+                "opzioneDal": "Opzione dal",
+                "opzioneAl": "Opzione fino al",
                 "regimeDatiFiscali": "Come nei dati fiscali"
             },
             "azioni": {

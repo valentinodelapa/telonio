@@ -37,7 +37,7 @@ class ControparteForm extends BaseForm
                 $this->addRequest($campo, strtoupper(preg_replace('/\s+/', '', $this->request->input[$campo])));
             }
         }
-        foreach (['cliente', 'fornitore', 'pubblicaAmministrazione'] as $campo) {
+        foreach (['cliente', 'fornitore', 'pubblicaAmministrazione', 'agricoltoreEsonerato'] as $campo) {
             $this->addRequest($campo, isset($this->request->input[$campo]) ? '1' : '0');
         }
     }
@@ -59,6 +59,7 @@ class ControparteForm extends BaseForm
                 ->addFilterFieldMode('codiceDestinatario', FilterType::isMaxLimitString, [7], true)
                 ->addFilterFieldMode('cliente', FilterType::isBoolean)
                 ->addFilterFieldMode('fornitore', FilterType::isBoolean)
+                ->addFilterFieldMode('agricoltoreEsonerato', FilterType::isBoolean)
                 ->addFilterFieldMode('pubblicaAmministrazione', FilterType::isBoolean)
                 ->addFilterFieldMode('contoContropartita', FilterType::isEntity, [], true)
                 ->addFilterFieldMode('codiceIva', FilterType::isEntity, [], true)

@@ -42,9 +42,40 @@ class GaranziaRimborsoTest extends DichiarativiTestCase
         $this->assertSame('2031-12-31', $this->creaGaranzia(1, 2025, '2029-06-30')->getScadenzaProposta()->format('Y-m-d'));
     }
 
+    public function testDifferimentoDellaDecadenza(): void
+    {
+        $garanzia = $this->creaGaranzia(1, 2025, '2029-06-30');
+        $garanzia->dataRichiestaDocumenti = new SismaDate('2026-05-04');
+        // entro i quindici giorni la decadenza non si sposta
+        $garanzia->dataConsegnaDocumenti = new SismaDate('2026-05-19');
+        $this->assertSame(0, $garanzia->getGiorniDifferimento());
+        // consegna al sedicesimo giorno: un giorno
+        $garanzia->dataConsegnaDocumenti = new SismaDate('2026-05-20');
+        $this->assertSame(1, $garanzia->getGiorniDifferimento());
+        $garanzia->dataConsegnaDocumenti = new SismaDate('2026-06-01');
+        $this->assertSame(13, $garanzia->getGiorniDifferimento());
+        $this->assertSame('2032-01-13', $garanzia->getScadenzaProposta()->format('Y-m-d'));
+    }
+
+    public function testDifferimentoNonSuperaITreAnni(): void
+    {
+        $garanzia = $this->creaGaranzia(1, 2025, '2026-07-15');
+        $garanzia->dataRichiestaDocumenti = new SismaDate('2026-05-04');
+        $garanzia->dataConsegnaDocumenti = new SismaDate('2026-06-01');
+        $this->assertSame('2029-07-15', $garanzia->getScadenzaProposta()->format('Y-m-d'));
+    }
+
     public function testScadenzaNonNotaSenzaRimborso(): void
     {
         $this->assertNull($this->creaGaranzia(1, 2025, null)->getScadenzaProposta());
+    }
+
+    public function testCompensazioneDiGruppo(): void
+    {
+        // la durata decorre dalla presentazione della dichiarazione, indicata nella stessa data
+        $garanzia = $this->creaGaranzia(1, 2025, '2026-09-30');
+        $garanzia->compensazioneGruppo = true;
+        $this->assertSame('2029-09-30', $garanzia->getScadenzaProposta()->format('Y-m-d'));
     }
 
     public function testTipiDiGaranzia(): void

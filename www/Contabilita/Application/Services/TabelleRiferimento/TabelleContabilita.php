@@ -5,6 +5,7 @@ namespace Contabilita\Application\Services\TabelleRiferimento;
 use Anagrafica\Application\Services\TabelleRiferimento\GeneratoreSql;
 use Contabilita\Application\Entities\CodiceIva;
 use Contabilita\Application\Entities\PianoConti;
+use Contabilita\Application\Entities\RigaIva;
 use Contabilita\Application\Enumerations\FunzioneConto;
 use Contabilita\Application\Enumerations\LivelloConto;
 use Contabilita\Application\Enumerations\NaturaConto;
@@ -35,6 +36,7 @@ class TabelleContabilita
     public const CARTELLA = __DIR__ . '/../../../Database/sorgenti/';
     public const COLONNE_PIANI = ['id', 'denominazione', 'descrizione'];
     public const COLONNE_CONTI = ['piano_conti_id', 'id', 'codice', 'descrizione', 'natura', 'funzione', 'voce_cee'];
+    public const COLONNE_PRODOTTI = ['id', 'voce', 'descrizione', 'percentuale', 'aliquota', 'dal_anno', 'al_anno'];
     public const COLONNE_CODICI_IVA = ['id', 'codice', 'descrizione', 'aliquota', 'natura', 'detraibilita', 'inversione_contabile', 'ventilazione', 'norma'];
     public const PRIMO_ID_CONTO_STUDIO = 100000;
     private const DATA_CREAZIONE = '2026-10-31 00:00:00';
@@ -45,12 +47,12 @@ class TabelleContabilita
     }
 
     /**
-     * @return array{piani: array, conti: array, codiciIva: array} righe pronte per le tabelle
+     * @return array{piani: array, conti: array, codiciIva: array, prodotti: array} righe pronte per le tabelle
      */
     public function leggi(): array
     {
         $piani = $this->leggiPiani();
-        return ['piani' => array_values($piani), 'conti' => $this->leggiConti($piani), 'codiciIva' => $this->leggiCodiciIva()];
+        return ['piani' => array_values($piani), 'conti' => $this->leggiConti($piani), 'codiciIva' => $this->leggiCodiciIva(), 'prodotti' => $this->leggiProdotti()];
     }
 
     /**
@@ -66,6 +68,8 @@ class TabelleContabilita
         yield 'DELETE FROM `conto` WHERE `piano_conti_id` IN (' . $idPiani . ') AND `id` NOT IN (' . implode(', ', array_column($dati['conti'], 'id')) . ');';
         yield from $generatore->generaUpsert('conto', ['id', 'piano_conti_id', 'parent_conto_id', 'codice', 'descrizione', 'livello', 'natura', 'funzione', 'voce_cee', 'attivo'], $dati['conti']);
         yield from $generatore->generaUpsert('codice_iva', ['id', 'studio_id', 'codice', 'descrizione', 'aliquota', 'natura', 'detraibilita', 'inversione_contabile', 'ventilazione', 'norma', 'attivo'], $dati['codiciIva']);
+        yield 'DELETE FROM `prodotto_agricolo` WHERE `id` NOT IN (' . implode(', ', array_column($dati['prodotti'], 'id')) . ');';
+        yield from $generatore->generaUpsert('prodotto_agricolo', ['id', 'voce', 'descrizione', 'percentuale', 'dal_anno', 'al_anno'], $dati['prodotti']);
         yield 'UPDATE `codice_iva` SET `attivo` = 0 WHERE `studio_id` IS NULL AND `id` NOT IN (' . implode(', ', array_column($dati['codiciIva'], 'id')) . ');';
     }
 
@@ -135,6 +139,28 @@ class TabelleContabilita
             }
         }
         return array_values($conti);
+    }
+
+    /**
+     * Prodotti agricoli: la percentuale deve essere tra quelle del modello.
+     */
+    private function leggiProdotti(): array
+    {
+        $prodotti = [];
+        foreach ($this->leggiCsv('prodotti-agricoli.csv', self::COLONNE_PRODOTTI) as $numero => $riga) {
+            $errore = fn(string $testo) => new \UnexpectedValueException('prodotti-agricoli.csv, riga ' . $numero . ': ' . $testo);
+            $id = self::intero($riga['id']);
+            if (($id === null) || ($id < 1) || isset($prodotti[$id]) || ($riga['descrizione'] === null)) {
+                throw $errore('id mancante o duplicato, o descrizione mancante');
+            }
+            $percentuale = self::percentuale($riga['percentuale']);
+            if (($percentuale === null) || (in_array(round($percentuale, 2), RigaIva::PERCENTUALI_COMPENSAZIONE, true) === false)) {
+                throw $errore('percentuale di compensazione non prevista dal modello');
+            }
+            $prodotti[$id] = ['id' => $id, 'voce' => $riga['voce'], 'descrizione' => $riga['descrizione'], 'percentuale' => number_format($percentuale, 2, '.', ''),
+                'dal_anno' => self::intero($riga['dal_anno']), 'al_anno' => self::intero($riga['al_anno'])];
+        }
+        return array_values($prodotti);
     }
 
     private function leggiCodiciIva(): array

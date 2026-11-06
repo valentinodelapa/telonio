@@ -77,11 +77,15 @@ class CalcoloLiquidazioneIva
                 'imponibile' => 0.0, 'imposta' => 0.0, 'esigibile' => 0.0, 'detraibile' => 0.0];
             $voce['imponibile'] += $riga->imponibile * $quota;
             $voce['imposta'] += $riga->imposta * $quota;
+            $connessa = $riga->qualifica === QualificaOperazione::connessaOccasionale;
             if ($regime !== null) {
                 $voce['detraibile'] += self::getDetrazioneRegime($riga, $regime, $risultato) * $quota;
+            } elseif ($connessa && ($tipo !== TipoRegistroIva::acquisti)) {
+                // connesse occasionali (art. 34-bis) anche fuori dal regime speciale, ad esempio con l'opzione per i modi ordinari
+                $voce['detraibile'] += round($riga->imposta * 0.5, 2) * $quota;
             }
             if ($tipo === TipoRegistroIva::acquisti) {
-                if ($regime === null) {
+                if (($regime === null) && ($connessa === false)) {
                     $voce['detraibile'] += $riga->getImpostaDetraibile() * $quota;
                 }
                 if ($riga->codiceIva->inversioneContabile) {

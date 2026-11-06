@@ -40,6 +40,11 @@ require Layout::percorso('header');
 <?php endforeach; ?>
 <?php if ($messaggioProposta !== null): ?><div class="alert alert-success small py-2"><?= Html::e($messaggioProposta) ?></div><?php endif; ?>
 
+<?php if (count($prodottiAgricoli) > 0): ?>
+    <datalist id="prodottiAgricoli">
+        <?php foreach ($prodottiAgricoli as $prodotto): ?><option value="<?= Html::e($prodotto->descrizione) ?>" data-percentuale="<?= Html::e(str_replace('.', ',', rtrim(rtrim(number_format($prodotto->percentuale, 2, '.', ''), '0'), '.'))) ?>"></option><?php endforeach; ?>
+    </datalist>
+<?php endif; ?>
 <form method="post" novalidate id="form-registrazione">
     <?php require __DIR__ . '/../commonParts/campiNascosti.php'; ?>
     <div class="card shadow-sm mb-3">
@@ -88,7 +93,7 @@ require Layout::percorso('header');
                                         <?php endforeach; ?>
                                     </select>
                                 </td>
-                                <td><input type="text" class="form-control form-control-sm text-end" name="<?= Html::e($prefisso) ?>[imponibile]" value="<?= Html::e($riga['imponibile'] ?? '') ?>" inputmode="decimal" data-imponibile></td>
+                                <td><input type="hidden" name="<?= Html::e($prefisso) ?>[coefficienteElevato]" value="<?= Html::e($riga['coefficienteElevato'] ?? '') ?>"><input type="text" class="form-control form-control-sm text-end" name="<?= Html::e($prefisso) ?>[imponibile]" value="<?= Html::e($riga['imponibile'] ?? '') ?>" inputmode="decimal" data-imponibile></td>
                                 <td><input type="text" class="form-control form-control-sm text-end" name="<?= Html::e($prefisso) ?>[imposta]" value="<?= Html::e($riga['imposta'] ?? '') ?>" inputmode="decimal" data-imposta></td>
                                 <?php if ($acquisti): ?>
                                     <td style="width: 6rem"><input type="text" class="form-control form-control-sm text-end" name="<?= Html::e($prefisso) ?>[detraibilita]" value="<?= Html::e($riga['detraibilita'] ?? '') ?>" inputmode="decimal" placeholder="100" data-detraibilita></td>
@@ -99,7 +104,7 @@ require Layout::percorso('header');
                                     <td style="width: 5rem"><input type="text" class="form-control form-control-sm text-end" name="<?= Html::e($prefisso) ?>[aliquotaTeorica]" value="<?= Html::e($riga['aliquotaTeorica'] ?? '') ?>" inputmode="decimal" placeholder="22" title="<?= Html::e($aiutoAliquotaTeorica) ?>"></td>
                                 <?php else: ?>
                                     <?php if ($regimeAgricolo): ?>
-                                        <td style="width: 6rem"><select class="form-select form-select-sm" name="<?= Html::e($prefisso) ?>[percentualeCompensazione]" aria-label="<?= Html::e($campi['percentualeCompensazione']) ?>" title="<?= Html::e($aiutoCompensazione) ?>">
+                                        <td style="width: 9rem"><input type="text" class="form-control form-control-sm mb-1" list="prodottiAgricoli" placeholder="<?= Html::e($campi['prodottoAgricolo']) ?>" aria-label="<?= Html::e($campi['prodottoAgricolo']) ?>" data-prodotto><select class="form-select form-select-sm" data-percentuale-compensazione name="<?= Html::e($prefisso) ?>[percentualeCompensazione]" aria-label="<?= Html::e($campi['percentualeCompensazione']) ?>" title="<?= Html::e($aiutoCompensazione) ?>">
                                             <option value="">-</option>
                                             <?php foreach ($percentualiCompensazione as $percentuale): ?><?php $testo = str_replace('.', ',', (string) $percentuale); ?><option value="<?= Html::e($testo) ?>" <?= str_replace('.', ',', rtrim(rtrim(str_replace(',', '.', (string) ($riga['percentualeCompensazione'] ?? '')), '0'), '.')) === $testo ? 'selected' : '' ?>><?= Html::e($testo) ?>%</option><?php endforeach; ?>
                                         </select></td>
@@ -109,11 +114,11 @@ require Layout::percorso('header');
                                         <?php foreach ($qualifiche as $qualifica): ?><option value="<?= Html::e($qualifica->value) ?>" title="<?= Html::e($qualifica->getLabel()) ?>" <?= ($riga['qualifica'] ?? '') === $qualifica->value ? 'selected' : '' ?>><?= Html::e($qualifica->getSigla()) ?></option><?php endforeach; ?>
                                     </select></td>
                                 <?php endif; ?>
-                                <?php if ($acquisti && $regimeAgricolo): ?>
+                                <?php if ($acquisti && ($regimeAgricolo || $opzioneAgricola)): ?>
                                     <?php $destinazione = $riga['destinazioneAgricola'] ?? (($riga['operazioneDiversa'] ?? '') === '1' ? 'D' : (($riga['qualifica'] ?? '') === 'K' ? 'K' : '')); ?>
                                     <td style="width: 7rem"><select class="form-select form-select-sm" name="<?= Html::e($prefisso) ?>[destinazioneAgricola]" aria-label="<?= Html::e($campi['operazioneDiversa']) ?>" title="<?= Html::e($aiutoOperazioneDiversa) ?>">
                                         <option value="">-</option>
-                                        <option value="D" <?= $destinazione === 'D' ? 'selected' : '' ?>><?= Html::e($destinazioneDiverse) ?></option>
+                                        <?php if ($regimeAgricolo): ?><option value="D" <?= $destinazione === 'D' ? 'selected' : '' ?>><?= Html::e($destinazioneDiverse) ?></option><?php endif; ?>
                                         <option value="K" <?= $destinazione === 'K' ? 'selected' : '' ?>><?= Html::e($destinazioneConnesse) ?></option>
                                     </select></td>
                                 <?php endif; ?>

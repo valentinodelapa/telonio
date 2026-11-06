@@ -114,6 +114,7 @@ CREATE TABLE IF NOT EXISTS `dati_fiscali` (
   `trasparenza_fiscale` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Società di capitali: opzione per la trasparenza (artt. 115-116 TUIR)',
   `ventilazione_corrispettivi` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Ventilazione dei corrispettivi (art. 24, c. 3, D.P.R. 633/1972, D.M. 24/2/1973)',
   `regime_detrazione_iva` CHAR(3) NULL COMMENT 'Regime speciale agricolo: AGR art. 34, ESO esonerato, CON art. 34-bis, TUR agriturismo, ENO enoturismo, OLE oleoturismo, ASS associazioni',
+  `rinuncia_esonero` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Rinuncia all''esonero dell''art. 34, c. 6 (rigo VO3, caselle 1 e 2)',
   `opzioni_ordinarie` VARCHAR(23) NULL COMMENT 'Regimi agricoli a cui si è rinunciato per i modi ordinari: codici separati da punto e virgola (AGR, CON, TUR, ENO, OLE, ASS)',
   `data_inizio_attivita` DATE NULL COMMENT 'Inizio dell''attività (rischi dei rimborsi IVA, art. 38-bis, c. 4)',
   `non_residente_iva` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Non residente identificato direttamente (art. 35-ter) o con rappresentante fiscale (art. 17, c. 3)',
