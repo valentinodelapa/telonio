@@ -30,6 +30,7 @@
                 "storicoArtistico": "Fabbricato di interesse storico o artistico (base al 50%)",
                 "inagibile": "Inagibile o inabitabile e di fatto non utilizzato (base al 50%)",
                 "ruraleStrumentale": "Fabbricato rurale ad uso strumentale (annotazione di ruralità)",
+                "alloggioIacp": "Alloggio regolarmente assegnato dall'IACP o ente di edilizia residenziale pubblica (detrazione, comma 749)",
                 "beneMerce": "Fabbricato merce dell'impresa costruttrice, non locato",
                 "areaFabbricabile": "Area fabbricabile",
                 "valoreVenale": "Valore venale al 1° gennaio (€)",

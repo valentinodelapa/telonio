@@ -2,8 +2,6 @@
 
 namespace Imu\Application\Services;
 
-use Anagrafica\Application\Enumerations\CategoriaCatastale;
-use Anagrafica\Application\Enumerations\UtilizzoImmobile;
 use Telonio\Application\Entities\Studio;
 use Imu\Application\Entities\AliquotaApplicata;
 use Imu\Application\Entities\AliquotaDifferenziata;
@@ -32,7 +30,8 @@ use SismaFramework\Orm\HelperClasses\DataMapper;
  * L'aliquota del singolo immobile è quella scelta dallo studio per l'anno
  * (AliquotaApplicata), quella differenziata le cui condizioni risultano
  * tutte verificate dai dati (CompatibilitaDifferenziate) o quella della
- * fattispecie di base.
+ * fattispecie di base. Le differenziate compatibili che non si possono
+ * applicare in automatico sono sempre suggerite negli avvisi.
  */
 class AliquoteComune
 {
@@ -125,7 +124,7 @@ class AliquoteComune
      *         differenziate compatibili con condizioni da verificare
      */
     public function getAliquota(string $codiceCatastale, int $anno, FattispecieImu $fattispecie, ?AliquotaApplicata $scelta, ?AliquotaApplicata $sceltaAltroAnno = null,
-            ?CategoriaCatastale $categoria = null, ?UtilizzoImmobile $utilizzo = null, ?string $exComune = null, bool $ente = true, bool $inagibile = true): array
+            ContestoAliquota $contesto = new ContestoAliquota(), ?string $exComune = null): array
     {
         ['prospetto' => $prospetto, 'origine' => $origine] = $this->getProspetto($codiceCatastale, $anno, $exComune);
         if ($scelta !== null) {
@@ -147,9 +146,9 @@ class AliquoteComune
                 return ['aliquota' => $sceltaAltroAnno->aliquota, 'origine' => 'aliquota indicata dallo studio per il ' . $sceltaAltroAnno->anno, 'differenziata' => null, 'proposta' => true, 'suggerite' => []];
             }
         }
-        [$riconosciuta, $suggerite] = $this->riconosci($prospetto, $fattispecie, $categoria, $utilizzo, $ente, $inagibile);
+        [$riconosciuta, $suggerite] = $this->riconosci($prospetto, $fattispecie, $contesto);
         if ($riconosciuta !== null) {
-            return ['aliquota' => $riconosciuta->aliquota, 'origine' => 'aliquota differenziata riconosciuta da categoria e utilizzo nel ' . $prospetto->getOrigine(),
+            return ['aliquota' => $riconosciuta->aliquota, 'origine' => 'aliquota differenziata riconosciuta dai dati dell\'immobile (' . $prospetto->getOrigine() . ')',
                 'differenziata' => $riconosciuta, 'proposta' => true, 'suggerite' => $suggerite];
         }
         $aliquota = $prospetto?->getAliquota($fattispecie);
@@ -165,21 +164,27 @@ class AliquoteComune
      *
      * @return array{0: ?AliquotaDifferenziata, 1: string[]}
      */
-    private function riconosci(?ProspettoAliquote $prospetto, FattispecieImu $fattispecie, ?CategoriaCatastale $categoria, ?UtilizzoImmobile $utilizzo, bool $ente, bool $inagibile): array
+    private function riconosci(?ProspettoAliquote $prospetto, FattispecieImu $fattispecie, ContestoAliquota $contesto): array
     {
         if ($prospetto === null) {
             return [null, []];
         }
         $verificate = $suggerite = [];
         foreach ($this->getDifferenziate($prospetto) as $differenziata) {
-            $esito = CompatibilitaDifferenziate::verifica($differenziata, $fattispecie, $categoria, $utilizzo, $ente, $inagibile);
+            $esito = CompatibilitaDifferenziate::verifica($differenziata, $fattispecie, $contesto);
             if ($esito['verificata']) {
                 $verificate[] = $differenziata;
             } elseif ($esito['compatibile'] && (count($esito['daVerificare']) > 0)) {
                 $suggerite[] = number_format($differenziata->aliquota, 2, ',', '') . '% se ricorrono: ' . implode(', ', $esito['daVerificare']);
             }
         }
-        return [count($verificate) === 1 ? $verificate[0] : null, $suggerite];
+        if (count($verificate) === 1) {
+            return [$verificate[0], $suggerite];
+        }
+        foreach ($verificate as $differenziata) {
+            $suggerite[] = number_format($differenziata->aliquota, 2, ',', '') . '% (più aliquote con le condizioni verificate: scegliere quella applicabile)';
+        }
+        return [null, $suggerite];
     }
 
     /**

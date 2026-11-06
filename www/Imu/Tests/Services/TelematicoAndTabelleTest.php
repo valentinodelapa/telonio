@@ -318,6 +318,35 @@ TXT;
         $this->assertSame(['F205'], $esitoImp['non_pubblicati']);
         $this->assertSame([], $esitoImp['errori']);
 
+        // l'elenco comprende anche le delibere IMIS: non sono prospetti IMU e non si leggono (comma 739)
+        $elencoTrento = ['F045' => [['provincia' => 'TN', 'exComune' => null, 'file' => 'delibera.pdf', 'note' => null]]];
+        $fonteTrento = new class($elencoTrento) extends ProspettiMef {
+            public function __construct(private array $elencoFisso)
+            {
+                parent::__construct(null);
+            }
+
+            #[\Override]
+            public function getElenco(int $anno): array
+            {
+                return $this->elencoFisso;
+            }
+
+            #[\Override]
+            public function getTesto(string $codiceCatastale, int $anno, string $file): array
+            {
+                throw new \LogicException('La delibera IMIS non va letta');
+            }
+        };
+        $messaggiTrento = [];
+        $esitoTrento = (new ImportazioneProspetti($this->dataMapper, $fonteTrento, $lettore))->importa(2026, ['F045'], function (string $m) use (&$messaggiTrento): void {
+            $messaggiTrento[] = $m;
+        });
+        $this->assertSame(0, $esitoTrento['importati']);
+        $this->assertSame([], $esitoTrento['errori']);
+        $this->assertSame(['F045'], $esitoTrento['non_pubblicati']);
+        $this->assertStringContainsString('IMIS', $messaggiTrento[0]);
+
         // CircolareTerreniMontani da copia locale (5000 voci in 80 province)
         $righeCircolare = [];
         for ($p = 1; $p <= 80; $p++) {

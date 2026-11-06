@@ -76,6 +76,7 @@ CREATE TABLE IF NOT EXISTS `caratteristiche_imu` (
   `inagibile` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Riduzione del 50% della base (comma 747, lett. b)',
   `rurale_strumentale` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Annotazione di ruralità (D/10 lo è per categoria)',
   `bene_merce` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Fabbricato costruito e destinato alla vendita dall''impresa costruttrice',
+  `alloggio_iacp` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Alloggio regolarmente assegnato dall''IACP o ente equivalente: detrazione (comma 749)',
   `area_fabbricabile` TINYINT(1) NOT NULL DEFAULT 0,
   `valore_venale` DECIMAL(14,2) NULL COMMENT 'Area fabbricabile: valore venale in comune commercio al 1° gennaio',
   `valore_contabile` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Fabbricato del gruppo D senza rendita, posseduto da impresa: valore dalle scritture contabili (comma 746)',

@@ -33,6 +33,7 @@ class CaratteristicheImu extends BaseEntity implements Storicizzabile
     protected bool $storicoArtistico = false;
     protected bool $inagibile = false;
     protected bool $ruraleStrumentale = false;
+    protected bool $alloggioIacp = false;
     protected bool $beneMerce = false;
     protected bool $areaFabbricabile = false;
     protected ?float $valoreVenale = null;
@@ -64,6 +65,7 @@ class CaratteristicheImu extends BaseEntity implements Storicizzabile
             'Storico/artistico' => $this->storicoArtistico,
             'Inagibile' => $this->inagibile,
             'Rurale strumentale' => $this->ruraleStrumentale,
+            'Alloggio IACP' => $this->alloggioIacp,
             'Bene merce' => $this->beneMerce,
             'Area fabbricabile' => $this->areaFabbricabile,
             'Valore contabile' => $this->valoreContabile,

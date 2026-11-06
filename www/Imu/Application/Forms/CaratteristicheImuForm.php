@@ -36,6 +36,7 @@ class CaratteristicheImuForm extends BaseForm
                 ->addFilterFieldMode('storicoArtistico', FilterType::isBoolean)
                 ->addFilterFieldMode('inagibile', FilterType::isBoolean)
                 ->addFilterFieldMode('ruraleStrumentale', FilterType::isBoolean)
+                ->addFilterFieldMode('alloggioIacp', FilterType::isBoolean)
                 ->addFilterFieldMode('beneMerce', FilterType::isBoolean)
                 ->addFilterFieldMode('areaFabbricabile', FilterType::isBoolean)
                 ->addFilterFieldMode('valoreVenale', FilterType::isNumeric, [], true)

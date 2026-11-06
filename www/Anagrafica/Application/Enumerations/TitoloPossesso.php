@@ -17,6 +17,7 @@ enum TitoloPossesso: string
     case superficie = 'SUP';
     case enfiteusi = 'ENF';
     case locazioneFinanziaria = 'LEA';
+    case concessioneDemaniale = 'CON';
 
     public function getLabel(): string
     {
@@ -29,6 +30,7 @@ enum TitoloPossesso: string
             self::superficie => 'Diritto di superficie',
             self::enfiteusi => 'Enfiteusi',
             self::locazioneFinanziaria => 'Locazione finanziaria (leasing)',
+            self::concessioneDemaniale => 'Concessione di area demaniale',
         };
     }
 

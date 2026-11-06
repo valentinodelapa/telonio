@@ -29,6 +29,7 @@ require Layout::percorso('header');
                 <?= Campo::spunta('storicoArtistico', $campi['storicoArtistico'], $formEntity, $errors, ['colonna' => 'col-md-6']) ?>
                 <?= Campo::spunta('inagibile', $campi['inagibile'], $formEntity, $errors, ['colonna' => 'col-md-6']) ?>
                 <?= Campo::spunta('ruraleStrumentale', $campi['ruraleStrumentale'], $formEntity, $errors, ['colonna' => 'col-md-6']) ?>
+                <?= Campo::spunta('alloggioIacp', $campi['alloggioIacp'], $formEntity, $errors, ['colonna' => 'col-md-6']) ?>
                 <?= Campo::spunta('beneMerce', $campi['beneMerce'], $formEntity, $errors, ['colonna' => 'col-md-6']) ?>
             <?php endif; ?>
             <?= Campo::spunta('areaFabbricabile', $campi['areaFabbricabile'], $formEntity, $errors, ['colonna' => 'col-md-6']) ?>

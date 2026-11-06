@@ -22,6 +22,7 @@ use Imu\Application\Enumerations\AssimilazioneAbitazione;
 use Imu\Application\Enumerations\CaratteristicaDichiarata;
 use Imu\Application\Enumerations\CodiceCarica;
 use Imu\Application\Enumerations\EsenzioneImu;
+use Imu\Application\Enumerations\ImpostaTerritoriale;
 use Imu\Application\Enumerations\ModelloDichiarazione;
 use Imu\Application\Enumerations\StatoDichiarazione;
 use Imu\Application\Models\AccontoVersatoImuModel;
@@ -77,6 +78,9 @@ class PropostaDichiarazione
         $enc = CalcoloImposta::isEnteNonCommerciale($soggetto, $anno, $this->dataMapper);
         $righiPerComune = [];
         foreach ($this->getPossessiPerImmobile($soggetto, $anno) as ['immobile' => $immobile, 'possessi' => $possessi]) {
+            if (ImpostaTerritoriale::perProvincia($immobile->comune->siglaProvincia, $anno) !== null) {
+                continue;
+            }
             $righi = $this->getVicende($soggetto, $immobile, $possessi, $anno, $enc);
             if (count($righi) > 0) {
                 $righiPerComune[$immobile->comune->codiceCatastale]['comune'] = $immobile->comune;

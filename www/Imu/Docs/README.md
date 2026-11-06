@@ -5,7 +5,8 @@ Calcolo dell'imposta municipale propria (art. 1, commi 738-783, L.
 prospetto di calcolo per immobile, i versamenti di acconto e saldo (o le tre
 rate degli enti non commerciali), registrati nell'archivio di Deleghe F24 da
 cui si generano le deleghe, e la dichiarazione IMU o IMU ENC con il file
-telematico.
+telematico. Nelle province di Trento e Bolzano e in Friuli Venezia Giulia
+l'IMU non si applica (vedi "Calcolo").
 
 Il modulo non ha un archivio immobili proprio: usa gli immobili
 dell'Anagrafica posseduti dal soggetto (`Possesso` con titolo, quota e
@@ -66,7 +67,17 @@ fixture (`sisma fixtures`) aggiungono agli immobili demo dell'Anagrafica:
   incrementativi 2026;
 - l'associazione culturale "Il Faro" (ente non commerciale, rappresentata
   da Bianchi) con la sede B/5 a Roma utilizzata in parte per attività
-  didattiche e culturali con modalità commerciali.
+  didattiche e culturali con modalità commerciali, e la sua cappella B/7,
+  esente perché destinata al culto;
+- a Bergamo, con le aliquote inserite dallo studio solo per il 2025 (per il
+  2026 valgono quelle, comma 767): l'alloggio di Verdi in comodato al figlio
+  e l'unica abitazione di Neri, pensionata residente all'estero, entrambi
+  con riduzione di legge e aliquota differenziata riconosciuta in automatico,
+  e una differenziata con condizione non ricavabile dai dati, suggerita
+  negli avvisi;
+- l'alloggio A/4 di Alfa a Brescia assegnato come alloggio IACP (detrazione),
+  il chiosco di Alfa a Roma su area demaniale (concessionario soggetto
+  passivo) e la casa di Rossi a Massimeno (TN), dove si applica l'IMIS.
 
 Con i dati demo già esistenti si calcolano anche il negozio C/1 in
 comproprietà di Verdi e Neri a Milano, il terreno di Verdi e l'abitazione
@@ -116,8 +127,13 @@ anche ad altri adempimenti, non solo all'IMU.
 periodi con possesso, classamento, caratteristiche e agevolazioni costanti:
 
 - **soggetto passivo** (comma 743): proprietario, usufruttuario, titolare di
-  uso, abitazione, enfiteusi, superficie, locatario finanziario; il nudo
-  proprietario no;
+  uso, abitazione, enfiteusi, superficie, locatario finanziario,
+  concessionario di aree demaniali; il nudo proprietario no;
+- **territori con imposta propria** (comma 739): nelle province di Trento
+  (IMIS, L.P. 14/2014) e Bolzano (IMI, L.P. 3/2014) e dal 2023 in Friuli
+  Venezia Giulia (ILIA, L.R. 17/2022) l'IMU non si applica: l'immobile compare
+  nel prospetto senza imposta, con un avviso, e non entra nelle dichiarazioni
+  IMU. Quelle imposte non sono calcolate dal modulo;
 - **mesi** (comma 761, `MesiPossesso`): conta il mese posseduto per più
   della metà dei giorni; il giorno del trasferimento è dell'acquirente, al
   quale resta il mese a parità di giorni; le variazioni a metà mese seguono
@@ -159,7 +175,10 @@ periodi con possesso, classamento, caratteristiche e agevolazioni costanti:
   751), terreni e aree di coltivatori diretti e IAP (commi 741 lett. d e
   758 lett. a), terreni delle isole minori e dei comuni montani (comma 758,
   lett. b e d, riconosciuti dal comune dell'immobile, vedi sotto), gruppo E
-  (comma 759), esenzioni oggettive indicate; fabbricati senza rendita
+  (comma 759, lett. b), esenzioni oggettive indicate nelle caratteristiche
+  IMU (`EsenzioneImu`: enti pubblici, usi culturali, culto, Santa Sede, Stati
+  esteri e organizzazioni internazionali, comma 759 lett. a, c, d, e, f;
+  immobili occupati abusivamente, lett. g-bis); fabbricati senza rendita
   (gruppo F) imponibili solo come area fabbricabile;
 - **enti non commerciali** (comma 759, lett. g): immobili utilizzati solo
   con modalità non commerciali esenti; con utilizzo misto imponibile la
@@ -170,13 +189,20 @@ periodi con possesso, classamento, caratteristiche e agevolazioni costanti:
   categoria (quella con rendita maggiore), seguono l'abitazione principale
   dello stesso comune;
 - **riduzioni dell'imposta**: canone concordato al 75% (comma 760);
-  pensionato estero al 50% (L. 178/2020, c. 48; 37,5% per il 2022);
+  pensionato residente all'estero al 50% (L. 178/2020, c. 48; 37,5% per il
+  2022) su una sola unità a uso abitativo, non locata né in comodato,
+  posseduta in proprietà o usufrutto: negli altri casi il calcolo non applica
+  la riduzione e lo segnala. Pensione in convenzione e residenza nello Stato
+  di assicurazione restano nell'indicazione dello studio;
 - **aliquota**: quella scelta per l'immobile nell'anno, la differenziata
   riconosciuta dai dati (vedi sotto) o quella della fattispecie; per il
   gruppo D lo 0,76% è dello Stato (comma 753);
 - **detrazione** (comma 749): 200 euro (o quanto deliberato) rapportati ai
   mesi e ripartiti tra i possessori che vi dimorano in proporzione alle
-  quote, fino a concorrenza dell'imposta dell'abitazione e delle pertinenze;
+  quote, fino a concorrenza dell'imposta dell'abitazione e delle pertinenze.
+  Si applica anche agli alloggi regolarmente assegnati dagli IACP o enti
+  equivalenti, indicati nelle caratteristiche IMU: restano imponibili e la
+  detrazione è per singolo alloggio;
 - **acconto** (comma 762): imposta del primo semestre con aliquote e
   detrazione dell'anno precedente.
 
@@ -266,11 +292,19 @@ prospetti). Senza l'indicazione vale il primo prospetto, con avviso.
 strutturato, le condizioni sono testo. `CompatibilitaDifferenziate` ricava
 dalla descrizione le categorie catastali e gli utilizzi (locato, canone
 concordato, comodato, abitazione principale, ...) e li confronta con i
-dati dell'immobile; le condizioni che i dati non permettono di verificare
-(contratto registrato, requisiti del soggetto, destinazione d'uso,
-collocazione, ...) restano "da verificare". Se una sola differenziata ha
-tutte le condizioni verificate è applicata come proposta; quelle
-compatibili con condizioni da verificare sono suggerite negli avvisi. La
+dati dell'immobile. Comodato ai parenti, pensionati residenti all'estero e
+alloggi IACP si confrontano con le agevolazioni e le caratteristiche IMU:
+con il comodato che ha i requisiti del comma 747, lett. c) parentela,
+contratto registrato e uso come abitazione principale sono verificati (e
+l'aliquota per le "ipotesi diverse" è esclusa); senza le indicazioni di
+pensionato e alloggio IACP quelle aliquote non si considerano. Le condizioni
+che i dati non permettono di verificare (contratto registrato, requisiti del
+soggetto, destinazione d'uso, collocazione, età, durata del contratto, ...)
+restano "da verificare". La descrizione si legge voce per voce: una voce non
+riconosciuta resta da verificare con il suo testo, quindi l'aliquota non si
+applica in automatico ma non si perde. Se una sola differenziata ha tutte le
+condizioni verificate è applicata come proposta; le altre compatibili, anche
+quando le verificate sono più di una, sono suggerite negli avvisi. La
 scelta resta dello studio (aliquota dell'immobile); l'anno successivo il
 calcolo propone la differenziata del nuovo prospetto con la stessa
 descrizione. Una reimportazione aggiorna il prospetto riconoscendo le
@@ -391,4 +425,12 @@ studio.
   da confermare sull'immobile);
 - condizioni delle aliquote differenziate non ricavabili dai dati
   (contratto registrato, requisiti soggettivi, collocazione): richiederebbero
-  dati strutturati dal portale del federalismo fiscale.
+  dati strutturati dal portale del federalismo fiscale;
+- calcolo delle imposte IMIS, IMI e ILIA dei territori del comma 739, con i
+  loro codici tributo;
+- esenzioni straordinarie riferite a una sola rata (es. art. 78 D.L.
+  104/2020 per la seconda rata 2020): oggi un'esenzione vale per il periodo
+  indicato, non per la rata;
+- le dichiarazioni per il concessionario di aree demaniali e per gli alloggi
+  IACP non sono proposte in automatico: se ricorre l'obbligo si aggiungono
+  a mano.

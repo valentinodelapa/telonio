@@ -119,6 +119,8 @@ già nello studio l'immobile viene riusato e si registra solo il possesso.
   superare il 100% per componente del diritto: la piena proprietà conta sia
   come titolarità sia come godimento, la nuda proprietà come titolarità,
   usufrutto, uso e abitazione come godimento (`TitoloPossesso::getComponenti`).
+  La concessione di area demaniale è un titolo a sé: il concessionario è
+  soggetto passivo IMU.
 
 Per gli altri moduli (redditi fondiari, IMU):
 

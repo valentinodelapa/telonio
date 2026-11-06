@@ -14,8 +14,6 @@ use Anagrafica\Application\Enumerations\TipoCatasto;
 use Anagrafica\Application\Enumerations\TipoSoggetto;
 use Anagrafica\Application\Enumerations\TitoloPossesso;
 use Anagrafica\Application\Enumerations\UtilizzoImmobile;
-use Telonio\Tests\SuiteTestCase;
-use Telonio\Tests\TestResultSet;
 use Deleghe\Application\Entities\CodiceTributo;
 use Deleghe\Application\Entities\Versamento;
 use Deleghe\Application\Enumerations\SezioneCodiceTributo;
@@ -28,17 +26,22 @@ use Imu\Application\Entities\CaratteristicheImu;
 use Imu\Application\Entities\DichiarazioneImu;
 use Imu\Application\Entities\ProspettoAliquote;
 use Imu\Application\Entities\RigoCalcoloImu;
+use Imu\Application\Enumerations\EsenzioneImu;
 use Imu\Application\Enumerations\FattispecieImu;
+use Imu\Application\Enumerations\ImpostaTerritoriale;
 use Imu\Application\Enumerations\ModelloDichiarazione;
 use Imu\Application\Services\AliquoteComune;
 use Imu\Application\Services\CalcoloImposta;
 use Imu\Application\Services\ClassamentoImu;
+use Imu\Application\Services\ContestoAliquota;
 use Imu\Application\Services\ElaborazioneImu;
 use Imu\Application\Services\PropostaDichiarazione;
 use Imu\Application\Services\QuadroImmobili;
 use Imu\Application\Services\RiepilogoScrivania;
 use Imu\Application\Services\RisultatoCalcoloImu;
 use SismaFramework\Orm\CustomTypes\SismaDate;
+use Telonio\Tests\SuiteTestCase;
+use Telonio\Tests\TestResultSet;
 
 class CalcoloImpostaAndElaborazioneTest extends SuiteTestCase
 {
@@ -156,7 +159,7 @@ class CalcoloImpostaAndElaborazioneTest extends SuiteTestCase
             new TestResultSet([$differenziata]) // getDifferenziate
         );
 
-        $esito = $aliquote->getAliquota('H501', 2025, FattispecieImu::altriFabbricati, null, null, CategoriaCatastale::a2, UtilizzoImmobile::locatoCanoneConcordato, null, false, false);
+        $esito = $aliquote->getAliquota('H501', 2025, FattispecieImu::altriFabbricati, null, null, new ContestoAliquota(CategoriaCatastale::a2, UtilizzoImmobile::locatoCanoneConcordato, false, false));
         // Riconosce automaticamente la differenziata per canone concordato
         $this->assertSame(0.76, $esito['aliquota']);
         $this->assertTrue($esito['proposta']);
@@ -231,6 +234,186 @@ class CalcoloImpostaAndElaborazioneTest extends SuiteTestCase
         $esitoBase = $aliquoteBase->getAliquota('F205', 2026, FattispecieImu::altriFabbricati, null);
         $this->assertSame(0.86, $esitoBase['aliquota']);
         $this->assertStringContainsString('nessun prospetto per il 2026 né dal 2025', $esitoBase['origine']);
+    }
+
+    /**
+     * Più differenziate con le condizioni verificate: non se ne sceglie una
+     * in automatico, ma non si perdono (restano suggerite).
+     */
+    public function testAliquoteComunePiuDifferenziateVerificate(): void
+    {
+        $prospetto = new ProspettoAliquote($this->dataMapper);
+        $prospetto->id = 40;
+        $prospetto->codiceCatastale = 'H501';
+        $prospetto->denominazioneComune = 'Roma';
+        $prospetto->anno = 2026;
+        $prospetto->aliquotaAltriFabbricati = 1.06;
+        $crea = function (int $id, float $aliquota) use ($prospetto): AliquotaDifferenziata {
+            $differenziata = new AliquotaDifferenziata($this->dataMapper);
+            $differenziata->id = $id;
+            $differenziata->prospettoAliquote = $prospetto;
+            $differenziata->fattispecie = FattispecieImu::altriFabbricati;
+            $differenziata->aliquota = $aliquota;
+            $differenziata->descrizione = 'Immobili di categoria C';
+            return $differenziata;
+        };
+        $this->testAdapter->accodaSelect(new TestResultSet([]), new TestResultSet([$prospetto]), new TestResultSet([$crea(41, 0.76), $crea(42, 0.96)]));
+        $esito = (new AliquoteComune($this->studioPredefinito, $this->dataMapper))->getAliquota('H501', 2026, FattispecieImu::altriFabbricati, null, null, new ContestoAliquota(CategoriaCatastale::c1));
+        $this->assertSame(1.06, $esito['aliquota']);
+        $this->assertNull($esito['differenziata']);
+        $this->assertCount(2, $esito['suggerite']);
+        $this->assertStringContainsString('0,96%', $esito['suggerite'][1]);
+    }
+
+    /**
+     * Dati del calcolo: i possessi indicati e, per ogni immobile, lo stesso
+     * A/2 con rendita 1000 (base 168000), con agevolazione e caratteristiche.
+     *
+     * @param Possesso[] $possessi
+     */
+    private function impostaCalcolo(array $possessi, ?AgevolazioneImu $agevolazione = null, ?CaratteristicheImu $caratteristiche = null, CategoriaCatastale $categoria = CategoriaCatastale::a2): void
+    {
+        $datiCatastali = new DatiCatastali($this->dataMapper);
+        $datiCatastali->causale = CausaleClassamento::costituzione;
+        $datiCatastali->id = 1;
+        $datiCatastali->immobile = $possessi[0]->immobile;
+        $datiCatastali->categoria = $categoria;
+        $datiCatastali->rendita = 1000.0;
+        $datiCatastali->validoDal = new SismaDate('2000-01-01');
+        $this->testAdapter->impostaSelectCallback(function (string $query) use ($possessi, $datiCatastali, $agevolazione, $caratteristiche): TestResultSet {
+            return match (true) {
+                str_contains($query, 'possesso') => new TestResultSet($possessi),
+                str_contains($query, 'dati_catastali') => new TestResultSet([$datiCatastali]),
+                str_contains($query, 'agevolazione_imu') && ($agevolazione !== null) => new TestResultSet([$agevolazione]),
+                str_contains($query, 'caratteristiche_imu') && ($caratteristiche !== null) => new TestResultSet([$caratteristiche]),
+                default => new TestResultSet([]),
+            };
+        });
+    }
+
+    private function creaPossesso(int $id, Soggetto $soggetto, Immobile $immobile, TitoloPossesso $titolo = TitoloPossesso::proprieta, ?UtilizzoImmobile $utilizzo = UtilizzoImmobile::aDisposizione): Possesso
+    {
+        $possesso = new Possesso($this->dataMapper);
+        $possesso->id = $id;
+        $possesso->soggetto = $soggetto;
+        $possesso->immobile = $immobile;
+        $possesso->titolo = $titolo;
+        $possesso->quota = 100.0;
+        $possesso->utilizzo = $utilizzo;
+        $possesso->validoDal = new SismaDate('2020-01-01');
+        return $possesso;
+    }
+
+    private function creaAgevolazionePensionato(Soggetto $soggetto, Immobile $immobile): AgevolazioneImu
+    {
+        $agevolazione = new AgevolazioneImu($this->dataMapper);
+        $agevolazione->id = 1;
+        $agevolazione->soggetto = $soggetto;
+        $agevolazione->immobile = $immobile;
+        $agevolazione->pensionatoEstero = true;
+        $agevolazione->validoDal = new SismaDate('2020-01-01');
+        return $agevolazione;
+    }
+
+    public function testCalcoloImpostaPensionatoEstero(): void
+    {
+        $comune = $this->creaComune();
+        $soggetto = $this->creaContribuente();
+        $immobile = $this->creaImmobile(1, $comune);
+        $agevolazione = $this->creaAgevolazionePensionato($soggetto, $immobile);
+
+        // 168000 allo 0,86% = 1444,80, ridotta alla metà
+        $this->impostaCalcolo([$this->creaPossesso(1, $soggetto, $immobile)], $agevolazione);
+        $this->assertEqualsWithDelta(722.40, (new CalcoloImposta($this->dataMapper))->calcola($soggetto, 2026)->righi[0]->impostaAnnua, 0.01);
+
+        // locata: la riduzione non spetta
+        $this->impostaCalcolo([$this->creaPossesso(1, $soggetto, $immobile, utilizzo: UtilizzoImmobile::locatoLiberoMercato)], $agevolazione);
+        $locata = (new CalcoloImposta($this->dataMapper))->calcola($soggetto, 2026);
+        $this->assertEqualsWithDelta(1444.80, $locata->righi[0]->impostaAnnua, 0.01);
+        $this->assertStringContainsString('è locata o in comodato', implode(' ', $locata->avvisi));
+
+        // diritto diverso da proprietà e usufrutto
+        $this->impostaCalcolo([$this->creaPossesso(1, $soggetto, $immobile, TitoloPossesso::superficie)], $agevolazione);
+        $this->assertStringContainsString('proprietà o usufrutto', implode(' ', (new CalcoloImposta($this->dataMapper))->calcola($soggetto, 2026)->avvisi));
+
+        // non abitativo
+        $this->impostaCalcolo([$this->creaPossesso(1, $soggetto, $immobile)], $agevolazione, null, CategoriaCatastale::c1);
+        $this->assertStringContainsString('non è a uso abitativo', implode(' ', (new CalcoloImposta($this->dataMapper))->calcola($soggetto, 2026)->avvisi));
+
+        // una sola unità
+        $altro = $this->creaImmobile(2, $comune, TipoCatasto::fabbricati, '101');
+        $this->impostaCalcolo([$this->creaPossesso(1, $soggetto, $immobile), $this->creaPossesso(2, $soggetto, $altro)], $agevolazione);
+        $due = (new CalcoloImposta($this->dataMapper))->calcola($soggetto, 2026);
+        $this->assertEqualsWithDelta(722.40 + 1444.80, array_sum(array_map(fn(RigoCalcoloImu $rigo) => $rigo->impostaAnnua, $due->righi)), 0.01);
+        $this->assertStringContainsString('spetta a una sola unità immobiliare', implode(' ', $due->avvisi));
+    }
+
+    public function testCalcoloImpostaAlloggioIacpDetrazione(): void
+    {
+        $comune = $this->creaComune();
+        $soggetto = $this->creaContribuente();
+        $immobile = $this->creaImmobile(1, $comune);
+        $altro = $this->creaImmobile(2, $comune, TipoCatasto::fabbricati, '101');
+        $caratteristiche = new CaratteristicheImu($this->dataMapper);
+        $caratteristiche->id = 1;
+        $caratteristiche->immobile = $immobile;
+        $caratteristiche->alloggioIacp = true;
+        $caratteristiche->validoDal = new SismaDate('2020-01-01');
+
+        // una detrazione di 200 euro per ogni alloggio, senza esenzione
+        $this->impostaCalcolo([$this->creaPossesso(1, $soggetto, $immobile), $this->creaPossesso(2, $soggetto, $altro)], null, $caratteristiche);
+        $risultato = (new CalcoloImposta($this->dataMapper))->calcola($soggetto, 2026);
+        $this->assertSame(FattispecieImu::altriFabbricati, $risultato->righi[0]->fattispecie);
+        $this->assertEqualsWithDelta(1444.80, $risultato->righi[0]->impostaAnnua, 0.01);
+        $this->assertSame(200.0, $risultato->righi[0]->detrazioneAnnua);
+        $this->assertSame(200.0, $risultato->righi[1]->detrazioneAnnua);
+        $this->assertSame(100.0, $risultato->righi[0]->detrazioneAcconto);
+        $this->assertStringContainsString('comma 749', (string) $risultato->righi[0]->note);
+
+        // categoria non abitativa: nessuna detrazione
+        $this->impostaCalcolo([$this->creaPossesso(1, $soggetto, $immobile)], null, $caratteristiche, CategoriaCatastale::c1);
+        $negozio = (new CalcoloImposta($this->dataMapper))->calcola($soggetto, 2026);
+        $this->assertSame(0.0, $negozio->righi[0]->detrazioneAnnua);
+        $this->assertStringContainsString('non spetta alla categoria C/1', implode(' ', $negozio->avvisi));
+    }
+
+    public function testCalcoloImpostaConcessionarioDemanialeEEsenzioniComma759(): void
+    {
+        $soggetto = $this->creaContribuente();
+        $immobile = $this->creaImmobile(1, $this->creaComune());
+        $this->assertTrue(CalcoloImposta::isSoggettoPassivo(TitoloPossesso::concessioneDemaniale));
+        $this->impostaCalcolo([$this->creaPossesso(1, $soggetto, $immobile, TitoloPossesso::concessioneDemaniale)]);
+        $this->assertEqualsWithDelta(1444.80, (new CalcoloImposta($this->dataMapper))->calcola($soggetto, 2026)->righi[0]->impostaAnnua, 0.01);
+
+        foreach (['EP' => 'lett. a)', 'UC' => 'lett. c)', 'CU' => 'lett. d)', 'SS' => 'lett. e)', 'SE' => 'lett. f)'] as $codice => $lettera) {
+            $this->assertStringContainsString('comma 759, ' . $lettera, EsenzioneImu::from($codice)->getRiferimento());
+            $this->assertNotEmpty(EsenzioneImu::from($codice)->getLabel());
+        }
+    }
+
+    public function testCalcoloImpostaTerritoriConImpostaPropria(): void
+    {
+        $this->assertSame(ImpostaTerritoriale::imis, ImpostaTerritoriale::perProvincia('TN', 2026));
+        $this->assertSame(ImpostaTerritoriale::imi, ImpostaTerritoriale::perProvincia('BZ', 2020));
+        $this->assertSame(ImpostaTerritoriale::ilia, ImpostaTerritoriale::perProvincia('UD', 2023));
+        $this->assertNull(ImpostaTerritoriale::perProvincia('UD', 2022), 'ILIA solo dal 2023');
+        $this->assertNull(ImpostaTerritoriale::perProvincia('RM', 2026));
+        $this->assertNull(ImpostaTerritoriale::perProvincia(null, 2026));
+
+        $soggetto = $this->creaContribuente();
+        $comune = $this->creaComune('F045', 'Massimeno');
+        $comune->siglaProvincia = 'TN';
+        $immobile = $this->creaImmobile(1, $comune);
+        $this->impostaCalcolo([$this->creaPossesso(1, $soggetto, $immobile)]);
+        $risultato = (new CalcoloImposta($this->dataMapper))->calcola($soggetto, 2026);
+        $this->assertSame(0.0, $risultato->righi[0]->impostaAnnua);
+        $this->assertNull($risultato->righi[0]->fattispecie);
+        $this->assertSame([], $risultato->getTributi());
+        $this->assertStringContainsString('IMIS', (string) $risultato->righi[0]->esenzione);
+        $this->assertStringContainsString('non si applica l\'IMU', implode(' ', $risultato->avvisi));
+
+        // nessuna dichiarazione IMU per quegli immobili
+        $this->assertSame([], (new PropostaDichiarazione($this->dataMapper))->proponi($soggetto, 2026));
     }
 
     public function testCalcoloImpostaAbPrincipalePertinenzeEAltriFabbricati(): void

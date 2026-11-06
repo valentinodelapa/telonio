@@ -23,7 +23,7 @@ use SismaFramework\Orm\CustomTypes\SismaDate;
 class CaratteristicheImuController extends ImuController
 {
 
-    private const PROPRIETA_COPIATE = ['storicoArtistico', 'inagibile', 'ruraleStrumentale', 'beneMerce', 'areaFabbricabile', 'valoreVenale', 'valoreContabile', 'exComune', 'esenzione', 'note'];
+    private const PROPRIETA_COPIATE = ['storicoArtistico', 'inagibile', 'ruraleStrumentale', 'alloggioIacp', 'beneMerce', 'areaFabbricabile', 'valoreVenale', 'valoreContabile', 'exComune', 'esenzione', 'note'];
 
     /**
      * Nuova versione: parte dalla più recente, con decorrenza al 1° gennaio

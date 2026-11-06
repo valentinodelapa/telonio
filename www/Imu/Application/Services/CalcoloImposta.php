@@ -19,6 +19,7 @@ use Imu\Application\Entities\CaratteristicheImu;
 use Imu\Application\Entities\RigoCalcoloImu;
 use Imu\Application\Enumerations\AssimilazioneAbitazione;
 use Imu\Application\Enumerations\FattispecieImu;
+use Imu\Application\Enumerations\ImpostaTerritoriale;
 use Imu\Application\Models\AgevolazioneImuModel;
 use Imu\Application\Models\AliquotaApplicataModel;
 use Imu\Application\Models\CaratteristicheImuModel;
@@ -72,6 +73,7 @@ class CalcoloImposta
     private bool $enteNonCommerciale = false;
     private Soggetto $soggetto;
     private ClassamentoImu $classamento;
+    private ?int $unitaPensionato = null;
     /** @var array<int, \Imu\Application\Entities\UtilizzoMistoEnc> */
     private array $utilizziEnc = [];
 
@@ -104,6 +106,7 @@ class CalcoloImposta
         $this->aliquote = new AliquoteComune($soggetto->studio, $this->dataMapper);
         $this->soggetto = $soggetto;
         $this->classamento = new ClassamentoImu($this->dataMapper);
+        $this->unitaPensionato = null;
         $this->risultato = new RisultatoCalcoloImu();
         if ($anno === 2020) {
             $this->risultato->avviso('2020: l\'acconto era pari alla metà di IMU e TASI 2019 (comma 762); l\'acconto qui calcolato con le aliquote 2019 è indicativo.');
@@ -241,9 +244,15 @@ class CalcoloImposta
         $agevolazione = (new AgevolazioneImuModel($this->dataMapper))->getVigenteAl($soggetto, $immobile, $data);
         $periodo += ['datiCatastali' => $datiCatastali, 'caratteristiche' => $caratteristiche, 'agevolazione' => $agevolazione,
             'fattispecie' => null, 'esenzione' => null, 'base' => 0.0, 'riduzioneBase' => 1.0, 'riduzioneImposta' => 1.0, 'note' => [],
-            'abitazionePrincipale' => false, 'pertinenza' => false];
+            'abitazionePrincipale' => false, 'pertinenza' => false, 'comodatoParenti' => false, 'pensionatoEstero' => false, 'alloggioIacp' => false];
         $this->risultato->comuni[$immobile->comune->codiceCatastale] = $immobile->comune->denominazione;
         $descrizione = $immobile->getIdentificativo() . ' (' . $immobile->comune->denominazione . ')';
+        $impostaTerritoriale = ImpostaTerritoriale::perProvincia($immobile->comune->siglaProvincia, $anno);
+        if ($impostaTerritoriale !== null) {
+            $periodo['esenzione'] = 'IMU non applicabile: ' . $impostaTerritoriale->value . ' (comma 739)';
+            $this->risultato->avviso($descrizione . ': nel comune non si applica l\'IMU ma la ' . $impostaTerritoriale->getLabel() . ', non calcolata da questo modulo (comma 739).');
+            return;
+        }
         if ($classamento['presunto'] ?? false) {
             $periodo['note'][] = 'Classamento presunto: dati catastali in vigore dal ' . $datiCatastali->validoDal->format('d/m/Y');
             $this->risultato->avviso($descrizione . ': dati catastali in vigore dal ' . $datiCatastali->validoDal->format('d/m/Y') . ', applicati anche al possesso precedente'
@@ -406,6 +415,14 @@ class CalcoloImposta
             $periodo['fattispecie'] = FattispecieImu::beniMerce;
         }
         $periodo['base'] = ValoreImmobile::fabbricato($datiCatastali);
+        if ($caratteristiche?->alloggioIacp === true) {
+            if ($categoria->isAbitativa()) {
+                $periodo['alloggioIacp'] = true;
+                $periodo['note'][] = 'Alloggio regolarmente assegnato dall\'IACP: detrazione dell\'abitazione principale (comma 749)';
+            } else {
+                $this->risultato->avviso($descrizione . ': la detrazione degli alloggi IACP non spetta alla categoria ' . $categoria->value . ' (comma 749).');
+            }
+        }
         $assimilazione = $agevolazione?->assimilazione;
         if (($assimilazione === AssimilazioneAbitazione::anzianiDisabili) && ($this->aliquote->isAssimilazioneAnziani($periodo['immobile']->comune->codiceCatastale, $anno) === false)) {
             $this->risultato->avviso($descrizione . ': il comune non prevede l\'assimilazione per anziani e disabili ricoverati, immobile trattato secondo l\'utilizzo.');
@@ -458,6 +475,7 @@ class CalcoloImposta
                 $this->risultato->avviso($descrizione . ': la riduzione per comodato non spetta alla categoria ' . $categoria->value . ' (comma 747, lett. c).');
             } else {
                 $periodo['riduzioneBase'] *= 0.5;
+                $periodo['comodatoParenti'] = true;
                 $periodo['note'][] = 'Comodato a parenti in linea retta: base al 50% (comma 747, lett. c)';
             }
         }
@@ -465,11 +483,38 @@ class CalcoloImposta
             $periodo['riduzioneImposta'] *= 0.75;
             $periodo['note'][] = 'Locato a canone concordato: imposta al 75% (comma 760)';
         }
-        if (($agevolazione?->pensionatoEstero === true) && ($anno >= 2021)) {
+        if (($agevolazione?->pensionatoEstero === true) && ($anno >= 2021) && $this->spettaPensionatoEstero($periodo, $categoria, $descrizione)) {
             $coefficiente = $anno === 2022 ? 0.375 : 0.5;
             $periodo['riduzioneImposta'] *= $coefficiente;
+            $periodo['pensionatoEstero'] = true;
             $periodo['note'][] = 'Pensionato residente all\'estero: imposta al ' . ($coefficiente * 100) . '% (L. 178/2020, c. 48' . ($anno === 2022 ? '; L. 234/2021, c. 743' : '') . ')';
         }
+    }
+
+    /**
+     * Riduzione per i pensionati residenti all'estero (L. 178/2020, c. 48):
+     * una sola unità a uso abitativo, non locata né in comodato, posseduta
+     * in proprietà o usufrutto. Il resto dei requisiti (pensione maturata in
+     * convenzione, residenza nello Stato di assicurazione) è nell'indicazione
+     * dello studio.
+     */
+    private function spettaPensionatoEstero(array $periodo, CategoriaCatastale $categoria, string $descrizione): bool
+    {
+        $possesso = $periodo['possesso'];
+        $motivo = match (true) {
+            $categoria->isAbitativa() === false => 'non è a uso abitativo',
+            in_array($possesso->utilizzo, [UtilizzoImmobile::locatoLiberoMercato, UtilizzoImmobile::locatoCanoneConcordato, UtilizzoImmobile::comodato], true) => 'è locata o in comodato',
+            in_array($possesso->titolo, [TitoloPossesso::proprieta, TitoloPossesso::usufrutto], true) === false => 'non è posseduta in proprietà o usufrutto',
+            default => null,
+        };
+        if ($motivo === null) {
+            $this->unitaPensionato ??= $periodo['immobile']->id;
+            $motivo = $this->unitaPensionato === $periodo['immobile']->id ? null : 'spetta a una sola unità immobiliare';
+        }
+        if ($motivo !== null) {
+            $this->risultato->avviso($descrizione . ': riduzione per il pensionato residente all\'estero non applicata, l\'unità ' . $motivo . ' (L. 178/2020, c. 48).');
+        }
+        return $motivo === null;
     }
 
     /**
@@ -542,19 +587,20 @@ class CalcoloImposta
         $rigo->riduzioneBase = $periodo['riduzioneBase'];
         $rigo->riduzioneImposta = $periodo['riduzioneImposta'];
         if ($rigo->fattispecie !== null) {
-            $this->calcolaImposta($rigo, $anno, $scelta, $sceltaPrecedente, $periodo['caratteristiche']?->exComune, $periodo['caratteristiche']?->inagibile === true);
+            $contesto = new ContestoAliquota($rigo->categoria, $rigo->utilizzo, $this->soggetto->tipoSoggetto === TipoSoggetto::ente, $periodo['caratteristiche']?->inagibile === true,
+                    $periodo['comodatoParenti'], $periodo['pensionatoEstero'], $periodo['alloggioIacp']);
+            $this->calcolaImposta($rigo, $anno, $scelta, $sceltaPrecedente, $contesto, $periodo['caratteristiche']?->exComune);
         }
         $rigo->note = count($periodo['note']) > 0 ? mb_substr(implode('; ', $periodo['note']), 0, 255) : null;
         return $rigo;
     }
 
-    private function calcolaImposta(RigoCalcoloImu $rigo, int $anno, ?AliquotaApplicata $scelta, ?AliquotaApplicata $sceltaPrecedente, ?string $exComune = null, bool $inagibile = false): void
+    private function calcolaImposta(RigoCalcoloImu $rigo, int $anno, ?AliquotaApplicata $scelta, ?AliquotaApplicata $sceltaPrecedente, ContestoAliquota $contesto, ?string $exComune): void
     {
-        $ente = $this->soggetto->tipoSoggetto === TipoSoggetto::ente;
         $comune = $rigo->codiceComune;
         $descrizione = $rigo->immobile->getIdentificativo() . ' (' . $this->risultato->comuni[$comune] . ')';
-        $annua = $this->aliquote->getAliquota($comune, $anno, $rigo->fattispecie, $scelta, $sceltaPrecedente, $rigo->categoria, $rigo->utilizzo, $exComune, $ente, $inagibile);
-        $acconto = $this->aliquote->getAliquota($comune, $anno - 1, $rigo->fattispecie, $sceltaPrecedente, $scelta, $rigo->categoria, $rigo->utilizzo, $exComune, $ente, $inagibile);
+        $annua = $this->aliquote->getAliquota($comune, $anno, $rigo->fattispecie, $scelta, $sceltaPrecedente, $contesto, $exComune);
+        $acconto = $this->aliquote->getAliquota($comune, $anno - 1, $rigo->fattispecie, $sceltaPrecedente, $scelta, $contesto, $exComune);
         $prospetto = $this->aliquote->getProspetto($comune, $anno, $exComune);
         if (($prospetto['prospetto'] === null) || ($prospetto['prospetto']->anno !== $anno)) {
             $this->risultato->avviso($this->risultato->comuni[$comune] . ' ' . $anno . ': ' . $prospetto['origine'] . '; se il comune ha pubblicato il prospetto ' . $anno . ' importalo, o inserisci le aliquote del comune.');
@@ -602,6 +648,12 @@ class CalcoloImposta
     {
         $spettanti = [];
         foreach ($this->risultato->righi as $indice => $rigo) {
+            if ($periodi[$indice]['alloggioIacp'] && ($rigo->fattispecie !== null)) {
+                // comma 749: una detrazione per alloggio, non per comune
+                $rigo->detrazioneAnnua = min(round($this->aliquote->getDetrazione($rigo->codiceComune, $anno) * $rigo->mesi / 12 * $rigo->quota / 100, 2), $rigo->impostaAnnua);
+                $rigo->detrazioneAcconto = min(round($this->aliquote->getDetrazione($rigo->codiceComune, $anno - 1) * $rigo->mesiAcconto / 12 * $rigo->quota / 100, 2), $rigo->impostaAcconto);
+                continue;
+            }
             if (($rigo->fattispecie !== FattispecieImu::abitazionePrincipale) || ($periodi[$indice]['abitazionePrincipale'] === false)) {
                 continue;
             }

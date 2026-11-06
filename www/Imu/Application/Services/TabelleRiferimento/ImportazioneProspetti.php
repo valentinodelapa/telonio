@@ -7,6 +7,7 @@ use Telonio\Application\Entities\Studio;
 use Imu\Application\Entities\AliquotaDifferenziata;
 use Imu\Application\Entities\ProspettoAliquote;
 use Imu\Application\Enumerations\FattispecieImu;
+use Imu\Application\Enumerations\ImpostaTerritoriale;
 use Imu\Application\Models\AliquotaApplicataModel;
 use Imu\Application\Models\AliquotaDifferenziataModel;
 use Imu\Application\Models\ProspettoAliquoteModel;
@@ -65,6 +66,13 @@ class ImportazioneProspetti
             if (count($voci) === 0) {
                 $esito['non_pubblicati'][] = $codice;
                 $messaggio(sprintf('  %s: nessun prospetto pubblicato per il %d', $codice, $anno));
+                continue;
+            }
+            // nell'elenco ci sono anche le delibere IMIS e IMI, che non sono prospetti IMU (comma 739)
+            $impostaTerritoriale = ImpostaTerritoriale::perProvincia($voci[0]['provincia'] ?? null, $anno);
+            if ($impostaTerritoriale !== null) {
+                $esito['non_pubblicati'][] = $codice;
+                $messaggio(sprintf('  %s: il comune applica la %s, non l\'IMU', $codice, $impostaTerritoriale->getLabel()));
                 continue;
             }
             foreach ($voci as $voce) {

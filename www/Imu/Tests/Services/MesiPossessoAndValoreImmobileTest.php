@@ -7,15 +7,16 @@ use Anagrafica\Application\Entities\Immobile;
 use Anagrafica\Application\Enumerations\CategoriaCatastale;
 use Anagrafica\Application\Enumerations\CausaleClassamento;
 use Anagrafica\Application\Enumerations\UtilizzoImmobile;
-use Telonio\Tests\SuiteTestCase;
-use Telonio\Tests\TestResultSet;
 use Imu\Application\Entities\AliquotaDifferenziata;
 use Imu\Application\Entities\CoefficienteFabbricatiD;
 use Imu\Application\Entities\CostoContabileImu;
 use Imu\Application\Enumerations\FattispecieImu;
 use Imu\Application\Services\CompatibilitaDifferenziate;
+use Imu\Application\Services\ContestoAliquota;
 use Imu\Application\Services\MesiPossesso;
 use Imu\Application\Services\ValoreImmobile;
+use Telonio\Tests\SuiteTestCase;
+use Telonio\Tests\TestResultSet;
 
 class MesiPossessoAndValoreImmobileTest extends SuiteTestCase
 {
@@ -132,17 +133,17 @@ class MesiPossessoAndValoreImmobileTest extends SuiteTestCase
         $diff->descrizione = 'Abitazione locata o in comodato - Tipo contratto: Locazione ai sensi dell\'art. 2, comma 3, della Legge n.431/1998 e s.m.i. Categoria catastale: - A/2 - A/3';
 
         // Categoria e utilizzo corrispondenti, nessuna condizione da verificare => verificata = true
-        $esito = CompatibilitaDifferenziate::verifica($diff, FattispecieImu::altriFabbricati, CategoriaCatastale::a2, UtilizzoImmobile::locatoCanoneConcordato);
+        $esito = CompatibilitaDifferenziate::verifica($diff, FattispecieImu::altriFabbricati, new ContestoAliquota(CategoriaCatastale::a2, UtilizzoImmobile::locatoCanoneConcordato));
         $this->assertTrue($esito['compatibile']);
         $this->assertTrue($esito['verificata']);
         $this->assertSame([], $esito['daVerificare']);
 
         // Fattispecie diversa => incompatibile
-        $esitoFattispecie = CompatibilitaDifferenziate::verifica($diff, FattispecieImu::gruppoD, CategoriaCatastale::a2, UtilizzoImmobile::locatoCanoneConcordato);
+        $esitoFattispecie = CompatibilitaDifferenziate::verifica($diff, FattispecieImu::gruppoD, new ContestoAliquota(CategoriaCatastale::a2, UtilizzoImmobile::locatoCanoneConcordato));
         $this->assertFalse($esitoFattispecie['compatibile']);
 
         // Categoria diversa => incompatibile
-        $esitoCat = CompatibilitaDifferenziate::verifica($diff, FattispecieImu::altriFabbricati, CategoriaCatastale::c1, UtilizzoImmobile::locatoCanoneConcordato);
+        $esitoCat = CompatibilitaDifferenziate::verifica($diff, FattispecieImu::altriFabbricati, new ContestoAliquota(CategoriaCatastale::c1, UtilizzoImmobile::locatoCanoneConcordato));
         $this->assertFalse($esitoCat['compatibile']);
 
         // Condizioni da verificare (es. ONLUS, parentela, contratto registrato) e gruppi di categorie
@@ -152,15 +153,91 @@ class MesiPossessoAndValoreImmobileTest extends SuiteTestCase
         $diffCond->descrizione = 'Immobili di categoria A10, B, C concessi in comodato d\'uso gratuito a parenti con contratto registrato - Requisiti del soggetto passivo: ONLUS';
 
         // Per persona fisica ($ente = false) viene esclusa perché richiede ONLUS
-        $esitoNonEnte = CompatibilitaDifferenziate::verifica($diffCond, FattispecieImu::altriFabbricati, CategoriaCatastale::c2, UtilizzoImmobile::comodato, false, true);
+        $esitoNonEnte = CompatibilitaDifferenziate::verifica($diffCond, FattispecieImu::altriFabbricati, new ContestoAliquota(CategoriaCatastale::c2, UtilizzoImmobile::comodato, false, true));
         $this->assertFalse($esitoNonEnte['compatibile']);
 
         // Per ente ($ente = true) è compatibile ma ha condizioni da verificare => verificata = false
-        $esitoEnte = CompatibilitaDifferenziate::verifica($diffCond, FattispecieImu::altriFabbricati, CategoriaCatastale::c2, UtilizzoImmobile::comodato, true, true);
+        $esitoEnte = CompatibilitaDifferenziate::verifica($diffCond, FattispecieImu::altriFabbricati, new ContestoAliquota(CategoriaCatastale::c2, UtilizzoImmobile::comodato, true, true));
         $this->assertTrue($esitoEnte['compatibile']);
         $this->assertFalse($esitoEnte['verificata']);
         $this->assertContains('requisiti del soggetto passivo (ONLUS o terzo settore)', $esitoEnte['daVerificare']);
         $this->assertContains('contratto registrato', $esitoEnte['daVerificare']);
         $this->assertContains('grado di parentela del comodatario', $esitoEnte['daVerificare']);
+    }
+
+    private function verificaDescrizione(string $descrizione, ContestoAliquota $contesto): array
+    {
+        $differenziata = new AliquotaDifferenziata($this->dataMapper);
+        $differenziata->fattispecie = FattispecieImu::altriFabbricati;
+        $differenziata->aliquota = 0.76;
+        $differenziata->descrizione = $descrizione;
+        return CompatibilitaDifferenziate::verifica($differenziata, FattispecieImu::altriFabbricati, $contesto);
+    }
+
+    public function testCompatibilitaDifferenziatePensionatoEstero(): void
+    {
+        $testo = "Aliquota per l'unica unità immobiliare posseduta dai cittadini italiani pensionati, non residenti nel territorio dello stato e titolari di pensione maturata in regime di convenzione con l'Italia a titolo di proprietà o usufrutto in Italia, a condizione che non risulti locata o comunque occupata";
+        $this->assertFalse($this->verificaDescrizione($testo, new ContestoAliquota(CategoriaCatastale::a2, UtilizzoImmobile::aDisposizione))['compatibile']);
+        $esito = $this->verificaDescrizione($testo, new ContestoAliquota(CategoriaCatastale::a2, UtilizzoImmobile::aDisposizione, pensionatoEstero: true));
+        $this->assertTrue($esito['verificata']);
+
+        // "pensioni" nella descrizione di una categoria non è una condizione sul pensionato
+        $this->assertTrue($this->verificaDescrizione("Categoria catastale:\n- D/2 Alberghi e pensioni (con fine di lucro)", new ContestoAliquota(CategoriaCatastale::d2))['verificata']);
+    }
+
+    public function testCompatibilitaDifferenziateComodatoParenti(): void
+    {
+        $testo = "Aliquota per l'abitazione concessa in comodato gratuito, ai parenti in linea retta, che la utilizzano come abitazione principale";
+        // comodato senza l'agevolazione: la parentela resta da verificare
+        $esito = $this->verificaDescrizione($testo, new ContestoAliquota(CategoriaCatastale::a2, UtilizzoImmobile::comodato));
+        $this->assertTrue($esito['compatibile']);
+        $this->assertFalse($esito['verificata']);
+        $this->assertContains('grado di parentela del comodatario', $esito['daVerificare']);
+        $this->assertFalse($this->verificaDescrizione($testo, new ContestoAliquota(CategoriaCatastale::a2, UtilizzoImmobile::aDisposizione))['compatibile']);
+        // con l'agevolazione è verificata, anche se il possesso non indica il comodato
+        $this->assertTrue($this->verificaDescrizione($testo, new ContestoAliquota(CategoriaCatastale::a2, null, comodatoParenti: true))['verificata']);
+
+        // testo del prospetto: ipotesi del comma 747, lett. c) e ipotesi diverse
+        $prospetto = "Abitazione locata o in comodato\n- Tipo contratto: Comodato d'uso gratuito\n- Condizioni locatario/comodatario: Parenti - Sino al primo grado (%s all'art. 1, comma 747, lett. c), della legge n. 160 del 2019)\n- Destinazione d'uso: Purche' l'affittuario/comodatario la utilizzi come abitazione principale.";
+        $diLegge = sprintf($prospetto, 'ipotesi di cui');
+        $diverse = sprintf($prospetto, 'ipotesi diverse da quella di cui');
+        $this->assertTrue($this->verificaDescrizione($diLegge, new ContestoAliquota(CategoriaCatastale::a2, UtilizzoImmobile::comodato, comodatoParenti: true))['verificata']);
+        $this->assertFalse($this->verificaDescrizione($diverse, new ContestoAliquota(CategoriaCatastale::a2, UtilizzoImmobile::comodato, comodatoParenti: true))['compatibile']);
+        $this->assertTrue($this->verificaDescrizione($diverse, new ContestoAliquota(CategoriaCatastale::a2, UtilizzoImmobile::comodato))['compatibile']);
+        // il secondo grado non è coperto dall'agevolazione di legge
+        $this->assertFalse($this->verificaDescrizione('Abitazione concessa in comodato ai parenti di secondo grado', new ContestoAliquota(CategoriaCatastale::a2, null, comodatoParenti: true))['verificata']);
+    }
+
+    public function testCompatibilitaDifferenziateAlloggiIacp(): void
+    {
+        $testo = "Alloggi regolarmente assegnati dagli IACP o dagli enti di\nedilizia residenziale pubblica aventi le stesse finalità";
+        $this->assertFalse($this->verificaDescrizione($testo, new ContestoAliquota(CategoriaCatastale::a3))['compatibile']);
+        $this->assertTrue($this->verificaDescrizione($testo, new ContestoAliquota(CategoriaCatastale::a3, alloggioIacp: true))['verificata']);
+    }
+
+    /**
+     * Una voce non riconosciuta non si perde e non lascia applicare
+     * l'aliquota in automatico, anche se le altre condizioni sono verificate.
+     */
+    public function testCompatibilitaDifferenziateVociNonRiconosciute(): void
+    {
+        $contesto = new ContestoAliquota(CategoriaCatastale::a2, UtilizzoImmobile::locatoLiberoMercato);
+        $esito = $this->verificaDescrizione('Abitazione destinata a struttura turistico-ricettiva', $contesto);
+        $this->assertTrue($esito['compatibile']);
+        $this->assertFalse($esito['verificata']);
+        $this->assertSame(['condizione del prospetto: Abitazione destinata a struttura turistico-ricettiva'], $esito['daVerificare']);
+
+        $conVoce = "Abitazione locata o in comodato\n- Tipo contratto: Locazione a canone libero\n- Potenza impianti produzione energia, Superiore a (kW): 200";
+        $esitoVoce = $this->verificaDescrizione($conVoce, $contesto);
+        $this->assertFalse($esitoVoce['verificata']);
+        $this->assertSame(['condizione del prospetto: Potenza impianti produzione energia, Superiore a (kW): 200'], $esitoVoce['daVerificare']);
+
+        $conEta = "Abitazione locata o in comodato\n- Tipo contratto: Locazione a canone libero\n- Persona fisica di eta' non superiore ad anni: 35";
+        $this->assertSame(['età del soggetto'], $this->verificaDescrizione($conEta, $contesto)['daVerificare']);
+
+        // voci del prospetto riconosciute: art. 2, comma 1, e locazione generica
+        $this->assertTrue($this->verificaDescrizione("- Tipo contratto: Locazione ai sensi dell'art. 2, comma 1, della Legge n. 431/1998 e s.m.i.", $contesto)['verificata']);
+        $this->assertTrue($this->verificaDescrizione('- Tipo contratto: Locazione', $contesto)['verificata']);
+        $this->assertFalse($this->verificaDescrizione('- Tipo contratto: Locazione', new ContestoAliquota(CategoriaCatastale::a2, UtilizzoImmobile::comodato))['compatibile']);
     }
 }

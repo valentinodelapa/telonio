@@ -70,6 +70,7 @@ class ProspettiMef
             $voce = [
                 'codiceCatastale' => $codice,
                 'comune' => trim($campi['COMUNE']),
+                'provincia' => strtoupper(trim($campi['PR'] ?? '')),
                 'exComune' => $exComune,
                 'numeroDelibera' => trim($campi['NUMERO']),
                 'dataDelibera' => self::data($campi['DATA_DELIBERA']),

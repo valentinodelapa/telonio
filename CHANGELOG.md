@@ -2,6 +2,45 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.18.0-alpha] - 2026-11-06 - Casi Particolari IMU
+
+Diciottesima versione alpha: in `Imu` i casi particolari delle aliquote e dell'imposta, dal comodato ai parenti ai pensionati residenti all'estero, dagli alloggi IACP ai concessionari di aree demaniali, e i territori dove l'IMU non si applica; il controllo delle aliquote differenziate non perde più le condizioni che non riconosce. Valgono le avvertenze della 0.1.0-alpha: la versione non è indicata per l'uso in produzione su dati reali.
+
+Versioni dei moduli: `Anagrafica` 0.8.0, `Imu` 0.4.0 (richiede `Anagrafica` 0.8.0); `Telonio` 0.6.2, `Deleghe` 0.5.0, `Successioni` 0.3.2, `GestioneStudio` 0.1.1, `Contabilita` 0.4.0 e `Dichiarativi` 0.2.0 invariati.
+
+**Aggiornamento del database**: `sisma aggiorna-database` esegue `Imu/Database/aggiornamento-0.4.sql` (colonna `caratteristiche_imu.alloggio_iacp`).
+
+Dopo l'aggiornamento conviene rifare i calcoli IMU degli immobili interessati: le correzioni qui sotto cambiano gli importi nei comuni di Trento, Bolzano e Friuli Venezia Giulia, per i pensionati residenti all'estero con requisiti mancanti e dove una differenziata era applicata in automatico.
+
+### ✨ Nuove Funzionalità
+
+#### `Imu` 0.4.0
+
+- **aliquote per il comodato ai parenti e per i pensionati residenti all'estero**: le spunte delle agevolazioni IMU entrano nel controllo delle differenziate (`Services\CompatibilitaDifferenziate`, `Services\ContestoAliquota`). Con il comodato del comma 747, lett. c) parentela, contratto registrato e abitazione principale sono verificati e l'aliquota "per le ipotesi diverse" è esclusa; le aliquote per i pensionati si considerano solo con l'agevolazione indicata;
+- **alloggi regolarmente assegnati dagli IACP** (art. 1, comma 749, secondo periodo, L. 160/2019): nuova caratteristica IMU, restano imponibili con la detrazione per singolo alloggio; le differenziate IACP si considerano solo per questi alloggi;
+- **esenzioni del comma 759** lett. a), c), d), e), f) in `EsenzioneImu` (enti pubblici, usi culturali, culto, Santa Sede, Stati esteri e organizzazioni internazionali), prima solo "Altra esenzione";
+- fixture per tutti questi casi, con aliquote demo dello studio a Bergamo.
+
+#### `Anagrafica` 0.8.0
+
+- **concessione di area demaniale** tra i titoli di possesso (`TitoloPossesso`): il concessionario è soggetto passivo IMU (art. 1, comma 743, L. 160/2019).
+
+### 🐛 Correzioni
+
+#### `Imu` 0.4.0
+
+- **IMU calcolata dove non si applica** (art. 1, comma 739, L. 160/2019): negli immobili delle province di Trento (IMIS) e Bolzano (IMI) e dal 2023 del Friuli Venezia Giulia (ILIA) il calcolo applicava l'IMU e la dichiarazione la proponeva. Ora l'immobile compare senza imposta con un avviso e non entra nelle dichiarazioni IMU; IMIS, IMI e ILIA non sono calcolate dal modulo. L'importazione non tratta più come errore le delibere IMIS e IMI presenti nell'elenco del Dipartimento delle Finanze;
+- **differenziate perse o applicate per errore**: una differenziata senza condizioni riconosciute non era né applicata né segnalata, e una con più condizioni poteva essere applicata in automatico ignorando quelle non riconosciute (es. età del soggetto, durata del contratto). La descrizione ora si legge voce per voce: una voce non riconosciuta resta da verificare con il suo testo e l'aliquota è suggerita negli avvisi. Anche quando più differenziate risultano verificate vengono suggerite, invece di essere ignorate;
+- riconosciuti i contratti ai sensi dell'art. 2, comma 1, L. 431/1998 e la voce "Tipo contratto: Locazione";
+- **riduzione del pensionato residente all'estero** (L. 178/2020, c. 48): si applicava a qualsiasi immobile con la spunta. Ora spetta a una sola unità a uso abitativo, non locata né in comodato, posseduta in proprietà o usufrutto; negli altri casi il calcolo non la applica e lo segnala.
+
+### ⚠️ Limiti Noti
+
+- **IMIS, IMI e ILIA**: non sono calcolate, il modulo segnala solo che l'IMU non si applica;
+- **Esenzioni riferite a una sola rata** (es. art. 78 D.L. 104/2020 per la seconda rata 2020): un'esenzione vale per il periodo indicato, non per la rata;
+- **Dichiarazioni IMU**: per il concessionario di aree demaniali e per gli alloggi IACP non sono proposte in automatico;
+- **Detrazione degli alloggi IACP nel modello F24**: il rigo la riporta sul codice 3918, da verificare sulle istruzioni ufficiali.
+
 ## [0.17.0-alpha] - 2026-11-06 - Rimborsi IVA, Accertamenti e Regimi Agricoli
 
 Diciassettesima versione alpha: in `Dichiarativi` la dichiarazione IVA si completa con il rimborso annuale e le sue causali, l'archivio degli atti di accertamento e i regimi speciali agricoli, esonerati compresi; in `Contabilita` il credito chiesto con il modello IVA TR esce dal riporto con la rielaborazione automatica delle liquidazioni. Corregge diversi righi della 0.16.0-alpha. Valgono le avvertenze della 0.1.0-alpha: la versione non è indicata per l'uso in produzione su dati reali.
