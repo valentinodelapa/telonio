@@ -35,22 +35,33 @@ class GenerazioneDeleghe
     /**
      * @param int[]|null $idScelti versamenti da inserire tra quelli da versare
      *        della data (null: tutti); gli altri restano da versare
+     * @param ModelloF24|null $modelloScelto modello dei versamenti che ne
+     *        ammettono più di uno (null: ordinario, o la bozza già presente);
+     *        ELIDE e accise restano nel loro modello
      * @return Delega[] deleghe che hanno ricevuto i versamenti
+     * @throws \InvalidArgumentException se il modello scelto non ammette un versamento
      */
-    public function genera(Soggetto $soggetto, SismaDate $scadenza, bool $compensa, ?array $idScelti = null): array
+    public function genera(Soggetto $soggetto, SismaDate $scadenza, bool $compensa, ?array $idScelti = null, ?ModelloF24 $modelloScelto = null): array
     {
         $gruppi = [];
         foreach ((new VersamentoModel($this->dataMapper))->getDaVersare($soggetto, $scadenza) as $versamento) {
             if (($idScelti !== null) && (in_array($versamento->id, $idScelti, true) === false)) {
                 continue;
             }
-            $gruppi[self::getModello($versamento->sezione)->value . '|' . ($versamento->codiceFiscaleCoobbligato ?? '') . '|' . ($versamento->codiceIdentificativo?->value ?? '')][] = $versamento;
+            $modello = self::getModello($versamento->sezione);
+            if (($modelloScelto !== null) && ($modello === ModelloF24::ordinario)) {
+                if (in_array($modelloScelto, self::getModelli($versamento->sezione), true) === false) {
+                    throw new \InvalidArgumentException(sprintf('Il %s non ammette la sezione %s (%s): togli la spunta dal versamento o scegli un altro modello.', $modelloScelto->getLabel(), $versamento->sezione->getLabel(), $versamento->getCodice()));
+                }
+                $modello = $modelloScelto;
+            }
+            $gruppi[$modello->value . '|' . ($versamento->codiceFiscaleCoobbligato ?? '') . '|' . ($versamento->codiceIdentificativo?->value ?? '')][] = $versamento;
         }
         $deleghe = [];
         $primaTransazione = $this->dataMapper->startTransaction();
         foreach ($gruppi as $chiave => $versamenti) {
             $modello = ModelloF24::from(explode('|', $chiave)[0]);
-            $delega = $this->trovaBozza($soggetto, $scadenza, $modello, $versamenti) ?? $this->creaDelega($soggetto, $scadenza, $modello, $versamenti[0]);
+            $delega = $this->trovaBozza($soggetto, $scadenza, $modello, $versamenti, $modelloScelto !== null) ?? $this->creaDelega($soggetto, $scadenza, $modello, $versamenti[0]);
             $this->aggiungi($delega, $versamenti);
             if ($compensa) {
                 (new Compensazioni($this->dataMapper))->compensaAutomaticamente($delega);
@@ -140,12 +151,28 @@ class GenerazioneDeleghe
         return $this->trovaBozza($versamento->soggetto, $data, $modello, [$versamento]) ?? $this->creaDelega($versamento->soggetto, $data, $modello, $versamento);
     }
 
+    /**
+     * Modello proposto per la sezione: il primo di getModelli.
+     */
     public static function getModello(SezioneF24 $sezione): ModelloF24
     {
+        return self::getModelli($sezione)[0];
+    }
+
+    /**
+     * Modelli tra cui si sceglie per la sezione: ELIDE e accise hanno il
+     * loro modello obbligatorio; gli altri l'ordinario e, se li ammette, il
+     * semplificato (Erario, Regioni, IMU e tributi locali; non INPS, INAIL e
+     * altri enti).
+     *
+     * @return ModelloF24[]
+     */
+    public static function getModelli(SezioneF24 $sezione): array
+    {
         return match ($sezione) {
-            SezioneF24::elide => ModelloF24::elide,
-            SezioneF24::accise => ModelloF24::accise,
-            default => ModelloF24::ordinario,
+            SezioneF24::elide => [ModelloF24::elide],
+            SezioneF24::accise => [ModelloF24::accise],
+            default => ModelloF24::semplificato->ammetteSezione($sezione) ? [ModelloF24::ordinario, ModelloF24::semplificato] : [ModelloF24::ordinario],
         };
     }
 
@@ -155,9 +182,9 @@ class GenerazioneDeleghe
      *
      * @param Versamento[] $versamenti
      */
-    private function trovaBozza(Soggetto $soggetto, SismaDate $scadenza, ModelloF24 $modello, array $versamenti): ?Delega
+    private function trovaBozza(Soggetto $soggetto, SismaDate $scadenza, ModelloF24 $modello, array $versamenti, bool $soloModello = false): ?Delega
     {
-        $compatibili = $modello === ModelloF24::ordinario ? [ModelloF24::ordinario, ModelloF24::semplificato] : [$modello];
+        $compatibili = ($modello === ModelloF24::ordinario) && ($soloModello === false) ? [ModelloF24::ordinario, ModelloF24::semplificato] : [$modello];
         foreach ((new DelegaModel($this->dataMapper))->getPerScadenza($soggetto, $scadenza) as $delega) {
             if ($delega->isModificabile() && in_array($delega->modello, $compatibili, true)
                     && (count(array_filter($versamenti, fn(Versamento $versamento) => ($delega->modello->ammetteSezione($versamento->sezione) === false) || ($this->isCompatibile($delega, $versamento) === false))) === 0)) {

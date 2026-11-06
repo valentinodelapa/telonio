@@ -132,7 +132,7 @@ class CalcoloLiquidazioneIva
             return $acquisto ? 0.0 : round($riga->imposta * $quotaForfetaria, 2);
         }
         if ($acquisto) {
-            return $riga->operazioneDiversa ? $riga->getImpostaDetraibile() : 0.0;
+            return $riga->getDetrazioneOperazioneDiversa();
         }
         if ($riga->qualifica === QualificaOperazione::connessaOccasionale) {
             return round($riga->imposta * 0.5, 2);

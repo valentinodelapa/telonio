@@ -99,7 +99,7 @@ class PropostaIva
     public const QUADRI = ['VA', 'VE', 'VF', 'VJ', 'VH', 'VL'];
 
     /** Quadri proposti solo nel modulo 1 */
-    public const QUADRI_PRIMO_MODULO = ['VT', 'VC', 'VX', 'VK', 'VG', 'VS', 'VV', 'VW', 'VY'];
+    public const QUADRI_PRIMO_MODULO = ['VT', 'VC', 'VX', 'VK', 'VG', 'VS', 'VV', 'VW', 'VY', 'VO'];
 
     /** Righi della sezione 2 del quadro VE per aliquota */
     public const RIGHI_VE = ['4' => 20, '5' => 21, '10' => 22, '22' => 23];
@@ -217,6 +217,7 @@ class PropostaIva
         $this->proponiPlafond($quadri, $dichiarazione);
         $this->proponiRisultato($quadri, $dichiarazione, array_keys($elenco));
         $this->proponiVisto($quadri, $dichiarazione);
+        array_push($this->avvisi, ...(new OpzioniAgricole($this->dataMapper))->proponi($quadri, $dichiarazione->soggetto, $dichiarazione->anno));
         array_push($this->avvisi, ...$quadri->getDifferenzeManuali());
         $quadri->salva();
         $dichiarazione->dataElaborazione = new SismaDateTime();
@@ -326,9 +327,12 @@ class PropostaIva
         }
         $regimeDetrazione = (new AttivitaSeparate($this->dataMapper))->getRegimeDetrazione($soggetto, $anno, $attivita);
         $this->proponiOperazioniAttive($quadri, $soggetto, $anno, $righe, $regime->isVentilazione($soggetto, $anno), $etichetta, $regimeDetrazione);
-        $this->proponiOperazioniPassive($quadri, $righe, $etichetta);
+        $this->proponiOperazioniPassive($quadri, $righe, $etichetta, $regimeDetrazione);
         if ($regimeDetrazione === null) {
             $this->proponiProrata($quadri, $etichetta);
+            if (count(array_filter($righe, fn(RigaIva $riga) => $riga->qualifica === QualificaOperazione::connessaOccasionale)) > 0) {
+                $this->avvisa($etichetta . 'operazioni connesse occasionali senza il regime speciale agricolo: rigo VF62 e detrazione del 50% da indicare a mano.');
+            }
         } else {
             $this->proponiRegimeDetrazione($quadri, $regimeDetrazione, $righe, $etichetta);
         }
@@ -501,7 +505,7 @@ class PropostaIva
     /**
      * @param RigaIva[] $righe
      */
-    private function proponiOperazioniPassive(QuadriDichiarazione $quadri, array $righe, string $etichetta): void
+    private function proponiOperazioniPassive(QuadriDichiarazione $quadri, array $righe, string $etichetta, ?RegimeDetrazioneIva $regimeDetrazione = null): void
     {
         $imponibili = $vj = $altre = [];
         $impostaRegistri = 0.0;
@@ -513,8 +517,11 @@ class PropostaIva
                 continue;
             }
             $codice = $riga->codiceIva;
+            // acquisti delle connesse occasionali (art. 34-bis): tutti nel VF18, campo 1
+            $connessa = ($regimeDetrazione?->isCompensazione() === true) && ($riga->qualifica === QualificaOperazione::connessaOccasionale);
             if ($codice->natura !== null) {
                 $campo = self::NATURE_VF[$codice->natura->value] ?? null;
+                $campo = $connessa && ($campo !== null) ? 'VF018001' : $campo;
                 if ($campo === null) {
                     if ($codice->natura->value !== 'N1') {
                         $this->avvisa($etichetta . 'acquisti con natura ' . $codice->natura->value . ' (' . $codice->descrizione . ') non compresi nel quadro VF: verificare.');
@@ -541,12 +548,16 @@ class PropostaIva
                     $altre['VF028003'] = ($altre['VF028003'] ?? 0) + $riga->imponibile;
                     $altre['VF028004'] = ($altre['VF028004'] ?? 0) + $riga->imposta;
                 }
-                if ($riga->detraibilita > 0) {
-                    $this->accumula($imponibili, $codice->aliquota, $detraibile);
-                    $impostaRegistri += $riga->getImpostaDetraibile();
-                }
-                if ($riga->detraibilita < 100) {
-                    $altre['VF021001'] = ($altre['VF021001'] ?? 0) + $riga->imponibile - $detraibile;
+                if ($connessa) {
+                    $altre['VF018001'] = ($altre['VF018001'] ?? 0) + $riga->imponibile;
+                } else {
+                    if ($riga->detraibilita > 0) {
+                        $this->accumula($imponibili, $codice->aliquota, $detraibile);
+                        $impostaRegistri += $riga->getImpostaDetraibile();
+                    }
+                    if ($riga->detraibilita < 100) {
+                        $altre['VF021001'] = ($altre['VF021001'] ?? 0) + $riga->imponibile - $detraibile;
+                    }
                 }
                 if ($codice->inversioneContabile) {
                     $rigo = match (true) {
@@ -664,7 +675,10 @@ class PropostaIva
         $diverseImponibile = $diverseImposta = $detraibili = $teorica = $connesseImponibile = $connesseImposta = 0.0;
         foreach ($righe as $riga) {
             if ($riga->registroIva->tipo === TipoRegistroIva::acquisti) {
-                $detraibili += $riga->operazioneDiversa ? $riga->getImpostaDetraibile() : 0.0;
+                $detraibili += $riga->getDetrazioneOperazioneDiversa();
+                if ($riga->operazioneDiversa && $riga->isBeneAmmortizzabile()) {
+                    $this->avvisa($etichetta . 'bene ammortizzabile segnato per le operazioni diverse: IVA esclusa dal VF53 (art. 34, c. 5).');
+                }
                 continue;
             }
             if ($riga->qualifica === QualificaOperazione::connessaOccasionale) {
@@ -1366,7 +1380,7 @@ class PropostaIva
      */
     public static function isImmobilizzazione(?string $voceCee): bool
     {
-        return ($voceCee !== null) && (str_starts_with($voceCee, 'A.B.I.') || str_starts_with($voceCee, 'A.B.II.'));
+        return RigaIva::isImmobilizzazione($voceCee);
     }
 
     private function accumula(array &$perAliquota, float $aliquota, float $importo): void

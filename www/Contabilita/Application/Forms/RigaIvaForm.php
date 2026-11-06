@@ -4,6 +4,7 @@ namespace Contabilita\Application\Forms;
 
 use Contabilita\Application\Entities\RigaIva;
 use Contabilita\Application\Enumerations\NaturaIva;
+use Contabilita\Application\Enumerations\QualificaOperazione;
 use Deleghe\Application\HelperClasses\Importo;
 use SismaFramework\Core\BaseClasses\BaseForm;
 use SismaFramework\Core\Enumerations\FilterType;
@@ -15,6 +16,8 @@ use SismaFramework\Core\Enumerations\FilterType;
  */
 class RigaIvaForm extends BaseForm
 {
+
+    public const DESTINAZIONE_DIVERSE = 'D';
 
     #[\Override]
     protected static function getEntityName(): string
@@ -40,7 +43,12 @@ class RigaIvaForm extends BaseForm
         $rivendita = (string) ($this->request->input['rivendita'] ?? '');
         $this->addRequest('rivendita', in_array($rivendita, ['1', '2'], true) ? '1' : '0');
         $this->addRequest('altriProdotti', $rivendita === '2' ? '1' : '0');
-        $this->addRequest('operazioneDiversa', ($this->request->input['operazioneDiversa'] ?? '') === '1' ? '1' : '0');
+        // regime agricolo, acquisti: destinati alle operazioni diverse o alle connesse occasionali
+        $destinazione = (string) ($this->request->input['destinazioneAgricola'] ?? '');
+        $this->addRequest('operazioneDiversa', (($this->request->input['operazioneDiversa'] ?? '') === '1') || ($destinazione === self::DESTINAZIONE_DIVERSE) ? '1' : '0');
+        if ($this->isDestinazioneAgricola()) {
+            $this->addRequest('qualifica', $destinazione === QualificaOperazione::connessaOccasionale->value ? $destinazione : '');
+        }
     }
 
     #[\Override]
@@ -75,7 +83,7 @@ class RigaIvaForm extends BaseForm
             return false;
         }
         $qualifica = $this->entityData->qualifica;
-        if (($qualifica !== null) && ($qualifica->isAmmessa($this->entityData->codiceIva?->natura) === false)) {
+        if (($qualifica !== null) && ($this->isDestinazioneAgricola() === false) && ($qualifica->isAmmessa($this->entityData->codiceIva?->natura) === false)) {
             $this->formFilterError->qualificaCustomMessage = 'Qualifica non compatibile con il codice IVA (esenti: N4; fuori campo: N2.1).';
             return false;
         }
@@ -90,6 +98,11 @@ class RigaIvaForm extends BaseForm
             return false;
         }
         return true;
+    }
+
+    private function isDestinazioneAgricola(): bool
+    {
+        return array_key_exists('destinazioneAgricola', $this->request->input);
     }
 
     /**

@@ -4,6 +4,7 @@ namespace Dichiarativi\Application\Services;
 
 use Dichiarativi\Application\Enumerations\StatoDichiarazione;
 use Dichiarativi\Application\Models\DichiarazioneModel;
+use Dichiarativi\Application\Models\GaranziaRimborsoModel;
 use SismaFramework\Orm\BaseClasses\BaseEntity;
 use SismaFramework\Orm\CustomTypes\SismaDate;
 use SismaFramework\Orm\HelperClasses\DataMapper;
@@ -16,8 +17,9 @@ use Telonio\Application\Services\Scadenza;
 /**
  * Scadenze del modulo per lo scadenzario dello studio: le dichiarazioni
  * predisposte, con il termine ordinario di presentazione telematica,
- * completate quando presentate. Saldi e crediti sono nell'archivio di
- * Deleghe F24 e compaiono da lì.
+ * completate quando presentate, e le garanzie dei rimborsi, completate quando
+ * svincolate. Saldi e crediti sono nell'archivio di Deleghe F24 e compaiono
+ * da lì.
  */
 class ScadenzeModulo implements FonteScadenze
 {
@@ -50,6 +52,31 @@ class ScadenzeModulo implements FonteScadenze
                         dettaglio: $dichiarazione->stato->getLabel(),
                 );
             }
+        }
+        return array_merge($scadenze, $this->getScadenzeGaranzie($studio, $dal, $al, $soggetto));
+    }
+
+    /**
+     * @return Scadenza[]
+     */
+    private function getScadenzeGaranzie(Studio $studio, SismaDate $dal, SismaDate $al, ?BaseEntity $soggetto): array
+    {
+        $model = new GaranziaRimborsoModel($this->dataMapper);
+        $scadenze = [];
+        foreach ($soggetto === null ? $model->getPerStudio($studio) : $model->getElenco($soggetto) as $garanzia) {
+            if (($garanzia->dataScadenza === null) || ($garanzia->dataScadenza->format('Y-m-d') < $dal->format('Y-m-d')) || ($garanzia->dataScadenza->format('Y-m-d') > $al->format('Y-m-d'))) {
+                continue;
+            }
+            $scadenze[] = new Scadenza(
+                    modulo: ModuloSuite::dichiarativi,
+                    riferimento: 'garanzia-' . $garanzia->id,
+                    data: $garanzia->dataScadenza,
+                    descrizione: 'Scadenza garanzia del rimborso IVA ' . $garanzia->annoImposta,
+                    soggetto: $garanzia->soggetto,
+                    url: '/contribuente-dichiarativi/show/soggetto/' . $garanzia->soggetto->id . '/anno/' . $garanzia->annoImposta,
+                    completata: $garanzia->isSvincolata(),
+                    dettaglio: $garanzia->tipo->getLabel(),
+            );
         }
         return $scadenze;
     }

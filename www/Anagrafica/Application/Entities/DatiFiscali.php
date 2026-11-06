@@ -53,6 +53,7 @@ class DatiFiscali extends BaseEntity implements Storicizzabile
     protected bool $trasparenzaFiscale = false;
     protected bool $ventilazioneCorrispettivi = false;
     protected ?RegimeDetrazioneIva $regimeDetrazioneIva = null;
+    protected ?string $opzioniOrdinarie = null;
     protected ?SismaDate $dataInizioAttivita = null;
     protected bool $nonResidenteIva = false;
     protected bool $startupInnovativa = false;
@@ -68,5 +69,16 @@ class DatiFiscali extends BaseEntity implements Storicizzabile
     protected function setPropertyDefaultValue(): void
     {
         $this->validoDal = new SismaDate();
+    }
+
+    /**
+     * Regimi agricoli a cui si è rinunciato applicando l'IVA nei modi
+     * ordinari per opzione (quadro VO della dichiarazione IVA).
+     *
+     * @return RegimeDetrazioneIva[]
+     */
+    public function getOpzioniOrdinarie(): array
+    {
+        return RegimeDetrazioneIva::leggiOpzioni($this->opzioniOrdinarie);
     }
 }

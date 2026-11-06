@@ -22,8 +22,13 @@ contribuente ha tre schede:
   spuntati (di default tutti) nella delega in bozza di quella data (creata
   se manca), separando ELIDE e accise nei loro modelli, e a richiesta li
   compensa con i crediti disponibili; quelli non spuntati restano da versare
-  (es. da pagare in un'altra data o da ravvedere dopo la scadenza). I
-  versamenti con data superata non si generano: "Ravvedi" apre il calcolo
+  (es. da pagare in un'altra data o da ravvedere dopo la scadenza). Il
+  modello si sceglie quando è possibile (`GenerazioneDeleghe::getModelli`):
+  ordinario o semplificato per Erario, Regioni, IMU e tributi locali (di
+  default l'ordinario, o il semplificato se c'è già una bozza semplificata
+  da completare); ELIDE e accise hanno il loro modello e INPS, INAIL e altri
+  enti solo l'ordinario, quindi con il semplificato vanno tolti dalla scelta.
+  I versamenti con data superata non si generano: "Ravvedi" apre il calcolo
   del ravvedimento nella delega della data scelta, con i dati del
   versamento, che non risulta più da versare.
 - **Deleghe**: le deleghe del contribuente, filtrabili per stato e anno.

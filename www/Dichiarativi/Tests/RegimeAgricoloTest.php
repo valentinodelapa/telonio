@@ -4,14 +4,17 @@ namespace Dichiarativi\Tests;
 
 use Anagrafica\Application\Enumerations\RegimeDetrazioneIva;
 use Contabilita\Application\Entities\CodiceIva;
+use Contabilita\Application\Entities\Conto;
 use Contabilita\Application\Enumerations\CausaleContabile;
 use Contabilita\Application\Enumerations\NaturaIva;
 use Contabilita\Application\Enumerations\QualificaOperazione;
+use Contabilita\Application\Enumerations\VoceCee;
 use Contabilita\Application\Services\CalcoloLiquidazioneIva;
 use Contabilita\Application\Services\EsoneroAgricolo;
 use Contabilita\Application\Services\RegimeIva;
 use Dichiarativi\Application\Enumerations\ModelloDichiarativo;
 use Dichiarativi\Application\Services\Iva\ControlliIva;
+use Dichiarativi\Application\Services\Iva\OpzioniAgricole;
 use Dichiarativi\Application\Services\Iva\PropostaIva;
 use Dichiarativi\Application\Services\Iva\PropostaTr;
 use Dichiarativi\Application\Services\Iva\RimborsoIva;
@@ -253,5 +256,134 @@ class RegimeAgricoloTest extends DichiarativiTestCase
         $this->assertFalse(RegimeDetrazioneIva::agriturismo->isCompensazione());
         $this->assertSame(0.5, RegimeDetrazioneIva::attivitaConnesse->getQuotaForfetaria());
         $this->assertSame(1 / 3, RegimeDetrazioneIva::associazioniAgricole->getQuotaForfetaria());
+    }
+
+    public function testBeneAmmortizzabileFuoriDalVf53(): void
+    {
+        $righe = $this->righe();
+        $conto = new Conto($this->dataMapper);
+        $conto->id = 900;
+        $conto->voceCee = VoceCee::attivoBII2;
+        $righe[6]->conto = $conto;
+        $this->rispondi(['dati_fiscali' => [$this->datiRegime(RegimeDetrazioneIva::agricolo)], 'riga_iva' => $righe]);
+        $risultato = (new CalcoloLiquidazioneIva($this->dataMapper))->calcola($this->azienda, new SismaDate('2025-01-01'), new SismaDate('2025-03-31'));
+        // come testLiquidazioneRegimeArticolo34 senza i 110 dell'acquisto destinato
+        $this->assertSame(2055.0, $risultato->ivaDetraibile);
+        $dichiarazione = $this->creaDichiarazione();
+        $quadri = $this->creaQuadri($dichiarazione);
+        $avvisi = (new PropostaIva($this->dataMapper))->proponi($dichiarazione, $quadri, []);
+        $this->assertSame(0, $quadri->getImporto('VF053002'));
+        $this->assertSame(2055, $quadri->getImporto('VF071002'));
+        $this->assertNotEmpty(array_filter($avvisi, fn(string $avviso) => str_contains($avviso, 'ene ammortizzabile segnato')));
+    }
+
+    public function testAcquistiDelleConnesseNelVf18(): void
+    {
+        $righe = $this->righe();
+        $acquisto = $this->creaRigaIva('22', 400.0, 1, null, $righe[5]->registrazioneContabile);
+        $acquisto->qualifica = QualificaOperazione::connessaOccasionale;
+        $this->rispondi(['dati_fiscali' => [$this->datiRegime(RegimeDetrazioneIva::agricolo)], 'riga_iva' => [...$righe, $acquisto]]);
+        $dichiarazione = $this->creaDichiarazione();
+        $quadri = $this->creaQuadri($dichiarazione);
+        (new PropostaIva($this->dataMapper))->proponi($dichiarazione, $quadri, []);
+        // i due acquisti al 22% restano nel rigo dell'aliquota, quello delle connesse solo nel VF18
+        $this->assertSame(3500, $quadri->getImporto('VF013001'));
+        $this->assertSame(400, $quadri->getImporto('VF018001'));
+        $this->assertSame(3900, $quadri->getImporto('VF025001'));
+        $this->assertSame(770, $quadri->getImporto('VF025002'));
+        $this->assertSame(2165, $quadri->getImporto('VF071002'));
+        $this->assertSame(0, $quadri->getImporto('VF026002'));
+    }
+
+    public function testConnessaFuoriDalRegimeSpecialeSegnalata(): void
+    {
+        $vendita = $this->creaRegistrazione(CausaleContabile::fatturaVendita, null, '2025-03-10');
+        $vendita->id = 1;
+        $connessa = $this->creaRigaIva('22', 1000.0, 1, null, $vendita);
+        $connessa->qualifica = QualificaOperazione::connessaOccasionale;
+        $this->rispondi(['dati_fiscali' => [$this->datiRegime(null)], 'riga_iva' => [$connessa]]);
+        $dichiarazione = $this->creaDichiarazione();
+        $avvisi = (new PropostaIva($this->dataMapper))->proponi($dichiarazione, $this->creaQuadri($dichiarazione), []);
+        $this->assertNotEmpty(array_filter($avvisi, fn(string $avviso) => str_contains($avviso, 'VF62')));
+    }
+
+    private function datiOpzioni(?RegimeDetrazioneIva $regime, string ...$opzioni)
+    {
+        $dati = $this->datiRegime($regime);
+        $dati->opzioniOrdinarie = RegimeDetrazioneIva::scriviOpzioni($opzioni);
+        return $dati;
+    }
+
+    public function testOpzioniERevocheDelQuadroVo(): void
+    {
+        foreach ([[RegimeDetrazioneIva::agricolo, 'VO003003', 'VO003004'], [RegimeDetrazioneIva::attivitaConnesse, 'VO003005', 'VO003006'], [RegimeDetrazioneIva::associazioniAgricole, 'VO031001', 'VO031002'],
+    [RegimeDetrazioneIva::agriturismo, 'VO032001', 'VO032002'], [RegimeDetrazioneIva::enoturismo, 'VO035001', 'VO035002'], [RegimeDetrazioneIva::oleoturismo, 'VO036001', 'VO036002']] as [$regime, $opzione, $revoca]) {
+            $this->assertArrayHasKey($opzione, $this->getCatalogoIva());
+            $this->assertArrayHasKey($revoca, $this->getCatalogoIva());
+            $this->assertSame([$opzione], OpzioniAgricole::calcola($this->datiOpzioni(null, $regime->value), $this->datiOpzioni(null), 0.0, 2025)['caselle']);
+            $esito = OpzioniAgricole::calcola($this->datiOpzioni(null), $this->datiOpzioni(null, $regime->value), 0.0, 2025);
+            $this->assertSame([$revoca], $esito['caselle']);
+            $this->assertSame([$regime], $esito['revocate']);
+        }
+        // opzione confermata: niente da comunicare
+        $this->assertSame([], OpzioniAgricole::calcola($this->datiOpzioni(null, 'AGR', 'TUR'), $this->datiOpzioni(null, 'TUR', 'AGR'), 0.0, 2025)['caselle']);
+    }
+
+    public function testRinunciaAllEsonero(): void
+    {
+        $esonerato = $this->datiOpzioni(RegimeDetrazioneIva::agricoloEsonerato);
+        // regime speciale per rinuncia: solo la casella 1
+        $this->assertSame(['VO003001'], OpzioniAgricole::calcola($this->datiOpzioni(RegimeDetrazioneIva::agricolo), $esonerato, 5000.0, 2025)['caselle']);
+        // anche i modi ordinari: caselle 1 e 3 insieme, come dicono le istruzioni
+        $this->assertEqualsCanonicalizing(['VO003001', 'VO003003'], OpzioniAgricole::calcola($this->datiOpzioni(null, 'AGR'), $esonerato, 5000.0, 2025)['caselle']);
+        // oltre i 7.000 euro l'esonero non spetta: non c'è rinuncia
+        $this->assertSame([], OpzioniAgricole::calcola($this->datiOpzioni(RegimeDetrazioneIva::agricolo), $esonerato, 8000.0, 2025)['caselle']);
+        // il ritorno all'esonero non si distingue dal rientro nei limiti
+        $esito = OpzioniAgricole::calcola($esonerato, $this->datiOpzioni(RegimeDetrazioneIva::agricolo), 0.0, 2025);
+        $this->assertSame([], $esito['caselle']);
+        $this->assertStringContainsString('casella 2', $esito['avvisi'][0]);
+    }
+
+    public function testRegimeLasciatoSenzaOpzione(): void
+    {
+        $esito = OpzioniAgricole::calcola($this->datiOpzioni(null), $this->datiOpzioni(RegimeDetrazioneIva::agriturismo), 0.0, 2025);
+        $this->assertSame([], $esito['caselle']);
+        $this->assertStringContainsString('senza l\'opzione', $esito['avvisi'][0]);
+        $this->assertSame([], OpzioniAgricole::calcola($this->datiOpzioni(null, 'TUR'), $this->datiOpzioni(RegimeDetrazioneIva::agriturismo), 0.0, 2025)['avvisi']);
+    }
+
+    public function testOpzioneSenzaVersionePrecedente(): void
+    {
+        $dati = $this->datiOpzioni(null, 'AGR');
+        $esito = OpzioniAgricole::calcola($dati, null, 0.0, 2025);
+        $this->assertSame([], $esito['caselle']);
+        $this->assertNotEmpty($esito['avvisi']);
+        // attività iniziata nell'anno: l'opzione è di quest'anno
+        $dati->dataInizioAttivita = new SismaDate('2025-02-01');
+        $this->assertSame(['VO003003'], OpzioniAgricole::calcola($dati, null, 0.0, 2025)['caselle']);
+    }
+
+    public function testRevocaPrimaDelTriennio(): void
+    {
+        $senza = $this->datiOpzioni(null);
+        $con = $this->datiOpzioni(null, 'TUR');
+        $quadri = $this->creaQuadri();
+        // 2025 senza, 2024 e 2023 con l'opzione, 2022 senza: applicata per due anni
+        $this->testAdapter->accodaSelect([$senza], [$con], [$con], [$senza]);
+        $avvisi = (new OpzioniAgricole($this->dataMapper))->proponi($quadri, $this->azienda, 2025);
+        $this->assertNotNull($quadri->get('VO032002'));
+        $this->assertStringContainsString('prima del triennio', $avvisi[0]);
+        // 2024, 2023 e 2022 con l'opzione: triennio rispettato
+        $this->testAdapter->accodaSelect([$senza], [$con], [$con], [$con]);
+        $this->assertSame([], (new OpzioniAgricole($this->dataMapper))->proponi($this->creaQuadri(), $this->azienda, 2025));
+    }
+
+    public function testOpzioniNeiDatiFiscali(): void
+    {
+        $this->assertSame('AGR;TUR', RegimeDetrazioneIva::scriviOpzioni(['AGR', 'TUR', 'AGR', 'ESO', 'XXX']));
+        $this->assertNull(RegimeDetrazioneIva::scriviOpzioni([]));
+        $this->assertSame([RegimeDetrazioneIva::agricolo, RegimeDetrazioneIva::agriturismo], $this->datiOpzioni(null, 'AGR', 'TUR')->getOpzioniOrdinarie());
+        $this->assertNotContains(RegimeDetrazioneIva::agricoloEsonerato, RegimeDetrazioneIva::getOpzionabili());
+        $this->assertLessThanOrEqual(23, strlen(RegimeDetrazioneIva::scriviOpzioni(array_map(fn(RegimeDetrazioneIva $regime) => $regime->value, RegimeDetrazioneIva::getOpzionabili()))));
     }
 }

@@ -134,6 +134,10 @@ require Layout::percorso('header');
                             <dt class="col-sm-5"><?= Html::e($campi['regimeFiscale']) ?></dt>
                             <dd class="col-sm-7"><?= Html::e($datiFiscaliVigenti->regimeFiscale->getLabel()) ?><?php if ($datiFiscaliVigenti->periodicitaIva !== null): ?> · <?= Html::e($campi['iva']) ?> <?= Html::e(mb_strtolower($datiFiscaliVigenti->periodicitaIva->getLabel())) ?><?php endif; ?></dd>
                         <?php endif; ?>
+                        <?php if (count($datiFiscaliVigenti->getOpzioniOrdinarie()) > 0): ?>
+                            <dt class="col-sm-5"><?= Html::e($campi['opzioniOrdinarie']) ?></dt>
+                            <dd class="col-sm-7"><?= Html::e(implode('; ', array_map(fn($opzione) => $opzione->getLabel(), $datiFiscaliVigenti->getOpzioniOrdinarie()))) ?></dd>
+                        <?php endif; ?>
                         <?php if ($datiFiscaliVigenti->soggettoIsa || $datiFiscaliVigenti->sostitutoImposta || $datiFiscaliVigenti->trasparenzaFiscale || $datiFiscaliVigenti->ventilazioneCorrispettivi || $datiFiscaliVigenti->nonResidenteIva || $datiFiscaliVigenti->startupInnovativa || $datiFiscaliVigenti->gruppoIvaArt70bis): ?>
                             <dt class="col-sm-5"></dt>
                             <dd class="col-sm-7">

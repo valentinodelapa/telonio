@@ -105,7 +105,7 @@ class AziendaDemo
     {
         $vigenti = (new DatiFiscaliModel($this->dataMapper))->getVigenteAl($soggetto, new SismaDate($dal));
         $nuovi = new DatiFiscali($this->dataMapper);
-        foreach (['denominazione', 'naturaGiuridica', 'tipoAttivita', 'partitaIva', 'codiceAteco', 'regimeFiscale', 'periodicitaIva', 'soggettoIsa', 'dataInizioAttivita'] as $proprieta) {
+        foreach (['denominazione', 'naturaGiuridica', 'tipoAttivita', 'partitaIva', 'codiceAteco', 'regimeFiscale', 'periodicitaIva', 'soggettoIsa', 'dataInizioAttivita', 'regimeDetrazioneIva', 'opzioniOrdinarie'] as $proprieta) {
             $nuovi->$proprieta = $vigenti->$proprieta;
         }
         $vigenti->validoAl = new SismaDate((new \DateTimeImmutable($dal))->modify('-1 day')->format('Y-m-d'));

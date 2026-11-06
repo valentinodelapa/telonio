@@ -300,6 +300,7 @@
                 "schedaAnagrafica": "Scheda anagrafica",
                 "aiutoVersamenti": "Versamenti dovuti dal contribuente, inseriti qui o calcolati dagli altri moduli (es. IMU). Per ogni data si genera la delega con i versamenti spuntati (gli altri restano da versare); i versamenti scaduti si regolarizzano con il ravvedimento.",
                 "aiutoSceltaDelega": "Da mettere in delega",
+                "aiutoSceltaModello": "Modello dei versamenti che ne ammettono più di uno: il semplificato non ammette INPS, INAIL e altri enti. ELIDE e accise hanno il loro modello.",
                 "nessunVersamento": "Nessun versamento da versare.",
                 "etichettaScaduto": "scaduto",
                 "etichettaCompensa": "compensa con i crediti",

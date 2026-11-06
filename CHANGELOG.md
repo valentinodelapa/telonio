@@ -2,6 +2,52 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.19.0-alpha] - 2026-11-06 - Garanzie dei Rimborsi e Opzioni Agricole
+
+Diciannovesima versione alpha: in `Dichiarativi` l'archivio delle garanzie dei rimborsi IVA con le scadenze nello scadenzario, le opzioni e revoche agricole del quadro VO proposte dai dati fiscali e gli acquisti delle connesse occasionali nel rigo VF18; in `Contabilita` la correzione della detrazione dei beni ammortizzabili nelle imprese agricole miste; in `Deleghe` la scelta del modello nella generazione della delega. Valgono le avvertenze della 0.1.0-alpha: la versione non è indicata per l'uso in produzione su dati reali.
+
+Versioni dei moduli: `Anagrafica` 0.9.0, `Contabilita` 0.5.0, `Deleghe` 0.6.0, `Dichiarativi` 0.3.0 (richiede `Anagrafica` 0.9.0 e `Contabilita` 0.5.0); `Telonio` 0.6.2, `Imu` 0.4.0, `Successioni` 0.3.2 e `GestioneStudio` 0.1.1 invariati.
+
+**Aggiornamento del database**: `sisma aggiorna-database` esegue `Anagrafica/Database/aggiornamento-0.9.sql` (colonna `dati_fiscali.opzioni_ordinarie`) e `Dichiarativi/Database/aggiornamento-0.3.sql` (tabella `garanzia_rimborso`), entrambi idempotenti. Con `sh aggiorna.sh` (con `sudo` se la cartella dell'installazione appartiene a root) sono compresi.
+
+Dopo l'aggiornamento conviene controllare le liquidazioni e riproporre le dichiarazioni IVA delle imprese agricole miste con acquisti di beni ammortizzabili segnati per le operazioni diverse: VF53, VF71 e l'IVA detraibile possono cambiare. Nei dati fiscali vanno indicate le opzioni per i modi ordinari già in corso, altrimenti al primo anno dopo l'indicazione risulterebbero come nuove opzioni.
+
+### ✨ Nuove Funzionalità
+
+#### `Deleghe` 0.6.0 — scelta del modello nella generazione della delega
+
+- **"Genera la delega"** nella scheda del contribuente chiede il modello quando i versamenti della data ne ammettono più di uno: F24 ordinario o semplificato per Erario, Regioni, IMU e tributi locali. Prima la delega nasceva sempre ordinaria (o completava una bozza già presente) e il semplificato si poteva impostare solo modificandola dopo;
+- il modello proposto è l'ordinario, o il semplificato se nella data c'è già una bozza semplificata da completare e tutti i versamenti lo ammettono. Dove il modello è obbligatorio la scelta non compare: ELIDE e accise restano nelle loro deleghe, le date con soli contributi INPS, INAIL o altri enti generano l'ordinario;
+- con il semplificato scelto e tra gli spuntati un versamento che non ammette (INPS, INAIL, altri enti), la delega non viene generata e il messaggio indica quale versamento togliere.
+
+#### `Dichiarativi` 0.3.0
+
+- **archivio delle garanzie dei rimborsi IVA** nella scheda del contribuente (art. 38-bis, c. 5): tipo, garante, importo, rilascio, esecuzione del rimborso e svincolo. La scadenza è proposta in tre anni dall'esecuzione del rimborso o, se inferiore, nel periodo mancante alla decadenza dell'accertamento, e compare nello scadenzario dello studio finché la garanzia non è svincolata;
+- **opzioni agricole del quadro VO** proposte dal confronto dei dati fiscali con quelli dell'anno precedente (`Services\Iva\OpzioniAgricole`): rinuncia all'esonero nei limiti di volume (VO3, casella 1), opzioni per i modi ordinari e revoche per art. 34 e 34-bis (VO3, caselle 3-6), associazioni (VO31), agriturismo (VO32), enoturismo (VO35) e oleoturismo (VO36), con l'avviso per le revoche entro il triennio;
+- **acquisti delle connesse occasionali** nel rigo VF18, campo 1, invece che nei righi dell'aliquota; prima andavano spostati a mano;
+- fixture: Nordic Trade con una polizza in corso e una fideiussione svincolata, Mario Campi con la rinuncia all'esonero e l'opzione per i modi ordinari, Tenuta Colli Berici con la revoca dell'opzione dell'agriturismo e un acquisto per le connesse occasionali.
+
+#### `Anagrafica` 0.9.0
+
+- nei **dati fiscali** storicizzati: regimi agricoli a cui si è rinunciato per applicare l'IVA nei modi ordinari.
+
+#### `Contabilita` 0.5.0
+
+- in prima nota, con il regime agricolo, la casella "Op. diverse" degli acquisti diventa la scelta **"Destinazione"**: operazioni diverse o connesse occasionali.
+
+### 🐛 Correzioni
+
+#### `Contabilita` 0.5.0
+
+- **beni ammortizzabili nelle imprese agricole miste** (art. 34, c. 5): un acquisto su un conto di immobilizzazione segnato per le operazioni diverse dava detrazione. Ora è escluso dalla liquidazione e dal VF53, con un avviso nella proposta della dichiarazione.
+
+### ⚠️ Limiti Noti
+
+- **Quadro VO**: il ritorno all'esonero (VO3, casella 2) resta un avviso, perché non si distingue dal rientro nei limiti senza una rinuncia precedente; le revoche e le opzioni si leggono dai dati fiscali del contribuente, non dalle singole attività separate;
+- **Connesse occasionali fuori dal regime speciale**: il rigo VF62 e la detrazione del 50% restano a mano, con un avviso;
+- **Imprese agricole miste**: gli acquisti promiscui non danno detrazione in attesa della verifica della circolare 328/E, par. 6.4;
+- **Garanzie del Gruppo IVA**: si registrano nello stesso archivio, ma la scadenza proposta è quella del rimborso e va controllata.
+
 ## [0.18.0-alpha] - 2026-11-06 - Casi Particolari IMU
 
 Diciottesima versione alpha: in `Imu` i casi particolari delle aliquote e dell'imposta, dal comodato ai parenti ai pensionati residenti all'estero, dagli alloggi IACP ai concessionari di aree demaniali, e i territori dove l'IMU non si applica; il controllo delle aliquote differenziate non perde più le condizioni che non riconosce. Valgono le avvertenze della 0.1.0-alpha: la versione non è indicata per l'uso in produzione su dati reali.

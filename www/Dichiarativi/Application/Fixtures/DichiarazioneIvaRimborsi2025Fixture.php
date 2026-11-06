@@ -30,6 +30,8 @@ use Deleghe\Application\Enumerations\SezioneF24;
 use Deleghe\Application\Fixtures\IntermediarioStudioFixture;
 use Deleghe\Application\Models\CodiceTributoModel;
 use Dichiarativi\Application\Entities\AttoAccertamento;
+use Dichiarativi\Application\Entities\GaranziaRimborso;
+use Dichiarativi\Application\Enumerations\TipoGaranzia;
 use Dichiarativi\Application\Entities\Dichiarazione;
 use Dichiarativi\Application\Entities\ValoreDichiarazione;
 use Dichiarativi\Application\Enumerations\ModelloDichiarativo;
@@ -123,6 +125,8 @@ class DichiarazioneIvaRimborsi2025Fixture extends BaseFixture
         $demo->presentaTr($nordic, 2025, 1, ['TD007001' => 3000.0], '2025-04-28', $this->getEntityByFixtureName(ProfessionistaMariniFixture::class));
         $this->atto($nordic, 2022, '2025-06-10', 'TK3AB0001', 100000.0, 104000.0);
         $this->atto($nordic, 2023, '2025-11-20', 'TK3AB0002', 100000.0, 125000.0);
+        $this->garanzia($nordic, 2024, TipoGaranzia::fideiussioneBancaria, 'Banca Adriatica S.p.A.', 12000.0, '2025-02-10', '2025-03-20', '2026-03-02');
+        $this->garanzia($nordic, 2025, TipoGaranzia::polizzaAssicurativa, 'Assicurazioni del Nord S.p.A.', 35000.0, '2026-06-10', '2026-07-15', null);
         $annuale = $this->dichiara($nordic, 35000, function (Dichiarazione $dichiarazione): void {
             $dichiarazione->attestazionePatrimoniale = true;
             $dichiarazione->verificaAccertamenti = true;
@@ -182,6 +186,23 @@ class DichiarazioneIvaRimborsi2025Fixture extends BaseFixture
         $demo->compensaCredito($this->credito($holding, 8000.0, 'Credito IVA di gruppo 2024'), 2000.0, '2025-02-17');
         $this->dichiara($holding, 0, null, ['VY004001' => 2000]);
         $this->addEntity($annuale);
+    }
+
+    private function garanzia(Soggetto $soggetto, int $anno, TipoGaranzia $tipo, string $garante, float $importo, string $rilascio, string $rimborso, ?string $svincolo): void
+    {
+        $garanzia = new GaranziaRimborso($this->dataMapper);
+        $garanzia->studio = $soggetto->studio;
+        $garanzia->soggetto = $soggetto;
+        $garanzia->annoImposta = $anno;
+        $garanzia->tipo = $tipo;
+        $garanzia->garante = $garante;
+        $garanzia->estremi = 'GR/' . $anno;
+        $garanzia->importo = $importo;
+        $garanzia->dataRilascio = new SismaDate($rilascio);
+        $garanzia->dataRimborso = new SismaDate($rimborso);
+        $garanzia->dataScadenza = $garanzia->getScadenzaProposta();
+        $garanzia->dataSvincolo = $svincolo === null ? null : new SismaDate($svincolo);
+        $this->dataMapper->save($garanzia);
     }
 
     private function atto(Soggetto $soggetto, int $anno, string $notifica, string $estremi, float $dichiarato, float $accertato): void

@@ -411,6 +411,11 @@ senza importo un avviso segnala che il credito sarebbe rimborsabile):
   l'1% del dichiarato (`AttoAccertamento`). La casella del frontespizio
   attesta la verifica degli atti: con l'archivio vuoto e senza la casella resta
   un avviso, perché un archivio vuoto può essere solo non aggiornato;
+- le **garanzie** prestate si registrano nella scheda del contribuente (tipo,
+  garante, importo, rilascio, esecuzione del rimborso e svincolo): con la data
+  del rimborso la scadenza è proposta in tre anni o, se inferiore, nel periodo
+  mancante alla decadenza dell'accertamento, e compare nello scadenzario dello
+  studio finché la garanzia non è svincolata;
 - **procedura semplificata** (campo 2, a scelta del contribuente):
   un'avvertenza se con le compensazioni dell'anno in Deleghe supera i
   2.000.000 di euro.
@@ -441,8 +446,21 @@ non ammettono più di una casella per modulo.
   un terzo o il volume dell'anno precedente supera 7.000 euro: agricole nella
   sezione 1 del VE, diverse nella sezione 2, sezione 3-B, senza il quadro VH.
 
-Il modello IVA TR riporta l'IVA teorica nel TC5. Le opzioni del quadro VO e gli
-spostamenti nel VF18 per il VF62 restano a mano.
+Gli **acquisti per le connesse occasionali** vanno nel rigo VF18, campo 1, dalla
+destinazione indicata in prima nota. Gli acquisti destinati alle operazioni
+diverse entrano nel VF53 solo se non sono beni ammortizzabili (art. 34, c. 5).
+Le operazioni connesse occasionali di chi non è nel regime speciale restano a
+mano, con un avviso.
+
+Il **quadro VO** è proposto dal confronto dei dati fiscali con quelli dell'anno
+precedente (`Services\Iva\OpzioniAgricole`): rinuncia all'esonero nei limiti di
+volume (VO3, casella 1), opzioni per i modi ordinari e revoche per art. 34 e
+34-bis (VO3, caselle 3-6), associazioni (VO31), agriturismo (VO32), enoturismo
+(VO35) e oleoturismo (VO36). Una revoca entro il triennio minimo è segnalata. Il
+ritorno all'esonero (VO3, casella 2) resta un avviso: non si distingue dal
+semplice rientro nei limiti. Gli altri righi del quadro si compilano a mano.
+
+Il modello IVA TR riporta l'IVA teorica nel TC5.
 
 ## Modello IVA TR
 
@@ -551,6 +569,8 @@ VL9 e VW24.
   ATECO.
 - **Alberto Conti**: professionista che passa al regime forfetario dal 2026,
   causale 11.
+- **Garanzie**: Nordic Trade S.r.l. ha una polizza in corso e una fideiussione
+  svincolata.
 - **Nordic Trade S.r.l.**: non residente con il rappresentante fiscale (TD4,
   causale 6), attività iniziata nel settembre 2024: rimborso di 35.000 euro
   con la garanzia dovuta nonostante visto e attestazione.
@@ -564,7 +584,11 @@ VL9 e VW24.
   triennio (VY4, quadro VZ). Le dichiarazioni 2023 e 2024 hanno solo gli importi
   che servono al calcolo (VX5, VY5), senza catalogo di quegli anni: non generano
   il file.
-- **Tenuta Colli Berici S.r.l.**: cinque moduli per regime (art. 34 con
+- **Mario Campi**: esonerato fino al 2024, rinuncia e opzione per i modi
+  ordinari dal 2025 (VO3, caselle 1 e 3).
+- **Tenuta Colli Berici S.r.l.**: revoca dal 2025 dell'opzione dell'agriturismo
+  (VO32, casella 2), acquisto per le connesse occasionali (VF18), cinque moduli
+  per regime (art. 34 con
   compensazione, conferimento, esportazione, operazioni diverse e connessa
   occasionale; agriturismo, connesse, enoturismo, oleoturismo); il VF71 dei
   moduli coincide con la detrazione delle liquidazioni, comunicazione del terzo
@@ -622,10 +646,9 @@ dei moduli devono essere dello stesso studio.
   acconti e versamenti in Deleghe, record B e file telematico "RPF26";
 - tabella dei prodotti con la percentuale di compensazione: oggi la
   percentuale si sceglie sulla riga;
-- rettifica della detrazione nel passaggio tra regimi (art. 19-bis2) e
-  autofatture degli acquirenti dagli agricoltori esonerati;
-- gestione delle garanzie (polizza, importo, scadenza);
-
+- rettifica della detrazione nel passaggio tra regimi (art. 19-bis2, prospetto D
+  per il VF70) e autofatture degli acquirenti dagli agricoltori esonerati;
+- acquisti promiscui delle imprese agricole miste (art. 34, c. 5);
 - verifica dei file con il software di controllo dell'Agenzia delle
   Entrate;
 - modelli 2027: nuovo catalogo dalle specifiche quando pubblicate e

@@ -4,6 +4,7 @@ use Telonio\Application\HelperClasses\Html;
 use Telonio\Application\HelperClasses\Layout;
 use Deleghe\Application\Enumerations\SezioneF24;
 use Deleghe\Application\HelperClasses\Importo;
+use Deleghe\Application\Enumerations\ModelloF24;
 use Deleghe\Application\Services\CalcoloRateazione;
 use Deleghe\Application\Services\EsitoControllo;
 
@@ -123,6 +124,13 @@ require Layout::percorso('header');
                         <?= $campoCsrf ?>
                         <input type="hidden" name="scadenza" value="<?= Html::e($data) ?>">
                         <input type="hidden" name="scelta" value="1">
+                        <?php if (isset($modelliDate[$data])): ?>
+                            <select class="form-select form-select-sm w-auto" name="modello" aria-label="<?= Html::e($campi['modello']) ?>" title="<?= Html::e($aiutoSceltaModello) ?>">
+                                <?php foreach ([ModelloF24::ordinario, ModelloF24::semplificato] as $modelloDelega): ?>
+                                    <option value="<?= Html::e($modelloDelega->value) ?>" <?= $modelloDelega === $modelliDate[$data] ? 'selected' : '' ?>><?= Html::e($modelloDelega->getLabel()) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        <?php endif; ?>
                         <?php if ($creditiConResiduo > 0): ?>
                             <div class="form-check small mb-0">
                                 <input class="form-check-input" type="checkbox" name="compensa" value="1" id="compensa-<?= Html::e($data) ?>" checked>

@@ -44,7 +44,15 @@
                 "estremiAtto": "Estremi dell'atto",
                 "importoDichiarato": "Importo dichiarato",
                 "importoAccertato": "Importo accertato",
-                "verificaAccertamenti": "Verificati gli atti notificati nei due anni precedenti"
+                "verificaAccertamenti": "Verificati gli atti notificati nei due anni precedenti",
+                "tipoGaranzia": "Tipo di garanzia",
+                "garante": "Garante",
+                "estremiGaranzia": "Estremi",
+                "importoGarantito": "Importo garantito",
+                "dataRilascio": "Data di rilascio",
+                "dataRimborso": "Esecuzione del rimborso",
+                "dataScadenzaGaranzia": "Scadenza",
+                "dataSvincolo": "Data di svincolo"
             },
             "azioni": {
                 "cerca": "Cerca",
@@ -94,7 +102,12 @@
                 "sezioneAccertamenti": "Atti di accertamento",
                 "nessunAtto": "Nessun atto in archivio.",
                 "oltreSoglia": "Oltre soglia",
-                "aiutoAccertamenti": "Per i rimborsi IVA oltre 30.000 euro: un atto notificato nei due anni precedenti con la differenza oltre il 10%, il 5% o l'1% del dichiarato rende dovuta la garanzia (art. 38-bis, c. 4, lett. b)."
+                "aiutoAccertamenti": "Per i rimborsi IVA oltre 30.000 euro: un atto notificato nei due anni precedenti con la differenza oltre il 10%, il 5% o l'1% del dichiarato rende dovuta la garanzia (art. 38-bis, c. 4, lett. b).",
+                "sezioneGaranzie": "Garanzie dei rimborsi",
+                "nessunaGaranzia": "Nessuna garanzia in archivio.",
+                "svincolata": "Svincolata",
+                "confermaEliminaGaranzia": "Eliminare la garanzia?",
+                "aiutoGaranzie": "Le scadenze delle garanzie compaiono nello scadenzario dello studio (art. 38-bis, c. 5)."
             }
         },
         "dichiarazione": {
@@ -148,6 +161,11 @@
         "attoAccertamento": {
             "form": {
                 "aiutoDichiarato": "L'imposta dovuta o il credito dichiarato per l'anno."
+            }
+        },
+        "garanziaRimborso": {
+            "form": {
+                "aiutoScadenza": "Se vuota si propone con il rimborso: tre anni dall'esecuzione o, se inferiore, il periodo mancante alla decadenza dell'accertamento."
             }
         }
     }

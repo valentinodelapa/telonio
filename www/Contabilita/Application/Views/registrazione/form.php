@@ -110,7 +110,12 @@ require Layout::percorso('header');
                                     </select></td>
                                 <?php endif; ?>
                                 <?php if ($acquisti && $regimeAgricolo): ?>
-                                    <td class="text-center" style="width: 5rem"><input type="checkbox" class="form-check-input" name="<?= Html::e($prefisso) ?>[operazioneDiversa]" value="1" title="<?= Html::e($aiutoOperazioneDiversa) ?>" aria-label="<?= Html::e($campi['operazioneDiversa']) ?>" <?= ($riga['operazioneDiversa'] ?? '') === '1' ? 'checked' : '' ?>></td>
+                                    <?php $destinazione = $riga['destinazioneAgricola'] ?? (($riga['operazioneDiversa'] ?? '') === '1' ? 'D' : (($riga['qualifica'] ?? '') === 'K' ? 'K' : '')); ?>
+                                    <td style="width: 7rem"><select class="form-select form-select-sm" name="<?= Html::e($prefisso) ?>[destinazioneAgricola]" aria-label="<?= Html::e($campi['operazioneDiversa']) ?>" title="<?= Html::e($aiutoOperazioneDiversa) ?>">
+                                        <option value="">-</option>
+                                        <option value="D" <?= $destinazione === 'D' ? 'selected' : '' ?>><?= Html::e($destinazioneDiverse) ?></option>
+                                        <option value="K" <?= $destinazione === 'K' ? 'selected' : '' ?>><?= Html::e($destinazioneConnesse) ?></option>
+                                    </select></td>
                                 <?php endif; ?>
                                 <?php if ($acquisti && $ventilazione): ?>
                                     <td style="width: 7rem"><select class="form-select form-select-sm" name="<?= Html::e($prefisso) ?>[rivendita]" aria-label="<?= Html::e($campi['rivendita']) ?>">

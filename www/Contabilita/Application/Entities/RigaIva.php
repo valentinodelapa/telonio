@@ -71,6 +71,30 @@ class RigaIva extends BaseEntity
     }
 
     /**
+     * IVA detraibile dell'acquisto destinato alle operazioni diverse delle
+     * imprese agricole miste: solo beni non ammortizzabili e servizi (art.
+     * 34, c. 5, D.P.R. 633/1972; rigo VF53).
+     */
+    public function getDetrazioneOperazioneDiversa(): float
+    {
+        return $this->operazioneDiversa && ($this->isBeneAmmortizzabile() === false) ? $this->getImpostaDetraibile() : 0.0;
+    }
+
+    public function isBeneAmmortizzabile(): bool
+    {
+        return self::isImmobilizzazione($this->conto?->voceCee?->value);
+    }
+
+    /**
+     * Voce CEE delle immobilizzazioni immateriali (B.I) e materiali (B.II)
+     * dell'attivo, i cui acquisti sono beni ammortizzabili.
+     */
+    public static function isImmobilizzazione(?string $voceCee): bool
+    {
+        return ($voceCee !== null) && (str_starts_with($voceCee, 'A.B.I.') || str_starts_with($voceCee, 'A.B.II.'));
+    }
+
+    /**
      * Quote degli acquisti promiscui per numero di attività separata.
      *
      * @return array<int, float> percentuali (somma 100)

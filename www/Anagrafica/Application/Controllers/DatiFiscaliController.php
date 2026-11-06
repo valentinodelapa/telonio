@@ -88,7 +88,7 @@ class DatiFiscaliController extends AnagraficaController
      */
     private function copiaDati(DatiFiscali $origine, DatiFiscali $destinazione): void
     {
-        foreach (['denominazione', 'naturaGiuridica', 'tipoAttivita', 'partitaIva', 'codiceAteco', 'descrizioneAttivita', 'enteNonCommerciale', 'regimeFiscale', 'periodicitaIva', 'soggettoIsa', 'sostitutoImposta', 'trasparenzaFiscale', 'ventilazioneCorrispettivi', 'regimeDetrazioneIva', 'dataInizioAttivita', 'nonResidenteIva', 'startupInnovativa', 'gruppoIvaArt70bis'] as $proprieta) {
+        foreach (['denominazione', 'naturaGiuridica', 'tipoAttivita', 'partitaIva', 'codiceAteco', 'descrizioneAttivita', 'enteNonCommerciale', 'regimeFiscale', 'periodicitaIva', 'soggettoIsa', 'sostitutoImposta', 'trasparenzaFiscale', 'ventilazioneCorrispettivi', 'regimeDetrazioneIva', 'opzioniOrdinarie', 'dataInizioAttivita', 'nonResidenteIva', 'startupInnovativa', 'gruppoIvaArt70bis'] as $proprieta) {
             $destinazione->$proprieta = $origine->$proprieta;
         }
     }

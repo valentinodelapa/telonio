@@ -6,7 +6,8 @@ namespace Contabilita\Application\Enumerations;
  * Qualifica delle operazioni attive che la dichiarazione IVA tratta a parte
  * nel calcolo del pro-rata di detrazione (art. 19, c. 3 e 5, e art.
  * 19-bis, c. 2, D.P.R. 633/1972; rigo VF34) o esclude dal volume d'affari
- * (art. 20; rigo VE40).
+ * (art. 20; rigo VE40). Tra gli acquisti vale la sola connessa occasionale,
+ * per gli acquisti afferenti alle operazioni dell'art. 34-bis (rigo VF18).
  */
 enum QualificaOperazione: string
 {
@@ -32,7 +33,7 @@ enum QualificaOperazione: string
             self::fuoriCampoSenzaDetrazione => 'Non soggetta senza diritto alla detrazione (art. 19, c. 3, lett. b; VF34 campo 8)',
             self::prestazioneNonStabiliti => 'Prestazione verso soggetti non stabiliti: lavorazioni, trasporti, intermediazioni e accessori, art. 19, c. 3, lett. a-bis (art. 30, c. 2, lett. d; modello IVA TR, TD5)',
             self::conferimentoAgricolo => 'Conferimento a cooperative o consorzi con la percentuale di compensazione (art. 34, c. 2; VE sezione 1)',
-            self::connessaOccasionale => 'Attività agricola connessa occasionale (art. 34-bis; VF62)',
+            self::connessaOccasionale => 'Attività agricola connessa occasionale (art. 34-bis; VF62, gli acquisti nel VF18)',
         };
     }
 

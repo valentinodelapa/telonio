@@ -6,6 +6,7 @@ use Anagrafica\Application\Entities\Soggetto;
 use Anagrafica\Application\Models\SoggettoModel;
 use Deleghe\Application\BaseClasses\DelegheController;
 use Deleghe\Application\Entities\Versamento;
+use Deleghe\Application\Enumerations\ModelloF24;
 use Deleghe\Application\Enumerations\SezioneF24;
 use Deleghe\Application\Enumerations\StatoDelega;
 use Deleghe\Application\Models\CreditoModel;
@@ -13,6 +14,7 @@ use Deleghe\Application\Models\DelegaModel;
 use Deleghe\Application\Models\PianoRateazioneModel;
 use Deleghe\Application\Models\RavvedimentoModel;
 use Deleghe\Application\Models\VersamentoModel;
+use Deleghe\Application\Services\GenerazioneDeleghe;
 use Deleghe\Application\Services\RateazioneService;
 use SismaFramework\Core\HttpClasses\Response;
 use SismaFramework\Orm\CustomTypes\SismaDate;
@@ -100,6 +102,7 @@ class ContribuenteController extends DelegheController
         $this->vars['crediti'] = $crediti;
         $this->vars['piani'] = iterator_to_array((new PianoRateazioneModel($this->dataMapper))->getElenco($soggetto), false);
         $this->vars['dateRateizzabili'] = $this->getDateRateizzabili($daVersare);
+        $this->vars['modelliDate'] = $this->getModelliDate($soggetto, $daVersare);
         $this->vars['deleghe'] = $deleghe;
         $this->vars['statoFiltro'] = $statoDelega;
         $this->vars['annoFiltro'] = $anno;
@@ -111,6 +114,36 @@ class ContribuenteController extends DelegheController
         $this->vars['pageTitle'] = $soggetto->nominativo;
         $this->vars['briciole'] = ['Deleghe F24' => '/contribuente/index', $soggetto->nominativo => null];
         return $this->render->generateView('contribuente/show', $this->vars);
+    }
+
+    /**
+     * Date non scadute con versamenti che ammettono più modelli, con il
+     * modello proposto: l'ordinario, o il semplificato se c'è già una bozza
+     * semplificata da completare e tutti i versamenti lo ammettono.
+     *
+     * @param array<string, Versamento[]> $daVersare
+     * @return array<string, ModelloF24>
+     */
+    private function getModelliDate(Soggetto $soggetto, array $daVersare): array
+    {
+        $oggi = (new SismaDate())->format('Y-m-d');
+        $delegaModel = new DelegaModel($this->dataMapper);
+        $modelli = [];
+        foreach ($daVersare as $data => $versamenti) {
+            $alternative = array_map(fn(Versamento $versamento) => GenerazioneDeleghe::getModelli($versamento->sezione), $versamenti);
+            if (($data < $oggi) || (max(array_map('count', $alternative)) < 2)) {
+                continue;
+            }
+            $modelli[$data] = ModelloF24::ordinario;
+            if (in_array([ModelloF24::ordinario], $alternative, true) === false) {
+                foreach ($delegaModel->getPerScadenza($soggetto, new SismaDate($data)) as $delega) {
+                    if ($delega->isModificabile() && ($delega->modello === ModelloF24::semplificato)) {
+                        $modelli[$data] = ModelloF24::semplificato;
+                    }
+                }
+            }
+        }
+        return $modelli;
     }
 
     /**

@@ -1,6 +1,7 @@
 <?php
 
 use Anagrafica\Application\Enumerations\TipoSoggetto;
+use Anagrafica\Application\Enumerations\RegimeDetrazioneIva;
 use Telonio\Application\HelperClasses\Campo;
 use Telonio\Application\HelperClasses\Html;
 use Telonio\Application\HelperClasses\Layout;
@@ -34,6 +35,17 @@ require Layout::percorso('header');
             <?= Campo::autocompleta('codiceAteco', $campi['codiceAteco'], $formEntity, $errors, '/tabelle/ateco', isset($formEntity->codiceAteco) ? $formEntity->codiceAteco->getEtichetta() : null, ['colonna' => 'col-md-9', 'campoData' => 'validoDal', 'segnaposto' => $segnapostoAteco, 'aiuto' => isset($atecoConvertitoDa) ? $atecoConvertitoDa->classificazione->getLabel() . ' ' . $atecoConvertitoDa->getEtichetta() . ': ' . ($atecoRaccordoTrovato ? $aiutoRaccordoAteco : $aiutoRaccordoAtecoAssente) : null]) ?>
             <?= Campo::testo('descrizioneAttivita', $campi['descrizioneAttivita'], $formEntity, $errors, ['colonna' => 'col-md-6', 'attributi' => 'maxlength="255"']) ?>
             <?php $origineRegime = $formEntity; $erroriRegime = $errors; require __DIR__ . '/../commonParts/campiRegime.php'; ?>
+            <fieldset class="col-12">
+                <legend class="form-label fs-6 mb-1"><?= Html::e($campi['opzioniOrdinarie']) ?></legend>
+                <?php $opzioniScelte = RegimeDetrazioneIva::leggiOpzioni($formEntity?->opzioniOrdinarie ?? null); ?>
+                <?php foreach (RegimeDetrazioneIva::getOpzionabili() as $opzione): ?>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" name="opzioniOrdinarie[]" id="opzione<?= Html::e($opzione->value) ?>" value="<?= Html::e($opzione->value) ?>" <?= in_array($opzione, $opzioniScelte, true) ? 'checked' : '' ?>>
+                        <label class="form-check-label" for="opzione<?= Html::e($opzione->value) ?>"><?= Html::e($opzione->getLabel()) ?></label>
+                    </div>
+                <?php endforeach; ?>
+                <div class="form-text"><?= Html::e($aiutoOpzioniOrdinarie) ?></div>
+            </fieldset>
         </div>
     </div>
     <?php require __DIR__ . '/../commonParts/pulsantiForm.php'; ?>

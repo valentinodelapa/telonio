@@ -44,7 +44,10 @@ use Telonio\Application\Fixtures\StudioFixture;
  * e oleoturismo con la detrazione del 50%), Cantina Export S.r.l. (IVA teorica
  * delle esportazioni: modello IVA TR con il TC5 e causale 7), Rosa Fiore
  * (esonerata nei limiti: dichiarazione non dovuta) e Gino Orti (esonerato
- * oltre il limite di un terzo: dichiarazione senza VH).
+ * oltre il limite di un terzo: dichiarazione senza VH), Mario Campi
+ * (rinuncia all'esonero e opzione per i modi ordinari dal 2025: VO3, caselle
+ * 1 e 3). Tenuta Colli Berici revoca dal 2025 l'opzione dell'agriturismo (VO32,
+ * casella 2) e ha un acquisto per le connesse occasionali (VF18).
  */
 class DichiarazioneIvaAgricoltura2025Fixture extends BaseFixture
 {
@@ -69,6 +72,10 @@ class DichiarazioneIvaAgricoltura2025Fixture extends BaseFixture
         // Tenuta Colli Berici: un'attività e un registro per ogni regime
         $tenuta = $demo->creaSocieta($studio, 'C059', '09990008006', 'Tenuta Colli Berici S.r.l.', NaturaGiuridica::societaResponsabilitaLimitata, '01.21.00', PeriodicitaIva::trimestrale, 'L840', 'Via dei Colli 5', '36100');
         $demo->legame($tenuta, $rossi, RuoloLegame::amministratoreUnico);
+        $datiTenuta = (new DatiFiscaliModel($this->dataMapper))->getVigenteAl($tenuta, new SismaDate('2024-12-31'));
+        $datiTenuta->opzioniOrdinarie = RegimeDetrazioneIva::agriturismo->value;
+        $this->dataMapper->save($datiTenuta);
+        $demo->variaDatiFiscali($tenuta, '2025-01-01', ['opzioniOrdinarie' => null]);
         $esercizio = $demo->apriContabilita($tenuta, 2025);
         $agricola = $demo->attivita($tenuta, 1, 'Viticoltura', '01.21.00', null, 2025);
         $agricola->regimeDetrazioneIva = RegimeDetrazioneIva::agricolo;
@@ -87,6 +94,7 @@ class DichiarazioneIvaAgricoltura2025Fixture extends BaseFixture
         RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $cliente, $vendita, '2025-09-11', '6', ['22' => 2000.0], ['qualifica' => QualificaOperazione::connessaOccasionale]);
         RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $fornitore, $acquisto, '2025-02-18', 'CA/1', ['22' => 10000.0]);
         RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $fornitore, $acquisto, '2025-06-05', 'CA/2', ['22' => 1000.0], ['operazioneDiversa' => true]);
+        RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $fornitore, $acquisto, '2025-09-02', 'CA/3', ['22' => 500.0], ['qualifica' => QualificaOperazione::connessaOccasionale]);
         foreach ([[2, 'Agriturismo', '55.20.51', RegimeDetrazioneIva::agriturismo, 'AT', '10', 12000.0], [3, 'Lavorazioni conto terzi con le attrezzature agricole', '01.61.10', RegimeDetrazioneIva::attivitaConnesse, 'CN', '22', 6000.0],
     [4, 'Enoturismo', '56.11.11', RegimeDetrazioneIva::enoturismo, 'EN', '22', 3000.0], [5, 'Oleoturismo', '56.11.11', RegimeDetrazioneIva::oleoturismo, 'OL', '22', 1000.0]] as [$numero, $descrizione, $ateco, $regime, $sezionale, $codice, $importo]) {
             $attivita = $demo->attivita($tenuta, $numero, $descrizione, $ateco, null, 2025);
@@ -121,7 +129,15 @@ class DichiarazioneIvaAgricoltura2025Fixture extends BaseFixture
         RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $mercato, $vendita, '2025-05-15', '1', ['4' => 4000.0], ['percentualeCompensazione' => 4.0]);
         RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $mercato, $vendita, '2025-09-20', '2', ['22' => 3000.0]);
         RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $demo->controparte($orti, 'Attrezzature Agricole S.r.l.', '07000111005', false), $acquisto, '2025-04-02', 'AA/1', ['22' => 1000.0], ['operazioneDiversa' => true]);
-        $this->addEntity($this->dichiara($orti));
+        $this->dichiara($orti);
+        // Mario Campi: già esonerato, dal 2025 rinuncia e applica l'IVA nei modi ordinari
+        $campi = $this->creaAgricoltore($demo, $studio, 'C064', 'CMPMRA72C03L840C', 'Campi', 'Mario', Sesso::maschio, '1972-03-03', '09990013006');
+        $demo->variaDatiFiscali($campi, '2025-01-01', ['regimeDetrazioneIva' => null, 'opzioniOrdinarie' => RegimeDetrazioneIva::agricolo->value]);
+        $esercizio = $demo->apriContabilita($campi, 2025);
+        RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $demo->controparte($campi, 'Mercato Ortofrutticolo di Vicenza', '07999000004', true), $vendita, '2025-06-10', '1', ['4' => 5000.0]);
+        RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $demo->controparte($campi, 'Attrezzature Agricole S.r.l.', '07000111005', false), $acquisto, '2025-03-12', 'AA/1', ['22' => 1000.0]);
+        $this->elaboraAnno($elaborazione, $campi);
+        $this->addEntity($this->dichiara($campi));
     }
 
     private function elaboraAnno(ElaborazioneLiquidazione $elaborazione, Soggetto $soggetto): void

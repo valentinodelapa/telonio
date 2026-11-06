@@ -352,7 +352,7 @@ class RegistrazioneController extends ContabilitaController
                 $riga->aliquotaTeorica = null;
                 $riga->operazioneDiversa = false;
             } else {
-                $riga->qualifica = null;
+                $riga->qualifica = $riga->qualifica === QualificaOperazione::connessaOccasionale ? $riga->qualifica : null;
                 $riga->percentualeCompensazione = null;
             }
             // acquisti promiscui tra attività separate: quote per numero di attività (solo nei registri senza attività)

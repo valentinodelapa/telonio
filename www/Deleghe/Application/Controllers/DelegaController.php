@@ -137,7 +137,7 @@ class DelegaController extends DelegheController
             return $this->vaiAlContribuente($soggetto);
         }
         try {
-            $deleghe = (new GenerazioneDeleghe($this->dataMapper))->genera($soggetto, $scadenza, isset($request->input['compensa']), $idScelti);
+            $deleghe = (new GenerazioneDeleghe($this->dataMapper))->genera($soggetto, $scadenza, isset($request->input['compensa']), $idScelti, ModelloF24::tryFrom((string) ($request->input['modello'] ?? '')));
         } catch (DelegaNonModificabileException | \InvalidArgumentException $errore) {
             $this->aggiungiMessaggio($errore->getMessage(), 'danger');
             return $this->vaiAlContribuente($soggetto);

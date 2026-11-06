@@ -452,7 +452,9 @@ detraggono e `Services\CalcoloLiquidazioneIva` determina la detrazione:
   per le non imponibili (IVA teorica, art. 34, c. 9); i conferimenti con la
   qualifica dedicata e i codici IVA `C2`-`C12.3` hanno la percentuale come
   aliquota. Nelle imprese miste (c. 5) le vendite senza percentuale sono
-  operazioni diverse e si detrae l'IVA degli acquisti segnati nella prima nota.
+  operazioni diverse e si detrae l'IVA degli acquisti segnati nella prima nota,
+  esclusi i beni ammortizzabili (conto di immobilizzazione). Gli acquisti per le
+  connesse occasionali si segnano allo stesso modo e vanno nel rigo VF18.
   Le attività connesse occasionali (qualifica) danno il 50% dell'imposta;
 - **art. 34-bis, agriturismo, enoturismo e oleoturismo**: 50% dell'imposta sulle
   operazioni imponibili; **associazioni** in agricoltura: un terzo.

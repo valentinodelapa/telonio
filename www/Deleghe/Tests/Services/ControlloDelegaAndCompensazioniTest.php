@@ -513,6 +513,39 @@ class ControlloDelegaAndCompensazioniTest extends SuiteTestCase
         $this->testAdapter->accodaSelect(new TestResultSet([$escluso]), TestResultSet::conteggio(0));
         $this->assertSame([], $gen->genera($soggetto, new SismaDate('2026-06-16'), false, [55]));
         $this->assertNull($escluso->delega);
+
+        // modelli tra cui scegliere: obbligatorio per ELIDE, accise e contributi, a scelta per gli altri
+        $this->assertSame([ModelloF24::elide], GenerazioneDeleghe::getModelli(SezioneF24::elide));
+        $this->assertSame([ModelloF24::accise], GenerazioneDeleghe::getModelli(SezioneF24::accise));
+        $this->assertSame([ModelloF24::ordinario], GenerazioneDeleghe::getModelli(SezioneF24::inps));
+        $this->assertSame([ModelloF24::ordinario, ModelloF24::semplificato], GenerazioneDeleghe::getModelli(SezioneF24::tributiLocali));
+        $this->assertSame(ModelloF24::ordinario, GenerazioneDeleghe::getModello(SezioneF24::erario));
+
+        // semplificato scelto: la bozza ordinaria della data non si completa, ne nasce una semplificata
+        $scelto = clone $daVersare;
+        $scelto->id = 57;
+        $scelto->delega = null;
+        $this->testAdapter->accodaSelect(new TestResultSet([$scelto]), TestResultSet::conteggio(0), new TestResultSet([$delega]));
+        $delegheScelte = $gen->genera($soggetto, new SismaDate('2026-06-16'), false, null, ModelloF24::semplificato);
+        $this->assertCount(1, $delegheScelte);
+        $this->assertNotSame($delega, $delegheScelte[0]);
+        $this->assertSame(ModelloF24::semplificato, $delegheScelte[0]->modello);
+
+        // il semplificato non ammette i contributi: errore, nessuna delega
+        $contributo = clone $daVersare;
+        $contributo->id = 58;
+        $contributo->delega = null;
+        $contributo->sezione = SezioneF24::inps;
+        $contributo->codiceTributo = null;
+        $contributo->causale = 'CXX';
+        $this->testAdapter->accodaSelect(new TestResultSet([$contributo]), TestResultSet::conteggio(0));
+        try {
+            $gen->genera($soggetto, new SismaDate('2026-06-16'), false, null, ModelloF24::semplificato);
+            $this->fail('Attesa eccezione per i contributi nel semplificato');
+        } catch (\InvalidArgumentException $errore) {
+            $this->assertStringContainsString('F24 semplificato non ammette la sezione', $errore->getMessage());
+        }
+        $this->assertNull($contributo->delega);
     }
 
     public function testCopiaVersamentiDatiContribuenteRiepilogoAndRavvedimentoSanzioniServices(): void

@@ -167,7 +167,9 @@ di regime è una nuova variazione (di norma dal 1° gennaio).
 
 Il **regime speciale agricolo** (art. 34 e 34-bis, esonerati, agriturismo,
 enoturismo, oleoturismo, associazioni) si affianca al regime fiscale e guida
-detrazione e rigo VF30 in Contabilità e Dichiarativi.
+detrazione e rigo VF30 in Contabilità e Dichiarativi. Le **opzioni per i modi
+ordinari** indicano i regimi a cui si è rinunciato: storicizzate, dal confronto
+tra un anno e il precedente Dichiarativi compila opzioni e revoche del quadro VO.
 
 Per il rimborso IVA del modulo Dichiarativi i dati fiscali hanno anche la data
 di **inizio dell'attività** e l'indicazione di **start-up innovativa** (rischi

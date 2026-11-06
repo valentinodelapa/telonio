@@ -108,4 +108,39 @@ require Layout::percorso('header');
     <?php endif; ?>
     <div class="card-footer bg-white small text-body-secondary"><?= Html::e($aiutoAccertamenti) ?></div>
 </div>
+
+<div class="card shadow-sm mt-3">
+    <div class="card-header bg-white fw-semibold d-flex align-items-center">
+        <span class="me-auto"><?= Html::e($sezioneGaranzie) ?></span>
+        <a href="/garanzia-rimborso/create/soggetto/<?= Html::e($soggetto->id) ?>/anno/<?= Html::e($anno) ?>" class="btn btn-sm btn-outline-primary"><i class="bi bi-plus-lg me-1"></i><?= Html::e($azioni['aggiungi']) ?></a>
+    </div>
+    <?php if (count($garanzie) === 0): ?>
+        <div class="card-body small text-body-secondary"><?= Html::e($nessunaGaranzia) ?></div>
+    <?php else: ?>
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead class="table-light">
+                    <tr><th><?= Html::e($campi['annoImposta']) ?></th><th><?= Html::e($campi['tipoGaranzia']) ?></th><th><?= Html::e($campi['garante']) ?></th><th class="text-end"><?= Html::e($campi['importoGarantito']) ?></th><th><?= Html::e($campi['dataScadenzaGaranzia']) ?></th><th></th><th></th></tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($garanzie as $garanzia): ?>
+                        <tr>
+                            <td><?= Html::e($garanzia->annoImposta) ?></td>
+                            <td class="small"><?= Html::e($garanzia->tipo->getLabel()) ?></td>
+                            <td><?= Html::e($garanzia->garante ?? '') ?></td>
+                            <td class="text-end text-nowrap"><?= Html::e(Importo::euro($garanzia->importo)) ?></td>
+                            <td><?= $garanzia->dataScadenza === null ? '' : Html::data($garanzia->dataScadenza) ?></td>
+                            <td><?php if ($garanzia->isSvincolata()): ?><span class="badge text-bg-light border"><?= Html::e($svincolata) ?></span><?php endif; ?></td>
+                            <td class="text-end text-nowrap">
+                                <a href="/garanzia-rimborso/update/garanzia/<?= Html::e($garanzia->id) ?>/anno/<?= Html::e($anno) ?>" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+                                <form method="post" action="/garanzia-rimborso/delete/garanzia/<?= Html::e($garanzia->id) ?>/anno/<?= Html::e($anno) ?>" class="d-inline" data-conferma="<?= Html::e($confermaEliminaGaranzia) ?>"><?= $campoCsrf ?><button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    <?php endif; ?>
+    <div class="card-footer bg-white small text-body-secondary"><?= Html::e($aiutoGaranzie) ?></div>
+</div>
 <?php require Layout::percorso('footer'); ?>

@@ -4,6 +4,7 @@ namespace Anagrafica\Application\Forms;
 
 use Anagrafica\Application\Entities\DatiFiscali;
 use Anagrafica\Application\Enumerations\ClassificazioneAteco;
+use Anagrafica\Application\Enumerations\RegimeDetrazioneIva;
 use Anagrafica\Application\Enumerations\TipoSoggetto;
 use Anagrafica\Application\Models\DatiFiscaliModel;
 use Telonio\Application\HelperClasses\PartitaIva;
@@ -33,6 +34,8 @@ class DatiFiscaliForm extends BaseForm
                 $this->addRequest($campo, trim(preg_replace('/\s+/', ' ', $this->request->input[$campo])));
             }
         }
+        $opzioni = $this->request->input['opzioniOrdinarie'] ?? [];
+        $this->addRequest('opzioniOrdinarie', RegimeDetrazioneIva::scriviOpzioni(is_array($opzioni) ? $opzioni : []) ?? '');
     }
 
     #[\Override]
@@ -50,6 +53,7 @@ class DatiFiscaliForm extends BaseForm
                 ->addFilterFieldMode('soggettoIsa', FilterType::isBoolean)
                 ->addFilterFieldMode('ventilazioneCorrispettivi', FilterType::isBoolean)
                 ->addFilterFieldMode('regimeDetrazioneIva', FilterType::isEnumeration, [], true)
+                ->addFilterFieldMode('opzioniOrdinarie', FilterType::isMaxLimitString, [23], true)
                 ->addFilterFieldMode('dataInizioAttivita', FilterType::isDate, [], true)
                 ->addFilterFieldMode('nonResidenteIva', FilterType::isBoolean)
                 ->addFilterFieldMode('startupInnovativa', FilterType::isBoolean)
@@ -92,6 +96,11 @@ class DatiFiscaliForm extends BaseForm
             $valido = $this->verificaAttivitaPersonaFisica() && $valido;
         }
         $valido = $this->verificaRegime() && $valido;
+        $regimeSpeciale = $this->entityData->regimeDetrazioneIva ?? null;
+        if (($regimeSpeciale !== null) && in_array($regimeSpeciale, RegimeDetrazioneIva::leggiOpzioni($this->entityData->opzioniOrdinarie ?? null), true)) {
+            $this->formFilterError->regimeDetrazioneIvaCustomMessage = 'Il regime speciale non può coincidere con un\'opzione per i modi ordinari.';
+            $valido = false;
+        }
         return $this->verificaCodiceAteco() && $valido;
     }
 

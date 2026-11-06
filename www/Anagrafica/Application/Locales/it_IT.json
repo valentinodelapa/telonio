@@ -100,6 +100,7 @@
                 "startupInnovativa": "Start-up innovativa (art. 25 D.L. 179/2012)",
                 "gruppoIvaArt70bis": "Partecipa a un Gruppo IVA (artt. 70-bis e seguenti)",
                 "regimeDetrazioneIva": "Regime speciale agricolo",
+                "opzioniOrdinarie": "IVA nei modi ordinari per opzione",
                 "nessunRegimeDetrazione": "Nessuno"
             },
             "azioni": {
@@ -137,6 +138,7 @@
             "nessunRegime": "Seleziona (con partita IVA)",
             "nessunaPeriodicita": "Nessuna",
             "aiutoRegime": "Obbligatorio con la partita IVA; un cambio di regime è una nuova variazione dal 1° gennaio.",
+            "aiutoOpzioniOrdinarie": "Regimi agricoli a cui si è rinunciato: la variazione dal 1° gennaio dell'anno dell'opzione o della revoca compila il quadro VO della dichiarazione IVA.",
             "aiutoPeriodicita": "Non prevista nei regimi forfetario e di vantaggio.",
             "etichettaIsa": "ISA",
             "etichettaSostituto": "Sostituto d'imposta",
