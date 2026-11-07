@@ -58,7 +58,8 @@ class DichiarazioneIvaGruppoVerde2025Fixture extends BaseFixture
                 ->addDependency(SoggettoRossiFixture::class)
                 ->addDependency(SoggettoNeriFixture::class)
                 ->addDependency(IntermediarioStudioFixture::class)
-                ->addDependency(ProfessionistaMariniFixture::class);
+                ->addDependency(ProfessionistaMariniFixture::class)
+                ->addDependency(IntermediarioMariniFixture::class);
     }
 
     #[\Override]
@@ -66,10 +67,10 @@ class DichiarazioneIvaGruppoVerde2025Fixture extends BaseFixture
     {
         $demo = new AziendaDemo($this->dataMapper);
         $studio = $this->getEntityByFixtureName(StudioFixture::class);
-        $holding = $demo->creaSocieta($studio, 'C045', '09222333008', 'Verde Holding S.p.A.', NaturaGiuridica::societaPerAzioni, '70.10.00', PeriodicitaIva::mensile, 'F205', 'Corso Venezia 10', '20121');
-        $distribuzione = $demo->creaSocieta($studio, 'C046', '09333444009', 'Verde Distribuzione S.r.l.', NaturaGiuridica::societaResponsabilitaLimitata, '46.64.99', PeriodicitaIva::mensile, 'F205', 'Via Mecenate 76', '20138');
-        $servizi = $demo->creaSocieta($studio, 'C047', '09444555008', 'Verde Servizi S.r.l.', NaturaGiuridica::societaResponsabilitaLimitata, '81.21.00', PeriodicitaIva::trimestrale, 'F205', 'Via Ripamonti 88', '20141');
-        $logistica = $demo->creaSocieta($studio, 'C048', '09555666008', 'Verde Logistica S.r.l.', NaturaGiuridica::societaResponsabilitaLimitata, '52.26.02', PeriodicitaIva::mensile, 'F205', 'Via Toffetti 12', '20139');
+        $holding = $demo->creaSocieta($studio, 'C045', '09222330301', 'Verde Holding S.p.A.', NaturaGiuridica::societaPerAzioni, '70.10.00', PeriodicitaIva::mensile, 'F205', 'Corso Venezia 10', '20121');
+        $distribuzione = $demo->creaSocieta($studio, 'C046', '09333440403', 'Verde Distribuzione S.r.l.', NaturaGiuridica::societaResponsabilitaLimitata, '46.64.99', PeriodicitaIva::mensile, 'F205', 'Via Mecenate 76', '20138');
+        $servizi = $demo->creaSocieta($studio, 'C047', '09444550504', 'Verde Servizi S.r.l.', NaturaGiuridica::societaResponsabilitaLimitata, '81.21.00', PeriodicitaIva::trimestrale, 'F205', 'Via Ripamonti 88', '20141');
+        $logistica = $demo->creaSocieta($studio, 'C048', '09555660605', 'Verde Logistica S.r.l.', NaturaGiuridica::societaResponsabilitaLimitata, '52.26.02', PeriodicitaIva::mensile, 'F205', 'Via Toffetti 12', '20139');
         $demo->legame($holding, $this->getEntityByFixtureName(SoggettoRossiFixture::class), RuoloLegame::amministratoreUnico);
         foreach ([$distribuzione, $servizi, $logistica] as $controllata) {
             $demo->legame($controllata, $this->getEntityByFixtureName(SoggettoNeriFixture::class), RuoloLegame::amministratoreUnico);
@@ -83,7 +84,7 @@ class DichiarazioneIvaGruppoVerde2025Fixture extends BaseFixture
         $this->dataMapper->save($gruppo);
         // altre controllate che entrano dal 2026: con Verde Logistica sono quattro, il quadro VG prosegue nel quadro n. 2
         $nuove = [];
-        foreach ([['C049', '09666777009', 'Verde Energia S.r.l.'], ['C050', '09777888000', 'Verde Immobiliare S.r.l.'], ['C051', '09888999001', 'Verde Trasporti S.r.l.']] as [$codice, $partitaIva, $denominazione]) {
+        foreach ([['C049', '09666770715', 'Verde Energia S.r.l.'], ['C050', '09777880809', 'Verde Immobiliare S.r.l.'], ['C051', '09888990901', 'Verde Trasporti S.r.l.']] as [$codice, $partitaIva, $denominazione]) {
             $nuova = $demo->creaSocieta($studio, $codice, $partitaIva, $denominazione, NaturaGiuridica::societaResponsabilitaLimitata, '70.10.00', PeriodicitaIva::mensile, 'F205', 'Corso Venezia 10', '20121');
             $demo->legame($nuova, $holding, RuoloLegame::socio, '2020-01-01', 100.0);
             $nuove[] = [$nuova, 2026];
@@ -101,24 +102,24 @@ class DichiarazioneIvaGruppoVerde2025Fixture extends BaseFixture
         $acquisto = CausaleContabile::fatturaAcquisto;
         // holding: servizi alle controllate e consulenze, a credito
         $esercizioHolding = $demo->apriContabilita($holding, 2025);
-        $consulente = $demo->controparte($holding, 'Studio Legale Associato Brera', '08111222000', false);
+        $consulente = $demo->controparte($holding, 'Studio Legale Associato Brera', '08111220201', false);
         foreach (['03', '06', '09', '12'] as $indice => $mese) {
-            RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizioHolding, $demo->controparte($holding, 'Verde Distribuzione S.r.l. ' . ($indice + 1), '09333444009', true), $vendita,
+            RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizioHolding, $demo->controparte($holding, 'Verde Distribuzione S.r.l. ' . ($indice + 1), '09333440403', true), $vendita,
                     '2025-' . $mese . '-20', (string) ($indice + 1), ['22' => 5000.0]);
             RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizioHolding, $consulente, $acquisto, '2025-' . $mese . '-10', 'SL/' . ($indice + 1), ['22' => 8000.0]);
         }
         // distribuzione: vendite a debito ogni mese
         $esercizioDistribuzione = $demo->apriContabilita($distribuzione, 2025);
-        $clienti = $demo->controparte($distribuzione, 'Rivenditori Associati S.r.l.', '08222333001', true);
-        $fornitore = $demo->controparte($distribuzione, 'Costruttori Macchine S.p.A.', '08333444002', false);
+        $clienti = $demo->controparte($distribuzione, 'Rivenditori Associati S.r.l.', '08222330303', true);
+        $fornitore = $demo->controparte($distribuzione, 'Costruttori Macchine S.p.A.', '08333440405', false);
         for ($mese = 1; $mese <= 12; $mese++) {
             RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizioDistribuzione, $clienti, $vendita, sprintf('2025-%02d-25', $mese), (string) $mese, ['22' => 20000.0]);
             RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizioDistribuzione, $fornitore, $acquisto, sprintf('2025-%02d-12', $mese), 'CM/' . $mese, ['22' => 14000.0]);
         }
         // servizi (trimestrale): credito nel primo trimestre per l'acquisto dei macchinari
         $esercizioServizi = $demo->apriContabilita($servizi, 2025);
-        $condomini = $demo->controparte($servizi, 'Gestioni Condominiali Milano S.r.l.', '08444555003', true);
-        $attrezzature = $demo->controparte($servizi, 'Attrezzature Pulizia S.r.l.', '08555666004', false, '02.03.0001');
+        $condomini = $demo->controparte($servizi, 'Gestioni Condominiali Milano S.r.l.', '08444550506', true);
+        $attrezzature = $demo->controparte($servizi, 'Attrezzature Pulizia S.r.l.', '08555660607', false, '02.03.0001');
         RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizioServizi, $attrezzature, $acquisto, '2025-02-14', 'AP/1', ['22' => 60000.0]);
         RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizioServizi, $attrezzature, $acquisto, '2025-12-05', 'AP/2', ['22' => 150000.0]);
         foreach (['03', '06', '09', '12'] as $indice => $mese) {
@@ -143,7 +144,7 @@ class DichiarazioneIvaGruppoVerde2025Fixture extends BaseFixture
             }
         }
         // credito del primo trimestre del gruppo con il modello IVA TR: non si riporta ad aprile, le liquidazioni successive si rielaborano
-        $tr = $demo->presentaTr($holding, 2025, 1, ['TE051001' => 6600.0], '2025-04-28', $this->getEntityByFixtureName(ProfessionistaMariniFixture::class));
+        $tr = $demo->presentaTr($holding, 2025, 1, ['TE051001' => 6600.0], '2025-04-28', $this->getEntityByFixtureName(ProfessionistaMariniFixture::class), $this->getEntityByFixtureName(IntermediarioMariniFixture::class));
         $demo->compensaCreditoTr($tr, 6600.0, '2025-05-16');
         $lipe = new PreparazioneLipe($this->dataMapper);
         for ($trimestre = 1; $trimestre <= 3; $trimestre++) {

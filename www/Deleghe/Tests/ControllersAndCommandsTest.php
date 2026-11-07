@@ -38,6 +38,15 @@ use Deleghe\Application\Enumerations\StatoDelega;
 use Deleghe\Application\Enumerations\TabellaF24;
 use Deleghe\Console\Commands\ModelliF24Command;
 use Deleghe\Console\Commands\TabelleF24Command;
+use Anagrafica\Application\Entities\Recapito;
+use Anagrafica\Application\Enumerations\TipoRecapito;
+use Deleghe\Application\Enumerations\CanaleConsegna;
+use PHPMailer\PHPMailer\PHPMailer;
+use Telonio\Application\Entities\CasellaPosta;
+use Telonio\Application\Enumerations\CifraturaSmtp;
+use Telonio\Application\Enumerations\TipoCasellaPosta;
+use Telonio\Application\Services\Posta\InvioPosta;
+use SismaFramework\Orm\HelperClasses\DataMapper;
 use SismaFramework\Orm\CustomTypes\SismaDate;
 use SismaFramework\Orm\CustomTypes\SismaDateTime;
 
@@ -246,6 +255,138 @@ class ControllersAndCommandsTest extends SuiteTestCase
         $versController->rimuovi($this->creaRequest([], [], [], 'POST', true), $versamento);
         $this->assertNull($versamento->delega);
         $this->assertSame('delega/show/delega/10', $this->cattura->redirectUrl);
+    }
+
+    public function testDelegaPdfEInvioAlCliente(): void
+    {
+        $ambiente = getenv('MAIL_HOST');
+        putenv('MAIL_HOST');
+        try {
+            $this->verificaPdfEInvio();
+        } finally {
+            putenv($ambiente === false ? 'MAIL_HOST' : 'MAIL_HOST=' . $ambiente);
+        }
+    }
+
+    private function verificaPdfEInvio(): void
+    {
+        $soggetto = $this->creaSoggettoTest();
+        $delega = new Delega($this->dataMapper);
+        $delega->id = 10;
+        $delega->studio = $this->studioPredefinito;
+        $delega->soggetto = $soggetto;
+        $delega->modello = ModelloF24::ordinario;
+        $delega->scadenza = new SismaDate('2026-06-16');
+        $delega->stato = StatoDelega::bozza;
+
+        $pec = new CasellaPosta($this->dataMapper);
+        $pec->id = 1;
+        $pec->studio = $this->studioPredefinito;
+        $pec->tipoCasella = TipoCasellaPosta::pec;
+        $pec->host = 'smtps.pec.aruba.it';
+        $pec->porta = 465;
+        $pec->cifratura = CifraturaSmtp::sslTls;
+        $pec->indirizzo = 'studio@pec.it';
+        $recapiti = [];
+        foreach ([[TipoRecapito::email, 'mario@example.com', false], [TipoRecapito::pec, 'altra@pec.it', false], [TipoRecapito::pec, 'mario.rossi@pec.it', true], [TipoRecapito::telefono, '061234567', true]] as $indice => [$tipo, $valore, $principale]) {
+            $recapito = new Recapito($this->dataMapper);
+            $recapito->id = $indice + 1;
+            $recapito->soggetto = $soggetto;
+            $recapito->tipoRecapito = $tipo;
+            $recapito->valore = $valore;
+            $recapito->principale = $principale;
+            $recapiti[] = $recapito;
+        }
+        $this->testAdapter->impostaSelectCallback(function (string $query) use ($pec, $recapiti) {
+            return match (true) {
+                str_contains($query, 'casella_posta') => new TestResultSet([$pec]),
+                str_contains($query, 'recapito') => new TestResultSet($recapiti),
+                str_contains($query, 'COUNT') => TestResultSet::conteggio(0),
+                default => new TestResultSet([]),
+            };
+        });
+        $inviati = [];
+        $esito = true;
+        $this->accodaUtente();
+        $controller = new class($this->dataMapper, $inviati, $esito) extends DelegaController {
+
+            public function __construct(DataMapper $dataMapper, private array &$inviati, private bool &$esito)
+            {
+                parent::__construct($dataMapper);
+            }
+
+            #[\Override]
+            protected function getInvioPosta(): InvioPosta
+            {
+                return new InvioPosta($this->dataMapper, function (PHPMailer $mailer): bool {
+                    $this->inviati[] = $mailer;
+                    return $this->esito && $mailer->preSend();
+                });
+            }
+        };
+
+        // PDF: le pagine della stampa sullo sfondo del modello ufficiale
+        $controller->pdf($delega, true);
+        $this->assertSame('delega/pdf', $this->cattura->vista);
+        $this->assertStringStartsWith('%PDF-', $this->cattura->vars['contenuto']);
+        $this->assertSame('F24_2026-06-16_RSSMRA80A01H501U.pdf', $this->cattura->vars['nomeFile']);
+
+        // la bozza non si invia
+        $this->assertFalse($delega->isInviabile());
+        $controller->invia($this->creaRequest([], [], [], 'GET'), $delega);
+        $this->assertSame('delega/show/delega/10', $this->cattura->redirectUrl);
+
+        // form: solo la PEC è configurata, proposto l'indirizzo PEC principale del cliente
+        $delega->stato = StatoDelega::confermata;
+        $controller->invia($this->creaRequest([], [], [], 'GET'), $delega);
+        $this->assertSame('delega/invia', $this->cattura->vista);
+        $this->assertSame([TipoCasellaPosta::pec], $this->cattura->vars['caselle']);
+        $this->assertSame(['mario.rossi@pec.it', 'altra@pec.it'], $this->cattura->vars['indirizzi'][TipoCasellaPosta::pec->value]);
+        $this->assertSame(['mario@example.com'], $this->cattura->vars['indirizzi'][TipoCasellaPosta::email->value]);
+        $this->assertSame(TipoCasellaPosta::pec, $this->cattura->vars['dati']['tipoCasella']);
+        $this->assertSame('mario.rossi@pec.it', $this->cattura->vars['dati']['destinatario']);
+        $this->assertSame('Modello F24 in scadenza il 16/06/2026 - Rossi Mario', $this->cattura->vars['dati']['oggetto']);
+        $this->assertStringStartsWith('Gentile Mario Rossi,', $this->cattura->vars['dati']['testo']);
+        $this->assertStringContainsString('entro il 16/06/2026', $this->cattura->vars['dati']['testo']);
+        $this->assertTrue($this->cattura->vars['dati']['copie']);
+
+        // dati non validi e casella e-mail non configurata: nessun invio
+        $controller->invia($this->creaRequest(['tipoCasella' => 'E', 'destinatario' => 'non-valido', 'oggetto' => '', 'testo' => ' ']), $delega);
+        $this->assertSame('delega/invia', $this->cattura->vista);
+        $this->assertSame(['tipoCasella', 'destinatario', 'oggetto', 'testo'], array_keys($this->cattura->vars['erroriInvio']));
+        $this->assertCount(0, $inviati);
+        $this->assertSame(StatoDelega::confermata, $delega->stato);
+
+        // invio rifiutato dal server: la delega resta confermata
+        $esito = false;
+        $controller->invia($this->creaRequest(['tipoCasella' => 'P', 'destinatario' => 'mario.rossi@pec.it', 'oggetto' => 'F24', 'testo' => 'Testo']), $delega);
+        $this->assertArrayHasKey('invio', $this->cattura->vars['erroriInvio']);
+        $this->assertSame(StatoDelega::confermata, $delega->stato);
+        $this->assertNull($delega->dataConsegna);
+
+        // invio riuscito via PEC: delega consegnata con data, canale e indirizzo
+        $esito = true;
+        $inviati = [];
+        $controller->invia($this->creaRequest(['tipoCasella' => 'P', 'destinatario' => 'altra@pec.it', 'oggetto' => 'F24 giugno', 'testo' => "Riga 1\r\nRiga 2"]), $delega);
+        $this->assertSame('delega/show/delega/10', $this->cattura->redirectUrl);
+        $this->assertCount(1, $inviati);
+        $this->assertSame([['altra@pec.it', '']], $inviati[0]->getToAddresses());
+        $this->assertSame("Riga 1\nRiga 2", $inviati[0]->Body);
+        $this->assertSame('F24_2026-06-16_RSSMRA80A01H501U.pdf', $inviati[0]->getAttachments()[0][1]);
+        $this->assertSame(StatoDelega::consegnata, $delega->stato);
+        $this->assertSame((new SismaDate())->format('Y-m-d'), $delega->dataConsegna->format('Y-m-d'));
+        $this->assertSame(CanaleConsegna::pec, $delega->canaleConsegna);
+        $this->assertSame('altra@pec.it', $delega->destinatarioConsegna);
+
+        // la delega consegnata si può inviare di nuovo; annullando la consegna si toglie l'indirizzo
+        $this->assertTrue($delega->isInviabile());
+        $controller->stato($this->creaRequest(), $delega, StatoDelega::confermata);
+        $this->assertNull($delega->destinatarioConsegna);
+        $this->assertNull($delega->canaleConsegna);
+        $this->testAdapter->impostaSelectCallback(null);
+
+        $this->assertSame(CanaleConsegna::email, CanaleConsegna::daCasella(TipoCasellaPosta::email));
+        $this->assertSame('PEC', CanaleConsegna::pec->getLabel());
     }
 
     public function testIntermediarioInvioRavvedimentoAndSanzioneControllers(): void

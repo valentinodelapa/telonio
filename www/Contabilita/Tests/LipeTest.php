@@ -133,7 +133,7 @@ class LipeTest extends ContabilitaTestCase
         $dati = new DatiFiscali($this->dataMapper);
         $dati->soggetto = $this->azienda;
         $dati->validoDal = new SismaDate('2020-01-01');
-        $dati->partitaIva = '01234567897';
+        $dati->partitaIva = '01234560785';
         $dati->regimeFiscale = RegimeFiscale::ordinario;
         $dati->periodicitaIva = PeriodicitaIva::mensile;
         $this->rispondiConti(['dati_fiscali' => [$dati], 'liquidazione_iva' => [$this->liquidazione(PeriodicitaIva::mensile, 1, 0.0, 0.0)]]);
@@ -204,7 +204,7 @@ class LipeTest extends ContabilitaTestCase
         $this->assertStringContainsString('<iv:CreditoAnnoPrecedente>-20,00</iv:CreditoAnnoPrecedente>', $xml);
         $this->assertStringNotContainsString('<iv:DebitoPrecedente>', $xml, 'importi zero omessi');
         $this->assertStringContainsString('<iv:VersamentiAutoUE>50,00</iv:VersamentiAutoUE>' . "\n" . '        <iv:CreditiImposta>30,00</iv:CreditiImposta>', $xml);
-        $this->assertSame('IT01234567897_LI_00003.xml', GeneratoreLipe::getNomeFile($comunicazione));
+        $this->assertSame('IT01234560785_LI_00003.xml', GeneratoreLipe::getNomeFile($comunicazione));
 
         $comunicazione->dataImpegno = null;
         $this->assertStringContainsString('impegno', implode(' ', $generatore->getErrori($comunicazione)));

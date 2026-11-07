@@ -11,7 +11,7 @@ class CodiceFiscaleTest extends SuiteTestCase
     public function testNormalizzaRimuoveSpaziEConverteInMaiuscolo(): void
     {
         $this->assertSame('RSSMRA80A01H501U', CodiceFiscale::normalizza(" rssmra 80a01\th501u\n"));
-        $this->assertSame('01234567897', CodiceFiscale::normalizza(' 012 345 67897 '));
+        $this->assertSame('01234560785', CodiceFiscale::normalizza(' 012 345 60785 '));
     }
 
     public function testCalcolaUomoConConsonantiMenoDiQuattro(): void
@@ -38,7 +38,7 @@ class CodiceFiscaleTest extends SuiteTestCase
         $this->assertFalse(CodiceFiscale::isValidoPersonaFisica('RSSMRA80A01H501Z'));
         // Lunghezza / formato non valido
         $this->assertFalse(CodiceFiscale::isValidoPersonaFisica('RSSMRA80A01H501'));
-        $this->assertFalse(CodiceFiscale::isValidoPersonaFisica('01234567897'));
+        $this->assertFalse(CodiceFiscale::isValidoPersonaFisica('01234560785'));
         // Mese non valido (F non è nella tabella CODICI_MESE)
         $this->assertFalse(CodiceFiscale::isValidoPersonaFisica('RSSMRA80F01H501U'));
     }
@@ -57,7 +57,7 @@ class CodiceFiscaleTest extends SuiteTestCase
 
     public function testValidazioneNumerico(): void
     {
-        $this->assertTrue(CodiceFiscale::isValidoNumerico('01234567897'));
+        $this->assertTrue(CodiceFiscale::isValidoNumerico('01234560785'));
         $this->assertFalse(CodiceFiscale::isValidoNumerico('01234567890'));
         $this->assertFalse(CodiceFiscale::isValidoNumerico('RSSMRA80A01H501U'));
     }

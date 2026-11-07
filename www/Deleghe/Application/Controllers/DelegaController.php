@@ -3,7 +3,9 @@
 namespace Deleghe\Application\Controllers;
 
 use Anagrafica\Application\Entities\Soggetto;
+use Anagrafica\Application\Enumerations\TipoRecapito;
 use Anagrafica\Application\Models\ContoCorrenteModel;
+use Anagrafica\Application\Models\RecapitoModel;
 use Deleghe\Application\BaseClasses\DelegheController;
 use Deleghe\Application\Entities\Delega;
 use Deleghe\Application\Entities\Ravvedimento;
@@ -35,15 +37,23 @@ use Deleghe\Application\Services\ModelloCompilato;
 use Deleghe\Application\Services\RavvedimentoService;
 use Deleghe\Application\Services\SanzioniCiviliService;
 use Deleghe\Application\Services\Stampa\ModuloUfficialeF24;
+use Deleghe\Application\Services\Stampa\PdfF24;
+use Telonio\Application\Enumerations\TipoCasellaPosta;
+use Telonio\Application\Services\Posta\InvioPosta;
+use Telonio\Application\Services\Posta\InvioPostaException;
+use Telonio\Application\Services\Posta\Messaggio;
+use SismaFramework\Core\Enumerations\ResponseType;
 use SismaFramework\Core\HttpClasses\Request;
 use SismaFramework\Core\HttpClasses\Response;
 use SismaFramework\Orm\CustomTypes\SismaDate;
 use SismaFramework\Orm\CustomTypes\SismaDateTime;
+use SismaFramework\Orm\HelperClasses\DataMapper;
 
 /**
  * Deleghe F24 del contribuente: generazione dai versamenti da versare,
- * testata, compensazioni, cambi di stato e stampa del modello. Le deleghe
- * si raggiungono dalla scheda del contribuente (ContribuenteController).
+ * testata, compensazioni, cambi di stato, stampa del modello, PDF e invio al
+ * cliente per e-mail o PEC. Le deleghe si raggiungono dalla scheda del
+ * contribuente (ContribuenteController).
  */
 class DelegaController extends DelegheController
 {
@@ -371,9 +381,11 @@ class DelegaController extends DelegheController
             }
             $delega->dataConsegna = $dataConsegna;
             $delega->canaleConsegna = $canaleConsegna;
+            $delega->destinatarioConsegna = null;
         } elseif (($stato === StatoDelega::confermata) && ($delega->stato === StatoDelega::consegnata)) {
             $delega->dataConsegna = null;
             $delega->canaleConsegna = null;
+            $delega->destinatarioConsegna = null;
         }
         if ($stato === StatoDelega::quietanzata) {
             $dataQuietanza = self::leggiData((string) ($request->input['dataQuietanza'] ?? ''));
@@ -479,11 +491,187 @@ class DelegaController extends DelegheController
     public function stampa(Delega $delega, bool $copie = false): Response
     {
         $this->autorizza($delega);
-        $soggetto = $delega->soggetto;
         $esito = (new ControlloDelega($this->dataMapper))->verifica($delega);
+        [$pagine, $numeroModelli] = $this->getPagine($delega, $esito, $copie);
+        $this->vars['pagine'] = $pagine;
+        $this->vars['delega'] = $delega;
+        $this->vars['soggetto'] = $delega->soggetto;
+        $this->vars['esito'] = $esito;
+        $this->vars['copie'] = $copie;
+        $this->vars['numeroModelli'] = $numeroModelli;
+        return $this->render->generateView('delega/stampa', $this->vars);
+    }
+
+    /**
+     * Le stesse pagine della stampa in PDF, da scaricare.
+     */
+    public function pdf(Delega $delega, bool $copie = false): Response
+    {
+        $this->autorizza($delega);
+        $this->vars['contenuto'] = $this->generaPdf($delega, $copie);
+        $this->vars['nomeFile'] = PdfF24::getNomeFile($delega, $delega->soggetto);
+        return $this->render->generateView('delega/pdf', $this->vars);
+    }
+
+    /**
+     * Invio della delega al cliente in PDF dalla casella dello studio scelta,
+     * e-mail ordinaria o PEC (InvioPosta). Riuscito l'invio, la delega
+     * confermata diventa consegnata con la data di oggi, il canale e
+     * l'indirizzo; quella già consegnata registra l'ultimo invio.
+     */
+    public function invia(Request $request, Delega $delega): Response
+    {
+        $this->autorizza($delega);
+        if ($delega->isInviabile() === false) {
+            $this->aggiungiMessaggio('Si invia al cliente solo la delega confermata o già consegnata.', 'danger');
+            return $this->vaiAllaDelega($delega);
+        }
+        $soggetto = $delega->soggetto;
+        $invioPosta = $this->getInvioPosta();
+        $caselle = array_values(array_filter(TipoCasellaPosta::cases(), fn(TipoCasellaPosta $tipo) => $invioPosta->getCasella($this->studio, $tipo) !== null));
+        $indirizzi = self::getIndirizzi($soggetto, $this->dataMapper);
+        $esito = (new ControlloDelega($this->dataMapper))->verifica($delega);
+        $tipo = TipoCasellaPosta::tryFrom((string) ($request->input['tipoCasella'] ?? '')) ?? self::getCasellaProposta($caselle, $indirizzi);
+        $dati = [
+            'tipoCasella' => $tipo,
+            'destinatario' => trim((string) ($request->input['destinatario'] ?? ($tipo === null ? '' : ($indirizzi[$tipo->value][0] ?? '')))),
+            'oggetto' => trim((string) ($request->input['oggetto'] ?? self::getOggetto($delega, $soggetto))),
+            'testo' => str_replace("\r\n", "\n", (string) ($request->input['testo'] ?? self::getTesto($delega, $soggetto, $this->studio->denominazione, $esito->getSaldo()))),
+            'copie' => ($request->server['REQUEST_METHOD'] ?? 'GET') === 'POST' ? isset($request->input['copie']) : true,
+        ];
+        $errori = [];
+        if (($request->server['REQUEST_METHOD'] ?? 'GET') === 'POST') {
+            $this->verificaCsrf($request);
+            if (($tipo === null) || (in_array($tipo, $caselle, true) === false)) {
+                $errori['tipoCasella'] = 'Scegliere una casella configurata dello studio.';
+            }
+            if (filter_var($dati['destinatario'], FILTER_VALIDATE_EMAIL) === false) {
+                $errori['destinatario'] = 'Indirizzo del destinatario non valido.';
+            }
+            if (($dati['oggetto'] === '') || (mb_strlen($dati['oggetto']) > 255)) {
+                $errori['oggetto'] = 'Indicare l\'oggetto (al massimo 255 caratteri).';
+            }
+            if (trim($dati['testo']) === '') {
+                $errori['testo'] = 'Indicare il testo del messaggio.';
+            }
+            if (count($errori) === 0) {
+                $messaggio = new Messaggio($dati['destinatario'], $dati['oggetto'], $dati['testo']);
+                $messaggio->allega(PdfF24::getNomeFile($delega, $soggetto), $this->generaPdf($delega, $dati['copie']), 'application/pdf');
+                try {
+                    $invioPosta->invia($this->studio, $tipo, $messaggio);
+                    $consegna = $delega->stato === StatoDelega::confermata;
+                    $delega->stato = StatoDelega::consegnata;
+                    $delega->dataConsegna = new SismaDate();
+                    $delega->canaleConsegna = CanaleConsegna::daCasella($tipo);
+                    $delega->destinatarioConsegna = $dati['destinatario'];
+                    $delega->dataModifica = new SismaDateTime();
+                    $this->dataMapper->save($delega);
+                    $this->aggiungiMessaggio(sprintf('Delega inviata via %s a %s%s.', $tipo->getLabel(), $dati['destinatario'], $consegna ? ': la delega è ora consegnata' : ''));
+                    return $this->vaiAllaDelega($delega);
+                } catch (InvioPostaException $errore) {
+                    $errori['invio'] = $errore->getMessage();
+                }
+            }
+        }
+        $this->vars['delega'] = $delega;
+        $this->vars['esito'] = $esito;
+        $this->vars['caselle'] = $caselle;
+        $this->vars['indirizzi'] = $indirizzi;
+        $this->vars['dati'] = $dati;
+        $this->vars['erroriInvio'] = $errori;
+        $this->vars['nomeFile'] = PdfF24::getNomeFile($delega, $soggetto);
+        $this->vars['pageTitle'] = 'Invia la delega al cliente';
+        $this->impostaBriciole($delega, 'Invio al cliente');
+        return $this->render->generateView('delega/invia', $this->vars, count($errori) > 0 ? ResponseType::httpBadRequest : ResponseType::httpOk);
+    }
+
+    protected function getInvioPosta(): InvioPosta
+    {
+        return new InvioPosta($this->dataMapper);
+    }
+
+    /**
+     * Indirizzi e-mail e PEC del soggetto in anagrafica, il principale per
+     * primo.
+     *
+     * @return array<string, string[]> per valore di TipoCasellaPosta
+     */
+    private static function getIndirizzi(Soggetto $soggetto, DataMapper $dataMapper): array
+    {
+        $indirizzi = [TipoCasellaPosta::email->value => [], TipoCasellaPosta::pec->value => []];
+        foreach ((new RecapitoModel($dataMapper))->getElenco($soggetto) as $recapito) {
+            $chiave = match ($recapito->tipoRecapito) {
+                TipoRecapito::email => TipoCasellaPosta::email->value,
+                TipoRecapito::pec => TipoCasellaPosta::pec->value,
+                default => null,
+            };
+            if (($chiave !== null) && (in_array($recapito->valore, $indirizzi[$chiave], true) === false)) {
+                $recapito->principale ? array_unshift($indirizzi[$chiave], $recapito->valore) : $indirizzi[$chiave][] = $recapito->valore;
+            }
+        }
+        return $indirizzi;
+    }
+
+    /**
+     * Casella proposta: l'e-mail se il cliente ha un indirizzo e-mail o se
+     * la PEC non è disponibile, altrimenti la PEC.
+     *
+     * @param TipoCasellaPosta[] $caselle configurate
+     * @param array<string, string[]> $indirizzi
+     */
+    private static function getCasellaProposta(array $caselle, array $indirizzi): ?TipoCasellaPosta
+    {
+        foreach ($caselle as $tipo) {
+            if (count($indirizzi[$tipo->value]) > 0) {
+                return $tipo;
+            }
+        }
+        return $caselle[0] ?? null;
+    }
+
+    private static function getOggetto(Delega $delega, Soggetto $soggetto): string
+    {
+        return sprintf('Modello F24 in scadenza il %s - %s', $delega->scadenza->format('d/m/Y'), $soggetto->nominativo);
+    }
+
+    private static function getTesto(Delega $delega, Soggetto $soggetto, string $studio, int $saldo): string
+    {
+        return sprintf("Gentile %s,\n\nin allegato trova il modello F24 da versare entro il %s, per un importo di € %s.\n\n"
+                . "Può pagarlo con l'home banking o presso banca, ufficio postale o agente della riscossione. Le chiediamo di inviarci la quietanza del pagamento.\n\n"
+                . "Cordiali saluti\n%s\n", self::getNomeSaluto($soggetto), $delega->scadenza->format('d/m/Y'), EsitoControllo::euro($saldo), $studio);
+    }
+
+    /**
+     * Nome nel saluto: nome e cognome con le iniziali maiuscole per le
+     * persone fisiche (l'anagrafica li conserva in maiuscolo), la
+     * denominazione per gli altri soggetti.
+     */
+    private static function getNomeSaluto(Soggetto $soggetto): string
+    {
+        if ($soggetto->isPersonaFisica() && ($soggetto->cognome !== null)) {
+            return mb_convert_case(trim($soggetto->nome . ' ' . $soggetto->cognome), MB_CASE_TITLE, 'UTF-8');
+        }
+        return $soggetto->nominativo;
+    }
+
+    private function generaPdf(Delega $delega, bool $copie): string
+    {
+        [$pagine] = $this->getPagine($delega, (new ControlloDelega($this->dataMapper))->verifica($delega), $copie);
+        return (new PdfF24())->genera($pagine, sprintf('F24 %s - %s', $delega->scadenza->format('d/m/Y'), $delega->soggetto->nominativo));
+    }
+
+    /**
+     * Pagine dei modelli F24 ufficiali compilati, uno per modello della
+     * ripartizione; la delega non ripartibile (es. saldo negativo) si
+     * mostra in anteprima su un solo modello.
+     *
+     * @return array{0: array, 1: int} pagine e numero di modelli
+     */
+    private function getPagine(Delega $delega, EsitoControllo $esito, bool $copie): array
+    {
+        $soggetto = $delega->soggetto;
         $modelli = $esito->modelli;
         if (count($modelli) === 0) {
-            // delega non ripartibile (es. saldo negativo): anteprima su un solo modello
             $anteprima = new ModelloCompilato();
             foreach ((new VersamentoModel($this->dataMapper))->getPerSezione($delega) as $righeSezione) {
                 foreach ($righeSezione as $riga) {
@@ -493,12 +681,6 @@ class DelegaController extends DelegheController
             $modelli = [$anteprima];
         }
         $modulo = new ModuloUfficialeF24($delega, $soggetto, (new DatiContribuente($this->dataMapper))->getDomicilio($soggetto, $delega->scadenza));
-        $this->vars['pagine'] = array_merge(...array_map(fn(ModelloCompilato $modello) => $modulo->getPagine($modello, $copie), $modelli));
-        $this->vars['delega'] = $delega;
-        $this->vars['soggetto'] = $soggetto;
-        $this->vars['esito'] = $esito;
-        $this->vars['copie'] = $copie;
-        $this->vars['numeroModelli'] = count($modelli);
-        return $this->render->generateView('delega/stampa', $this->vars);
+        return [array_merge(...array_map(fn(ModelloCompilato $modello) => $modulo->getPagine($modello, $copie), $modelli)), count($modelli)];
     }
 }

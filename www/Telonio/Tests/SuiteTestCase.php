@@ -78,7 +78,7 @@ abstract class SuiteTestCase extends TestCase
         ProcessedEntitiesCollection::getInstance()->clear();
     }
 
-    protected function creaStudio(int $id = 1, string $denominazione = 'Studio Associato Test', string $codiceFiscale = '01234567897', bool $attivo = true): Studio
+    protected function creaStudio(int $id = 1, string $denominazione = 'Studio Associato Test', string $codiceFiscale = '01234560785', bool $attivo = true): Studio
     {
         $studio = new Studio($this->dataMapper);
         $studio->id = $id;

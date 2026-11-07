@@ -65,12 +65,12 @@ class AttivitaSeparateEGruppoIvaTest extends DichiarativiTestCase
         $quadri->imposta('VL038001', 3333);
         $this->assertSame([3333, 0], PropostaIva::calcolaImposteVx($quadri, [1]));
         // società del gruppo per tutto l'anno: il risultato va al gruppo, restano i crediti non trasferibili
-        $quadri->imposta('VK001001', '09222333008');
+        $quadri->imposta('VK001001', '09222330301');
         $quadri->imposta('VK001002', 12);
         $quadri->imposta('VL010001', 500);
         $this->assertSame([-500, 3333], PropostaIva::calcolaImposteVx($quadri, [1]));
         // modulo di un'incorporata esterna al gruppo: il suo risultato resta della società
-        $quadri->imposta('VA001001', '01234567897', 2);
+        $quadri->imposta('VA001001', '01234560785', 2);
         $quadri->imposta('VL039001', 200, 2);
         $this->assertSame([-700, 3333], PropostaIva::calcolaImposteVx($quadri, [1, 2]));
         // controllo cessato in corso d'anno: niente VX7 e VX8

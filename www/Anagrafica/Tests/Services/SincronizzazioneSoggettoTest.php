@@ -38,7 +38,7 @@ class SincronizzazioneSoggettoTest extends SuiteTestCase
         $datiFiscali->id = 10;
         $datiFiscali->soggetto = $soggetto;
         $datiFiscali->validoDal = new SismaDate('2020-01-01');
-        $datiFiscali->partitaIva = '01234567897';
+        $datiFiscali->partitaIva = '01234560785';
         $datiFiscali->tipoAttivita = TipoAttivita::impresaIndividuale;
 
         $this->testAdapter->accodaSelect([$datiFiscali]);
@@ -46,7 +46,7 @@ class SincronizzazioneSoggettoTest extends SuiteTestCase
         $this->servizio->aggiorna($soggetto, true);
 
         $this->assertSame('ROSSI MARIO', $soggetto->nominativo);
-        $this->assertSame('01234567897', $soggetto->partitaIva);
+        $this->assertSame('01234560785', $soggetto->partitaIva);
         $this->assertSame(TipoAttivita::impresaIndividuale, $soggetto->tipoAttivita);
         $this->assertNotNull($soggetto->dataModifica);
     }
@@ -58,7 +58,7 @@ class SincronizzazioneSoggettoTest extends SuiteTestCase
         $soggetto->studio = $this->creaStudio();
         $soggetto->tipoSoggetto = TipoSoggetto::societaCapitali;
         $soggetto->nominativo = 'Alfa S.r.l.';
-        $soggetto->codiceFiscale = '01234567897';
+        $soggetto->codiceFiscale = '01234560785';
 
         $datiFiscali = new DatiFiscali($this->dataMapper);
         $datiFiscali->id = 20;
@@ -67,7 +67,7 @@ class SincronizzazioneSoggettoTest extends SuiteTestCase
         $datiFiscali->validoAl = new SismaDate('2023-12-31');
         $datiFiscali->denominazione = 'Alfa Nuova S.r.l.';
         $datiFiscali->naturaGiuridica = NaturaGiuridica::societaResponsabilitaLimitata;
-        $datiFiscali->partitaIva = '01234567897';
+        $datiFiscali->partitaIva = '01234560785';
 
         $this->testAdapter->accodaSelect([]);
         $this->testAdapter->accodaSelect([$datiFiscali]);
@@ -75,7 +75,7 @@ class SincronizzazioneSoggettoTest extends SuiteTestCase
         $this->servizio->aggiorna($soggetto, false);
 
         $this->assertSame('Alfa Nuova S.r.l.', $soggetto->nominativo);
-        $this->assertSame('01234567897', $soggetto->partitaIva);
+        $this->assertSame('01234560785', $soggetto->partitaIva);
         $this->assertNull($soggetto->dataModifica);
     }
 }

@@ -32,7 +32,7 @@ class DatiFiscaliVerdiFixture extends BaseFixture
         $datiFiscali->validoAl = new SismaDate('2022-12-31');
         $datiFiscali->tipoAttivita = TipoAttivita::impresaIndividuale;
         $datiFiscali->denominazione = 'Ferramenta Verdi';
-        $datiFiscali->partitaIva = '07654321012';
+        $datiFiscali->partitaIva = '07654320105';
         $datiFiscali->regimeFiscale = RegimeFiscale::semplificato;
         $datiFiscali->periodicitaIva = PeriodicitaIva::trimestrale;
         $datiFiscali->soggettoIsa = true;

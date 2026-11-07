@@ -18,7 +18,7 @@ class EntitiesAndEnumerationsTest extends SuiteTestCase
     {
         $studio = new Studio($this->dataMapper);
         $studio->denominazione = 'Studio Bianchi';
-        $studio->codiceFiscale = '01234567897';
+        $studio->codiceFiscale = '01234560785';
 
         $this->assertTrue($studio->attivo);
         $this->assertNull($studio->partitaIva);

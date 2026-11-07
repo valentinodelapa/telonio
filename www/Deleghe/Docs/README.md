@@ -66,10 +66,12 @@ quelli di Anagrafica:
 
 L'immagine Docker deve contenere `bsdtar` (pacchetto `libarchive-tools`,
 nel `Dockerfile`) per estrarre l'archivio RAR delle tabelle dell'Agenzia e
-`pdftocairo`/`pdftotext` (pacchetto `poppler-utils`) per convertire i
-modelli F24 ufficiali usati dalla stampa. Gli SVG già convertiti sono nel
-modulo (`Application/Assets/svg`): `sisma modelli-f24` serve solo ad
-aggiornarli.
+`pdftocairo`/`pdftotext` (pacchetto `poppler-utils`) e `qpdf` per
+convertire i modelli F24 ufficiali usati dalla stampa e dal PDF. Gli SVG
+e i PDF già convertiti sono nel modulo (`Application/Assets/svg` e
+`Application/Assets/pdf`): `sisma modelli-f24` serve solo ad aggiornarli.
+Il PDF e l'invio usano le librerie PHP FPDF, FPDI e (tramite `Telonio`)
+PHPMailer, installate da Composer.
 
 Le fixture (`sisma fixtures`) creano: i conti correnti di Rossi, Alfa e
 Verdi; lo studio come soggetto e intermediario Entratel; quattro deleghe
@@ -413,6 +415,31 @@ default si stampa la copia per il soggetto che effettua il versamento;
 conto di addebito (il semplificato ha le due copie sulla stessa pagina).
 Stampare in A4, senza margini e in scala 100%.
 
+"Scarica PDF" produce le stesse pagine in PDF (`Services\Stampa\PdfF24`,
+librerie FPDF e FPDI): lo sfondo è il PDF ufficiale importato come
+modello vettoriale da `Assets/pdf`, i campi sono scritti con i caratteri
+standard del PDF (Courier e Helvetica in grassetto) negli stessi punti
+della stampa. Il file si chiama `F24_<data>_<codice fiscale>.pdf`.
+
+## Invio al cliente
+
+"Invia al cliente" (delega confermata o già consegnata) manda il PDF della
+delega da una casella dello studio (Studio > Posta in uscita, modulo
+`Telonio`), scelta a ogni invio: **e-mail ordinaria** o **PEC**. Il
+destinatario proposto è l'indirizzo del cliente in anagrafica dello stesso
+tipo (il principale per primo, gli altri nell'elenco del campo); oggetto e
+testo, con scadenza e saldo, sono proposti e modificabili. Si allegano
+tutte le copie (per il pagamento allo sportello) o solo quella per il
+contribuente.
+
+Riuscito l'invio la delega diventa **consegnata** con la data di oggi, il
+canale (`CanaleConsegna::email` o `pec`) e l'indirizzo
+(`destinatarioConsegna`); se il server rifiuta il messaggio resta
+confermata e si vede l'errore. La delega già consegnata si può inviare di
+nuovo, e la consegna registra l'ultimo invio; annullando la consegna si
+tolgono data, canale e indirizzo. Le ricevute di accettazione e consegna
+della PEC arrivano nella casella PEC dello studio.
+
 ```bash
 # aggiorna gli sfondi dai modelli pubblicati dall'Agenzia
 docker exec telonio_php sh -c 'cd /var/www/html && sisma modelli-f24'
@@ -420,7 +447,10 @@ docker exec telonio_php sh -c 'cd /var/www/html && sisma modelli-f24'
 
 Il comando trova il PDF nella scheda "Modello e istruzioni" di ogni
 modello, verifica che alcune parole siano nella posizione attesa e
-converte ogni pagina con `pdftocairo -svg`; se l'Agenzia cambia
+converte ogni pagina con `pdftocairo -svg`; riscrive inoltre il PDF in
+`Assets/pdf` con `qpdf --object-streams=disable`, perché il lettore
+gratuito di FPDI non legge i PDF con object stream (quelli dell'Agenzia
+sono PDF 1.6 compressi); se l'Agenzia cambia
 l'impaginazione si ferma, perché le coordinate dei campi vanno rilevate di
 nuovo. `--pdf=CARTELLA` usa PDF già scaricati.
 

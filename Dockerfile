@@ -11,8 +11,10 @@ FROM php:8.5-fpm AS base
 # comando "sisma tabelle-f24" per estrarre l'archivio RAR delle tabelle F24
 # pubblicato dall'Agenzia delle Entrate; poppler-utils per pdftocairo e
 # pdftotext, usati dal comando "sisma modelli-f24" per convertire in SVG i
-# modelli F24 ufficiali usati come sfondo della stampa)
-RUN apt-get update && apt-get install -y unzip git libzip-dev libpng-dev libjpeg-dev libfreetype6-dev gettext-base libarchive-tools poppler-utils && rm -rf /var/lib/apt/lists/*
+# modelli F24 ufficiali usati come sfondo della stampa; qpdf, usato dallo
+# stesso comando per riscrivere senza object stream i PDF ufficiali che fanno
+# da sfondo al PDF delle deleghe)
+RUN apt-get update && apt-get install -y unzip git libzip-dev libpng-dev libjpeg-dev libfreetype6-dev gettext-base libarchive-tools poppler-utils qpdf && rm -rf /var/lib/apt/lists/*
 
 # Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer

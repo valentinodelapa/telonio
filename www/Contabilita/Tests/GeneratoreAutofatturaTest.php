@@ -24,7 +24,7 @@ class GeneratoreAutofatturaTest extends ContabilitaTestCase
         $controparte = new Controparte($this->dataMapper);
         $controparte->id = 9;
         $controparte->denominazione = 'Fiore Rosa';
-        $controparte->partitaIva = '09990010002';
+        $controparte->partitaIva = '09990010994';
         $controparte->codiceFiscale = 'FRORSO70A41L840L';
         $controparte->indirizzo = 'Via dei Campi 2';
         $controparte->cap = '36100';

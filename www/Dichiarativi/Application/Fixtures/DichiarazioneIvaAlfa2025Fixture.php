@@ -33,7 +33,8 @@ class DichiarazioneIvaAlfa2025Fixture extends BaseFixture
                 ->addDependency(CreditoAlfaIvaFixture::class)
                 ->addDependency(IntermediarioStudioFixture::class)
                 ->addDependency(AmministratoreAlfaFixture::class)
-                ->addDependency(ProfessionistaMariniFixture::class);
+                ->addDependency(ProfessionistaMariniFixture::class)
+                ->addDependency(IntermediarioMariniFixture::class);
     }
 
     #[\Override]
@@ -48,6 +49,7 @@ class DichiarazioneIvaAlfa2025Fixture extends BaseFixture
         (new Frontespizio($this->dataMapper))->proponi($dichiarazione);
         $dichiarazione->dataImpegno = new SismaDate('2026-04-20');
         $dichiarazione->vistoProfessionista = $this->getEntityByFixtureName(ProfessionistaMariniFixture::class);
+        $dichiarazione->intermediario = $this->getEntityByFixtureName(IntermediarioMariniFixture::class);
         $this->dataMapper->save($dichiarazione);
         $quadri = new QuadriDichiarazione($dichiarazione, $this->dataMapper);
         (new PropostaIva($this->dataMapper))->proponi($dichiarazione, $quadri);

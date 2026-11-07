@@ -31,9 +31,9 @@ class SoggettoAlfaFixture extends BaseFixture
         $soggetto->studio = $this->getEntityByFixtureName(StudioFixture::class);
         $soggetto->tipoSoggetto = TipoSoggetto::societaCapitali;
         $soggetto->codice = 'C002';
-        $soggetto->codiceFiscale = '01234567897';
+        $soggetto->codiceFiscale = '01234560785';
         $soggetto->nominativo = 'Alfa Consulting S.r.l.';
-        $soggetto->partitaIva = '01234567897';
+        $soggetto->partitaIva = '01234560785';
         $soggetto->clienteStudio = true;
         $soggetto->dataCostituzione = new SismaDate('2020-01-15');
         $this->addEntity($soggetto);

@@ -5,9 +5,11 @@ namespace Deleghe\Application\Services\Stampa;
 use Deleghe\Application\Enumerations\ModelloF24;
 
 /**
- * Sfondi della stampa: i modelli F24 in PDF pubblicati dall'Agenzia delle
- * Entrate, convertiti pagina per pagina in SVG (pdftocairo, pacchetto
- * poppler-utils) nella cartella Assets/svg del modulo.
+ * Sfondi della stampa e del PDF: i modelli F24 in PDF pubblicati
+ * dall'Agenzia delle Entrate, convertiti pagina per pagina in SVG
+ * (pdftocairo, pacchetto poppler-utils) nella cartella Assets/svg del modulo
+ * e, per il PDF della delega (PdfF24), riscritti senza object stream (qpdf)
+ * in Assets/pdf: il lettore libero di FPDI non legge i PDF 1.5+ compressi.
  *
  * Il link al PDF è cercato nella scheda "Modello e istruzioni" di ogni
  * modello. Prima della conversione si verifica che alcune parole del
@@ -40,7 +42,10 @@ class ModelliUfficialiF24
 
     private string $cartellaLavoro;
 
-    public function __construct(private string $cartellaDestinazione)
+    /**
+     * @param string|null $cartellaPdfSfondo cartella dei PDF per PdfF24 (null: solo SVG)
+     */
+    public function __construct(private string $cartellaDestinazione, private ?string $cartellaPdfSfondo = null)
     {
         $this->cartellaLavoro = sys_get_temp_dir() . '/modelli-f24-' . bin2hex(random_bytes(4));
     }
@@ -53,7 +58,8 @@ class ModelliUfficialiF24
     public function aggiorna(?string $cartellaPdf, callable $messaggio): array
     {
         $this->verificaStrumenti();
-        if ((mkdir($this->cartellaLavoro, 0700, true) === false) || ((is_dir($this->cartellaDestinazione) === false) && (mkdir($this->cartellaDestinazione, 0775, true) === false))) {
+        if ((mkdir($this->cartellaLavoro, 0700, true) === false) || ((is_dir($this->cartellaDestinazione) === false) && (mkdir($this->cartellaDestinazione, 0775, true) === false))
+                || (($this->cartellaPdfSfondo !== null) && (is_dir($this->cartellaPdfSfondo) === false) && (mkdir($this->cartellaPdfSfondo, 0775, true) === false))) {
             throw new \RuntimeException('Impossibile creare le cartelle di lavoro');
         }
         try {
@@ -68,6 +74,9 @@ class ModelliUfficialiF24
                     $this->verificaImpaginazione($modello, $pdf, $pagina);
                     $sfondi[] = $this->converti($modello, $pdf, $pagina);
                 }
+                if ($this->cartellaPdfSfondo !== null) {
+                    $sfondi[] = $this->riscrivi($modello, $pdf);
+                }
                 $messaggio(sprintf('  %s: %d pagine verificate e convertite', $modello->getLabel(), ModuloUfficialeF24::PAGINE[$modello->value]));
             }
             return $sfondi;
@@ -79,9 +88,9 @@ class ModelliUfficialiF24
 
     private function verificaStrumenti(): void
     {
-        foreach (['pdftocairo', 'pdftotext'] as $comando) {
+        foreach ($this->cartellaPdfSfondo === null ? ['pdftocairo', 'pdftotext'] : ['pdftocairo', 'pdftotext', 'qpdf'] as $comando) {
             if (trim((string) shell_exec('command -v ' . $comando)) === '') {
-                throw new \RuntimeException($comando . ' non disponibile: installare poppler-utils (vedi Dockerfile)');
+                throw new \RuntimeException($comando . ' non disponibile: installare ' . ($comando === 'qpdf' ? 'qpdf' : 'poppler-utils') . ' (vedi Dockerfile)');
             }
         }
     }
@@ -136,6 +145,21 @@ class ModelliUfficialiF24
     {
         $destinazione = $this->cartellaDestinazione . '/' . basename(ModuloUfficialeF24::getSfondo($modello, $pagina));
         $this->esegui(sprintf('pdftocairo -svg -f %d -l %d %s %s', $pagina, $pagina, escapeshellarg($pdf), escapeshellarg($destinazione)));
+        return $destinazione;
+    }
+
+    /**
+     * PDF del modello senza object stream e risorse non usate, con gli
+     * stream compressi.
+     */
+    private function riscrivi(ModelloF24 $modello, string $pdf): string
+    {
+        $destinazione = ModuloUfficialeF24::getSfondoPdf($modello, $this->cartellaPdfSfondo);
+        exec(sprintf('qpdf --object-streams=disable --compress-streams=y --remove-unreferenced-resources=yes %s %s 2>&1', escapeshellarg($pdf), escapeshellarg($destinazione)), $output, $esito);
+        // 3: riscritto con avvisi (es. piccoli errori di struttura corretti)
+        if (($esito !== 0) && ($esito !== 3)) {
+            throw new \RuntimeException('Comando non riuscito: qpdf ' . implode(' ', $output));
+        }
         return $destinazione;
     }
 

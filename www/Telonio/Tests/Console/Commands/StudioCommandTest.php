@@ -46,14 +46,14 @@ class StudioCommandTest extends SuiteTestCase
         $this->assertTrue($vuoto['esito']);
         $this->assertStringContainsString('Nessuno studio registrato', $vuoto['output']);
 
-        $studio = $this->creaStudio(1, 'Studio Rossi', '01234567897', true);
+        $studio = $this->creaStudio(1, 'Studio Rossi', '01234560785', true);
         $utente = $this->creaUtente($studio, RuoloUtente::amministratore, 10, 'mrossi');
         $this->testAdapter->accodaSelect([$studio]);
         $this->testAdapter->accodaSelect([$utente]);
 
         $conDati = $this->eseguiComando(['0' => 'elenco']);
         $this->assertTrue($conDati['esito']);
-        $this->assertStringContainsString('[1] Studio Rossi (CF 01234567897, P.IVA 01234567897) - attivo', $conDati['output']);
+        $this->assertStringContainsString('[1] Studio Rossi (CF 01234560785, P.IVA 01234560785) - attivo', $conDati['output']);
         $this->assertStringContainsString('mrossi (Mario Rossi <mario.rossi@studio.it>) [amministratore, attivo]', $conDati['output']);
     }
 
@@ -64,8 +64,8 @@ class StudioCommandTest extends SuiteTestCase
 
         $risultato = $this->eseguiComando(['0' => 'crea'], [
             'denominazione' => 'Studio Associato Test',
-            'cf' => '01234567897',
-            'piva' => 'IT01234567897',
+            'cf' => '01234560785',
+            'piva' => 'IT01234560785',
             'username' => 'admin.test',
             'cognome' => 'Rossi',
             'nome' => 'Mario',
@@ -80,7 +80,7 @@ class StudioCommandTest extends SuiteTestCase
 
     public function testAmministratoreCreazioneEReimpostazione(): void
     {
-        $studio = $this->creaStudio(5, 'Studio Verdi', '01234567897');
+        $studio = $this->creaStudio(5, 'Studio Verdi', '01234560785');
 
         // Creazione nuovo amministratore per studio cercato tramite ID
         $this->testAdapter->accodaSelect([$studio]); // getEntityById
@@ -117,7 +117,7 @@ class StudioCommandTest extends SuiteTestCase
 
     public function testAttivaEDisattivaStudio(): void
     {
-        $studio = $this->creaStudio(3, 'Studio Alfa', '01234567897', true);
+        $studio = $this->creaStudio(3, 'Studio Alfa', '01234560785', true);
 
         $this->testAdapter->accodaSelect([$studio]);
         $disattiva = $this->eseguiComando(['0' => 'disattiva'], ['studio' => '3']);

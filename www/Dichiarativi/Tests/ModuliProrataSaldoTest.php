@@ -44,7 +44,7 @@ class ModuliProrataSaldoTest extends DichiarativiTestCase
     {
         $quadri = $this->creaQuadri();
         $this->assertSame([[1, 2]], PropostaIva::getGruppi($quadri, [2, 1]));
-        $quadri->imposta('VA001001', '09556677004', 2);
+        $quadri->imposta('VA001001', '09556670702', 2);
         $this->assertSame([[1], [2]], PropostaIva::getGruppi($quadri, [1, 2]));
         $quadri->imposta('VA001001', null, 2);
         $quadri->imposta('VA003001', true, 1);

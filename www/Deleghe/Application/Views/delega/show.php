@@ -40,14 +40,18 @@ require Layout::percorso('header');
             <div class="small text-body-secondary"><?= Html::e($campi['codiceIdentificativo']) ?> <?= Html::e($delega->codiceIdentificativo?->getLabel() ?? '') ?>: <span class="font-monospace"><?= Html::e($delega->codiceFiscaleCoobbligato) ?></span></div>
         <?php endif; ?>
         <?php if ($delega->dataConsegna !== null): ?>
-            <div class="small text-warning-emphasis"><i class="bi bi-person-check me-1"></i><?= Html::e($consegna) ?> <?= Html::data($delega->dataConsegna) ?><?= $delega->canaleConsegna !== null ? ' · ' . Html::e($delega->canaleConsegna->getLabel()) : '' ?></div>
+            <div class="small text-warning-emphasis"><i class="bi bi-person-check me-1"></i><?= Html::e($consegna) ?> <?= Html::data($delega->dataConsegna) ?><?= $delega->canaleConsegna !== null ? ' · ' . Html::e($delega->canaleConsegna->getLabel()) : '' ?><?= $delega->destinatarioConsegna !== null ? ' · ' . Html::e($delega->destinatarioConsegna) : '' ?></div>
         <?php endif; ?>
         <?php if ($delega->dataQuietanza !== null): ?>
             <div class="small text-success"><i class="bi bi-check-circle me-1"></i><?= Html::e($quietanza) ?> <?= Html::data($delega->dataQuietanza) ?><?= $delega->canalePagamento !== null ? ' · ' . Html::e($delega->canalePagamento->getLabel()) : '' ?><?= $delega->protocollo !== null ? ' · ' . Html::e($delega->protocollo) : '' ?></div>
         <?php endif; ?>
     </div>
     <div class="d-flex flex-wrap gap-2">
+        <?php if ($delega->isInviabile()): ?>
+            <a href="/delega/invia/delega/<?= Html::e($id) ?>" class="btn <?= $delega->stato === StatoDelega::confermata ? 'btn-primary' : 'btn-outline-primary' ?>" title="<?= Html::e($aiutoInvia) ?>"><i class="bi bi-send me-1"></i><?= Html::e($azioni['inviaCliente']) ?></a>
+        <?php endif; ?>
         <a href="/delega/stampa/delega/<?= Html::e($id) ?>" class="btn btn-outline-secondary" target="_blank"><i class="bi bi-printer me-1"></i><?= Html::e($azioni['stampa']) ?></a>
+        <a href="/delega/pdf/delega/<?= Html::e($id) ?><?= $delega->modello === ModelloF24::semplificato ? '' : '/copie/1' ?>" class="btn btn-outline-secondary" title="<?= Html::e($aiutoPdf) ?>"><i class="bi bi-file-earmark-pdf me-1"></i><?= Html::e($azioni['pdf']) ?></a>
         <a href="/delega/duplica/delega/<?= Html::e($id) ?>" class="btn btn-outline-secondary"><i class="bi bi-copy me-1"></i><?= Html::e($azioni['duplica']) ?></a>
         <?php if ($modificabile && ($delega->modello !== ModelloF24::elide)): ?>
             <div class="dropdown">

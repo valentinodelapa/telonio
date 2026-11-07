@@ -46,7 +46,7 @@ class DichiarazioneIvaBiomedica2025Fixture extends BaseFixture
     public function setEntity(): void
     {
         $demo = new AziendaDemo($this->dataMapper);
-        $biomedica = $demo->creaSocieta($this->getEntityByFixtureName(StudioFixture::class), 'C043', '09776655004', 'Biomedica Nord S.r.l.', NaturaGiuridica::societaResponsabilitaLimitata,
+        $biomedica = $demo->creaSocieta($this->getEntityByFixtureName(StudioFixture::class), 'C043', '09776650500', 'Biomedica Nord S.r.l.', NaturaGiuridica::societaResponsabilitaLimitata,
                 '26.60.01', PeriodicitaIva::mensile, 'A944', 'Via della Ricerca 7', '40129');
         $demo->legame($biomedica, $this->getEntityByFixtureName(SoggettoBianchiFixture::class), RuoloLegame::amministratoreUnico);
         $vendita = CausaleContabile::fatturaVendita;
@@ -58,10 +58,10 @@ class DichiarazioneIvaBiomedica2025Fixture extends BaseFixture
             RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio2024, $distributore, $vendita, $data, 'E' . substr($data, 5, 2), ['N3.1' => $importo]);
         }
         $esercizio = $demo->apriEsercizio($biomedica, 2025);
-        $clinica = $demo->controparte($biomedica, 'Clinica San Luca S.p.A.', '09887711006', true);
+        $clinica = $demo->controparte($biomedica, 'Clinica San Luca S.p.A.', '09887711001', true);
         $pazienti = $demo->controparte($biomedica, 'Pazienti del laboratorio', null, true);
-        $componenti = $demo->controparte($biomedica, 'Elettronica Emiliana S.r.l.', '09665544003', false);
-        $servizi = $demo->controparte($biomedica, 'Facility Service S.r.l.', '09554433002', false);
+        $componenti = $demo->controparte($biomedica, 'Elettronica Emiliana S.r.l.', '09665540408', false);
+        $servizi = $demo->controparte($biomedica, 'Facility Service S.r.l.', '09554430307', false);
         foreach (['03', '06', '09', '12'] as $indice => $mese) {
             // apparecchi esportati, analisi di laboratorio esenti (art. 10, n. 18)
             RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $distributore, $vendita, '2025-' . $mese . '-20', 'E' . ($indice + 1), ['N3.1' => 40000.0]);

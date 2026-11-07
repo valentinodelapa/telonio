@@ -10,15 +10,15 @@ class PartitaIvaTest extends SuiteTestCase
 
     public function testNormalizzaConESenzaPrefissoItESpazi(): void
     {
-        $this->assertSame('01234567897', PartitaIva::normalizza('01234567897'));
-        $this->assertSame('01234567897', PartitaIva::normalizza(' it 01234 567897 '));
-        $this->assertSame('01234567897', PartitaIva::normalizza("IT01234567897\n"));
+        $this->assertSame('01234560785', PartitaIva::normalizza('01234560785'));
+        $this->assertSame('01234560785', PartitaIva::normalizza(' it 01234 560785 '));
+        $this->assertSame('01234560785', PartitaIva::normalizza("IT01234560785\n"));
     }
 
     public function testValidazioneLuhnValidaENonValida(): void
     {
-        $this->assertTrue(PartitaIva::isValida('01234567897'));
-        $this->assertTrue(PartitaIva::isValida('IT 01234567897'));
+        $this->assertTrue(PartitaIva::isValida('01234560785'));
+        $this->assertTrue(PartitaIva::isValida('IT 01234560785'));
         // Carattere di controllo errato
         $this->assertFalse(PartitaIva::isValida('01234567890'));
         $this->assertFalse(PartitaIva::isValida('01234567898'));

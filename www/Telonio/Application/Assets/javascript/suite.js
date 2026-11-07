@@ -92,3 +92,21 @@ document.querySelectorAll('input[data-seleziona-tutti]').forEach(function (casel
         });
     });
 });
+
+/*
+ * Scelte che propongono un valore in un altro campo (data-proponi="id del
+ * campo", data-valore="valore proposto"): il valore si scrive se il campo è
+ * vuoto o contiene ancora quello proposto da un'altra scelta dello stesso
+ * gruppo (es. casella e indirizzo del cliente nell'invio della delega).
+ */
+document.querySelectorAll('input[data-proponi]').forEach(function (scelta) {
+    scelta.addEventListener('change', function () {
+        var campo = document.getElementById(scelta.dataset.proponi);
+        var proposti = Array.from(document.querySelectorAll('input[data-proponi="' + scelta.dataset.proponi + '"]')).map(function (voce) {
+            return voce.dataset.valore;
+        });
+        if (campo && scelta.checked && (scelta.dataset.valore !== '') && ((campo.value === '') || (proposti.indexOf(campo.value) !== -1))) {
+            campo.value = scelta.dataset.valore;
+        }
+    });
+});

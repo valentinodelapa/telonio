@@ -26,7 +26,7 @@ docker exec -it telonio_php sh -c 'cd /var/www/html && sisma studio crea'
 docker exec telonio_php sh -c 'cd /var/www/html && sisma studio crea \
   --denominazione="Studio Rossi Associati" \
   --cf=80012345676 \
-  --piva=01234567897 \
+  --piva=01234560785 \
   --username=m.rossi \
   --cognome=Rossi \
   --nome=Mario \
@@ -45,6 +45,7 @@ creati dalle fixture (`Application/Fixtures`) eseguendo `sisma fixtures`.
 | `Studio` | studio professionale titolare dei dati (tenant): denominazione, codice fiscale (11 cifre per società/studi associati o 16 caratteri per professionista singolo), partita IVA, attivo sì/no |
 | `Utente` | operatore dello studio (`Studio`), username univoco, cognome, nome, e-mail, ruolo (`Enumerations\RuoloUtente`: `amministratore` o `operatore`), attivo sì/no, data e ora dell'ultimo accesso |
 | `Password` | hash bcrypt della password dell'utente con data di creazione; le password precedenti restano storicizzate ed è valida quella più recente |
+| `CasellaPosta` | casella di posta in uscita dello studio, una per tipo (`Enumerations\TipoCasellaPosta`: e-mail ordinaria o PEC): server SMTP, porta, protezione (`Enumerations\CifraturaSmtp`: SSL/TLS, STARTTLS, nessuna), utente, password cifrata (`addEncryptedProperty`, vettore d'inizializzazione proprio), indirizzo e nome del mittente (vuoto: la denominazione dello studio) |
 
 Ogni utente appartiene sempre a uno studio (`utente.studio_id NOT NULL`):
 non esiste un account web trasversale a più studi. L'autenticazione
@@ -60,7 +61,8 @@ All'interno dello studio gli utenti hanno uno dei due ruoli definiti in
 - **`amministratore`**: oltre a operare su tutti gli applicativi della suite,
   può modificare i dati identificativi del proprio studio (`/studio/update`)
   e gestire gli utenti dello studio (`/utente/index`, `/utente/create`,
-  `/utente/update`, `/utente/password`), verificati da `StudioPermission`
+  `/utente/update`, `/utente/password`) e la posta in uscita
+  (`/casella-posta/index`), verificati da `StudioPermission`
   (`StudioVoter`) e `UtentePermission` (`UtenteVoter`).
 - **`operatore`**: opera sugli applicativi dello studio e gestisce solo il
   proprio profilo personale (`/profilo/update`) e il cambio della propria
@@ -72,6 +74,32 @@ Regole di sicurezza applicate da `UtenteForm`:
   stesso il ruolo di amministratore;
 - non è possibile disattivare o declassare un amministratore se nello studio
   non resta almeno un altro amministratore attivo.
+
+## Posta in uscita
+
+Gli studi inviano documenti ai clienti (es. le deleghe F24) da due
+caselle, configurate in Studio > Posta in uscita (`CasellaPostaController`):
+l'**e-mail ordinaria** e la **PEC**, scelte a ogni invio. Ognuna ha il suo
+server SMTP; "Invia una prova" manda un messaggio all'utente collegato.
+
+- La password SMTP è cifrata nel database con `ENCRYPTION_PASSPHRASE`;
+  lasciata vuota nella modifica resta quella salvata, e senza utente
+  l'autenticazione non si usa e la password viene tolta.
+- Senza la casella e-mail dello studio valgono i parametri `MAIL_*` del
+  `.env` dell'installazione (`InvioPosta::getCasellaAmbiente`), con il nome
+  dello studio come mittente. La PEC non ha alternative: ha valore di PEC
+  (d.P.R. 68/2005) solo il messaggio che parte dalla casella PEC dello
+  studio, con il server del gestore (di norma porta 465, SSL/TLS).
+- `Services\Posta\InvioPosta::invia(Studio, TipoCasellaPosta, Messaggio)`
+  invia un messaggio in testo semplice con allegati (`Messaggio::allega`)
+  tramite PHPMailer e restituisce il Message-ID; casella mancante,
+  indirizzo non valido o errore del server sollevano
+  `InvioPostaException`, con il messaggio da mostrare all'utente. La
+  consegna al server è una closure sostituibile, usata nei test.
+
+In sviluppo la fixture `CasellaPostaPecFixture` configura la PEC dello
+studio demo su Mailpit (http://mail.telonio.localhost), dove arrivano
+anche le e-mail dei parametri `MAIL_*`.
 
 ## Comando CLI (`sisma studio`)
 

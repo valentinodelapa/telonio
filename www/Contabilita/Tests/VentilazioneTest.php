@@ -106,7 +106,7 @@ class VentilazioneTest extends ContabilitaTestCase
         $datiFiscali = new DatiFiscali($this->dataMapper);
         $datiFiscali->soggetto = $this->azienda;
         $datiFiscali->validoDal = new SismaDate('2020-01-01');
-        $datiFiscali->partitaIva = '01234567897';
+        $datiFiscali->partitaIva = '01234560785';
         $datiFiscali->regimeFiscale = RegimeFiscale::semplificato;
         $datiFiscali->periodicitaIva = PeriodicitaIva::mensile;
         $datiFiscali->ventilazioneCorrispettivi = false;
@@ -153,7 +153,7 @@ class VentilazioneTest extends ContabilitaTestCase
         $datiFiscali = new DatiFiscali($this->dataMapper);
         $datiFiscali->soggetto = $this->azienda;
         $datiFiscali->validoDal = new SismaDate('2020-01-01');
-        $datiFiscali->partitaIva = '01234567897';
+        $datiFiscali->partitaIva = '01234560785';
         $datiFiscali->regimeFiscale = RegimeFiscale::semplificato;
         $datiFiscali->periodicitaIva = PeriodicitaIva::mensile;
         $datiFiscali->ventilazioneCorrispettivi = true;

@@ -23,7 +23,7 @@ class FormsTest extends SuiteTestCase
         $request = $this->creaRequest([
             'denominazione' => '  Studio   Associato   Verdi  ',
             'codiceFiscale' => ' rssmra 80a01 h501u ',
-            'partitaIva' => ' it 01234567897 ',
+            'partitaIva' => ' it 01234560785 ',
         ]);
 
         // StudioModel::esisteCodiceFiscale -> nessun duplicato
@@ -36,7 +36,7 @@ class FormsTest extends SuiteTestCase
         $risultato = $form->resolveEntity();
         $this->assertSame('Studio Associato Verdi', $risultato->denominazione);
         $this->assertSame('RSSMRA80A01H501U', $risultato->codiceFiscale);
-        $this->assertSame('01234567897', $risultato->partitaIva);
+        $this->assertSame('01234560785', $risultato->partitaIva);
     }
 
     public function testStudioFormErroriCustomFilter(): void
@@ -55,12 +55,12 @@ class FormsTest extends SuiteTestCase
         $this->assertNotEmpty($errori->partitaIvaCustomMessage);
 
         // CF valido ma duplicato
-        $altroStudio = $this->creaStudio(99, 'Altro Studio', '01234567897');
+        $altroStudio = $this->creaStudio(99, 'Altro Studio', '01234560785');
         $this->testAdapter->accodaSelect([$altroStudio]);
         $formDuplicato = new StudioForm($this->creaStudio(1), $this->dataMapper);
         $formDuplicato->handleRequest($this->creaRequest([
             'denominazione' => 'Studio Test',
-            'codiceFiscale' => '01234567897',
+            'codiceFiscale' => '01234560785',
             'partitaIva' => '',
         ]));
         $this->assertFalse($formDuplicato->isValid());

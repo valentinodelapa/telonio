@@ -311,6 +311,10 @@ class PropostaIva
         } else {
             $quadri->proponi('VA002001', str_replace('.', '', $codiceAteco));
         }
+        // ultima dichiarazione prima dell'ingresso in un Gruppo IVA (artt. 70-bis e seguenti)
+        if ($tipo === TipoModulo::principale) {
+            $quadri->proponi('VA011001', RimborsoIva::isIngressoGruppoIva($regime->getDatiFiscali($soggetto, $anno), $regime->getDatiFiscali($soggetto, $anno + 1)) ? true : null);
+        }
         if ($tipo === TipoModulo::soggettoTrasformato) {
             $partitaIva = $datiFiscali?->partitaIva ?? $soggetto->partitaIva;
             if ($partitaIva === null) {

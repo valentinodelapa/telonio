@@ -2,6 +2,58 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.21.0-alpha] - 2026-11-07 - Posta in Uscita, Invio delle Deleghe e Controlli dell'Agenzia
+
+Ventunesima versione alpha: in `Telonio` la posta in uscita dello studio, con le caselle e-mail e PEC; in `Deleghe` il PDF della delega sul modello ufficiale e l'invio al cliente per e-mail o PEC; in `Dichiarativi` le correzioni emerse dal primo controllo dei file IVA 2026 e IVA TR con le procedure dell'Agenzia, che ora accettano tutte le dichiarazioni delle demo, e l'avviso sul visto di conformità apposto da chi non trasmette.
+
+Versioni dei moduli: `Telonio` 0.7.0, `Deleghe` 0.7.0 (richiede `Telonio` 0.7.0), `Anagrafica` 0.10.1, `Contabilita` 0.6.1, `Dichiarativi` 0.4.1 (requisiti invariati); `Imu` 0.4.0, `Successioni` 0.3.2 e `GestioneStudio` 0.1.1 invariati.
+
+**Aggiornamento**: `sisma aggiorna-database` crea la tabella `casella_posta` (`Telonio/Database/schema.sql`) ed esegue `Deleghe/Database/aggiornamento-0.7.sql` (colonna `delega.destinatario_consegna`, nuovo canale PEC), idempotente. L'immagine PHP comprende `qpdf` (`Dockerfile`) e l'archivio della release le nuove librerie PHP (PHPMailer, FPDF, FPDI): `sh aggiorna.sh` (con `sudo` se la cartella dell'installazione appartiene a root) ricostruisce i container e aggiorna il database. Per inviare le deleghe gli amministratori indicano le caselle in Studio > Posta in uscita; senza la casella e-mail dello studio valgono i parametri `MAIL_*` del `.env`, che in produzione vanno impostati con il server SMTP reale.
+
+Dopo l'aggiornamento conviene riproporre le dichiarazioni IVA con l'ingresso in un Gruppo IVA (rigo VA11) e con rimborsi oltre 30.000 euro per cui la garanzia è dovuta (attestazione del VX4), e i modelli IVA TR dei non residenti.
+
+### ✨ Nuove Funzionalità
+
+#### `Telonio` 0.7.0 — posta in uscita dello studio
+
+- **Studio > Posta in uscita** (solo amministratori): due caselle per studio, **e-mail ordinaria** e **PEC**, ognuna con il suo server SMTP (SSL/TLS, STARTTLS o nessuna protezione), utente, password cifrata nel database con `ENCRYPTION_PASSPHRASE` e mittente. "Invia una prova" manda un messaggio all'utente collegato;
+- l'e-mail dello studio non configurata ricade sui parametri `MAIL_*` del `.env`, con il nome dello studio come mittente; la PEC va sempre configurata, perché ha valore di PEC solo il messaggio che parte dalla casella PEC dello studio;
+- servizio `InvioPosta` (PHPMailer) riusabile dagli altri moduli per inviare documenti ai clienti.
+
+#### `Deleghe` 0.7.0 — PDF e invio della delega al cliente
+
+- **Scarica PDF**: la delega in PDF sul modello ufficiale dell'Agenzia (sfondo vettoriale), con i campi negli stessi punti della stampa, anche dalla pagina di stampa. Dalla delega si scaricano tutte le copie (una pagina per il semplificato);
+- **Invia al cliente** (delega confermata o già consegnata): a ogni invio si sceglie la casella, e-mail o PEC. Il destinatario proposto è l'indirizzo del cliente in anagrafica dello stesso tipo, il principale per primo; oggetto e testo sono proposti e modificabili, e il PDF va in allegato, con tutte le copie o solo quella per il contribuente;
+- riuscito l'invio, la delega diventa **Consegnata** con la data di oggi, il canale (e-mail o PEC) e l'indirizzo, mostrati nella delega. Se il server rifiuta il messaggio la delega resta confermata e si vede l'errore. Inviando di nuovo una delega consegnata si registra l'ultimo invio; annullando la consegna i dati dell'invio si tolgono;
+- il canale della consegna distingue la **PEC** dall'e-mail: le consegne registrate prima con "Email / PEC" restano "E-mail";
+- `sisma modelli-f24` scrive anche gli sfondi PDF (`Assets/pdf`), riscritti con `qpdf` senza object stream perché la libreria FPDI possa leggerli.
+
+### 🔧 Modifiche
+
+#### `Dichiarativi` 0.4.1
+
+- **visto di conformità e incaricato della trasmissione**: un avviso nella dichiarazione IVA e nel modello TR quando il professionista del visto non è l'intermediario che trasmette, come segnalano le procedure di controllo dell'Agenzia (anomalia che non impedisce l'invio);
+- fixture: il dott. Marini è intermediario dello studio e trasmette le dichiarazioni con il suo visto (Alfa, Nordic, Verde Holding).
+
+### 🐛 Correzioni
+
+Emerse dal controllo dei file IVA26 e IVT25 delle demo con le procedure dell'Agenzia (Mod. IVA 2026 versione 1.0.1, Mod. IVA TR versione 1.1.0).
+
+#### `Dichiarativi` 0.4.1
+
+- **modello IVA TR, codice fiscale della società dichiarante**: il campo del record B (posizione 1078) è numerico e da vuoto va a zeri, non a spazi. Tutti i file IVT25 erano scartati;
+- **rigo VA11**: all'ultima dichiarazione prima dell'ingresso in un Gruppo IVA la suite proponeva la causale 13 e il credito da trasferire (VX2, campo 2) senza barrare la casella del VA11, richiesta dalle specifiche. Ora la casella è proposta e un controllo segnala la mancanza;
+- **attestazione dell'art. 38-bis, c. 3**: era proposta anche quando la garanzia è dovuta. Senza il quadro VK la firma richiede l'esonero con il codice 1 (VX4, campo 7): ora è proposta solo in quel caso, con un controllo;
+- **casella dei non residenti del modello TR** (TD4): un nuovo controllo richiede l'identificazione diretta (cifre 8-10 della partita IVA uguali a 999) o il rappresentante fiscale con il codice carica 6, come le specifiche.
+
+#### Dati demo (`Anagrafica` 0.10.1, `Contabilita` 0.6.1, `Dichiarativi` 0.4.1)
+
+- **partite IVA delle demo**: il controllo dell'Agenzia rifiuta i codici ufficio (cifre 8-10) come 200-900 e 000, e parte delle controparti aveva il carattere di controllo errato. Le partite IVA hanno ora un codice ufficio accettato e il carattere di controllo ricalcolato. Nordic Trade sottoscrive con il rappresentante fiscale.
+
+### ⚠️ Limiti Noti
+
+- **Codice ufficio della partita IVA**: la suite verifica solo il carattere di controllo. L'elenco dei codici ufficio ammessi non è nelle specifiche lette, quindi non c'è un controllo: il software dell'Agenzia li segnala.
+
 ## [0.20.0-alpha] - 2026-11-07 - Rettifiche della Detrazione e Autofatture Agricole
 
 Ventesima versione alpha: in `Dichiarativi` il prospetto D delle rettifiche della detrazione con la proposta dei beni ammortizzabili al cambio di regime agricolo, le connesse occasionali nei modi ordinari, il quadro VO proposto dalla rinuncia all'esonero e dalle opzioni delle attività separate, le garanzie delle compensazioni di gruppo e il differimento della decadenza per il ritardo nei documenti; in `Contabilita` la tabella dei prodotti agricoli con la percentuale di compensazione e l'autofattura degli acquisti dagli agricoltori esonerati; in `Anagrafica` la rinuncia all'esonero.

@@ -25,6 +25,7 @@ use Deleghe\Application\Enumerations\StatoDelega;
 use Deleghe\Application\Services\EsitoControllo;
 use Deleghe\Application\Services\ModelloCompilato;
 use Deleghe\Application\Services\Stampa\ModuloUfficialeF24;
+use Deleghe\Application\Services\Stampa\PdfF24;
 use Deleghe\Application\Services\TabelleRiferimento\ArchivioTabelleF24;
 use Deleghe\Application\Services\TabelleRiferimento\FonteAgenzia;
 use Deleghe\Application\Services\TabelleRiferimento\LettoreFoglio;
@@ -276,6 +277,24 @@ class TelematicoAndStampaTest extends SuiteTestCase
 
             $pagineTutte = $modulo->getPagine($compilato, true);
             $this->assertCount(ModuloUfficialeF24::PAGINE[$tipoModello->value], $pagineTutte);
+            $this->assertSame($tipoModello, $pagineTutte[0]['modello']);
+            $this->assertSame(1, $pagineTutte[0]['pagina']);
+
+            // PDF: le stesse pagine sullo sfondo del modello ufficiale, con i campi come testo
+            $pdf = (new PdfF24(ModuloUfficialeF24::CARTELLA_PDF, false))->genera($pagineTutte, 'F24 di prova');
+            $this->assertStringStartsWith('%PDF-', $pdf);
+            $this->assertSame(count($pagineTutte), preg_match_all('~/Type /Page\b(?!s)~', $pdf));
+            $this->assertStringContainsString('(300) Tj', $pdf);
+            $this->assertStringContainsString('(9) Tj', $pdf); // caselle: un carattere per cella (codice tributo 3918)
+        }
+        $this->assertSame('F24_2026-06-16_' . $soggetto->codiceFiscale . '.pdf', PdfF24::getNomeFile($delega, $soggetto));
+
+        // sfondo mancante: errore che indica il comando da eseguire
+        try {
+            (new PdfF24(sys_get_temp_dir() . '/sfondi-inesistenti'))->genera($pagineTutte);
+            $this->fail('Attesa RuntimeException');
+        } catch (\RuntimeException $errore) {
+            $this->assertStringContainsString('sisma modelli-f24', $errore->getMessage());
         }
     }
 

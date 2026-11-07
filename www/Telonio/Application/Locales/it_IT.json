@@ -18,21 +18,32 @@
                 "passwordAttuale": "Password attuale",
                 "passwordIniziale": "Password iniziale",
                 "nuovaPassword": "Nuova password",
-                "confermaPassword": "Conferma password"
+                "confermaPassword": "Conferma password",
+                "indirizzoMittente": "Indirizzo del mittente",
+                "nomeMittente": "Nome del mittente",
+                "hostSmtp": "Server SMTP",
+                "cifraturaSmtp": "Protezione",
+                "portaSmtp": "Porta",
+                "utenteSmtp": "Utente SMTP",
+                "passwordSmtp": "Password SMTP"
             },
             "azioni": {
                 "salva": "Salva",
                 "annulla": "Annulla",
                 "modifica": "Modifica",
                 "nuovoUtente": "Nuovo utente",
-                "reimpostaPassword": "Reimposta password"
+                "reimpostaPassword": "Reimposta password",
+                "elimina": "Elimina",
+                "configura": "Configura",
+                "inviaProva": "Invia una prova"
             },
             "campiObbligatori": "I campi contrassegnati con * sono obbligatori.",
             "navDatiStudio": "Dati dello studio",
             "navUtentiStudio": "Utenti dello studio",
             "navDatiProfilo": "Dati personali",
             "navCambioPassword": "Cambio password",
-            "aiutoPassword": "Almeno 8 caratteri."
+            "aiutoPassword": "Almeno 8 caratteri.",
+            "navPostaStudio": "Posta in uscita"
         },
         "auth": {
             "login": {
@@ -84,6 +95,28 @@
             },
             "password": {
                 "pageTitle": "Cambio password"
+            }
+        },
+        "casellaPosta": {
+            "index": {
+                "pageTitle": "Posta in uscita",
+                "aiuto": "Caselle da cui lo studio invia i documenti ai clienti (es. le deleghe F24): a ogni invio si sceglie se usare l'e-mail ordinaria o la PEC.",
+                "usaAmbiente": "Non configurata per lo studio: si usano i parametri MAIL_* dell'installazione (.env), con il nome dello studio come mittente.",
+                "nonConfigurata": "Non configurata: senza casella non si possono inviare e-mail.",
+                "pecNonConfigurata": "Non configurata: per inviare via PEC indica la casella PEC dello studio e il server SMTP del gestore (es. smtps.pec.aruba.it, porta 465, SSL/TLS).",
+                "senzaAutenticazione": "Nessuna autenticazione",
+                "aiutoProva": "Invia un messaggio di prova a %s",
+                "confermaElimina": "Eliminare la configurazione della casella?"
+            },
+            "form": {
+                "aiutoEmail": "Server SMTP della casella e-mail ordinaria dello studio: i parametri sono quelli indicati dal gestore della posta.",
+                "aiutoPec": "La PEC ha valore legale solo se il messaggio parte dalla casella PEC dello studio: indica l'indirizzo PEC e il server SMTP del gestore (di norma porta 465 con SSL/TLS).",
+                "aiutoNomeMittente": "Vuoto: la denominazione dello studio.",
+                "aiutoHost": "Nome del server, senza protocollo né porta.",
+                "aiutoPorta": "465 per SSL/TLS, 587 per STARTTLS.",
+                "aiutoUtente": "Di norma lo stesso indirizzo della casella; vuoto per i server senza autenticazione.",
+                "aiutoPassword": "Conservata cifrata nel database.",
+                "aiutoPasswordSalvata": "Lascia vuoto per mantenere la password salvata (conservata cifrata)."
             }
         }
     }

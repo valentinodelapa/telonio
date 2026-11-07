@@ -2,6 +2,11 @@
 
 namespace Dichiarativi\Tests;
 
+use Anagrafica\Application\Entities\Soggetto;
+use Deleghe\Application\Entities\Intermediario;
+use Dichiarativi\Application\Services\Telematico\TracciatoTr;
+use Deleghe\Application\Services\Telematico\RecordF24;
+use Contabilita\Application\Enumerations\CodiceCaricaIva;
 use Anagrafica\Application\Entities\CodiceAteco;
 use Anagrafica\Application\Entities\DatiFiscali;
 use Anagrafica\Application\Enumerations\ClassificazioneAteco;
@@ -378,7 +383,7 @@ class ModelloTrERimborsiTest extends DichiarativiTestCase
     public function testCreditoPrecedenteNonTrasferibileAlGruppo(): void
     {
         $quadri = $this->creaQuadri();
-        $quadri->imposta('VK001001', '09222333008');
+        $quadri->imposta('VK001001', '09222330301');
         $quadri->imposta('VK001002', 12);
         $quadri->imposta('VL010001', 4000);
         // credito del VL10 nel VX2, mai nel VX8 trasferito al gruppo
@@ -563,12 +568,21 @@ class ModelloTrERimborsiTest extends DichiarativiTestCase
         $quadri = $this->quadriTr($dichiarazione);
         $quadri->imposta('TD006001', 31000);
         $this->assertNotEmpty($controlli->getAvvertenze($quadri));
+        // non residenti: identificazione diretta (cifre 8-10 della partita IVA uguali a 999) o rappresentante fiscale
+        $quadri = $this->quadriTr($dichiarazione);
+        $quadri->imposta('TD004001', true);
+        $this->assertTrue($contiene($controlli->getErrori($dichiarazione, $quadri), 'TD4'));
+        $dichiarazione->codiceCarica = CodiceCaricaIva::rappresentanteFiscale;
+        $this->assertFalse($contiene($controlli->getErrori($dichiarazione, $quadri), 'TD4'));
     }
 
     public function testRecordCDelModelloTr(): void
     {
         $dichiarazione = $this->creaTr();
-        $this->assertSame('IVT25_01234567897_2025_T3.txt', GeneratoreTr::getNomeFile($dichiarazione));
+        $this->assertSame('IVT25_01234560785_2025_T3.txt', GeneratoreTr::getNomeFile($dichiarazione));
+        // codice fiscale della società dichiarante: formato CN, zeri se assente (posizione 1078)
+        $recordB = (string) (new RecordF24(TracciatoTr::RECORD_B))->imposta('codiceFiscaleSocietaDichiarante', 0);
+        $this->assertSame('00000000000', substr($recordB, 1077, 11));
         $quadri = $this->quadriTr($dichiarazione);
         $quadri->imposta('TC007002', 3300);
         $quadri->imposta('TD002001', true);
@@ -580,7 +594,7 @@ class ModelloTrERimborsiTest extends DichiarativiTestCase
                 $valori[$modulo][$codice] = $dati['valore'];
             }
         }
-        $record = RecordQuadri::genera('C', '01234567897', $valori, $quadri->getCatalogo());
+        $record = RecordQuadri::genera('C', '01234560785', $valori, $quadri->getCatalogo());
         $this->assertCount(1, $record);
         $this->assertSame(1900, strlen($record[0]));
         $this->assertSame('C', $record[0][0]);
@@ -660,6 +674,25 @@ class ModelloTrERimborsiTest extends DichiarativiTestCase
         $this->assertNull($dichiarazione->getCodiceEsoneroGaranzie(['visto' => '1', 'collaborativo' => '4']));
     }
 
+    public function testVistoDiChiNonTrasmette(): void
+    {
+        $dichiarazione = $this->creaDichiarazione();
+        $this->assertNull(ControlliIva::getAvvisoVisto($dichiarazione));
+        $professionista = new Soggetto($this->dataMapper);
+        $professionista->codiceFiscale = 'MRNPLA70A01F205L';
+        $professionista->nominativo = 'MARINI PAOLO';
+        $studio = new Soggetto($this->dataMapper);
+        $studio->codiceFiscale = '80012345676';
+        $studio->nominativo = 'STUDIO DEMO';
+        $intermediario = new Intermediario($this->dataMapper);
+        $intermediario->soggetto = $studio;
+        $dichiarazione->vistoProfessionista = $professionista;
+        $dichiarazione->intermediario = $intermediario;
+        $this->assertStringContainsString('MARINI PAOLO', (string) ControlliIva::getAvvisoVisto($dichiarazione));
+        $intermediario->soggetto = $professionista;
+        $this->assertNull(ControlliIva::getAvvisoVisto($dichiarazione));
+    }
+
     public function testControlliDelRimborso(): void
     {
         $this->rispondi(['dati_fiscali' => [$this->creaDatiFiscali()]]);
@@ -682,6 +715,12 @@ class ModelloTrERimborsiTest extends DichiarativiTestCase
         $this->assertStringNotContainsString('deve coincidere', $errori(['VY002001' => 9000, 'VY004001' => 5000, 'VS020001' => 3000, 'VZ001001' => 2000]));
         $this->assertStringContainsString('deve coincidere', $errori(['VY002001' => 9000, 'VY004001' => 2000, 'VS020001' => 3000, 'VZ001001' => 2000]));
         $this->assertStringContainsString('Rigo VK25', $errori(['VK023001' => 5000, 'VK024001' => 4000, 'VK025001' => 2000]));
+        // firma dell'attestazione senza il quadro VK: esonero dalle garanzie con il codice 1 (specifiche, VX00410D)
+        $this->assertStringContainsString('codice 1', $errori(['VX002001' => 40000, 'VX004001' => 35000, 'VX004003' => '3', 'VX00410A' => true, 'VX00410D' => true]));
+        $this->assertStringNotContainsString('codice 1', $errori(['VX002001' => 40000, 'VX004001' => 35000, 'VX004003' => '3', 'VX004007' => '1', 'VX00410A' => true, 'VX00410D' => true]));
+        // causale 13 e credito trasferito al gruppo solo con la casella del rigo VA11
+        $this->assertStringContainsString('VA11', $errori(['VX002001' => 6000, 'VX002002' => 4000, 'VX004001' => 2000, 'VX004003' => '13']));
+        $this->assertStringNotContainsString('VA11', $errori(['VA011001' => true, 'VX002001' => 6000, 'VX002002' => 4000, 'VX004001' => 2000, 'VX004003' => '13']));
     }
 
     public function testMinoreEccedenzaDelTriennio(): void

@@ -10,9 +10,12 @@ Di seguito sono riportate le attribuzioni e le licenze relative ai componenti so
 
 *   **SismaFramework** (`www/SismaFramework`): Copyright (c) 2020-present Valentino de Lapa, rilasciato sotto licenza **MIT**. Per le attribuzioni interne al framework (tra cui SimpleORM sotto Apache License 2.0, Symfony e Doctrine ORM sotto licenza MIT) si rimanda a [`www/SismaFramework/NOTICE.md`](www/SismaFramework/NOTICE.md).
 *   **PSR Log** (`psr/log`): Copyright (c) PHP Framework Interoperability Group, rilasciato sotto licenza **MIT**.
+*   **PHPMailer** (`phpmailer/phpmailer`): Copyright (c) 2012-2020 Marcus Bointon, 2010-2012 Jim Jagielski, 2004-2009 Andy Prevost, rilasciato sotto licenza **GNU LGPL 2.1**. Usato senza modifiche come libreria installata da Composer (invio della posta del modulo `Telonio`); il sorgente è disponibile su [github.com/PHPMailer/PHPMailer](https://github.com/PHPMailer/PHPMailer).
+*   **FPDF** (`setasign/fpdf`): Olivier Plathey, rilasciato con la licenza permissiva di FPDF (uso, copia, modifica e ridistribuzione consentiti senza restrizioni; `license.txt` del pacchetto, dichiarata **MIT** in Composer).
+*   **FPDI** (`setasign/fpdi`): Copyright (c) 2024 Setasign GmbH & Co. KG, rilasciato sotto licenza **MIT** (importazione dei modelli F24 ufficiali come sfondo del PDF delle deleghe).
 *   **Bootstrap** (`v5.3.3`) e **Bootstrap Icons** (`v1.11.3`): Copyright (c) 2011-2024 The Bootstrap Authors, rilasciati sotto licenza **MIT** (caricati tramite CDN).
 
-Le utilità di sistema utilizzate all'interno del container Docker per l'importazione delle tabelle e la conversione dei modelli PDF (`poppler-utils` / `pdftocairo` / `pdftotext` e `libarchive-tools` / `bsdtar`) sono invocate esclusivamente come eseguibili di sistema esterni e non sono distribuite né collegate staticamente o dinamicamente al codice sorgente di questo repository.
+Le utilità di sistema utilizzate all'interno del container Docker per l'importazione delle tabelle e la conversione dei modelli PDF (`poppler-utils` / `pdftocairo` / `pdftotext`, `qpdf` e `libarchive-tools` / `bsdtar`) sono invocate esclusivamente come eseguibili di sistema esterni e non sono distribuite né collegate staticamente o dinamicamente al codice sorgente di questo repository.
 
 ---
 

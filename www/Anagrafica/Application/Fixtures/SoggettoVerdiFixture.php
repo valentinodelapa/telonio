@@ -37,7 +37,7 @@ class SoggettoVerdiFixture extends BaseFixture
         $soggetto->codice = 'C003';
         $soggetto->codiceFiscale = 'VRDGPP75C12F205K';
         $soggetto->nominativo = 'VERDI GIUSEPPE';
-        $soggetto->partitaIva = '07654321012';
+        $soggetto->partitaIva = '07654320105';
         $soggetto->tipoAttivita = TipoAttivita::impresaFamiliare;
         $soggetto->clienteStudio = true;
         $soggetto->cognome = 'Verdi';

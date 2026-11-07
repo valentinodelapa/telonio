@@ -46,10 +46,10 @@ abstract class ContabilitaTestCase extends SuiteTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->azienda = $this->creaSoggettoFisico(1, $this->studioPredefinito, '01234567897', 'Alfa', '');
+        $this->azienda = $this->creaSoggettoFisico(1, $this->studioPredefinito, '01234560785', 'Alfa', '');
         $this->azienda->tipoSoggetto = TipoSoggetto::societaCapitali;
         $this->azienda->nominativo = 'Alfa Consulting S.r.l.';
-        $this->azienda->partitaIva = '01234567897';
+        $this->azienda->partitaIva = '01234560785';
         $this->piano = new PianoConti($this->dataMapper);
         $this->piano->id = 1000;
         $this->piano->studio = $this->studioPredefinito;

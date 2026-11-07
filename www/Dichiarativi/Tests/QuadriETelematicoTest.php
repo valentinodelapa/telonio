@@ -79,13 +79,13 @@ class QuadriETelematicoTest extends DichiarativiTestCase
         $valori[1]['VH001003'] = '1';
         // testo lungo: un elemento ogni 15 caratteri dopo il primo
         $valori[1]['VA004001'] = str_repeat('FONDO IMMOBILIARE ', 12);
-        $record = RecordQuadri::genera('D', '01234567897', $valori, $this->getCatalogoIva());
+        $record = RecordQuadri::genera('D', '01234560785', $valori, $this->getCatalogoIva());
         // 3 + 26 + 33 + 15 = 77 elementi: due record per lo stesso modulo
         $this->assertCount(1, array_unique(array_map(fn(string $record) => substr($record, 17, 8), $record)));
         $this->assertCount(2, $record);
         foreach ($record as $testo) {
             $this->assertSame(1900, strlen($testo));
-            $this->assertSame('D01234567897     00000001', substr($testo, 0, 25));
+            $this->assertSame('D01234560785     00000001', substr($testo, 0, 25));
             $this->assertSame("A\r\n", substr($testo, -3));
         }
         $elementi = str_split(substr($record[0], 89, 1800), 24);
@@ -95,7 +95,7 @@ class QuadriETelematicoTest extends DichiarativiTestCase
         $this->assertContains('VE023001           30000', $elementi);
         $this->assertContains('VH001003               1', array_merge($elementi, str_split(substr($record[1], 89, 1800), 24)));
         $this->expectException(\InvalidArgumentException::class);
-        RecordQuadri::genera('D', '01234567897', [1 => ['VP014001' => '10']], $this->getCatalogoIva());
+        RecordQuadri::genera('D', '01234560785', [1 => ['VP014001' => '10']], $this->getCatalogoIva());
     }
 
     public function testControlliDiRispondenza(): void
@@ -117,6 +117,6 @@ class QuadriETelematicoTest extends DichiarativiTestCase
         $quadri->imposta('VE023002', 6600);
         $quadri->imposta('VX005001', 6000);
         $this->assertNotEmpty($controlli->getAvvertenze($quadri));
-        $this->assertSame('IVA26_01234567897.txt', GeneratoreIva::getNomeFile($quadri->getDichiarazione()));
+        $this->assertSame('IVA26_01234560785.txt', GeneratoreIva::getNomeFile($quadri->getDichiarazione()));
     }
 }

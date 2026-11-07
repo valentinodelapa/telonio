@@ -45,6 +45,8 @@ class TracciatoTr
         'sesso' => [414, 1, 'AN'],
         'naturaGiuridica' => [922, 2, 'NU'],
         'codiceFiscaleSottoscrittore' => [1062, 16, 'AN'],
+        // formato CN: zeri se assente, spazi non ammessi
+        'codiceFiscaleSocietaDichiarante' => [1078, 11, 'NU'],
         'codiceCaricaSottoscrittore' => [1090, 2, 'NU'],
         'cognomeSottoscrittore' => [1161, 24, 'AN'],
         'nomeSottoscrittore' => [1185, 20, 'AN'],

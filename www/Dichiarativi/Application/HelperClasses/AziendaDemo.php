@@ -2,6 +2,7 @@
 
 namespace Dichiarativi\Application\HelperClasses;
 
+use Deleghe\Application\Entities\Intermediario;
 use Anagrafica\Application\Entities\DatiFiscali;
 use Anagrafica\Application\Entities\Indirizzo;
 use Anagrafica\Application\Entities\Legame;
@@ -193,7 +194,7 @@ class AziendaDemo
      *
      * @param array<string, float> $importi
      */
-    public function presentaTr(Soggetto $soggetto, int $anno, int $trimestre, array $importi, string $presentazione, ?Soggetto $visto = null): Dichiarazione
+    public function presentaTr(Soggetto $soggetto, int $anno, int $trimestre, array $importi, string $presentazione, ?Soggetto $visto = null, ?Intermediario $intermediario = null): Dichiarazione
     {
         $dichiarazione = new Dichiarazione($this->dataMapper);
         $dichiarazione->studio = $soggetto->studio;
@@ -203,6 +204,7 @@ class AziendaDemo
         $dichiarazione->trimestre = $trimestre;
         (new Frontespizio($this->dataMapper))->proponi($dichiarazione);
         $dichiarazione->vistoProfessionista = $visto;
+        $dichiarazione->intermediario = $intermediario ?? $dichiarazione->intermediario;
         $this->dataMapper->save($dichiarazione);
         $quadri = new QuadriDichiarazione($dichiarazione, $this->dataMapper);
         foreach ($importi as $codice => $importo) {

@@ -78,7 +78,11 @@
                 "regime": "Regime",
                 "spontaneo": "Pagamento spontaneo in unica soluzione",
                 "importo": "Importo del credito (€)",
-                "utilizzabileDal": "Utilizzabile dal"
+                "utilizzabileDal": "Utilizzabile dal",
+                "tipoCasella": "Invia con",
+                "destinatario": "Destinatario",
+                "oggetto": "Oggetto",
+                "testo": "Testo del messaggio"
             },
             "azioni": {
                 "salva": "Salva",
@@ -116,7 +120,10 @@
                 "rateizza": "Rateizza",
                 "creaPiano": "Crea il piano e le rate",
                 "eliminaPiano": "Elimina il piano",
-                "versaInRitardo": "Versa in ritardo"
+                "versaInRitardo": "Versa in ritardo",
+                "inviaCliente": "Invia al cliente",
+                "invia": "Invia",
+                "pdf": "Scarica PDF"
             },
             "navCodiciTributo": "Codici tributo",
             "navInvii": "Invii telematici",
@@ -182,7 +189,9 @@
                 "soloProspetto": "prospetto (le richiede l'ente)",
                 "testoDaVersare": "%d versamenti da versare con la stessa data (saldo € %s): scegli quelli da aggiungere alla delega.",
                 "sezioneCreditiDisponibili": "Crediti disponibili per la compensazione",
-                "utilizzoCredito": "compensazione"
+                "utilizzoCredito": "compensazione",
+                "aiutoInvia": "Invia il PDF della delega al cliente per e-mail o PEC: la delega diventa consegnata",
+                "aiutoPdf": "PDF del modello ufficiale compilato, da salvare o condividere"
             },
             "stampa": {
                 "pageTitle": "Modello F24"
@@ -191,6 +200,16 @@
                 "aiutoDuplica": "Si riportano alla nuova data i versamenti inseriti a mano nella delega, con mese di riferimento, rata e periodi aggiornati; non le compensazioni (si rifanno sui crediti) né i versamenti generati dagli altri moduli (li ricalcola il modulo).",
                 "nessunaCopiaDelega": "La delega non ha versamenti inseriti a mano da riportare.",
                 "etichettaGenera": "Genera subito la delega di quella data"
+            },
+            "invia": {
+                "nessunaCasella": "Lo studio non ha caselle di posta configurate per l'invio.",
+                "configuraCaselle": "Configura la posta in uscita",
+                "casellaNonConfigurata": "Casella dello studio non configurata (Studio > Posta in uscita)",
+                "avvisoGiaConsegnata": "Delega già consegnata il %s (%s %s): con un nuovo invio la consegna registra il nuovo indirizzo.",
+                "aiutoDestinatario": "Proposto l'indirizzo del cliente in anagrafica per la casella scelta; puoi scriverne un altro.",
+                "aiutoSenzaRecapiti": "Il cliente non ha indirizzi e-mail o PEC in anagrafica: indica il destinatario.",
+                "tutteLeCopie": "Tutte le copie (per il pagamento allo sportello)",
+                "aiutoInvio": "Riuscito l'invio, la delega diventa consegnata con la data di oggi."
             }
         },
         "versamento": {

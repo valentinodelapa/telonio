@@ -55,7 +55,7 @@ class DichiarazioneIvaPoliambulatorio2025Fixture extends BaseFixture
     public function setEntity(): void
     {
         $demo = new AziendaDemo($this->dataMapper);
-        $sole = $demo->creaSocieta($this->getEntityByFixtureName(StudioFixture::class), 'C040', '06987612006', 'Poliambulatorio Sole S.r.l.', NaturaGiuridica::societaResponsabilitaLimitata,
+        $sole = $demo->creaSocieta($this->getEntityByFixtureName(StudioFixture::class), 'C040', '06987610208', 'Poliambulatorio Sole S.r.l.', NaturaGiuridica::societaResponsabilitaLimitata,
                 '86.22.03', PeriodicitaIva::trimestrale, 'F205', 'Via Larga 12', '20122');
         $demo->legame($sole, $this->getEntityByFixtureName(SoggettoNeriFixture::class), RuoloLegame::amministratoreUnico);
         $demo->legame($sole, $this->getEntityByFixtureName(SoggettoBianchiFixture::class), RuoloLegame::sindaco);
@@ -65,9 +65,9 @@ class DichiarazioneIvaPoliambulatorio2025Fixture extends BaseFixture
         $piacenza = $demo->sedeOperativa($sole, 'G535', 'Via Cavour 18', '29121');
         $sezionalePiacenza = $demo->sezionale($sole, TipoRegistroIva::vendite, 'PC', 'Fatture emesse - ambulatorio di Piacenza', $piacenza);
         $pazienti = $demo->controparte($sole, 'Pazienti privati', null, true);
-        $assicurazione = $demo->controparte($sole, 'Delta Assicurazioni S.p.A.', '09112233003', true);
-        $forniture = $demo->controparte($sole, 'Medical Supply S.r.l.', '09223344004', false, '02.03.0001');
-        $laboratorio = $demo->controparte($sole, 'Lab Service S.r.l.', '09334455004', false);
+        $assicurazione = $demo->controparte($sole, 'Delta Assicurazioni S.p.A.', '09112230306', true);
+        $forniture = $demo->controparte($sole, 'Medical Supply S.r.l.', '09223340408', false, '02.03.0001');
+        $laboratorio = $demo->controparte($sole, 'Lab Service S.r.l.', '09334450500', false);
         $vendita = CausaleContabile::fatturaVendita;
         $acquisto = CausaleContabile::fatturaAcquisto;
         RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $forniture, $acquisto, '2025-02-10', 'MS/12', ['22' => 20000.0]);
@@ -81,7 +81,7 @@ class DichiarazioneIvaPoliambulatorio2025Fixture extends BaseFixture
         RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $pazienti, $vendita, '2025-12-18', 'PC/1', ['22' => 3000.0], ['registro' => $sezionalePiacenza]);
         // interessi attivi su un deposito (esente occasionale, n. 1) e cessione di un ecografo usato (bene ammortizzabile, VE40)
         RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $assicurazione, $vendita, '2025-12-30', '8', ['N4' => 500.0], ['qualifica' => QualificaOperazione::esenteOccasionale]);
-        RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $demo->controparte($sole, 'Studio Medico Rossi', '04123654008', true), $vendita, '2025-10-10', '9', ['22' => 2000.0],
+        RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $demo->controparte($sole, 'Studio Medico Rossi', '04123650402', true), $vendita, '2025-10-10', '9', ['22' => 2000.0],
                 ['qualifica' => QualificaOperazione::beneAmmortizzabile]);
         $prorata = new ProrataIva($this->dataMapper);
         $prorata->studio = $sole->studio;
@@ -102,7 +102,7 @@ class DichiarazioneIvaPoliambulatorio2025Fixture extends BaseFixture
         $dichiarazione->modalitaSaldo = ModalitaSaldo::rate;
         $dichiarazione->numeroRate = 5;
         // visto del CAF a cui lo studio si appoggia
-        $dichiarazione->vistoCaf = $demo->creaSocieta($sole->studio, 'F001', '09889900008', 'CAF Imprese Lombardia S.r.l.', NaturaGiuridica::societaResponsabilitaLimitata, '69.20.01',
+        $dichiarazione->vistoCaf = $demo->creaSocieta($sole->studio, 'F001', '09889900990', 'CAF Imprese Lombardia S.r.l.', NaturaGiuridica::societaResponsabilitaLimitata, '69.20.01',
                 PeriodicitaIva::mensile, 'F205', 'Via Vittor Pisani 22', '20124');
         $dichiarazione->vistoCaf->clienteStudio = false;
         $this->dataMapper->save($dichiarazione->vistoCaf);

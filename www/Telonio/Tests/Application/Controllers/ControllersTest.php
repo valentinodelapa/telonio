@@ -29,7 +29,7 @@ class ControllersTest extends SuiteTestCase
     public function testSuiteControllerLanciaEccezioneSeUtenteOStudioInattivo(): void
     {
         $this->catturaRenderERouter();
-        $studioInattivo = $this->creaStudio(1, 'Studio', '01234567897', false);
+        $studioInattivo = $this->creaStudio(1, 'Studio', '01234560785', false);
         $utente = $this->creaUtente($studioInattivo);
         $this->autenticaUtente($utente);
         $this->testAdapter->accodaSelect([$utente]);
@@ -173,8 +173,8 @@ class ControllersTest extends SuiteTestCase
         $controller = new StudioController($this->dataMapper);
         $controller->update($this->creaRequest([
             'denominazione' => 'Studio Aggiornato',
-            'codiceFiscale' => '01234567897',
-            'partitaIva' => '01234567897',
+            'codiceFiscale' => '01234560785',
+            'partitaIva' => '01234560785',
         ]));
 
         $this->assertSame('studio/update', $stato->redirectUrl);

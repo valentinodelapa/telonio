@@ -35,6 +35,11 @@ class ControlliTr
     {
         $errori = array_values(array_filter((new ControlliIva($this->dataMapper))->getErrori($dichiarazione, $quadri),
                         fn(string $errore) => (str_contains($errore, 'VA2') || str_contains($errore, 'VX4') || str_contains($errore, 'quadri')) === false));
+        // non residenti: partita IVA con le cifre 8-10 uguali a 999 o rappresentante fiscale (codice carica 6)
+        $partitaIva = (string) (new ControlliIva($this->dataMapper))->getPartitaIva($dichiarazione);
+        if (($quadri->get('TD004001', 1) !== null) && (substr($partitaIva, 7, 3) !== '999') && ($dichiarazione->codiceCarica?->value !== '6')) {
+            $errori[] = 'Casella dei soggetti non residenti (TD4): serve l\'identificazione diretta (partita IVA con le cifre 8-10 uguali a 999) o il rappresentante fiscale come sottoscrittore (codice carica 6).';
+        }
         if (($dichiarazione->trimestre === null) || ($dichiarazione->trimestre < 1) || ($dichiarazione->trimestre > 3)) {
             $errori[] = 'Indicare il trimestre (da 1 a 3): il credito del quarto trimestre si chiede con la dichiarazione annuale.';
         }
@@ -131,7 +136,7 @@ class ControlliTr
      */
     public function getAvvertenze(QuadriDichiarazione $quadri, ?Dichiarazione $dichiarazione = null): array
     {
-        $avvertenze = [];
+        $avvertenze = array_filter([ControlliIva::getAvvisoVisto($dichiarazione)]);
         $rimborso = $quadri->getDecimale('TD006001', 1) + $quadri->getDecimale('TE050001', 1);
         if (($rimborso > 30000) && ($quadri->get('TD008003', 1) === null)) {
             foreach (($dichiarazione === null ? [] : (new RimborsoIva($this->dataMapper))->getRischi($dichiarazione)) as $rischio) {

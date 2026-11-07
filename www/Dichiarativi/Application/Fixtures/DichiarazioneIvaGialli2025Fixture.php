@@ -47,7 +47,7 @@ class DichiarazioneIvaGialli2025Fixture extends BaseFixture
     public function setEntity(): void
     {
         $demo = new AziendaDemo($this->dataMapper);
-        $gialli = $demo->creaSocieta($this->getEntityByFixtureName(StudioFixture::class), 'C044', '09111222007', 'Gialli Edilforniture S.r.l.', NaturaGiuridica::societaResponsabilitaLimitata,
+        $gialli = $demo->creaSocieta($this->getEntityByFixtureName(StudioFixture::class), 'C044', '09111220209', 'Gialli Edilforniture S.r.l.', NaturaGiuridica::societaResponsabilitaLimitata,
                 '46.63.00', PeriodicitaIva::mensile, 'A794', 'Via Borgo Palazzo 40', '24125');
         $demo->legame($gialli, $this->getEntityByFixtureName(SoggettoBianchiFixture::class), RuoloLegame::amministratoreUnico);
         $esercizio = $demo->apriContabilita($gialli, 2025);
@@ -63,11 +63,11 @@ class DichiarazioneIvaGialli2025Fixture extends BaseFixture
         $acquistiNegozio->attivitaIva = $negozio;
         $this->dataMapper->save($acquistiNegozio);
         $promiscui = $demo->sezionale($gialli, TipoRegistroIva::acquisti, 'PR', 'Acquisti promiscui', null);
-        $imprese = $demo->controparte($gialli, 'Costruzioni Bergamasche S.p.A.', '09666777001', true);
+        $imprese = $demo->controparte($gialli, 'Costruzioni Bergamasche S.p.A.', '09666770707', true);
         $privati = $demo->controparte($gialli, 'Clienti del negozio', null, true);
-        $produttore = $demo->controparte($gialli, 'Macchine Edili Lombarde S.r.l.', '09777888002', false);
-        $grossista = $demo->controparte($gialli, 'Ferramenta Distribuzione S.r.l.', '09888999003', false);
-        $immobiliare = $demo->controparte($gialli, 'Immobiliare Orobica S.r.l.', '09999000004', false);
+        $produttore = $demo->controparte($gialli, 'Macchine Edili Lombarde S.r.l.', '09777880817', false);
+        $grossista = $demo->controparte($gialli, 'Ferramenta Distribuzione S.r.l.', '09888990919', false);
+        $immobiliare = $demo->controparte($gialli, 'Immobiliare Orobica S.r.l.', '09999000996', false);
         $vendita = CausaleContabile::fatturaVendita;
         $acquisto = CausaleContabile::fatturaAcquisto;
         foreach (['01', '04', '07', '10'] as $indice => $mese) {

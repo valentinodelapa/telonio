@@ -112,7 +112,7 @@ class LiquidazioneIvaTest extends ContabilitaTestCase
         $dati = new DatiFiscali($this->dataMapper);
         $dati->soggetto = $this->azienda;
         $dati->validoDal = new SismaDate('2020-01-01');
-        $dati->partitaIva = '01234567897';
+        $dati->partitaIva = '01234560785';
         $dati->regimeFiscale = $regime;
         $dati->periodicitaIva = $periodicita;
         return $dati;

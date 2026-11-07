@@ -52,9 +52,20 @@ class ModuloUfficialeF24
 
     }
 
+    /**
+     * PDF ufficiali del modello senza object stream (riscritti con qpdf da
+     * `sisma modelli-f24`), usati come sfondo da PdfF24.
+     */
+    public const CARTELLA_PDF = __DIR__ . '/../../Assets/pdf';
+
     public static function getSfondo(ModelloF24 $modello, int $pagina): string
     {
         return '/svg/f24-' . self::getNome($modello) . '-' . $pagina . '.svg';
+    }
+
+    public static function getSfondoPdf(ModelloF24 $modello, string $cartella = self::CARTELLA_PDF): string
+    {
+        return rtrim($cartella, '/') . '/f24-' . self::getNome($modello) . '.pdf';
     }
 
     public static function getNome(ModelloF24 $modello): string
@@ -68,18 +79,21 @@ class ModuloUfficialeF24
     }
 
     /**
-     * @return array<int, array{sfondo: string, campi: array}>
+     * Pagine con lo sfondo SVG della stampa, il modello e il numero di
+     * pagina del PDF ufficiale (per PdfF24) e i campi.
+     *
+     * @return array<int, array{sfondo: string, modello: ModelloF24, pagina: int, campi: array}>
      */
     public function getPagine(ModelloCompilato $modello, bool $tutteLeCopie): array
     {
         $tipo = $this->delega->modello;
         if ($tipo === ModelloF24::semplificato) {
             $campi = array_merge($this->compilaSemplificato($modello, 0.0, false), $this->compilaSemplificato($modello, self::SFASAMENTO_SEMPLIFICATO, true));
-            return [['sfondo' => self::getSfondo($tipo, 1), 'campi' => $campi]];
+            return [['sfondo' => self::getSfondo($tipo, 1), 'modello' => $tipo, 'pagina' => 1, 'campi' => $campi]];
         }
         $pagine = [];
         foreach ($tutteLeCopie ? range(1, self::PAGINE[$tipo->value]) : [self::PAGINA_SOGGETTO] as $pagina) {
-            $pagine[] = ['sfondo' => self::getSfondo($tipo, $pagina), 'campi' => $this->compila($modello, $pagina !== self::PAGINA_SOGGETTO)];
+            $pagine[] = ['sfondo' => self::getSfondo($tipo, $pagina), 'modello' => $tipo, 'pagina' => $pagina, 'campi' => $this->compila($modello, $pagina !== self::PAGINA_SOGGETTO)];
         }
         return $pagine;
     }

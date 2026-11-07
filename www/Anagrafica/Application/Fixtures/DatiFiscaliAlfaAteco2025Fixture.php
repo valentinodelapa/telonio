@@ -33,7 +33,7 @@ class DatiFiscaliAlfaAteco2025Fixture extends BaseFixture
         $datiFiscali->validoDal = new SismaDate('2025-04-01');
         $datiFiscali->denominazione = 'Alfa Consulting S.r.l.';
         $datiFiscali->naturaGiuridica = NaturaGiuridica::societaResponsabilitaLimitata;
-        $datiFiscali->partitaIva = '01234567897';
+        $datiFiscali->partitaIva = '01234560785';
         $datiFiscali->regimeFiscale = RegimeFiscale::ordinario;
         $datiFiscali->periodicitaIva = PeriodicitaIva::mensile;
         $datiFiscali->soggettoIsa = true;

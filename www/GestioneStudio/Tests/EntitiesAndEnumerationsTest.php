@@ -50,12 +50,12 @@ class EntitiesAndEnumerationsTest extends GestioneStudioTestCase
     public function testAmbitoProponeInBaseAiDatiDellAnagrafica(): void
     {
         $persona = $this->creaSoggetto();
-        $ditta = $this->creaSoggetto(51, TipoSoggetto::personaFisica, '01234567897');
+        $ditta = $this->creaSoggetto(51, TipoSoggetto::personaFisica, '01234560785');
         $ditta->tipoAttivita = TipoAttivita::impresaIndividuale;
-        $professionista = $this->creaSoggetto(52, TipoSoggetto::personaFisica, '01234567897');
+        $professionista = $this->creaSoggetto(52, TipoSoggetto::personaFisica, '01234560785');
         $professionista->tipoAttivita = TipoAttivita::lavoroAutonomo;
-        $srl = $this->creaSoggetto(53, TipoSoggetto::societaCapitali, '01234567897');
-        $snc = $this->creaSoggetto(54, TipoSoggetto::societaPersone, '01234567897');
+        $srl = $this->creaSoggetto(53, TipoSoggetto::societaCapitali, '01234560785');
+        $snc = $this->creaSoggetto(54, TipoSoggetto::societaPersone, '01234560785');
         $ente = $this->creaSoggetto(55, TipoSoggetto::ente);
 
         $this->assertTrue(AmbitoAdempimento::personeFisiche->isProponibile($persona));

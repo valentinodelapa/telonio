@@ -2,6 +2,7 @@
 
 namespace Dichiarativi\Application\Fixtures;
 
+use Contabilita\Application\Enumerations\CodiceCaricaIva;
 use Anagrafica\Application\Entities\DatiFiscali;
 use Anagrafica\Application\Entities\Indirizzo;
 use Anagrafica\Application\Entities\Soggetto;
@@ -71,7 +72,8 @@ class DichiarazioneIvaRimborsi2025Fixture extends BaseFixture
         $this->addDependency(StudioFixture::class)
                 ->addDependency(SoggettoRossiFixture::class)
                 ->addDependency(IntermediarioStudioFixture::class)
-                ->addDependency(ProfessionistaMariniFixture::class);
+                ->addDependency(ProfessionistaMariniFixture::class)
+                ->addDependency(IntermediarioMariniFixture::class);
     }
 
     #[\Override]
@@ -89,40 +91,43 @@ class DichiarazioneIvaRimborsi2025Fixture extends BaseFixture
         $esercizio = $demo->apriContabilita($adria, 2025);
         RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $demo->controparte($adria, 'Spedizioni Kraus GmbH', 'DE987654321', true), $vendita, '2025-05-20', '1', ['N2.1' => 60000.0],
                 ['qualifica' => QualificaOperazione::prestazioneNonStabiliti]);
-        RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $demo->controparte($adria, 'Vetrerie Murano S.r.l.', '08666777005', true), $vendita, '2025-06-10', '2', ['22' => 10000.0]);
-        RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $demo->controparte($adria, 'Carburanti Veneti S.p.A.', '08777888006', false), $acquisto, '2025-04-15', 'CV/1', ['22' => 40000.0]);
+        RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $demo->controparte($adria, 'Vetrerie Murano S.r.l.', '08666770709', true), $vendita, '2025-06-10', '2', ['22' => 10000.0]);
+        RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $demo->controparte($adria, 'Carburanti Veneti S.p.A.', '08777880801', false), $acquisto, '2025-04-15', 'CV/1', ['22' => 40000.0]);
         $this->elaboraAnno($elaborazione, $adria);
         $tr = $demo->presentaTr($adria, 2025, 2, ['TD007001' => 3000.0], '2025-07-28');
         $demo->compensaCreditoTr($tr, 3000.0, '2025-08-20');
         $this->dichiara($adria, 3600);
         // Cinema Odeon: proiezione cinematografica e nuovo proiettore
-        $odeon = $demo->creaSocieta($studio, 'C053', '09990002009', 'Cinema Odeon S.r.l.', NaturaGiuridica::societaResponsabilitaLimitata, '59.14.00', PeriodicitaIva::trimestrale, 'A944', 'Via Indipendenza 1', '40121');
+        $odeon = $demo->creaSocieta($studio, 'C053', '09990000201', 'Cinema Odeon S.r.l.', NaturaGiuridica::societaResponsabilitaLimitata, '59.14.00', PeriodicitaIva::trimestrale, 'A944', 'Via Indipendenza 1', '40121');
         $demo->legame($odeon, $rossi, RuoloLegame::amministratoreUnico);
         $esercizio = $demo->apriContabilita($odeon, 2025);
-        RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $demo->controparte($odeon, 'Distribuzione Film S.r.l.', '08888999007', true), $vendita, '2025-03-20', '1', ['10' => 5000.0]);
-        RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $demo->controparte($odeon, 'Proiettori Digitali S.r.l.', '08999000008', false, '02.03.0001'), $acquisto, '2025-02-10', 'PD/1', ['22' => 50000.0]);
+        RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $demo->controparte($odeon, 'Distribuzione Film S.r.l.', '08888990903', true), $vendita, '2025-03-20', '1', ['10' => 5000.0]);
+        RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $demo->controparte($odeon, 'Proiettori Digitali S.r.l.', '08999000998', false, '02.03.0001'), $acquisto, '2025-02-10', 'PD/1', ['22' => 50000.0]);
         $this->elaboraAnno($elaborazione, $odeon);
         $demo->presentaTr($odeon, 2025, 1, ['TD006001' => 5000.0], '2025-04-28');
         $this->dichiara($odeon, 5000);
         // Alberto Conti: ultimo anno nel regime ordinario
         $conti = $this->creaProfessionista($demo, $studio);
         $esercizio = $demo->apriContabilita($conti, 2025);
-        RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $demo->controparte($conti, 'Costruzioni Tiberine S.r.l.', '07111222006', true), $vendita, '2025-06-16', '1', ['22' => 5000.0]);
-        RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $demo->controparte($conti, 'Strumenti Topografici S.r.l.', '07222333007', false), $acquisto, '2025-03-11', 'ST/1', ['22' => 20000.0]);
+        RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $demo->controparte($conti, 'Costruzioni Tiberine S.r.l.', '07111220203', true), $vendita, '2025-06-16', '1', ['22' => 5000.0]);
+        RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $demo->controparte($conti, 'Strumenti Topografici S.r.l.', '07222330305', false), $acquisto, '2025-03-11', 'ST/1', ['22' => 20000.0]);
         $this->elaboraAnno($elaborazione, $conti);
         $this->dichiara($conti, 1500);
         // Nordic Trade: non residente con il rappresentante fiscale, attività dal settembre 2024
-        $nordic = $demo->creaSocieta($studio, 'C055', '09990004005', 'Nordic Trade S.r.l.', NaturaGiuridica::societaResponsabilitaLimitata, '46.64.99', PeriodicitaIva::trimestrale, 'H294', 'Via Pisacane 3', '47921');
+        $nordic = $demo->creaSocieta($studio, 'C055', '09990009996', 'Nordic Trade S.r.l.', NaturaGiuridica::societaResponsabilitaLimitata, '46.64.99', PeriodicitaIva::trimestrale, 'H294', 'Via Pisacane 3', '47921');
         $demo->legame($nordic, $rossi, RuoloLegame::amministratoreUnico);
         $datiNordic = (new DatiFiscaliModel($this->dataMapper))->getVigenteAl($nordic, new SismaDate('2025-01-01'));
         $datiNordic->nonResidenteIva = true;
         $datiNordic->dataInizioAttivita = new SismaDate('2024-09-01');
         $this->dataMapper->save($datiNordic);
         $esercizio = $demo->apriContabilita($nordic, 2025);
-        RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $demo->controparte($nordic, 'Hotel Riviera S.r.l.', '07333444008', true), $vendita, '2025-05-12', '1', ['22' => 10000.0]);
-        RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $demo->controparte($nordic, 'Forniture Adriatiche S.r.l.', '07444555009', false), $acquisto, '2025-02-20', 'FA/1', ['22' => 200000.0]);
+        RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $demo->controparte($nordic, 'Hotel Riviera S.r.l.', '07333440407', true), $vendita, '2025-05-12', '1', ['22' => 10000.0]);
+        RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $demo->controparte($nordic, 'Forniture Adriatiche S.r.l.', '07444550508', false), $acquisto, '2025-02-20', 'FA/1', ['22' => 200000.0]);
         $this->elaboraAnno($elaborazione, $nordic);
-        $demo->presentaTr($nordic, 2025, 1, ['TD007001' => 3000.0], '2025-04-28', $this->getEntityByFixtureName(ProfessionistaMariniFixture::class));
+        $trNordic = $demo->presentaTr($nordic, 2025, 1, ['TD007001' => 3000.0], '2025-04-28', $this->getEntityByFixtureName(ProfessionistaMariniFixture::class), $this->getEntityByFixtureName(IntermediarioMariniFixture::class));
+        // non residente: sottoscrive il rappresentante fiscale (codice carica 6)
+        $trNordic->codiceCarica = CodiceCaricaIva::rappresentanteFiscale;
+        $this->dataMapper->save($trNordic);
         $this->atto($nordic, 2022, '2025-06-10', 'TK3AB0001', 100000.0, 104000.0);
         $this->atto($nordic, 2023, '2025-11-20', 'TK3AB0002', 100000.0, 125000.0);
         $this->garanzia($nordic, 2024, TipoGaranzia::fideiussioneBancaria, 'Banca Adriatica S.p.A.', 12000.0, '2025-02-10', '2025-03-20', '2026-03-02');
@@ -134,20 +139,22 @@ class DichiarazioneIvaRimborsi2025Fixture extends BaseFixture
         $annuale = $this->dichiara($nordic, 35000, function (Dichiarazione $dichiarazione): void {
             $dichiarazione->attestazionePatrimoniale = true;
             $dichiarazione->verificaAccertamenti = true;
+            $dichiarazione->codiceCarica = CodiceCaricaIva::rappresentanteFiscale;
             $dichiarazione->vistoProfessionista = $this->getEntityByFixtureName(ProfessionistaMariniFixture::class);
+            $dichiarazione->intermediario = $this->getEntityByFixtureName(IntermediarioMariniFixture::class);
         });
         // Beta Partecipata: dal 2026 nel Gruppo IVA, il credito resta chiesto in parte a rimborso
-        $beta = $demo->creaSocieta($studio, 'C056', '09990005002', 'Beta Partecipata S.r.l.', NaturaGiuridica::societaResponsabilitaLimitata, '46.64.99', PeriodicitaIva::trimestrale, 'F205', 'Via Tortona 8', '20144');
+        $beta = $demo->creaSocieta($studio, 'C056', '09990000508', 'Beta Partecipata S.r.l.', NaturaGiuridica::societaResponsabilitaLimitata, '46.64.99', PeriodicitaIva::trimestrale, 'F205', 'Via Tortona 8', '20144');
         $demo->legame($beta, $rossi, RuoloLegame::amministratoreUnico);
         $demo->variaDatiFiscali($beta, '2026-01-01', ['gruppoIvaArt70bis' => true]);
         $esercizio = $demo->apriContabilita($beta, 2025);
-        RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $demo->controparte($beta, 'Forniture Lombarde S.r.l.', '07555666000', false), $acquisto, '2025-03-05', 'FL/1', ['22' => 30000.0]);
+        RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $demo->controparte($beta, 'Forniture Lombarde S.r.l.', '07555660609', false), $acquisto, '2025-03-05', 'FL/1', ['22' => 30000.0]);
         $this->elaboraAnno($elaborazione, $beta);
         $this->dichiara($beta, 2000);
         // gruppo Delta dal 2023, Delta Servizi dal 2024
-        $holding = $demo->creaSocieta($studio, 'C057', '09990006000', 'Delta Holding S.r.l.', NaturaGiuridica::societaResponsabilitaLimitata, '70.10.00', PeriodicitaIva::mensile, 'F205', 'Via Solari 2', '20144');
-        $servizi = $demo->creaSocieta($studio, 'C058', '09990007008', 'Delta Servizi S.r.l.', NaturaGiuridica::societaResponsabilitaLimitata, '70.10.00', PeriodicitaIva::mensile, 'F205', 'Via Solari 2', '20144');
-        $commerciale = $demo->creaSocieta($studio, 'C063', '09990012008', 'Delta Commerciale S.r.l.', NaturaGiuridica::societaResponsabilitaLimitata, '46.64.99', PeriodicitaIva::mensile, 'F205', 'Via Solari 2', '20144');
+        $holding = $demo->creaSocieta($studio, 'C057', '09990000607', 'Delta Holding S.r.l.', NaturaGiuridica::societaResponsabilitaLimitata, '70.10.00', PeriodicitaIva::mensile, 'F205', 'Via Solari 2', '20144');
+        $servizi = $demo->creaSocieta($studio, 'C058', '09990000706', 'Delta Servizi S.r.l.', NaturaGiuridica::societaResponsabilitaLimitata, '70.10.00', PeriodicitaIva::mensile, 'F205', 'Via Solari 2', '20144');
+        $commerciale = $demo->creaSocieta($studio, 'C063', '09990010200', 'Delta Commerciale S.r.l.', NaturaGiuridica::societaResponsabilitaLimitata, '46.64.99', PeriodicitaIva::mensile, 'F205', 'Via Solari 2', '20144');
         $demo->legame($holding, $rossi, RuoloLegame::amministratoreUnico);
         $gruppo = new GruppoIva($this->dataMapper);
         $gruppo->studio = $studio;
@@ -168,7 +175,7 @@ class DichiarazioneIvaRimborsi2025Fixture extends BaseFixture
         $demo->apriContabilita($holding, 2025);
         $demo->apriContabilita($servizi, 2025);
         $esercizio = $demo->apriContabilita($commerciale, 2025);
-        RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $demo->controparte($commerciale, 'Grossisti Lombardi S.r.l.', '07666777001', true), $vendita, '2025-05-22', '1', ['22' => 15000.0]);
+        RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $demo->controparte($commerciale, 'Grossisti Lombardi S.r.l.', '07666770701', true), $vendita, '2025-05-22', '1', ['22' => 15000.0]);
         foreach ([$holding, $servizi, $commerciale] as $societa) {
             for ($mese = 1; $mese <= 12; $mese++) {
                 $elaborazione->elabora($societa, 2025, $mese, 0.0, false);
@@ -299,7 +306,7 @@ class DichiarazioneIvaRimborsi2025Fixture extends BaseFixture
     private function creaProfessionista(AziendaDemo $demo, $studio): Soggetto
     {
         $conti = $demo->persona($studio, 'C054', 'CNTLRT80A01H501G', 'Conti', 'Alberto', Sesso::maschio, '1980-01-01', 'H501');
-        $conti->partitaIva = '09990003007';
+        $conti->partitaIva = '09990000300';
         $conti->clienteStudio = true;
         $this->dataMapper->save($conti);
         $ateco = (new CodiceAtecoModel($this->dataMapper))->getByCodice(ClassificazioneAteco::ateco2025, '71.12.10');

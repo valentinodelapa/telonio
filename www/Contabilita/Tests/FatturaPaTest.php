@@ -21,7 +21,7 @@ use Telonio\Tests\TestResultSet;
 class FatturaPaTest extends ContabilitaTestCase
 {
 
-    public static function xml(string $cedente = '04123451009', string $cessionario = '01234567897', string $tipo = 'TD01', string $riepiloghi = ''): string
+    public static function xml(string $cedente = '04123451009', string $cessionario = '01234560785', string $tipo = 'TD01', string $riepiloghi = ''): string
     {
         $riepiloghi = $riepiloghi !== '' ? $riepiloghi
                 : '<DatiRiepilogo><AliquotaIVA>22.00</AliquotaIVA><ImponibileImporto>1000.00</ImponibileImporto><Imposta>220.00</Imposta><EsigibilitaIVA>I</EsigibilitaIVA></DatiRiepilogo>'
@@ -43,8 +43,8 @@ class FatturaPaTest extends ContabilitaTestCase
         $this->assertSame('FPR12', $documento->formato);
         $this->assertSame('Delta Edilizia S.r.l.', $documento->cedente->getDenominazione());
         $this->assertSame('Bianchi Mario', $documento->cessionario->getDenominazione());
-        $this->assertTrue($documento->cessionario->corrisponde('01234567897', null));
-        $this->assertFalse($documento->cedente->corrisponde('01234567897', null));
+        $this->assertTrue($documento->cessionario->corrisponde('01234560785', null));
+        $this->assertFalse($documento->cedente->corrisponde('01234560785', null));
         $this->assertCount(2, $documento->corpi);
         $corpo = $documento->getCorpo(1);
         $this->assertSame(TipoDocumentoFattura::fattura, $corpo->tipoDocumento);
@@ -187,7 +187,7 @@ class FatturaPaTest extends ContabilitaTestCase
         $fattura->numero = '3';
         $fattura->data = new SismaDate('2026-02-20');
         $fattura->denominazioneControparte = 'Comune';
-        $fattura->contenuto = self::xml('01234567897', '80012345678', 'TD01',
+        $fattura->contenuto = self::xml('01234560785', '80012345678', 'TD01',
                 '<DatiRiepilogo><AliquotaIVA>22.00</AliquotaIVA><ImponibileImporto>500.00</ImponibileImporto><Imposta>110.00</Imposta><EsigibilitaIVA>S</EsigibilitaIVA></DatiRiepilogo>'
                 . '<DatiRiepilogo><AliquotaIVA>0.00</AliquotaIVA><Natura>N4</Natura><ImponibileImporto>50.00</ImponibileImporto><Imposta>0.00</Imposta></DatiRiepilogo>');
         [$registrazione, $righeIva] = (new PropostaDaFattura($this->dataMapper))->proponi($fattura);

@@ -264,7 +264,7 @@ La versione installata della suite è nel piè di pagina di ogni pagina, con que
 
 ## Configurazione SMTP e limiti PHP
 
-*   **SMTP (`MAIL_*` in `.env`)**: in sviluppo puntano a `mailpit:1025` senza autenticazione; in produzione basta sostituirli con i parametri del provider SMTP reale.
+*   **SMTP (`MAIL_*` in `.env`)**: in sviluppo puntano a `mailpit:1025` senza autenticazione; in produzione basta sostituirli con i parametri del provider SMTP reale. Sono la casella e-mail di ripiego degli studi: ogni studio può indicare le sue caselle, e-mail ordinaria e PEC, in Studio > Posta in uscita (la PEC va sempre configurata lì).
 *   **Limiti PHP (`UPLOAD_MAX_FILESIZE`, `POST_MAX_SIZE`, `MEMORY_LIMIT`, `MAX_EXECUTION_TIME`, `MAX_INPUT_TIME`)**: renderizzati all'avvio del container `php` in `/usr/local/etc/php/conf.d/limits.ini` tramite `docker-entrypoint.sh`. `POST_MAX_SIZE` viene allineato automaticamente anche a `client_max_body_size` del container `nginx`.
 *   **Backup (`BACKUP_SCHEDULE`, `BACKUP_RETENTION_DAYS`)**: il servizio opzionale `docker-compose.backup.yml` esegue dump periodici compressi di MariaDB (o solo su richiesta, con `BACKUP_SCHEDULE=off`) in `./backups` (esclusa da Git) con pulizia automatica oltre la retention configurata (vedi "Backup e ripristino").
 

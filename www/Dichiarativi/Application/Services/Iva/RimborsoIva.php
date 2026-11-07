@@ -111,14 +111,17 @@ class RimborsoIva
         $sottoscritta = $this->isSottoscritta($dichiarazione);
         $esonero = $oltreLimite ? $dichiarazione->getCodiceEsoneroGaranzie(['visto' => '1', 'collaborativo' => '4'], $sottoscritta) : null;
         $rischi = $oltreLimite ? $this->getRischi($dichiarazione) : [];
-        $quadri->proponi('VX004007', ($esonero === '1') && (count($rischi) > 0) ? null : $esonero, 1);
+        $esoneroProposto = ($esonero === '1') && (count($rischi) > 0) ? null : $esonero;
+        $quadri->proponi('VX004007', $esoneroProposto, 1);
         if (count($rischi) > 0) {
             $this->avvisi[] = 'Rimborso oltre 30.000 euro: garanzia dovuta (art. 38-bis, c. 4) per ' . implode(', ', $rischi) . '.';
         }
         if ($oltreLimite && $this->isVerificaDaFare($dichiarazione)) {
             $this->avvisi[] = self::AVVISO_VERIFICA;
         }
-        $attestazione = $oltreLimite && $dichiarazione->attestazionePatrimoniale && ($dichiarazione->hasVisto() || $sottoscritta);
+        // senza il quadro VK la firma dell'attestazione richiede l'esonero con il codice 1 (specifiche, VX00410D)
+        $attestazione = $oltreLimite && $dichiarazione->attestazionePatrimoniale && ($dichiarazione->hasVisto() || $sottoscritta)
+                && (($esoneroProposto === '1') || in_array('VK', $quadri->getQuadriCompilati(1), true));
         foreach (['VX00410A', 'VX00410B', 'VX00410C', 'VX00410D'] as $codice) {
             $quadri->proponi($codice, $attestazione ? true : null, 1);
         }

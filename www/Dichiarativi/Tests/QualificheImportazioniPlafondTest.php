@@ -177,7 +177,7 @@ class QualificheImportazioniPlafondTest extends DichiarativiTestCase
         $this->assertSame(5000, $quadri->getImporto('VE023001', 1));
         // il soggetto trasformato fino al 30 giugno
         $this->assertSame(1000, $quadri->getImporto('VE023001', 2));
-        $this->assertSame('01234567897', $quadri->get('VA001001', 2));
+        $this->assertSame('01234560785', $quadri->get('VA001001', 2));
     }
 
     public function testVerificaDelPlafond(): void
@@ -208,7 +208,7 @@ class QualificheImportazioniPlafondTest extends DichiarativiTestCase
     public function testVistoDelCaf(): void
     {
         $dichiarazione = $this->creaDichiarazione();
-        $caf = $this->creaSoggettoFisico(20, $this->studioPredefinito, '09889900008', 'CAF Imprese', '');
+        $caf = $this->creaSoggettoFisico(20, $this->studioPredefinito, '09889900990', 'CAF Imprese', '');
         $caf->tipoSoggetto = TipoSoggetto::societaCapitali;
         $responsabile = $this->creaSoggettoFisico(21, $this->studioPredefinito, 'CLMNNA75D45F205G', 'Colombo', 'Anna');
         $professionista = $this->creaSoggettoFisico(22, $this->studioPredefinito, 'MRNPLA70A01F205L', 'Marini', 'Paolo');

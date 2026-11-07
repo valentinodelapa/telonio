@@ -88,7 +88,8 @@ class GeneratoreTr
                 ->imposta('anno', $dichiarazione->anno)
                 ->imposta('trimestre', $dichiarazione->trimestre)
                 ->imposta('numeroModuli', $moduli)
-                ->imposta('firmaDichiarante', 1);
+                ->imposta('firmaDichiarante', 1)
+                ->imposta('codiceFiscaleSocietaDichiarante', 0);
         if ($soggetto->isPersonaFisica()) {
             [$comune, $provincia] = DatiContribuente::getLuogoNascita($soggetto);
             $record->impostaTroncato('cognome', $soggetto->cognome)

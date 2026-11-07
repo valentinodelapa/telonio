@@ -65,7 +65,7 @@ class EntitiesAndEnumerationsTest extends SuiteTestCase
         $this->assertSame('Persona fisica', $pf->getDescrizioneTipo());
         $this->assertSame($pf->dataNascita, $pf->getDataInizio());
 
-        $pf->partitaIva = '01234567897';
+        $pf->partitaIva = '01234560785';
         $pf->tipoAttivita = TipoAttivita::impresaIndividuale;
         $this->assertSame('Persona fisica · Impresa individuale', $pf->getDescrizioneTipo());
 

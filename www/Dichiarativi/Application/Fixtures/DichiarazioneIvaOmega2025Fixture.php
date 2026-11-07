@@ -59,12 +59,12 @@ class DichiarazioneIvaOmega2025Fixture extends BaseFixture
     {
         $demo = new AziendaDemo($this->dataMapper);
         $studio = $this->getEntityByFixtureName(StudioFixture::class);
-        $omega = $demo->creaSocieta($studio, 'C041', '09445566004', 'Omega Export S.r.l.', NaturaGiuridica::societaResponsabilitaLimitata, '46.64.99', PeriodicitaIva::mensile,
+        $omega = $demo->creaSocieta($studio, 'C041', '09445560601', 'Omega Export S.r.l.', NaturaGiuridica::societaResponsabilitaLimitata, '46.64.99', PeriodicitaIva::mensile,
                 'L219', 'Corso Francia 100', '10143');
         $demo->legame($omega, $this->getEntityByFixtureName(SoggettoRossiFixture::class), RuoloLegame::amministratoreUnico);
         $demo->legame($omega, $this->getEntityByFixtureName(SoggettoBianchiFixture::class), RuoloLegame::sindaco);
         $demo->legame($omega, $this->getEntityByFixtureName(SoggettoVerdiFixture::class), RuoloLegame::sindaco);
-        $logistica = $demo->creaSocieta($studio, 'C042', '09556677004', 'Omega Logistica S.r.l.', NaturaGiuridica::societaResponsabilitaLimitata, '52.25.09', PeriodicitaIva::trimestrale,
+        $logistica = $demo->creaSocieta($studio, 'C042', '09556670702', 'Omega Logistica S.r.l.', NaturaGiuridica::societaResponsabilitaLimitata, '52.25.09', PeriodicitaIva::trimestrale,
                 'D969', 'Via Buozzi 5', '16126');
         $demo->legame($logistica, $this->getEntityByFixtureName(SoggettoNeriFixture::class), RuoloLegame::amministratoreUnico);
         $vendita = CausaleContabile::fatturaVendita;
@@ -73,9 +73,9 @@ class DichiarazioneIvaOmega2025Fixture extends BaseFixture
         $esercizio2024 = $demo->apriContabilita($omega, 2024);
         $atlas = $demo->controparte($omega, 'Atlas Trading LLC', null, true);
         $muller = $demo->controparte($omega, 'Müller Maschinen GmbH', 'DE123456789', true);
-        $impianti = $demo->controparte($omega, 'Beta Impianti S.r.l.', '04123654008', true);
-        $acciai = $demo->controparte($omega, 'Acciai Nord S.p.A.', '09667788005', false);
-        $servizi = $demo->controparte($omega, 'Servizi Industriali S.r.l.', '09778899006', false);
+        $impianti = $demo->controparte($omega, 'Beta Impianti S.r.l.', '04123650402', true);
+        $acciai = $demo->controparte($omega, 'Acciai Nord S.p.A.', '09667780804', false);
+        $servizi = $demo->controparte($omega, 'Servizi Industriali S.r.l.', '09778890906', false);
         foreach (['2024-04-15' => 40000.0, '2024-08-20' => 30000.0, '2024-11-10' => 30000.0] as $data => $importo) {
             RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio2024, $atlas, $vendita, $data, 'E' . substr($data, 5, 2), ['N3.1' => $importo]);
         }
@@ -106,9 +106,9 @@ class DichiarazioneIvaOmega2025Fixture extends BaseFixture
         $demo->compensaCreditoTr($tr, 2000.0, '2025-11-17');
         // Logistica: operazioni del primo semestre, fino all'incorporazione
         $esercizioLogistica = $demo->apriContabilita($logistica, 2025);
-        RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizioLogistica, $demo->controparte($logistica, 'Servizi Industriali S.r.l.', '09778899006', false), $acquisto,
+        RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizioLogistica, $demo->controparte($logistica, 'Servizi Industriali S.r.l.', '09778890906', false), $acquisto,
                 '2025-02-15', 'SI/40', ['22' => 10000.0]);
-        RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizioLogistica, $demo->controparte($logistica, 'Omega Export S.r.l.', '09445566004', true), $vendita,
+        RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizioLogistica, $demo->controparte($logistica, 'Omega Export S.r.l.', '09445560601', true), $vendita,
                 '2025-05-20', '1', ['22' => 9000.0]);
         $elaborazione->elabora($logistica, 2025, 1, 0.0, false);
         $elaborazione->elabora($logistica, 2025, 2, 0.0, false);

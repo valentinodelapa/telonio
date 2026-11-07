@@ -82,6 +82,12 @@ class ControlliIva
                 $errori[] = ($modulo === 1 ? '' : 'Modulo ' . $modulo . ', ') . 'rigo VA2: manca il codice attività.';
             }
         }
+        if (($quadri->get('VX00410D', 1) !== null) && ($quadri->get('VX004007', 1) !== '1') && (in_array('VK', $quadri->getQuadriCompilati(1), true) === false)) {
+            $errori[] = 'Rigo VX4: la firma dell\'attestazione (campo 10) senza il quadro VK richiede l\'esonero dalle garanzie con il codice 1 (campo 7).';
+        }
+        if ((($quadri->get('VX004003', 1) === '13') || ($quadri->getImporto('VX002002', 1) > 0)) && ($quadri->get('VA011001', 1) === null)) {
+            $errori[] = 'La causale 13 e il credito da trasferire al Gruppo IVA (VX2, campo 2) richiedono la casella del rigo VA11.';
+        }
         if (($quadri->getImporto('VX004001', 1) > 0) && ($quadri->get('VX004003', 1) === null)) {
             $errori[] = 'Rigo VX4: indicare la causale del rimborso (campo 3).';
         }
@@ -278,13 +284,28 @@ class ControlliIva
     }
 
     /**
+     * Il professionista che appone il visto di conformità deve essere
+     * l'incaricato della trasmissione: le procedure di controllo dell'Agenzia
+     * lo segnalano (anomalia che non impedisce l'invio).
+     */
+    public static function getAvvisoVisto(?Dichiarazione $dichiarazione): ?string
+    {
+        $visto = $dichiarazione?->vistoProfessionista;
+        $incaricato = $dichiarazione?->intermediario?->soggetto;
+        if (($visto === null) || ($incaricato === null) || (strtoupper($visto->codiceFiscale) === strtoupper($incaricato->codiceFiscale))) {
+            return null;
+        }
+        return sprintf('Il visto di conformità è di %s ma trasmette %s: il controllo dell\'Agenzia segnala che chi appone il visto deve essere l\'incaricato della trasmissione.', $visto->nominativo, $incaricato->nominativo);
+    }
+
+    /**
      * Avvertenze che non riguardano il file.
      *
      * @return string[]
      */
     public function getAvvertenze(QuadriDichiarazione $quadri, ?Dichiarazione $dichiarazione = null): array
     {
-        $avvertenze = [];
+        $avvertenze = array_filter([self::getAvvisoVisto($dichiarazione)]);
         $sottoscritta = ($dichiarazione !== null) && isset($dichiarazione->id) && (count((new SottoscrizioneControlloModel($this->dataMapper))->getSottoscrizioni($dichiarazione)) > 0);
         if (($quadri->getImporto('VX005001', 1) > VersamentiIva::LIMITE_CREDITO_LIBERO) && (($dichiarazione?->hasVisto() ?? false) === false) && ($sottoscritta === false) && (($dichiarazione?->esoneroVisto ?? false) === false)) {
             $avvertenze[] = 'Credito da compensare superiore a 5.000 euro: la compensazione in F24 oltre questo importo richiede il visto di conformità o la sottoscrizione dell\'organo di controllo (art. 10, c. 1, lett. a), D.L. 78/2009), da indicare nel frontespizio.';

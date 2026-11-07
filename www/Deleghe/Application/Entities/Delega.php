@@ -25,7 +25,8 @@ use SismaFramework\Orm\ExtendedClasses\ReferencedEntity;
  * identificativi che lo richiedono).
  *
  * La delega consegnata al cliente, che la paga da sé, ha data e canale della
- * consegna e, con la quietanza, il canale del pagamento.
+ * consegna (con l'indirizzo, se inviata da Telonio per e-mail o PEC) e, con
+ * la quietanza, il canale del pagamento.
  */
 class Delega extends ReferencedEntity
 {
@@ -47,6 +48,7 @@ class Delega extends ReferencedEntity
     protected ?InvioTelematico $invioTelematico = null;
     protected ?SismaDate $dataConsegna = null;
     protected ?CanaleConsegna $canaleConsegna = null;
+    protected ?string $destinatarioConsegna = null;
     protected ?SismaDate $dataQuietanza = null;
     protected ?CanalePagamento $canalePagamento = null;
     protected ?string $protocollo = null;
@@ -77,5 +79,14 @@ class Delega extends ReferencedEntity
     public function getPassaggi(): array
     {
         return $this->stato->getPassaggi($this->dataConsegna !== null);
+    }
+
+    /**
+     * Si invia al cliente la delega confermata o, di nuovo, quella già
+     * consegnata (es. a un altro indirizzo).
+     */
+    public function isInviabile(): bool
+    {
+        return in_array($this->stato, [StatoDelega::confermata, StatoDelega::consegnata], true);
     }
 }

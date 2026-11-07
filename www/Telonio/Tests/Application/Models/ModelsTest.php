@@ -17,8 +17,8 @@ class ModelsTest extends SuiteTestCase
     public function testStudioModelGetElencoEEsisteCodiceFiscale(): void
     {
         $studioModel = new StudioModel($this->dataMapper);
-        $studio1 = $this->creaStudio(1, 'Studio Alfa', '01234567897');
-        $studio2 = $this->creaStudio(2, 'Studio Beta', '01234567897');
+        $studio1 = $this->creaStudio(1, 'Studio Alfa', '01234560785');
+        $studio2 = $this->creaStudio(2, 'Studio Beta', '01234560785');
 
         $this->testAdapter->accodaSelect([$studio1, $studio2]);
         $elenco = $studioModel->getElenco();
@@ -26,31 +26,31 @@ class ModelsTest extends SuiteTestCase
 
         // Nessun risultato -> false
         $this->testAdapter->accodaSelect([]);
-        $this->assertFalse($studioModel->esisteCodiceFiscale('01234567897'));
+        $this->assertFalse($studioModel->esisteCodiceFiscale('01234560785'));
 
         // Trovato senza escluso -> true
         $this->testAdapter->accodaSelect([$studio1]);
-        $this->assertTrue($studioModel->esisteCodiceFiscale('01234567897'));
+        $this->assertTrue($studioModel->esisteCodiceFiscale('01234560785'));
 
         // Trovato ma coincide con l'entità esclusa -> false
         $this->testAdapter->accodaSelect([$studio1]);
-        $this->assertFalse($studioModel->esisteCodiceFiscale('01234567897', $studio1));
+        $this->assertFalse($studioModel->esisteCodiceFiscale('01234560785', $studio1));
 
         // Trovato con entità esclusa nuova (senza id) -> true
         $studioNuovo = new Studio($this->dataMapper);
         $this->testAdapter->accodaSelect([$studio1]);
-        $this->assertTrue($studioModel->esisteCodiceFiscale('01234567897', $studioNuovo));
+        $this->assertTrue($studioModel->esisteCodiceFiscale('01234560785', $studioNuovo));
 
         // Trovato un altro studio diverso dall'escluso -> true
         $this->testAdapter->accodaSelect([$studio1, $studio2]);
-        $this->assertTrue($studioModel->esisteCodiceFiscale('01234567897', $studio1));
+        $this->assertTrue($studioModel->esisteCodiceFiscale('01234560785', $studio1));
     }
 
     public function testUtenteModelGetValidAuthenticableInterfaceByIdentifier(): void
     {
         $utenteModel = new UtenteModel($this->dataMapper);
-        $studioAttivo = $this->creaStudio(1, 'Studio Attivo', '01234567897', true);
-        $studioDisattivato = $this->creaStudio(2, 'Studio Disattivato', '01234567897', false);
+        $studioAttivo = $this->creaStudio(1, 'Studio Attivo', '01234560785', true);
+        $studioDisattivato = $this->creaStudio(2, 'Studio Disattivato', '01234560785', false);
 
         $utenteStudioAttivo = $this->creaUtente($studioAttivo, RuoloUtente::amministratore, 1, 'mario');
         $utenteStudioDisattivato = $this->creaUtente($studioDisattivato, RuoloUtente::amministratore, 2, 'mario');

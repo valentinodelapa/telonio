@@ -53,6 +53,7 @@ $classe = fn(array $campo): string => $campo['cella'] !== null ? 'celle' : (($ca
     <body>
         <div class="comandi">
             <button type="button" class="primario" onclick="window.print()">Stampa</button>
+            <a href="/delega/pdf/delega/<?= Html::e($delega->id) ?><?= $copie ? '/copie/1' : '' ?>">Scarica PDF</a>
             <?php if ($delega->modello === ModelloF24::semplificato): ?>
                 <span>Copia per il soggetto in alto, copia per la banca in basso</span>
             <?php elseif ($copie): ?>

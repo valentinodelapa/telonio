@@ -41,7 +41,7 @@ class FormatiETabelleTest extends DichiarativiTestCase
         $this->assertSame(['          33,333'], FormatoCampo::percentuale->formatta('33.333'));
         $this->assertSame('5', FormatoCampo::cifre2->normalizza('05'));
         $this->assertSame(['              05'], FormatoCampo::cifre2->formatta('5'));
-        $this->assertSame(['01234567897     '], FormatoCampo::partitaIva->formatta('01234567897'));
+        $this->assertSame(['01234560785     '], FormatoCampo::partitaIva->formatta('01234560785'));
         $this->assertSame(2, FormatoCampo::cifre2->getCifre());
         // testo oltre i 16 caratteri: elementi successivi che iniziano con "+"
         $elementi = FormatoCampo::alfanumerico->formatta('Società di gestione del risparmio');
