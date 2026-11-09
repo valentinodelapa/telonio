@@ -201,6 +201,23 @@ corrispettivi, costi, arrotondamenti. Ogni funzione è assegnata al più a
 un conto del piano, al livello previsto. Un conto si elimina solo senza
 sottoconti, movimenti o controparti; altrimenti si rende non attivo.
 
+### Righi della dichiarazione dei redditi
+
+Ogni conto economico può indicare il rigo del quadro RG (impresa in
+contabilità semplificata) o RE (arti e professioni) del modello Redditi in
+cui confluisce, anche con il codice della voce per i righi RG10 e RG22
+("RG22:3" canoni di locazione e noleggio); "NO" lo esclude. Se il rigo non
+è indicato vale quello proposto dalla voce di conto economico (servizio
+`RighiRedditi`). I costi deducibili solo in parte (auto, telefonia) hanno
+sul conto la percentuale deducibile e il rigo del quadro RF in cui va la
+parte indeducibile (RF16 imposte, RF18 mezzi di trasporto, RF31 codice 99
+altre variazioni, predefinito). Il servizio `ComponentiReddito` calcola i
+componenti per cassa (le fatture concorrono per la parte incassata o
+pagata nell'anno; gli incassi e i pagamenti della controparte chiudono le
+fatture dalla più vecchia, le note di credito senza movimento di denaro;
+dei costi conta la parte deducibile) e l'utile per competenza con le
+variazioni per la parte indeducibile.
+
 ## Clienti e fornitori
 
 Ogni controparte ha un sottoconto per ruolo sotto i conti con funzione

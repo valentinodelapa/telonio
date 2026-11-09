@@ -30,6 +30,11 @@
                 "tipologia": "Tipo di dichiarazione",
                 "codiceCarica": "Codice di carica",
                 "annotazioni": "Annotazioni",
+                "ottoPerMille": "Otto per mille",
+                "finalitaStato": "Finalità della scelta per lo Stato",
+                "cinquePerMille": "Cinque per mille",
+                "beneficiarioCinquePerMille": "Codice fiscale del beneficiario",
+                "duePerMille": "Due per mille (partito politico)",
                 "vistoProfessionista": "Visto di conformità (professionista)",
                 "esoneroVisto": "Esonero dal visto di conformità (premialità ISA)",
                 "tipoSottoscrizione": "Soggetto dell'organo di controllo",
@@ -61,7 +66,11 @@
                 "dataRichiestaDocumenti": "Notifica della richiesta di documenti",
                 "dataConsegnaDocumenti": "Consegna dei documenti",
                 "dataScadenzaGaranzia": "Scadenza",
-                "dataSvincolo": "Data di svincolo"
+                "dataSvincolo": "Data di svincolo",
+                "codiceFiscaleSostituto": "Codice fiscale del sostituto",
+                "denominazioneSostituto": "Sostituto d'imposta",
+                "conguagliata": "Compresa nel conguaglio di un altro sostituto",
+                "note": "Note"
             },
             "azioni": {
                 "cerca": "Cerca",
@@ -116,7 +125,12 @@
                 "nessunaGaranzia": "Nessuna garanzia in archivio.",
                 "svincolata": "Svincolata",
                 "confermaEliminaGaranzia": "Eliminare la garanzia?",
-                "aiutoGaranzie": "Le scadenze delle garanzie compaiono nello scadenzario dello studio (art. 38-bis, c. 5)."
+                "aiutoGaranzie": "Le scadenze delle garanzie compaiono nello scadenzario dello studio (art. 38-bis, c. 5).",
+                "sezioneCertificazioni": "Certificazioni Uniche",
+                "nessunaCertificazione": "Nessuna Certificazione Unica per l'anno.",
+                "redditiCertificati": "Redditi",
+                "ritenuteCertificate": "Ritenute IRPEF",
+                "aiutoCertificazioni": "Lavoro dipendente, pensione e assimilati: i punti della certificazione compilano il quadro RC, le ritenute del rigo RN33 e le addizionali trattenute del quadro RV."
             }
         },
         "dichiarazione": {
@@ -156,7 +170,9 @@
                 "rigoVx7": "IVA dovuta trasferita al gruppo (VX7)",
                 "rigoVx8": "IVA a credito trasferita al gruppo (VX8)",
                 "rigoVy1": "IVA del gruppo da versare (VY1)",
-                "rigoVy5": "Credito del gruppo da riportare o compensare (VY5)"
+                "rigoVy5": "Credito del gruppo da riportare o compensare (VY5)",
+                "nessunRedditoProposto": "Nessun reddito proposto: riproponi la dichiarazione dopo aver registrato possessi, contratti e Certificazioni Uniche.",
+                "aiutoVersamentiRedditi": "Saldi e acconti di IRPEF, addizionali, cedolare secca e imposta dei forfetari nelle scadenze del 30 giugno e del 30 novembre; i crediti da compensare del quadro RX in Deleghe."
             },
             "quadro": {
                 "aiutoQuadro": "I valori modificati diventano manuali e la proposta non li sovrascrive; spuntare \"Ripristina\" per tornare al valore proposto. Dopo il salvataggio i totali sono ricalcolati. Importi in unità di euro.",
@@ -166,6 +182,9 @@
             "form": {
                 "aiutoDichiarante": "Per società ed enti il rappresentante legale (proposto dai legami dell'Anagrafica); per le persone fisiche solo se firma un altro soggetto (tutore, erede, ...).",
                 "aiutoConferma": "Da spuntare solo dopo aver verificato i dati segnalati come non coerenti: l'Agenzia accetta la dichiarazione con il flag di conferma.",
+                "sezioneScelte": "Scelte per la destinazione dell'otto, del cinque e del due per mille dell'IRPEF",
+                "aiutoScelte": "Le scelte firmate dal contribuente nella scheda: non cambiano le imposte dovute. Senza scelta il file telematico riporta \"scelta non effettuata\".",
+                "sceltaNonEffettuata": "— Scelta non effettuata —",
                 "aiutoVisto": "Per compensare crediti oltre 5.000 euro o chiedere rimborsi oltre 30.000 euro senza garanzia; in alternativa la sottoscrizione dell'organo di controllo (nella dichiarazione).",
                 "aiutoEsonero": "Contribuenti con il punteggio ISA che dà diritto all'esonero dal visto (art. 9-bis, c. 11, D.L. 50/2017).",
                 "aiutoVistoCaf": "In alternativa al professionista: il CAF imprese (codice fiscale numerico) e il suo responsabile dell'assistenza fiscale, dall'Anagrafica.",
@@ -183,6 +202,13 @@
                 "aiutoScadenza": "Se vuota si propone con il rimborso: tre anni dall'esecuzione o, se inferiore, il periodo mancante alla decadenza dell'accertamento. Dopo aver indicato il ritardo nei documenti svuotala per ricalcolarla.",
                 "aiutoDocumenti": "Solo se la consegna supera i quindici giorni dalla notifica: la decadenza è differita dal sedicesimo giorno alla consegna (art. 57, c. 3).",
                 "aiutoDataRimborso": "Esecuzione del rimborso; per le compensazioni di gruppo la presentazione della dichiarazione."
+            }
+        },
+        "certificazioneUnica": {
+            "form": {
+                "aiutoCertificazione": "Riporta i punti della Certificazione Unica come sono stampati, con i centesimi; lascia vuoti quelli non compilati. Se un sostituto ha conguagliato i redditi di altri rapporti, quelle certificazioni vanno segnate come comprese nel conguaglio.",
+                "sezioneSostituto": "Sostituto d'imposta",
+                "errorePunto": "Valore non valido (importo non negativo; giorni fino a 365; codici interi)."
             }
         }
     }

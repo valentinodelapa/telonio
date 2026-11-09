@@ -4,7 +4,9 @@ namespace Anagrafica\Application\Enumerations;
 
 /**
  * Ruolo che un soggetto collegato ricopre presso un altro soggetto
- * (cariche sociali, partecipazioni, rappresentanza).
+ * (cariche sociali, partecipazioni, rappresentanza) o legame familiare del
+ * soggetto collegato con il soggetto (coniuge, figlio, ascendente, altro
+ * familiare), per il prospetto dei familiari a carico del modello Redditi.
  */
 enum RuoloLegame: string
 {
@@ -23,6 +25,10 @@ enum RuoloLegame: string
     case tutoreCuratore = 'TUT';
     case erede = 'ERE';
     case collaboratoreFamiliare = 'CFA';
+    case coniuge = 'CNG';
+    case figlio = 'FIG';
+    case ascendente = 'ASC';
+    case altroFamiliare = 'AFM';
 
     public function getLabel(): string
     {
@@ -41,11 +47,33 @@ enum RuoloLegame: string
             self::tutoreCuratore => 'Tutore / curatore',
             self::erede => 'Erede',
             self::collaboratoreFamiliare => 'Collaboratore familiare',
+            self::coniuge => 'Coniuge o unito civilmente',
+            self::figlio => 'Figlio',
+            self::ascendente => 'Genitore o altro ascendente',
+            self::altroFamiliare => 'Altro familiare (fratello, suocero, genero, nipote)',
         };
     }
 
     public function prevedeQuota(): bool
     {
         return in_array($this, [self::socio, self::socioAccomandatario, self::socioAccomandante, self::erede, self::collaboratoreFamiliare], true);
+    }
+
+    /**
+     * Legame familiare (coniuge, figlio, ascendente, altro familiare), non
+     * una carica o una partecipazione.
+     */
+    public function isFamiliare(): bool
+    {
+        return in_array($this, [self::coniuge, self::figlio, self::ascendente, self::altroFamiliare], true);
+    }
+
+    /**
+     * Familiari che possono essere a carico pur non convivendo (coniuge e
+     * figli); ascendenti e altri familiari solo se conviventi.
+     */
+    public function richiedeConvivenza(): bool
+    {
+        return in_array($this, [self::ascendente, self::altroFamiliare], true);
     }
 }

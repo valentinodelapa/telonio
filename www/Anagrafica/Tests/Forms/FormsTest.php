@@ -432,6 +432,44 @@ class FormsTest extends SuiteTestCase
         ]));
         $this->assertTrue($legameForm->isValid());
 
+        // legame familiare: figlio con disabilità al 50%
+        $legame = new Legame($this->dataMapper);
+        $legame->soggetto = $pf;
+        $this->testAdapter->accodaSelect(new TestResultSet([$collegato]));
+        $legameForm = new LegameForm($legame, $this->dataMapper);
+        $legameForm->handleRequest($this->creaRequest([
+            'soggettoCollegato' => '2', 'ruolo' => RuoloLegame::figlio->value, 'validoDal' => '2003-03-15',
+            'disabile' => '1', 'percentualeDetrazione' => '50',
+        ]));
+        $this->assertTrue($legameForm->isValid());
+
+        // convivenza per il figlio, percentuale non ammessa, affidamento con il 50%: errori
+        $legame = new Legame($this->dataMapper);
+        $legame->soggetto = $pf;
+        $this->testAdapter->accodaSelect(new TestResultSet([$collegato]));
+        $legameForm = new LegameForm($legame, $this->dataMapper);
+        $legameForm->handleRequest($this->creaRequest([
+            'soggettoCollegato' => '2', 'ruolo' => RuoloLegame::figlio->value, 'validoDal' => '2003-03-15',
+            'convivente' => '1', 'percentualeDetrazione' => '30', 'affidamento' => '1',
+        ]));
+        $this->assertFalse($legameForm->isValid());
+        $errori = $legameForm->getFilterErrors();
+        $this->assertNotEmpty($errori->conviventeCustomMessage);
+        $this->assertNotEmpty($errori->percentualeDetrazioneCustomMessage);
+
+        // percentuale per un ascendente e disabilità per il coniuge: errori
+        $legame = new Legame($this->dataMapper);
+        $legame->soggetto = $pf;
+        $this->testAdapter->accodaSelect(new TestResultSet([$collegato]));
+        $legameForm = new LegameForm($legame, $this->dataMapper);
+        $legameForm->handleRequest($this->creaRequest([
+            'soggettoCollegato' => '2', 'ruolo' => RuoloLegame::ascendente->value, 'validoDal' => '2020-01-01',
+            'convivente' => '1', 'percentualeDetrazione' => '100', 'affidamento' => '1',
+        ]));
+        $this->assertFalse($legameForm->isValid());
+        $this->assertNotEmpty($legameForm->getFilterErrors()->percentualeDetrazioneCustomMessage);
+        $this->assertNotEmpty($legameForm->getFilterErrors()->affidamentoCustomMessage);
+
         // PossessoForm con prefisso
         $immobile = new Immobile($this->dataMapper);
         $immobile->id = 5;

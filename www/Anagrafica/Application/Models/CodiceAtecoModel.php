@@ -57,6 +57,18 @@ class CodiceAtecoModel extends BaseModel
     }
 
     /**
+     * Codice ATECO 2022 il cui raccordo ISTAT porta alla sottocategoria
+     * ATECO 2025 indicata (il primo, se più d'uno), null se nessuno.
+     */
+    public function getCodice2022PerRaccordo(string $codice2025): ?string
+    {
+        foreach ($this->getByClassificazioneAndCodiceRaccordo(ClassificazioneAteco::ateco2022, $codice2025, null, ['codice' => 'ASC']) as $codiceAteco) {
+            return $codiceAteco->codice;
+        }
+        return null;
+    }
+
+    /**
      * Antenati del codice, dalla sezione al padre diretto.
      *
      * @return CodiceAteco[]

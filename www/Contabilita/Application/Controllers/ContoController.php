@@ -2,6 +2,7 @@
 
 namespace Contabilita\Application\Controllers;
 
+use Contabilita\Application\Services\RighiRedditi;
 use Anagrafica\Application\Entities\Soggetto;
 use Contabilita\Application\BaseClasses\ContabilitaController;
 use Contabilita\Application\Entities\Conto;
@@ -39,6 +40,9 @@ class ContoController extends ContabilitaController
             $conto->codice = $superiore->livello === LivelloConto::conto ? (new ContoModel($this->dataMapper))->getProssimoCodice($superiore) : $superiore->codice . '.';
             $conto->natura = $superiore->natura;
             $conto->voceCee = $superiore->voceCee;
+            $conto->rigoRedditi = $superiore->rigoRedditi;
+            $conto->percentualeDeducibile = $superiore->percentualeDeducibile;
+            $conto->variazioneRedditi = $superiore->variazioneRedditi;
         }
         return $this->gestisci($request, $conto, 'Nuovo conto');
     }
@@ -104,6 +108,8 @@ class ContoController extends ContabilitaController
         $this->vars['pianoConti'] = $piano;
         $this->vars['nature'] = NaturaConto::cases();
         $this->vars['funzioni'] = FunzioneConto::cases();
+        $this->vars['righiRedditi'] = RighiRedditi::getRighi();
+        $this->vars['variazioniRedditi'] = RighiRedditi::VARIAZIONI;
         $this->vars['vociCee'] = VoceCee::perSezione();
         $this->vars['pageTitle'] = $titolo;
         if ($piano->soggetto !== null) {

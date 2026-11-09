@@ -2,6 +2,62 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.22.0-alpha] - 2026-11-09 - Modello Redditi Persone Fisiche
+
+Versioni dei moduli: `Anagrafica` 0.11.0, `Contabilita` 0.7.0, `Dichiarativi` 0.5.0 (richiede `Anagrafica` 0.11.0 e `Contabilita` 0.7.0), `Imu` 0.4.1 (richiede `Anagrafica` 0.11.0); gli altri invariati.
+
+**Aggiornamento**: `sisma aggiorna-database` esegue `Anagrafica/Database/aggiornamento-0.11.sql` (tabelle `contratto_locazione`, `pertinenza_locata`, `variazione_canone`, colonne `dati_fiscali.coltivatore_iap` e `legame.disabile`, `convivente`, `percentuale_detrazione`, `affidamento`), `Contabilita/Database/aggiornamento-0.7.sql` (colonne `conto.rigo_redditi`, `percentuale_deducibile`, `variazione_redditi`) e `Dichiarativi/Database/aggiornamento-0.5.sql` (tabelle `certificazione_unica`, `valore_certificazione_unica`, `addizionale_regionale`, `addizionale_comunale`, colonne della dichiarazione per le scelte dell'otto, cinque e due per mille), idempotenti, e `Dichiarativi/Database/dati-riferimento.sql` con le aliquote delle addizionali 2025.
+
+### ✨ Nuove Funzionalità
+
+#### `Dichiarativi` 0.5.0 — modello Redditi Persone fisiche 2026
+
+- **proposta del modello** dai dati della suite, con i valori corretti a mano conservati alle riproposte e i calcoli delle specifiche tecniche:
+  - **RA e RB** dai possessi, dai dati catastali, dai contratti di locazione e, con il modulo IMU, dalle caratteristiche IMU: un rigo per ogni situazione dell'anno, rivalutazioni e regime dei coltivatori diretti e IAP, utilizzi e casi particolari IMU, canone per i giorni e ripartito tra le pertinenze, cedolare secca al 21, 10 o 26 per cento, sezioni del contratto in Abruzzo e del CIN;
+  - **LC** con l'imposta della cedolare e gli acconti;
+  - **RC** dall'archivio delle **Certificazioni Uniche** (nuovo, nella scheda del contribuente);
+  - **prospetto dei familiari a carico** dai legami familiari dell'Anagrafica: mesi a carico dalle date del legame, limite di reddito (2.840,51 euro, 4.000 per i figli fino a 24 anni) dalla dichiarazione o dalle Certificazioni Uniche del familiare, figli dal più anziano con la percentuale (100 se il coniuge è a carico, altrimenti 50, o quella del legame) e i mesi da 21 a 29 anni, ascendenti e altri familiari conviventi;
+  - **RE, RG, RF ed LM** dalla Contabilità secondo il regime: professionisti e semplificata per cassa, ordinaria con l'utile del conto economico e le variazioni in aumento per la parte indeducibile dei costi (righi RF16, RF18 e RF31, totale RF32), forfetari con il coefficiente di redditività e i contributi INPS dei versamenti F24;
+  - **impresa familiare**: prospetto di imputazione del quadro RS e quote dei collaboratori (righi RG33 o RF98) dai legami "Collaboratore familiare", solo sul reddito positivo, con l'avviso oltre il 49 per cento;
+  - **perdite d'impresa** degli anni precedenti (righi RG35 e RF100) dal prospetto RS12-RS13 della dichiarazione dell'anno prima, in misura limitata fino all'80 per cento del reddito e poi in misura piena, con i residui e la perdita dell'anno nel prospetto;
+  - **quadro RP**: totali del rigo RP15 dai righi da RP1 a RP14 (franchigia delle spese sanitarie e veterinarie, rateizzazione, spese commisurate al reddito), rigo RN23, deducibili dei righi RP32-RP36 e totale RP39, con gli avvisi per gli importi oltre i limiti;
+  - **RN**: imposta lorda, detrazioni per familiari (con il primo figlio senza l'altro genitore), lavoro, pensione e altri redditi, ulteriore detrazione, trattamento integrativo e somma esente, oneri detraibili del rigo RN13 con il **riordino delle detrazioni** oltre 75.000 euro (art. 16-ter Tuir: limite di spesa per i figli imputato dalla percentuale più alta, coefficiente oltre 120.000 euro), ritenute, acconti versati, saldo e acconti 2026;
+  - **RV** con le **tabelle ufficiali delle addizionali** (nuove: regionali dalle istruzioni, comunali dall'elenco dell'Agenzia con il comando `sisma addizionali-comunali`) e il domicilio fiscale al 1° gennaio;
+  - **RX** con i crediti proposti in compensazione;
+- **scelte dell'otto, del cinque e del due per mille** nel frontespizio (istituzioni, finalità dello Stato, beneficiario del cinque per mille, partiti della tabella del modello) e nel file;
+- **controlli** dei quadri RA e RB, **versamenti** di saldi e acconti (IRPEF, addizionali, cedolare, imposta dei forfetari) e **crediti** in Deleghe, **file telematico RPF26**.
+
+#### `Anagrafica` 0.11.0
+
+- **contratti di locazione e di affitto** nella scheda dell'immobile: tipo, canone e variazioni, cedolare secca con revoca, pertinenze locate insieme, registrazione e CIN;
+- **legami familiari** tra i soggetti collegati: coniuge, figlio, genitore o altro ascendente, altro familiare, con disabilità, convivenza, percentuale della detrazione del figlio e affidamento;
+- utilizzo **comodato a un familiare** nei possessi e casella **coltivatore diretto o IAP** nei dati fiscali delle persone fisiche.
+
+#### `Contabilita` 0.7.0
+
+- **rigo della dichiarazione dei redditi** sul conto (quadri RG ed RE), proposto dalla voce di conto economico;
+- **percentuale deducibile** del costo sul conto (es. auto, telefonia) con il rigo della variazione del quadro RF: nei quadri RG ed RE conta la parte deducibile;
+- **componenti del reddito per cassa** (incassi e pagamenti assegnati alle fatture della controparte dalla più vecchia) e per competenza.
+
+### 🔧 Modifiche
+
+#### `Imu` 0.4.1
+
+- il comodato a un familiare vale come comodato nel calcolo e nelle aliquote differenziate.
+
+#### Dati demo
+
+- modelli Redditi PF 2026 di Mario Rossi (dipendente, casa locata con la cedolare e il box pertinenza, coniuge e due figli nei legami familiari, scelte dell'otto e del cinque per mille), Lucia Ferri (semplificata, impresa familiare con il figlio collaboratore, spese telefoniche deducibili all'80 per cento) e della nuova cliente Sara Gallo (forfetaria, con contabilità e contributi in Deleghe).
+
+### ⚠️ Limiti Noti
+
+- **quadro RP**: le spese si indicano a mano (la suite non ha un archivio degli oneri); le rate dei bonus edilizi e del risparmio energetico (sezioni III e IV, righi da RN14 a RN16) non sono calcolate e, oltre 75.000 euro di reddito, il riordino delle detrazioni con queste rate va ripartito a mano (avviso);
+- **prospetto dei familiari a carico**: senza dichiarazione o Certificazioni Uniche del familiare nella suite il reddito non è verificato (avviso); i figli si registrano nella scheda di ciascun genitore;
+- **quadri non proposti**: RH, RL, RM, RT, RW, CR e CE (si compilano a mano e vanno nel file);
+- **redditi d'impresa**: le perdite pregresse si propongono solo dalla dichiarazione dell'anno prima nella suite (per il 2025 a mano); le variazioni in diminuzione del quadro RF e quelle in aumento diverse dai costi deducibili in parte a mano; le quote di reddito dei collaboratori nel regime forfetario a mano; gli incassi si assegnano alle fatture dalla più vecchia, senza abbinamento manuale;
+- **addizionali**: le agevolazioni regionali per figli e disabilità e i casi particolari comunali sono avvisi da verificare;
+- **file RPF26** non ancora verificato con il software di controllo dell'Agenzia.
+
 ## [0.21.0-alpha] - 2026-11-07 - Posta in Uscita, Invio delle Deleghe e Controlli dell'Agenzia
 
 Ventunesima versione alpha: in `Telonio` la posta in uscita dello studio, con le caselle e-mail e PEC; in `Deleghe` il PDF della delega sul modello ufficiale e l'invio al cliente per e-mail o PEC; in `Dichiarativi` le correzioni emerse dal primo controllo dei file IVA 2026 e IVA TR con le procedure dell'Agenzia, che ora accettano tutte le dichiarazioni delle demo, e l'avviso sul visto di conformità apposto da chi non trasmette.

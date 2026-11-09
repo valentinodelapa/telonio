@@ -41,7 +41,12 @@ enum ModelloDichiarativo: string
      */
     public function isGestito(): bool
     {
-        return in_array($this, [self::iva, self::ivaTr], true);
+        return in_array($this, [self::iva, self::ivaTr, self::redditiPf], true);
+    }
+
+    public function isRedditi(): bool
+    {
+        return $this === self::redditiPf;
     }
 
     /**
@@ -114,7 +119,7 @@ enum ModelloDichiarativo: string
     {
         return match ($this) {
             self::iva => ['VA', 'VE', 'VF', 'VJ', 'VH', 'VL', 'VT', 'VX'],
-            self::redditiPf => ['RA', 'RB', 'RC', 'RN', 'RV', 'RX'],
+            self::redditiPf => ['RA', 'RB', 'RC', 'LC', 'RN', 'RV', 'RX'],
             self::ivaTr => ['TA', 'TB', 'TC', 'TD'],
         };
     }

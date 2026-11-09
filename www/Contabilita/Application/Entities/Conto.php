@@ -26,6 +26,9 @@ class Conto extends SelfReferencedEntity
     protected NaturaConto $natura;
     protected ?FunzioneConto $funzione = null;
     protected ?VoceCee $voceCee = null;
+    protected ?string $rigoRedditi = null;
+    protected ?float $percentualeDeducibile = null;
+    protected ?string $variazioneRedditi = null;
     protected bool $attivo = true;
 
     #[\Override]

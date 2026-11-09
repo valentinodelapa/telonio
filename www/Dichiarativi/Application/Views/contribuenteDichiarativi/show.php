@@ -74,6 +74,42 @@ require Layout::percorso('header');
     <?php endif; ?>
 </div>
 
+<?php if ($soggetto->isPersonaFisica()): ?>
+    <div class="card shadow-sm mt-3">
+        <div class="card-header bg-white fw-semibold d-flex align-items-center">
+            <span class="me-auto"><?= Html::e($sezioneCertificazioni) ?></span>
+            <a href="/certificazione-unica/create/soggetto/<?= Html::e($soggetto->id) ?>/anno/<?= Html::e($anno) ?>" class="btn btn-sm btn-outline-primary"><i class="bi bi-plus-lg me-1"></i><?= Html::e($azioni['aggiungi']) ?></a>
+        </div>
+        <?php if (count($certificazioni) === 0): ?>
+            <div class="card-body small text-body-secondary"><?= Html::e($nessunaCertificazione) ?></div>
+        <?php else: ?>
+            <div class="table-responsive">
+                <table class="table mb-0 align-middle small">
+                    <thead class="table-light">
+                        <tr><th><?= Html::e($campi['denominazioneSostituto']) ?></th><th><?= Html::e($campi['codiceFiscaleSostituto']) ?></th><th class="text-end"><?= Html::e($redditiCertificati) ?></th><th class="text-end"><?= Html::e($ritenuteCertificate) ?></th><th></th><th></th></tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($certificazioni as ['certificazione' => $certificazione, 'valori' => $valoriCu]): ?>
+                            <tr>
+                                <td><?= Html::e($certificazione->denominazioneSostituto) ?></td>
+                                <td><?= Html::e($certificazione->codiceFiscaleSostituto) ?></td>
+                                <td class="text-end text-nowrap"><?= Html::e(Importo::euro(($valoriCu[1] ?? 0) + ($valoriCu[2] ?? 0) + ($valoriCu[3] ?? 0) + ($valoriCu[4] ?? 0) + ($valoriCu[5] ?? 0))) ?></td>
+                                <td class="text-end text-nowrap"><?= Html::e(Importo::euro($valoriCu[21] ?? 0)) ?></td>
+                                <td><?php if ($certificazione->conguagliata): ?><span class="badge text-bg-secondary"><?= Html::e($campi['conguagliata']) ?></span><?php endif; ?></td>
+                                <td class="text-end text-nowrap">
+                                    <a href="/certificazione-unica/update/certificazione-unica/<?= Html::e($certificazione->id) ?>" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+                                    <form method="post" action="/certificazione-unica/delete/certificazione-unica/<?= Html::e($certificazione->id) ?>" class="d-inline" data-conferma="<?= Html::e($confermaElimina) ?>"><?= $campoCsrf ?><button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php endif; ?>
+        <div class="card-footer bg-white small text-body-secondary"><?= Html::e($aiutoCertificazioni) ?></div>
+    </div>
+<?php endif; ?>
+
 <div class="card shadow-sm mt-3">
     <div class="card-header bg-white fw-semibold d-flex align-items-center">
         <span class="me-auto"><?= Html::e($sezioneAccertamenti) ?></span>

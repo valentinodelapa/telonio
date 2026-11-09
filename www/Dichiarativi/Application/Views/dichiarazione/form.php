@@ -55,6 +55,19 @@ require Layout::percorso('header');
             <?= Campo::areaTesto('annotazioni', $campi['annotazioni'], $formEntity, $errors, ['colonna' => 'col-12', 'righe' => 3, 'attributi' => 'maxlength="500"']) ?>
         </div>
     </div>
+    <?php if ($dichiarazione->modello->isRedditi()): ?>
+        <div class="card shadow-sm mt-3">
+            <div class="card-header"><?= Html::e($sezioneScelte) ?></div>
+            <div class="card-body row g-3">
+                <p class="small text-body-secondary mb-0"><?= Html::e($aiutoScelte) ?></p>
+                <?= Campo::selezioneEnum('ottoPerMille', $campi['ottoPerMille'], $formEntity, $errors, $istituzioniOttoPerMille, ['colonna' => 'col-md-8', 'vuota' => $sceltaNonEffettuata]) ?>
+                <?= Campo::selezione('finalitaStato', $campi['finalitaStato'], $formEntity, $errors, $finalitaStato, ['colonna' => 'col-md-4', 'vuota' => $nessuna]) ?>
+                <?= Campo::selezioneEnum('cinquePerMille', $campi['cinquePerMille'], $formEntity, $errors, $finalitaCinquePerMille, ['colonna' => 'col-md-8', 'vuota' => $sceltaNonEffettuata]) ?>
+                <?= Campo::testo('beneficiarioCinquePerMille', $campi['beneficiarioCinquePerMille'], $formEntity, $errors, ['colonna' => 'col-md-4', 'attributi' => 'maxlength="11" inputmode="numeric"']) ?>
+                <?= Campo::selezione('duePerMille', $campi['duePerMille'], $formEntity, $errors, $partitiDuePerMille, ['colonna' => 'col-md-8', 'vuota' => $sceltaNonEffettuata]) ?>
+            </div>
+        </div>
+    <?php endif; ?>
     <?php require __DIR__ . '/../commonParts/pulsantiForm.php'; ?>
 </form>
 <?php require Layout::percorso('footer'); ?>

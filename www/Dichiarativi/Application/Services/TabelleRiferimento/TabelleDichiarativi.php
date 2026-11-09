@@ -13,6 +13,12 @@ use Dichiarativi\Application\Enumerations\ModelloDichiarativo;
  * sono ricavati dalle specifiche con SpecificheDichiarativi. La lettura
  * verifica codici, formati e quadri e produce le istruzioni SQL idempotenti
  * per le tabelle campo_modello e quadro_modello.
+ *
+ * Le aliquote delle addizionali all'IRPEF sono in
+ * addizionali-regionali-<anno>.csv (trascritta dalla tabella delle
+ * istruzioni del modello Redditi PF) e addizionali-comunali-<anno>.csv
+ * (letta dall'elenco dell'Agenzia delle Entrate con AddizionaliComunali);
+ * addizionali.csv elenca anni e fonti.
  */
 class TabelleDichiarativi
 {
@@ -20,6 +26,7 @@ class TabelleDichiarativi
     public const CARTELLA = __DIR__ . '/../../../Database/sorgenti/';
     public const COLONNE_CAMPI = ['codice', 'formato', 'descrizione'];
     public const COLONNE_QUADRI = ['quadro', 'denominazione'];
+    public const COLONNE_REGIONALI = ['codice', 'regione', 'scaglioni', 'modalita', 'esenzione_reddito', 'soglia_aliquota', 'detrazioni', 'detrazione_crescente', 'deduzione', 'casi_particolari'];
 
     public function __construct(private string $cartella = self::CARTELLA)
     {
@@ -47,7 +54,7 @@ class TabelleDichiarativi
      */
     public function leggi(): array
     {
-        $dati = ['campi' => [], 'quadri' => [], 'modelli' => []];
+        $dati = ['campi' => [], 'quadri' => [], 'modelli' => [], 'regionali' => [], 'comunali' => [], 'anniAddizionali' => []];
         foreach ($this->leggiSpecifiche() as ['modello' => $modello, 'anno' => $anno]) {
             $nome = $modello . '-' . $anno . '.csv';
             $quadri = [];
@@ -76,7 +83,77 @@ class TabelleDichiarativi
             }
             $dati['modelli'][] = ['modello' => $modello, 'anno' => $anno];
         }
+        foreach ($this->leggiFontiAddizionali() as ['anno' => $anno]) {
+            $this->leggiAddizionali($anno, $dati);
+            $dati['anniAddizionali'][] = $anno;
+        }
         return $dati;
+    }
+
+    /**
+     * @return list<array{anno: int, url: string, fonte: string}>
+     */
+    public function leggiFontiAddizionali(): array
+    {
+        if (is_file($this->cartella . 'addizionali.csv') === false) {
+            return [];
+        }
+        $fonti = [];
+        foreach ($this->leggiCsv('addizionali.csv', AddizionaliComunali::COLONNE_FONTI) as $numero => $riga) {
+            if ((preg_match('/^20\d\d$/', (string) $riga['anno']) !== 1) || ($riga['url'] === null) || ($riga['fonte'] === null)) {
+                throw new \UnexpectedValueException('addizionali.csv, riga ' . $numero . ': anno, indirizzo o fonte non validi');
+            }
+            $fonti[] = ['anno' => (int) $riga['anno'], 'url' => $riga['url'], 'fonte' => $riga['fonte']];
+        }
+        return $fonti;
+    }
+
+    private function leggiAddizionali(int $anno, array &$dati): void
+    {
+        $regionali = 'addizionali-regionali-' . $anno . '.csv';
+        foreach ($this->leggiCsv($regionali, self::COLONNE_REGIONALI) as $numero => $riga) {
+            if ((preg_match('/^\d\d$/', (string) $riga['codice']) !== 1) || ($riga['regione'] === null) || (self::isScaglioni((string) $riga['scaglioni']) === false)
+                    || (in_array($riga['modalita'], ['progressiva', 'intero'], true) === false)) {
+                throw new \UnexpectedValueException($regionali . ', riga ' . $numero . ': codice, regione, scaglioni o modalità non validi');
+            }
+            $dati['regionali'][] = ['anno' => $anno] + $riga;
+        }
+        $comunali = 'addizionali-comunali-' . $anno . '.csv';
+        foreach ($this->leggiCsv($comunali, AddizionaliComunali::COLONNE) as $numero => $riga) {
+            $aliquote = $riga['aliquote'] === null ? [] : explode('|', $riga['aliquote']);
+            if ((preg_match('/^[A-Z]\d{3}$/', (string) $riga['codice']) !== 1) || (($riga['aliquota_unica'] === null) === (count($aliquote) === 0))
+                    || (count(array_filter($aliquote, fn(string $aliquota) => is_numeric($aliquota) === false)) > 0)
+                    || ((count($aliquote) > 0) && (count($aliquote) !== ($riga['tipologia'] === '2' ? 3 : 4)))) {
+                throw new \UnexpectedValueException($comunali . ', riga ' . $numero . ': codice o aliquote non validi');
+            }
+            $dati['comunali'][] = ['anno' => $anno, 'codice_catastale' => $riga['codice'], 'aliquota_unica' => $riga['aliquota_unica'], 'aliquote' => $riga['aliquote'],
+                'tipologia' => $riga['tipologia'] === null ? null : (int) $riga['tipologia'], 'esenzione' => $riga['esenzione'], 'tipizzazione' => $riga['tipizzazione'],
+                'esenzione_casi' => $riga['esenzione_casi'], 'casi_particolari' => $riga['casi_particolari']];
+        }
+    }
+
+    /**
+     * Scaglioni "limite:aliquota|...|:aliquota" con limiti crescenti e
+     * l'ultimo senza limite.
+     */
+    public static function isScaglioni(string $scaglioni): bool
+    {
+        $precedente = 0.0;
+        $parti = explode('|', $scaglioni);
+        foreach ($parti as $indice => $parte) {
+            if (preg_match('/^(\d*):(\d+(\.\d+)?)$/', $parte, $corrispondenze) !== 1) {
+                return false;
+            }
+            $ultimo = $indice === count($parti) - 1;
+            if ($ultimo !== ($corrispondenze[1] === '')) {
+                return false;
+            }
+            if (!$ultimo && ((float) $corrispondenze[1] <= $precedente)) {
+                return false;
+            }
+            $precedente = (float) $corrispondenze[1];
+        }
+        return true;
     }
 
     /**
@@ -99,6 +176,14 @@ class TabelleDichiarativi
             if (count($quadri) > 0) {
                 yield from $generatore->generaUpsert('quadro_modello', ['modello', 'anno', 'quadro', 'denominazione'], array_values($quadri));
             }
+        }
+        foreach ($dati['anniAddizionali'] ?? [] as $anno) {
+            $regionali = array_values(array_filter($dati['regionali'], fn(array $riga) => $riga['anno'] === $anno));
+            $comunali = array_values(array_filter($dati['comunali'], fn(array $riga) => $riga['anno'] === $anno));
+            yield sprintf("DELETE FROM `addizionale_regionale` WHERE `anno` = %d AND `codice` NOT IN (%s);", $anno, implode(', ', array_map(fn(array $riga) => "'" . $riga['codice'] . "'", $regionali)) ?: "''");
+            yield sprintf("DELETE FROM `addizionale_comunale` WHERE `anno` = %d AND `codice_catastale` NOT IN (%s);", $anno, implode(', ', array_map(fn(array $riga) => "'" . $riga['codice_catastale'] . "'", $comunali)) ?: "''");
+            yield from $generatore->generaUpsert('addizionale_regionale', ['anno', 'codice', 'regione', 'scaglioni', 'modalita', 'esenzione_reddito', 'soglia_aliquota', 'detrazioni', 'detrazione_crescente', 'deduzione', 'casi_particolari'], $regionali);
+            yield from $generatore->generaUpsert('addizionale_comunale', ['anno', 'codice_catastale', 'aliquota_unica', 'aliquote', 'tipologia', 'esenzione', 'tipizzazione', 'esenzione_casi', 'casi_particolari'], $comunali);
         }
     }
 

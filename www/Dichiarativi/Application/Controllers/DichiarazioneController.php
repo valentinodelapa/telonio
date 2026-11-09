@@ -17,7 +17,10 @@ use Dichiarativi\Application\Entities\ModuloDichiarazione;
 use Dichiarativi\Application\Entities\RettificaDetrazione;
 use Dichiarativi\Application\Entities\SottoscrizioneControllo;
 use Dichiarativi\Application\Enumerations\ModalitaSaldo;
+use Dichiarativi\Application\Enumerations\CinquePerMille;
 use Dichiarativi\Application\Enumerations\ModelloDichiarativo;
+use Dichiarativi\Application\Enumerations\OttoPerMille;
+use Dichiarativi\Application\Services\Redditi\PartitiDuePerMille;
 use Dichiarativi\Application\Enumerations\StatoDichiarazione;
 use Dichiarativi\Application\Enumerations\TipoModulo;
 use Dichiarativi\Application\Enumerations\TipologiaDichiarazione;
@@ -33,6 +36,9 @@ use Dichiarativi\Application\Services\Frontespizio;
 use Dichiarativi\Application\Services\Iva\ControlliIva;
 use Dichiarativi\Application\Services\Iva\ControlliTr;
 use Dichiarativi\Application\Services\Iva\PropostaIva;
+use Dichiarativi\Application\Services\Redditi\ControlliRedditi;
+use Dichiarativi\Application\Services\Redditi\PropostaRedditi;
+use Dichiarativi\Application\Services\Redditi\VersamentiRedditi;
 use Dichiarativi\Application\Services\Iva\PropostaTr;
 use Dichiarativi\Application\Services\Iva\ProspettoRettifiche;
 use Dichiarativi\Application\Services\Iva\VersamentiIva;
@@ -41,6 +47,7 @@ use Dichiarativi\Application\Services\ModelliContribuente;
 use Dichiarativi\Application\Services\QuadriDichiarazione;
 use Dichiarativi\Application\Services\Telematico\GeneratoreIva;
 use Dichiarativi\Application\Services\Telematico\GeneratoreTr;
+use Dichiarativi\Application\Services\Telematico\GeneratoreRedditi;
 use SismaFramework\Core\HttpClasses\Request;
 use SismaFramework\Core\HttpClasses\Response;
 use SismaFramework\Orm\CustomTypes\SismaDate;
@@ -130,7 +137,12 @@ class DichiarazioneController extends DichiarativiController
         $quadri->usaModulo($modulo);
         $this->vars['avvertenze'] = $controlli->getAvvertenze($quadri, $dichiarazione);
         $this->vars['versamenti'] = iterator_to_array((new VersamentoModel($this->dataMapper))->getGenerati($dichiarazione->soggetto, Dichiarazione::ORIGINE, $dichiarazione->getRiferimento()), false);
-        $this->vars['credito'] = $dichiarazione->modello->isTrimestrale() ? (new VersamentiTr($this->dataMapper))->getCredito($dichiarazione) : (new VersamentiIva($this->dataMapper))->getCredito($dichiarazione);
+        $this->vars['credito'] = match (true) {
+            $dichiarazione->modello->isRedditi() => null,
+            $dichiarazione->modello->isTrimestrale() => (new VersamentiTr($this->dataMapper))->getCredito($dichiarazione),
+            default => (new VersamentiIva($this->dataMapper))->getCredito($dichiarazione),
+        };
+        $this->vars['riepilogoRedditi'] = $dichiarazione->modello->isRedditi() ? PropostaRedditi::getRiepilogo($quadri) : [];
         $this->vars['naturaGiuridica'] = $dichiarazione->naturaGiuridica === null ? null : (Frontespizio::TABELLA_NATURA_GIURIDICA[$dichiarazione->naturaGiuridica] ?? null);
         $this->vars['pageTitle'] = $dichiarazione->getDescrizione() . ' · ' . $dichiarazione->soggetto->nominativo;
         $this->impostaBricioleContribuente($dichiarazione->soggetto, $dichiarazione->anno, $dichiarazione->getDescrizione());
@@ -343,6 +355,14 @@ class DichiarazioneController extends DichiarativiController
         $this->vars['codiciCarica'] = CodiceCaricaIva::cases();
         $this->vars['impegni'] = ImpegnoPresentazione::cases();
         $this->vars['nature'] = Frontespizio::TABELLA_NATURA_GIURIDICA;
+        $this->vars['istituzioniOttoPerMille'] = OttoPerMille::cases();
+        $this->vars['finalitaStato'] = OttoPerMille::getFinalitaStato();
+        $this->vars['finalitaCinquePerMille'] = CinquePerMille::cases();
+        $partiti = [];
+        foreach (PartitiDuePerMille::getPartiti($dichiarazione->anno) as $codice => $partito) {
+            $partiti[$codice] = $partito . ' (' . $codice . ')';
+        }
+        $this->vars['partitiDuePerMille'] = $partiti;
         $this->vars['intermediari'] = iterator_to_array((new IntermediarioModel($this->dataMapper))->getElenco($this->studio));
         $this->vars['pageTitle'] = 'Frontespizio · ' . $dichiarazione->getDescrizione();
         $this->impostaBricioleContribuente($dichiarazione->soggetto, $dichiarazione->anno, $this->vars['pageTitle']);
@@ -357,6 +377,19 @@ class DichiarazioneController extends DichiarativiController
     {
         $this->autorizza($dichiarazione);
         $this->verificaCsrf($request);
+        if ($dichiarazione->modello->isRedditi()) {
+            $quadri = new QuadriDichiarazione($dichiarazione, $this->dataMapper);
+            $servizio = new VersamentiRedditi($this->dataMapper);
+            try {
+                $primaTransazione = $this->dataMapper->startTransaction();
+                $messaggi = array_merge($servizio->registraVersamenti($dichiarazione, $quadri), $servizio->registraCrediti($dichiarazione, $quadri));
+                $this->dataMapper->commitTransaction($primaTransazione);
+                $this->aggiungiMessaggio(implode(' ', $messaggi), 'info');
+            } catch (\InvalidArgumentException $errore) {
+                $this->aggiungiMessaggio('Versamenti non registrati: ' . $errore->getMessage(), 'danger');
+            }
+            return $this->vaiAllaDichiarazione($dichiarazione);
+        }
         $quadri = new QuadriDichiarazione($dichiarazione, $this->dataMapper);
         $servizio = new VersamentiIva($this->dataMapper);
         $modalita = ModalitaSaldo::tryFrom((string) ($request->input['modalitaSaldo'] ?? '')) ?? $dichiarazione->modalitaSaldo;
@@ -407,14 +440,21 @@ class DichiarazioneController extends DichiarativiController
             $dichiarazione->protocollo = $protocollo === '' ? null : mb_substr($protocollo, 0, 50);
             $dichiarazione->stato = $stato;
             $this->dataMapper->save($dichiarazione);
-            $messaggi = $dichiarazione->modello->isTrimestrale() ? (new VersamentiTr($this->dataMapper))->registraCredito($dichiarazione, $quadri)
-                    : array_merge($servizio->registraCredito($dichiarazione, $quadri), $servizio->registraProrata($dichiarazione, $quadri));
+            $messaggi = match (true) {
+                $dichiarazione->modello->isRedditi() => (new VersamentiRedditi($this->dataMapper))->registraCrediti($dichiarazione, $quadri),
+                $dichiarazione->modello->isTrimestrale() => (new VersamentiTr($this->dataMapper))->registraCredito($dichiarazione, $quadri),
+                default => array_merge($servizio->registraCredito($dichiarazione, $quadri), $servizio->registraProrata($dichiarazione, $quadri)),
+            };
         } else {
             $dichiarazione->dataPresentazione = null;
             $dichiarazione->protocollo = null;
             $dichiarazione->stato = $stato;
             $this->dataMapper->save($dichiarazione);
-            $messaggi = $dichiarazione->modello->isTrimestrale() ? (new VersamentiTr($this->dataMapper))->annullaCredito($dichiarazione) : $servizio->annullaCredito($dichiarazione);
+            $messaggi = match (true) {
+                $dichiarazione->modello->isRedditi() => (new VersamentiRedditi($this->dataMapper))->annullaCrediti($dichiarazione),
+                $dichiarazione->modello->isTrimestrale() => (new VersamentiTr($this->dataMapper))->annullaCredito($dichiarazione),
+                default => $servizio->annullaCredito($dichiarazione),
+            };
         }
         $this->dataMapper->commitTransaction($primaTransazione);
         $this->aggiungiMessaggio(trim('Dichiarazione ' . mb_strtolower($stato->getLabel()) . '. ' . implode(' ', $messaggi)));
@@ -432,7 +472,11 @@ class DichiarazioneController extends DichiarativiController
         $anno = $dichiarazione->anno;
         $primaTransazione = $this->dataMapper->startTransaction();
         $esito = (new ArchivioVersamenti($this->dataMapper))->registra($soggetto, Dichiarazione::ORIGINE, $dichiarazione->getRiferimento(), []);
-        $messaggi = $dichiarazione->modello->isTrimestrale() ? (new VersamentiTr($this->dataMapper))->annullaCredito($dichiarazione) : (new VersamentiIva($this->dataMapper))->annullaCredito($dichiarazione);
+        $messaggi = match (true) {
+            $dichiarazione->modello->isRedditi() => (new VersamentiRedditi($this->dataMapper))->annullaCrediti($dichiarazione),
+            $dichiarazione->modello->isTrimestrale() => (new VersamentiTr($this->dataMapper))->annullaCredito($dichiarazione),
+            default => (new VersamentiIva($this->dataMapper))->annullaCredito($dichiarazione),
+        };
         foreach ((new ValoreDichiarazioneModel($this->dataMapper))->getValori($dichiarazione) as $valore) {
             $this->dataMapper->delete($valore);
         }
@@ -452,12 +496,20 @@ class DichiarazioneController extends DichiarativiController
     {
         $this->autorizza($dichiarazione);
         try {
-            $this->vars['contenuto'] = $dichiarazione->modello->isTrimestrale() ? (new GeneratoreTr($this->dataMapper))->genera($dichiarazione) : (new GeneratoreIva($this->dataMapper))->genera($dichiarazione);
+            $this->vars['contenuto'] = match (true) {
+                $dichiarazione->modello->isRedditi() => (new GeneratoreRedditi($this->dataMapper))->genera($dichiarazione),
+                $dichiarazione->modello->isTrimestrale() => (new GeneratoreTr($this->dataMapper))->genera($dichiarazione),
+                default => (new GeneratoreIva($this->dataMapper))->genera($dichiarazione),
+            };
         } catch (\InvalidArgumentException | \LengthException $errore) {
             $this->aggiungiMessaggio('File non generato: ' . $errore->getMessage(), 'danger');
             return $this->vaiAllaDichiarazione($dichiarazione);
         }
-        $this->vars['nomeFile'] = $dichiarazione->modello->isTrimestrale() ? GeneratoreTr::getNomeFile($dichiarazione) : GeneratoreIva::getNomeFile($dichiarazione);
+        $this->vars['nomeFile'] = match (true) {
+            $dichiarazione->modello->isRedditi() => GeneratoreRedditi::getNomeFile($dichiarazione),
+            $dichiarazione->modello->isTrimestrale() => GeneratoreTr::getNomeFile($dichiarazione),
+            default => GeneratoreIva::getNomeFile($dichiarazione),
+        };
         return $this->render->generateData('dichiarazione/scarica', $this->vars);
     }
 
@@ -489,6 +541,8 @@ class DichiarazioneController extends DichiarativiController
             (new PropostaIva($this->dataMapper))->proponi($dichiarazione);
         } elseif ($dichiarazione->modello === ModelloDichiarativo::ivaTr) {
             (new PropostaTr($this->dataMapper))->proponi($dichiarazione);
+        } elseif ($dichiarazione->modello === ModelloDichiarativo::redditiPf) {
+            (new PropostaRedditi($this->dataMapper))->proponi($dichiarazione);
         }
     }
 
@@ -501,7 +555,11 @@ class DichiarazioneController extends DichiarativiController
     private function getElencoQuadri(Dichiarazione $dichiarazione, QuadriDichiarazione $quadri, int $modulo = 1): array
     {
         $denominazioni = (new QuadroModelloModel($this->dataMapper))->getDenominazioni($dichiarazione->modello, $dichiarazione->getAnnoModello());
-        $predefiniti = ($modulo === 1) || $dichiarazione->modello->isTrimestrale() ? $dichiarazione->modello->getQuadri() : array_diff($dichiarazione->modello->getQuadri(), PropostaIva::QUADRI_PRIMO_MODULO, ['VH']);
+        $predefiniti = match (true) {
+            ($modulo === 1) || $dichiarazione->modello->isTrimestrale() => $dichiarazione->modello->getQuadri(),
+            $dichiarazione->modello->isRedditi() => [],
+            default => array_diff($dichiarazione->modello->getQuadri(), PropostaIva::QUADRI_PRIMO_MODULO, ['VH']),
+        };
         $elenco = [];
         foreach (array_unique(array_merge($predefiniti, array_diff($quadri->getQuadriCompilati($modulo), ['V1']))) as $sigla) {
             $elenco[$sigla] = $denominazioni[$sigla] ?? $sigla;
@@ -706,9 +764,13 @@ class DichiarazioneController extends DichiarativiController
     /**
      * Controlli del modello della dichiarazione.
      */
-    private function getControlli(Dichiarazione $dichiarazione): ControlliIva|ControlliTr
+    private function getControlli(Dichiarazione $dichiarazione): ControlliIva|ControlliTr|ControlliRedditi
     {
-        return $dichiarazione->modello->isTrimestrale() ? new ControlliTr($this->dataMapper) : new ControlliIva($this->dataMapper);
+        return match (true) {
+            $dichiarazione->modello->isRedditi() => new ControlliRedditi($this->dataMapper),
+            $dichiarazione->modello->isTrimestrale() => new ControlliTr($this->dataMapper),
+            default => new ControlliIva($this->dataMapper),
+        };
     }
 
     private function autorizza(Dichiarazione $dichiarazione): void

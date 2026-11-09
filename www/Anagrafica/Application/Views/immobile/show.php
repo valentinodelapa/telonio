@@ -116,6 +116,25 @@ require Layout::percorso('header');
 
 <div class="card shadow-sm mb-4">
     <div class="card-header bg-white d-flex align-items-center">
+        <span class="fw-semibold me-auto"><?= Html::e($sezioneContratti) ?></span>
+        <a href="/contratto-locazione/create/immobile/<?= Html::e($id) ?>" class="btn btn-sm btn-outline-primary"><i class="bi bi-plus-lg me-1"></i><?= Html::e($azioni['aggiungi']) ?></a>
+    </div>
+    <?php if (count($contratti) === 0): ?>
+        <div class="card-body small text-body-secondary"><?= Html::e($nessunContratto) ?></div>
+    <?php else: ?>
+        <ul class="list-group list-group-flush">
+            <?php foreach ($contratti as $contratto): ?>
+                <li class="list-group-item d-flex align-items-center">
+                    <a class="me-auto" href="/contratto-locazione/show/contratto-locazione/<?= Html::e($contratto->id) ?>"><?= Html::e($contratto->getDescrizione()) ?></a>
+                    <span class="small text-body-secondary"><?= $euro($contratto->canoneAnnuo) ?><?= $contratto->cedolareSecca ? ' · ' . Html::e($campi['cedolareSecca']) : '' ?></span>
+                </li>
+            <?php endforeach; ?>
+        </ul>
+    <?php endif; ?>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white d-flex align-items-center">
         <span class="fw-semibold me-auto"><?= Html::e($sezionePossessori) ?></span>
         <a href="/possesso/create/immobile/<?= Html::e($id) ?>" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg me-1"></i><?= Html::e($azioni['aggiungi']) ?></a>
     </div>

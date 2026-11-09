@@ -120,6 +120,7 @@ CREATE TABLE IF NOT EXISTS `dati_fiscali` (
   `non_residente_iva` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Non residente identificato direttamente (art. 35-ter) o con rappresentante fiscale (art. 17, c. 3)',
   `startup_innovativa` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Start-up innovativa (art. 25 D.L. 179/2012), esclusa dai rischi dei rimborsi IVA',
   `gruppo_iva_art70bis` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Partecipa a un Gruppo IVA (artt. 70-bis e seguenti)',
+  `coltivatore_iap` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Coltivatore diretto o IAP iscritto nella previdenza agricola (quadro RA, col. 10; terreni esenti IMU)',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_dati_fiscali_decorrenza` (`soggetto_id`, `valido_dal`),
   CONSTRAINT `fk_dati_fiscali_soggetto` FOREIGN KEY (`soggetto_id`) REFERENCES `soggetto` (`id`),
@@ -182,6 +183,10 @@ CREATE TABLE IF NOT EXISTS `legame` (
   `valido_al` DATE NULL,
   `quota_partecipazione` DECIMAL(7,4) NULL COMMENT 'Percentuale',
   `note` VARCHAR(255) NULL,
+  `disabile` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Figlio con disabilità (L. 104/1992, prospetto dei familiari: casella D)',
+  `convivente` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Familiare convivente (ascendenti e altri familiari a carico)',
+  `percentuale_detrazione` VARCHAR(3) NULL COMMENT 'Figli: 100, 50, 0 o C (coniuge mancante); NULL = proposta automatica',
+  `affidamento` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Figlio in affidamento con detrazione al 100% (prospetto dei familiari: col. 8)',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_legame_decorrenza` (`soggetto_id`, `soggetto_collegato_id`, `ruolo`, `valido_dal`),
   KEY `idx_legame_collegato` (`soggetto_collegato_id`),
@@ -283,3 +288,56 @@ CREATE TABLE IF NOT EXISTS `possesso` (
   CONSTRAINT `fk_possesso_soggetto` FOREIGN KEY (`soggetto_id`) REFERENCES `soggetto` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Storico di titolarità, quote e utilizzo degli immobili';
+
+CREATE TABLE IF NOT EXISTS `contratto_locazione` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `immobile_id` INT UNSIGNED NOT NULL,
+  `tipo` VARCHAR(2) NOT NULL COMMENT 'LL canone libero, EC equo canone, CC concordato, AB Abruzzo, BR locazione breve, AV/AL affitto di terreno vincolistico/libero',
+  `conduttore` VARCHAR(255) NULL,
+  `codice_fiscale_conduttore` VARCHAR(16) NULL,
+  `data_inizio` DATE NOT NULL,
+  `data_fine` DATE NULL,
+  `canone_annuo` DECIMAL(12,2) NOT NULL DEFAULT 0 COMMENT 'Per le locazioni brevi: corrispettivo lordo del contratto',
+  `cedolare_secca` TINYINT(1) NOT NULL DEFAULT 0,
+  `cedolare_revocata_dal` DATE NULL,
+  `cedolare_ridotta` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Locazione breve: unità scelta per il 21%',
+  `venezia_centro` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Venezia centro, Giudecca, Murano, Burano: canone al 75%',
+  `emergenza_calamita` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Concordato in comune con stato di emergenza (RB col. 20 codice 1)',
+  `giovane_agricoltore` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Affitto di terreno a giovane CD o IAP (RA col. 7 codice 4)',
+  `data_registrazione` DATE NULL,
+  `serie_registrazione` VARCHAR(2) NULL,
+  `numero_registrazione` VARCHAR(20) NULL,
+  `codice_ufficio` VARCHAR(3) NULL,
+  `codice_identificativo` VARCHAR(17) NULL,
+  `cin` VARCHAR(18) NULL COMMENT 'Codice identificativo nazionale (art. 13-ter D.L. 145/2023)',
+  `note` VARCHAR(255) NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_contratto_locazione_immobile` (`immobile_id`),
+  CONSTRAINT `fk_contratto_locazione_immobile` FOREIGN KEY (`immobile_id`) REFERENCES `immobile` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Contratti di locazione dei fabbricati e di affitto dei terreni';
+
+CREATE TABLE IF NOT EXISTS `pertinenza_locata` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `contratto_locazione_id` INT UNSIGNED NOT NULL,
+  `immobile_id` INT UNSIGNED NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_pertinenza_locata` (`contratto_locazione_id`, `immobile_id`),
+  KEY `idx_pertinenza_locata_immobile` (`immobile_id`),
+  CONSTRAINT `fk_pertinenza_locata_contratto` FOREIGN KEY (`contratto_locazione_id`) REFERENCES `contratto_locazione` (`id`),
+  CONSTRAINT `fk_pertinenza_locata_immobile` FOREIGN KEY (`immobile_id`) REFERENCES `immobile` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Pertinenze con rendita autonoma locate insieme all''immobile del contratto';
+
+CREATE TABLE IF NOT EXISTS `variazione_canone` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `contratto_locazione_id` INT UNSIGNED NOT NULL,
+  `valido_dal` DATE NOT NULL,
+  `canone_annuo` DECIMAL(12,2) NOT NULL,
+  `rinegoziazione` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Riduzione concordata del canone',
+  `note` VARCHAR(255) NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_variazione_canone` (`contratto_locazione_id`, `valido_dal`),
+  CONSTRAINT `fk_variazione_canone_contratto` FOREIGN KEY (`contratto_locazione_id`) REFERENCES `contratto_locazione` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Variazioni del canone annuo (aggiornamento ISTAT, rinegoziazione)';

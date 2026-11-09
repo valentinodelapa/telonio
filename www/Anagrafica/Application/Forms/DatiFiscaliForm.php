@@ -60,6 +60,7 @@ class DatiFiscaliForm extends BaseForm
                 ->addFilterFieldMode('nonResidenteIva', FilterType::isBoolean)
                 ->addFilterFieldMode('startupInnovativa', FilterType::isBoolean)
                 ->addFilterFieldMode('gruppoIvaArt70bis', FilterType::isBoolean)
+                ->addFilterFieldMode('coltivatoreIap', FilterType::isBoolean)
                 ->addFilterFieldMode('sostitutoImposta', FilterType::isBoolean);
         if ($this->entity->soggetto->tipoSoggetto === TipoSoggetto::societaCapitali) {
             $this->addFilterFieldMode('trasparenzaFiscale', FilterType::isBoolean);

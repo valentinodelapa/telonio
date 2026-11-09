@@ -40,7 +40,7 @@ riferimento (punto 3). Ogni modulo registrato deve avere la cartella
 | `Soggetto` | tipo (PF, società di persone, società di capitali, ente), codice fiscale, dati di nascita, data di decesso (persone fisiche: apre la successione nel modulo Successioni), cliente sì/no | no |
 | `DatiFiscali` | denominazione, natura giuridica (società/enti) o attività economica (persone fisiche), partita IVA, ATECO, ente non commerciale (art. 73, c. 1, lett. c, TUIR; solo enti), regime fiscale e periodicità IVA, applicazione degli ISA, sostituto d'imposta, trasparenza fiscale (società di capitali), ventilazione dei corrispettivi | sì |
 | `Indirizzo` | residenza, domicilio fiscale, sedi, ... (una versione vigente per tipo) | sì |
-| `Legame` | il soggetto collegato ricopre un ruolo presso il soggetto (socio con quota, amministratore, legale rappresentante, ...) | sì |
+| `Legame` | il soggetto collegato ricopre un ruolo presso il soggetto (socio con quota, amministratore, legale rappresentante, ...) o è suo familiare (coniuge, figlio, genitore o altro ascendente, altro familiare) | sì |
 | `Recapito` | telefono, e-mail, PEC, ... con recapito principale per tipo | no |
 | `ContoCorrente` | IBAN (controllo modulo 97 e CIN per i conti italiani, `Telonio\HelperClasses\Iban`), conto predefinito per gli addebiti, conto estinto mantenuto come non attivo | no |
 | `DocumentoIdentita` | documenti delle persone fisiche | no |
@@ -132,7 +132,27 @@ $classamento = (new DatiCatastaliModel($dataMapper))->getVigenteOSuccessivo($imm
 $possessori = (new PossessoModel($dataMapper))->getVigentiAl($immobile, new SismaDate('2025-12-31'));
 ```
 
+### Contratti di locazione
+
+Nella scheda dell'immobile si registrano i contratti di locazione dei
+fabbricati e di affitto dei terreni: tipo (canone libero, equo canone,
+concordato nei comuni ad alta tensione abitativa, locazione agevolata in
+Abruzzo, locazione breve, affitto in regime vincolistico o libero),
+conduttore, date, canone annuo con le variazioni dalla data
+(aggiornamento ISTAT, rinegoziazione), cedolare secca con l'eventuale
+revoca (21 o 10 per cento, per le locazioni brevi 21 per cento sull'unità
+scelta e 26 sulle altre), pertinenze con rendita autonoma locate insieme
+(il canone si ripartisce per rendita), estremi di registrazione o codice
+identificativo e CIN. I locatori sono i possessori dell'immobile; il
+servizio `CanoniLocazione` calcola il canone di un periodo per i quadri
+RA, RB e LC del modello Redditi. L'utilizzo "comodato a un familiare che
+vi dimora" del possesso corrisponde all'utilizzo 10 del quadro RB.
+
 ## Regime fiscale
+
+Nei dati fiscali delle persone fisiche la casella "coltivatore diretto o
+IAP iscritto nella previdenza agricola" attiva il regime dei redditi
+agrari e dominicali del quadro RA e l'esenzione IMU dei terreni condotti.
 
 Con la partita IVA i dati fiscali indicano il regime
 (`Enumerations\RegimeFiscale`), storicizzato con gli altri dati: un cambio
@@ -204,6 +224,16 @@ a partita IVA, denominazione della ditta e ATECO:
 - cessazione: variazione senza attività con decorrenza dal giorno successivo;
 - i collaboratori dell'impresa familiare sono `Legame` con ruolo
   `collaboratoreFamiliare` e quota di partecipazione.
+
+I legami familiari (ruoli coniuge, figlio, ascendente, altro familiare)
+hanno le date del legame (matrimonio e separazione, nascita o adozione,
+convivenza) e, per il prospetto dei familiari a carico del modello
+Redditi, le caselle disabilità (figli), convivenza (ascendenti e altri
+familiari), affidamento con la detrazione al 100 per cento e la
+percentuale della detrazione del figlio (100, 50, 0 o C per il primo
+figlio senza l'altro genitore; vuota per la proposta automatica). I figli
+si registrano nella scheda di ciascun genitore; il coniuge basta in una
+delle due schede.
 
 Partita IVA e attività vanno indicate insieme; una partita IVA non può
 appartenere a due soggetti dello stesso studio, nemmeno nello storico.

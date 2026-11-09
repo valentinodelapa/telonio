@@ -24,6 +24,16 @@ require Layout::percorso('header');
             <?= Campo::testo('note', $campi['note'], $formEntity, $errors, ['colonna' => 'col-12', 'attributi' => 'maxlength="255"']) ?>
         </div>
     </div>
+    <div class="card shadow-sm mt-3">
+        <div class="card-header"><?= Html::e($sezioneFamiliare) ?></div>
+        <div class="card-body row g-3">
+            <p class="small text-body-secondary mb-0"><?= Html::e($aiutoFamiliare) ?></p>
+            <?= Campo::spunta('disabile', $campi['disabile'], $formEntity, $errors, ['colonna' => 'col-md-4']) ?>
+            <?= Campo::spunta('convivente', $campi['convivente'], $formEntity, $errors, ['colonna' => 'col-md-4']) ?>
+            <?= Campo::spunta('affidamento', $campi['affidamento'], $formEntity, $errors, ['colonna' => 'col-md-4']) ?>
+            <?= Campo::selezione('percentualeDetrazione', $campi['percentualeDetrazione'], $formEntity, $errors, $percentualiDetrazione, ['vuota' => $percentualeAutomatica, 'colonna' => 'col-md-6']) ?>
+        </div>
+    </div>
     <p class="small text-body-secondary mt-2"><a href="/soggetto/index" target="_blank"><?= Html::e($aiutoNuovoCollegato) ?></a></p>
     <?php require __DIR__ . '/../commonParts/pulsantiForm.php'; ?>
 </form>

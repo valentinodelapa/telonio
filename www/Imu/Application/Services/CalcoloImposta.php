@@ -503,7 +503,7 @@ class CalcoloImposta
         $possesso = $periodo['possesso'];
         $motivo = match (true) {
             $categoria->isAbitativa() === false => 'non è a uso abitativo',
-            in_array($possesso->utilizzo, [UtilizzoImmobile::locatoLiberoMercato, UtilizzoImmobile::locatoCanoneConcordato, UtilizzoImmobile::comodato], true) => 'è locata o in comodato',
+            in_array($possesso->utilizzo, [UtilizzoImmobile::locatoLiberoMercato, UtilizzoImmobile::locatoCanoneConcordato, UtilizzoImmobile::comodato, UtilizzoImmobile::comodatoFamiliare], true) => 'è locata o in comodato',
             in_array($possesso->titolo, [TitoloPossesso::proprieta, TitoloPossesso::usufrutto], true) === false => 'non è posseduta in proprietà o usufrutto',
             default => null,
         };

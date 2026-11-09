@@ -160,8 +160,8 @@ class ControllersAndCommandsTest extends SuiteTestCase
         $controller->cerca('10');
         $this->assertCount(1, $cattura->ultimoJson);
 
-        // delete
-        $this->testAdapter->accodaSelect(new TestResultSet([]));
+        // delete (possessi, contratti di locazione)
+        $this->testAdapter->accodaSelect(new TestResultSet([]), new TestResultSet([]));
         $this->testAdapter->impostaSelectCallback(fn() => TestResultSet::conteggio(0));
         $controller->delete($this->creaRequest(), $immobile);
         $this->testAdapter->impostaSelectCallback(null);

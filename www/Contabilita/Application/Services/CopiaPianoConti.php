@@ -44,6 +44,9 @@ class CopiaPianoConti
             $copia->natura = $conto->natura;
             $copia->funzione = $conto->funzione;
             $copia->voceCee = $conto->voceCee;
+            $copia->rigoRedditi = $conto->rigoRedditi;
+            $copia->percentualeDeducibile = $conto->percentualeDeducibile;
+            $copia->variazioneRedditi = $conto->variazioneRedditi;
             $copia->attivo = $conto->attivo;
             $this->dataMapper->save($copia);
             $copiati[$copia->codice] = $copia;

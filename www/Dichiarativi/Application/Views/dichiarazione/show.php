@@ -8,6 +8,7 @@ use Telonio\Application\HelperClasses\Layout;
 $campoCsrf = '<input type="hidden" name="' . Html::e(\Config\CSRF_TOKEN_KEY) . '" value="' . Html::e($csrfToken) . '">';
 $id = $dichiarazione->id;
 $modificabile = $dichiarazione->isModificabile();
+$redditi = $dichiarazione->modello->isRedditi();
 $fileDisponibile = (count($errori) === 0) && ((count($segnalazioni) === 0) || $dichiarazione->flagConferma);
 
 require Layout::percorso('header');
@@ -16,7 +17,7 @@ require Layout::percorso('header');
     <h1 class="h4 mb-0 me-auto"><?= Html::e($pageTitle) ?></h1>
     <?php if ($modificabile): ?>
         <a href="/dichiarazione/update/dichiarazione/<?= Html::e($id) ?>" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil me-1"></i><?= Html::e($titoloFrontespizio) ?></a>
-        <?php if ($dichiarazione->modello->isTrimestrale() === false): ?>
+        <?php if (($dichiarazione->modello->isTrimestrale() === false) && ($redditi === false)): ?>
             <a href="/dichiarazione/rettifiche/dichiarazione/<?= Html::e($id) ?><?= ($modulo ?? 1) > 1 ? '/modulo/' . Html::e($modulo) : '' ?>" class="btn btn-sm btn-outline-primary"><?= Html::e($prospettoD) ?></a>
         <?php endif; ?>
         <form method="post" action="/dichiarazione/proponi/dichiarazione/<?= Html::e($id) ?>"><?= $campoCsrf ?><button type="submit" class="btn btn-sm btn-outline-primary"><i class="bi bi-arrow-repeat me-1"></i><?= Html::e($azioni['riproponi']) ?></button></form>
@@ -64,10 +65,16 @@ require Layout::percorso('header');
                 <li class="list-group-item"><?= Html::e($campi['intermediario']) ?>: <?= $dichiarazione->intermediario === null ? '-' : Html::e($dichiarazione->intermediario->getEtichetta()) . '<div class="text-body-secondary">' . Html::e(($dichiarazione->impegno?->getLabel() ?? '') . ' · ') . Html::data($dichiarazione->dataImpegno) . '</div>' ?></li>
                 <li class="list-group-item"><?= Html::e($campi['vistoProfessionista']) ?>: <?= $dichiarazione->vistoProfessionista !== null ? Html::e($dichiarazione->vistoProfessionista->nominativo . ' · ' . $dichiarazione->vistoProfessionista->codiceFiscale)
                         : ($dichiarazione->vistoCaf !== null ? Html::e($dichiarazione->vistoCaf->nominativo . ' · ' . ($dichiarazione->vistoResponsabileCaf?->nominativo ?? '')) : ($dichiarazione->esoneroVisto ? Html::e($campi['esoneroVisto']) : '-')) ?></li>
+                <?php if ($redditi): ?>
+                    <li class="list-group-item"><?= Html::e($campi['ottoPerMille']) ?>: <?= Html::e($dichiarazione->ottoPerMille === null ? '-' : $dichiarazione->ottoPerMille->getLabel() . ($dichiarazione->finalitaStato !== null ? ' (' . (\Dichiarativi\Application\Enumerations\OttoPerMille::getFinalitaStato()[$dichiarazione->finalitaStato] ?? '') . ')' : '')) ?></li>
+                    <li class="list-group-item"><?= Html::e($campi['cinquePerMille']) ?>: <?= Html::e($dichiarazione->cinquePerMille === null ? '-' : $dichiarazione->cinquePerMille->getLabel() . ($dichiarazione->beneficiarioCinquePerMille !== null ? ' · ' . $dichiarazione->beneficiarioCinquePerMille : '')) ?></li>
+                    <li class="list-group-item"><?= Html::e($campi['duePerMille']) ?>: <?= Html::e($dichiarazione->duePerMille === null ? '-' : ((\Dichiarativi\Application\Services\Redditi\PartitiDuePerMille::getPartiti($dichiarazione->anno)[$dichiarazione->duePerMille] ?? '') . ' (' . $dichiarazione->duePerMille . ')')) ?></li>
+                <?php endif; ?>
                 <?php if ($dichiarazione->flagConferma): ?><li class="list-group-item text-warning-emphasis"><?= Html::e($campi['flagConferma']) ?></li><?php endif; ?>
             </ul>
         </div>
 
+        <?php if ($redditi === false): ?>
         <div class="card shadow-sm mt-3">
             <div class="card-header bg-white d-flex align-items-center gap-2">
                 <span class="fw-semibold me-auto"><?= Html::e($titoloOrganoControllo) ?></span>
@@ -101,7 +108,26 @@ require Layout::percorso('header');
             <?php endif; ?>
             <div class="card-footer bg-white small text-body-secondary"><?= Html::e($aiutoOrganoControllo) ?></div>
         </div>
+        <?php endif; ?>
 
+        <?php if ($redditi): ?>
+        <div class="card shadow-sm mt-3">
+            <div class="card-header bg-white fw-semibold"><?= Html::e($titoloRisultato) ?></div>
+            <ul class="list-group list-group-flush small">
+                <?php foreach ($riepilogoRedditi as $etichettaRigo => $importoRigo): ?>
+                    <li class="list-group-item d-flex"><span class="me-auto"><?= Html::e($etichettaRigo) ?></span><?= Html::e(Importo::euro($importoRigo)) ?></li>
+                <?php endforeach; ?>
+                <?php if (count($riepilogoRedditi) === 0): ?><li class="list-group-item text-body-secondary"><?= Html::e($nessunRedditoProposto) ?></li><?php endif; ?>
+                <?php foreach ($versamenti as $versamento): ?>
+                    <li class="list-group-item text-body-secondary"><?= Html::e($versamento->codiceTributo?->codice ?? '') ?> · <?= Html::data($versamento->scadenza) ?> · <?= Html::e(Importo::euro($versamento->importoDebito)) ?> · <?= Html::e($versamento->delega === null ? $daVersare : $versamento->delega->stato->getLabel()) ?></li>
+                <?php endforeach; ?>
+            </ul>
+            <div class="card-body">
+                <form method="post" action="/dichiarazione/versamenti/dichiarazione/<?= Html::e($id) ?>"><?= $campoCsrf ?><button type="submit" class="btn btn-sm btn-outline-primary"><i class="bi bi-credit-card-2-front me-1"></i><?= Html::e($azioni['registraVersamenti']) ?></button></form>
+                <div class="small text-body-secondary mt-2"><?= Html::e($aiutoVersamentiRedditi) ?></div>
+            </div>
+        </div>
+        <?php else: ?>
         <div class="card shadow-sm mt-3">
             <div class="card-header bg-white fw-semibold"><?= Html::e($titoloRisultato) ?></div>
             <ul class="list-group list-group-flush small">
@@ -135,6 +161,7 @@ require Layout::percorso('header');
                 <div class="small text-body-secondary mt-2"><?= Html::e($aiutoVersamenti) ?></div>
             </div>
         </div>
+        <?php endif; ?>
 
         <div class="card shadow-sm mt-3">
             <div class="card-body">
@@ -157,17 +184,17 @@ require Layout::percorso('header');
         <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
             <ul class="nav nav-pills me-auto">
                 <?php foreach ($moduliDichiarazione as $numero => $etichetta): ?>
-                    <li class="nav-item"><a class="nav-link py-1 <?= $numero === $modulo ? 'active' : '' ?>" href="/dichiarazione/show/dichiarazione/<?= Html::e($id) ?><?= $numero > 1 ? '/quadro/VA/modulo/' . Html::e($numero) : '' ?>" title="<?= Html::e($etichetta) ?>"><?= Html::e($numero === 1 ? $etichetta : mb_strimwidth($etichetta, 0, 40, '…')) ?></a></li>
+                    <li class="nav-item"><a class="nav-link py-1 <?= $numero === $modulo ? 'active' : '' ?>" href="/dichiarazione/show/dichiarazione/<?= Html::e($id) ?><?= $numero > 1 ? '/quadro/' . Html::e($redditi ? ($quadri->getQuadriCompilati($numero)[0] ?? 'RB') : 'VA') . '/modulo/' . Html::e($numero) : '' ?>" title="<?= Html::e($etichetta) ?>"><?= Html::e($numero === 1 ? $etichetta : mb_strimwidth($etichetta, 0, 40, '…')) ?></a></li>
                 <?php endforeach; ?>
             </ul>
             <?php if ($modificabile && ($modulo > 1)): ?>
                 <form method="post" action="/dichiarazione/elimina-modulo/dichiarazione/<?= Html::e($id) ?>/numero/<?= Html::e($modulo) ?>" data-conferma="<?= Html::e($confermaEliminaModulo) ?>"><?= $campoCsrf ?><button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash me-1"></i><?= Html::e($azioni['eliminaModulo']) ?></button></form>
             <?php endif; ?>
-            <?php if ($modificabile): ?>
+            <?php if ($modificabile && ($redditi === false)): ?>
                 <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#nuovoModulo" aria-expanded="false"><i class="bi bi-plus-lg me-1"></i><?= Html::e($azioni['aggiungiModulo']) ?></button>
             <?php endif; ?>
         </div>
-        <?php if ($modificabile): ?>
+        <?php if ($modificabile && ($redditi === false)): ?>
             <div class="collapse mb-2" id="nuovoModulo">
                 <form method="post" action="/dichiarazione/aggiungi-modulo/dichiarazione/<?= Html::e($id) ?>" class="card card-body shadow-sm row g-2 flex-row align-items-end">
                     <?= $campoCsrf ?>

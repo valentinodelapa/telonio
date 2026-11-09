@@ -3,6 +3,8 @@
 namespace Dichiarativi\Application\Forms;
 
 use Dichiarativi\Application\Entities\Dichiarazione;
+use Dichiarativi\Application\Enumerations\OttoPerMille;
+use Dichiarativi\Application\Services\Redditi\PartitiDuePerMille;
 use Dichiarativi\Application\Services\Frontespizio;
 use SismaFramework\Core\BaseClasses\BaseForm;
 use SismaFramework\Core\Enumerations\FilterType;
@@ -24,7 +26,11 @@ class DichiarazioneForm extends BaseForm
     #[\Override]
     protected function injectRequest(): void
     {
-
+        foreach (['beneficiarioCinquePerMille', 'duePerMille'] as $campo) {
+            if (isset($this->request->input[$campo]) && is_string($this->request->input[$campo])) {
+                $this->addRequest($campo, mb_strtoupper(trim($this->request->input[$campo])));
+            }
+        }
     }
 
     #[\Override]
@@ -46,7 +52,12 @@ class DichiarazioneForm extends BaseForm
                 ->addFilterFieldMode('verificaAccertamenti', FilterType::isBoolean)
                 ->addFilterFieldMode('adempimentoCollaborativo', FilterType::isBoolean)
                 ->addFilterFieldMode('concordatoBiennale', FilterType::isBoolean)
-                ->addFilterFieldMode('annotazioni', FilterType::isMaxLimitString, [500], true);
+                ->addFilterFieldMode('annotazioni', FilterType::isMaxLimitString, [500], true)
+                ->addFilterFieldMode('ottoPerMille', FilterType::isEnumeration, [], true)
+                ->addFilterFieldMode('finalitaStato', FilterType::isInteger, [], true)
+                ->addFilterFieldMode('cinquePerMille', FilterType::isEnumeration, [], true)
+                ->addFilterFieldMode('beneficiarioCinquePerMille', FilterType::isMaxLimitString, [11], true)
+                ->addFilterFieldMode('duePerMille', FilterType::isMaxLimitString, [3], true);
     }
 
     #[\Override]
@@ -85,6 +96,26 @@ class DichiarazioneForm extends BaseForm
         }
         if (($dati->vistoCaf !== null) && ((preg_match('/^\d{11}$/', $dati->vistoCaf->codiceFiscale) !== 1) || ($dati->vistoResponsabileCaf === null) || ($dati->vistoResponsabileCaf->isPersonaFisica() === false))) {
             $this->formFilterError->vistoResponsabileCafCustomMessage = 'Indicare il CAF (codice fiscale numerico) e il responsabile dell\'assistenza fiscale (persona fisica).';
+            return false;
+        }
+        if (($dati->finalitaStato !== null) && (($dati->ottoPerMille !== OttoPerMille::stato) || (isset(OttoPerMille::getFinalitaStato()[(int) $dati->finalitaStato]) === false))) {
+            $this->formFilterError->finalitaStatoCustomMessage = 'La finalità si indica solo con la scelta per lo Stato.';
+            return false;
+        }
+        $beneficiario = $dati->beneficiarioCinquePerMille;
+        if (($beneficiario !== null) && ($beneficiario !== '')) {
+            if (($dati->cinquePerMille === null) || ($dati->cinquePerMille->getPosizioneCodiceFiscale() === null)) {
+                $this->formFilterError->beneficiarioCinquePerMilleCustomMessage = 'Il beneficiario si indica con una finalità del cinque per mille che lo prevede.';
+                return false;
+            }
+            if (preg_match('/^\d{11}$/', $beneficiario) !== 1) {
+                $this->formFilterError->beneficiarioCinquePerMilleCustomMessage = 'Codice fiscale numerico di 11 cifre.';
+                return false;
+            }
+        }
+        $partito = $dati->duePerMille;
+        if (($partito !== null) && ($partito !== '') && (isset(PartitiDuePerMille::getPartiti($this->entity->anno)[$partito]) === false)) {
+            $this->formFilterError->duePerMilleCustomMessage = 'Partito non presente nella tabella del modello.';
             return false;
         }
         if (($dati->intermediario !== null) && ($dati->dataImpegno === null)) {

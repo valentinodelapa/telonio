@@ -2,6 +2,7 @@
 
 namespace Contabilita\Application\Forms;
 
+use Contabilita\Application\Services\RighiRedditi;
 use Contabilita\Application\Entities\Conto;
 use Contabilita\Application\Enumerations\LivelloConto;
 use Contabilita\Application\Models\ContoModel;
@@ -33,6 +34,9 @@ class ContoForm extends BaseForm
             }
         }
         $this->addRequest('attivo', isset($this->request->input['attivo']) ? '1' : '0');
+        if (isset($this->request->input['percentualeDeducibile']) && is_string($this->request->input['percentualeDeducibile'])) {
+            $this->addRequest('percentualeDeducibile', str_replace(',', '.', trim($this->request->input['percentualeDeducibile'])));
+        }
     }
 
     #[\Override]
@@ -45,6 +49,9 @@ class ContoForm extends BaseForm
                 ->addFilterFieldMode('natura', FilterType::isEnumeration)
                 ->addFilterFieldMode('funzione', FilterType::isEnumeration, [], true)
                 ->addFilterFieldMode('voceCee', FilterType::isEnumeration, [], true)
+                ->addFilterFieldMode('rigoRedditi', FilterType::isMaxLimitString, [10], true)
+                ->addFilterFieldMode('percentualeDeducibile', FilterType::isNumeric, [], true)
+                ->addFilterFieldMode('variazioneRedditi', FilterType::isMaxLimitString, [10], true)
                 ->addFilterFieldMode('attivo', FilterType::isBoolean);
     }
 
@@ -58,6 +65,20 @@ class ContoForm extends BaseForm
     protected function customFilter(): bool
     {
         $valido = true;
+        if (RighiRedditi::isValido($this->entityData->rigoRedditi ?? null) === false) {
+            $this->formFilterError->rigoRedditiCustomMessage = 'Rigo della dichiarazione non previsto.';
+            $valido = false;
+        }
+        $percentuale = $this->entityData->percentualeDeducibile ?? null;
+        $variazione = $this->entityData->variazioneRedditi ?? null;
+        if (($percentuale !== null) && (($percentuale < 0) || ($percentuale >= 100))) {
+            $this->formFilterError->percentualeDeducibileCustomMessage = 'Percentuale da 0 a meno di 100 (vuota se il costo è interamente deducibile).';
+            $valido = false;
+        }
+        if (($variazione !== null) && ($variazione !== '') && ((isset(RighiRedditi::VARIAZIONI[$variazione]) === false) || ($percentuale === null))) {
+            $this->formFilterError->variazioneRedditiCustomMessage = 'Rigo della variazione non previsto o senza la percentuale deducibile.';
+            $valido = false;
+        }
         $piano = $this->entity->pianoConti;
         $model = new ContoModel();
         $codice = $this->entityData->codice ?? $this->entity->codice ?? '';

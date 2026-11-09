@@ -142,10 +142,10 @@ require Layout::percorso('header');
                             <dt class="col-sm-5"><?= Html::e($campi['opzioniOrdinarie']) ?></dt>
                             <dd class="col-sm-7"><?= Html::e(implode('; ', array_map(fn($opzione) => $opzione->getLabel(), $datiFiscaliVigenti->getOpzioniOrdinarie()))) ?></dd>
                         <?php endif; ?>
-                        <?php if ($datiFiscaliVigenti->soggettoIsa || $datiFiscaliVigenti->sostitutoImposta || $datiFiscaliVigenti->trasparenzaFiscale || $datiFiscaliVigenti->ventilazioneCorrispettivi || $datiFiscaliVigenti->nonResidenteIva || $datiFiscaliVigenti->startupInnovativa || $datiFiscaliVigenti->gruppoIvaArt70bis): ?>
+                        <?php if ($datiFiscaliVigenti->soggettoIsa || $datiFiscaliVigenti->sostitutoImposta || $datiFiscaliVigenti->trasparenzaFiscale || $datiFiscaliVigenti->ventilazioneCorrispettivi || $datiFiscaliVigenti->nonResidenteIva || $datiFiscaliVigenti->startupInnovativa || $datiFiscaliVigenti->gruppoIvaArt70bis || $datiFiscaliVigenti->coltivatoreIap): ?>
                             <dt class="col-sm-5"></dt>
                             <dd class="col-sm-7">
-                                <?php foreach (['soggettoIsa' => $etichettaIsa, 'sostitutoImposta' => $etichettaSostituto, 'trasparenzaFiscale' => $etichettaTrasparenza, 'ventilazioneCorrispettivi' => $etichettaVentilazione, 'nonResidenteIva' => $campi['nonResidenteIva'], 'startupInnovativa' => $campi['startupInnovativa'], 'gruppoIvaArt70bis' => $campi['gruppoIvaArt70bis']] as $proprieta => $etichetta): ?>
+                                <?php foreach (['soggettoIsa' => $etichettaIsa, 'sostitutoImposta' => $etichettaSostituto, 'trasparenzaFiscale' => $etichettaTrasparenza, 'ventilazioneCorrispettivi' => $etichettaVentilazione, 'nonResidenteIva' => $campi['nonResidenteIva'], 'startupInnovativa' => $campi['startupInnovativa'], 'gruppoIvaArt70bis' => $campi['gruppoIvaArt70bis'], 'coltivatoreIap' => $campi['coltivatoreIap']] as $proprieta => $etichetta): ?>
                                     <?php if ($datiFiscaliVigenti->$proprieta): ?><span class="badge text-bg-light border me-1"><?= Html::e($etichetta) ?></span><?php endif; ?>
                                 <?php endforeach; ?>
                             </dd>
@@ -318,7 +318,7 @@ require Layout::percorso('header');
                         <tr class="<?= $classeRiga($legame) ?>">
                             <td><?= Html::e($legame->ruolo->getLabel()) ?></td>
                             <td><a href="/soggetto/show/soggetto/<?= Html::e($legame->soggettoCollegato->id) ?>"><?= Html::e($legame->soggettoCollegato->nominativo) ?></a> <span class="small text-body-secondary font-monospace"><?= Html::e($legame->soggettoCollegato->codiceFiscale) ?></span></td>
-                            <td><?= $legame->quotaPartecipazione !== null ? Html::e(number_format($legame->quotaPartecipazione, 2, ',', '.')) . ' %' : '' ?></td>
+                            <td><?= $legame->quotaPartecipazione !== null ? Html::e(number_format($legame->quotaPartecipazione, 2, ',', '.')) . ' %' : '' ?><?= $legame->ruolo->isFamiliare() ? Html::e(implode(', ', array_filter([$legame->disabile ? $campi['disabile'] : null, $legame->convivente ? $campi['convivente'] : null, $legame->percentualeDetrazione !== null ? $campi['percentualeDetrazione'] . ': ' . $legame->percentualeDetrazione : null]))) : '' ?></td>
                             <td class="text-nowrap"><?= $periodo($legame) ?></td>
                             <td><?= $badgeVigente($legame) ?></td>
                             <td class="text-end text-nowrap"><?= $pulsanteModifica('/legame/update/legame/' . $legame->id) ?> <?= $pulsanteElimina('/legame/delete/legame/' . $legame->id) ?></td>
@@ -337,7 +337,7 @@ require Layout::percorso('header');
                         <tr class="<?= $classeRiga($legame) ?>">
                             <td><?= Html::e($legame->ruolo->getLabel()) ?></td>
                             <td><a href="/soggetto/show/soggetto/<?= Html::e($legame->soggetto->id) ?>/scheda/legami"><?= Html::e($legame->soggetto->nominativo) ?></a></td>
-                            <td><?= $legame->quotaPartecipazione !== null ? Html::e(number_format($legame->quotaPartecipazione, 2, ',', '.')) . ' %' : '' ?></td>
+                            <td><?= $legame->quotaPartecipazione !== null ? Html::e(number_format($legame->quotaPartecipazione, 2, ',', '.')) . ' %' : '' ?><?= $legame->ruolo->isFamiliare() ? Html::e(implode(', ', array_filter([$legame->disabile ? $campi['disabile'] : null, $legame->convivente ? $campi['convivente'] : null, $legame->percentualeDetrazione !== null ? $campi['percentualeDetrazione'] . ': ' . $legame->percentualeDetrazione : null]))) : '' ?></td>
                             <td class="text-nowrap"><?= $periodo($legame) ?></td>
                             <td><?= $badgeVigente($legame) ?></td>
                         </tr>

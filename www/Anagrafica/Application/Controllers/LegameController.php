@@ -53,6 +53,7 @@ class LegameController extends AnagraficaController
         $this->impostaVariabiliForm($form, $legame);
         $this->vars['soggetto'] = $legame->soggetto;
         $this->vars['ruoli'] = RuoloLegame::cases();
+        $this->vars['percentualiDetrazione'] = ['100' => '100 per cento', '50' => '50 per cento', '0' => '0 (detrazione all\'altro genitore)', 'C' => 'C (primo figlio senza l\'altro genitore)'];
         $this->vars['nuovo'] = isset($legame->id) === false;
         $this->vars['pageTitle'] = $titolo;
         $this->impostaBriciole($legame->soggetto, $titolo);

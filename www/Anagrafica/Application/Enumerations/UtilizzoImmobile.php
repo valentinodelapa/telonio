@@ -5,7 +5,9 @@ namespace Anagrafica\Application\Enumerations;
 /**
  * Utilizzo dell'immobile da parte del possessore, rilevante per i redditi
  * fondiari e l'IMU. È storicizzato con il possesso: un cambio di utilizzo
- * si registra come variazione.
+ * si registra come variazione. Il comodato a un familiare che vi dimora
+ * abitualmente (iscrizione anagrafica) ha nel quadro RB l'utilizzo 10,
+ * senza la maggiorazione di un terzo degli immobili a disposizione.
  */
 enum UtilizzoImmobile: string
 {
@@ -15,6 +17,7 @@ enum UtilizzoImmobile: string
     case locatoLiberoMercato = 'LL';
     case locatoCanoneConcordato = 'LC';
     case comodato = 'CO';
+    case comodatoFamiliare = 'CF';
     case aDisposizione = 'DI';
     case strumentale = 'ST';
     case altro = 'AL';
@@ -27,6 +30,7 @@ enum UtilizzoImmobile: string
             self::locatoLiberoMercato => 'Locato a canone libero',
             self::locatoCanoneConcordato => 'Locato a canone concordato',
             self::comodato => 'Comodato d\'uso gratuito',
+            self::comodatoFamiliare => 'Comodato a un familiare che vi dimora',
             self::aDisposizione => 'A disposizione',
             self::strumentale => 'Strumentale all\'attività',
             self::altro => 'Altro utilizzo',

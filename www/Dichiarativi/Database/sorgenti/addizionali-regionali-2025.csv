@@ -1,0 +1,22 @@
+codice;regione;scaglioni;modalita;esenzione_reddito;soglia_aliquota;detrazioni;detrazione_crescente;deduzione;casi_particolari
+01;Abruzzo;28000:1.67|50000:2.87|:3.33;progressiva;;;;;;
+02;Basilicata;:1.23;progressiva;;;;;;
+03;Bolzano;50000:1.23|:1.73;progressiva;;;430.50::90000;50000:25000:125;;"Detrazione di 340 euro per ogni figlio a carico, in proporzione alla percentuale e ai mesi di carico, con reddito imponibile fino a 90.000 euro; nella verifica dei limiti si tiene conto dei redditi a cedolare secca, delle mance a imposta sostitutiva e dei redditi forfetari."
+04;Calabria;:1.73;progressiva;;;;;;
+05;Campania;15000:1.73|28000:2.96|50000:3.20|:3.33;progressiva;;;;;;"Con reddito imponibile fino a 28.000 euro: detrazione di 30 euro per figlio a carico con almeno due figli a carico e di 40 euro per figlio con disabilità (L.R. 7/2022, art. 1, cc. 2 e 3)."
+06;Emilia-Romagna;15000:1.33|28000:1.93|50000:2.93|:3.33;progressiva;;;;;;
+07;Friuli-Venezia Giulia;15000:0.70|:1.23;intero;;;;;;
+08;Lazio;15000:1.73|:3.33;progressiva;;28000:1.73;60:28000:35000;;;
+09;Liguria;28000:1.23|50000:3.18|:3.23;progressiva;;;;;;"Con reddito imponibile fino a 28.000 euro e almeno due figli a carico: detrazione di 45 euro per figlio, 50 euro per figlio con disabilità anche con un solo figlio (L.R. 17/2024, art. 2-ter)."
+10;Lombardia;15000:1.23|28000:1.58|50000:1.72|:1.73;progressiva;;;;;;
+11;Marche;15000:1.23|28000:1.53|50000:1.70|:1.73;progressiva;;;;;;"Aliquota dell'1,23% con reddito imponibile fino a 50.000 euro e figli con disabilità a carico (codice 1 nella casella Casi particolari addizionale regionale)."
+12;Molise;15000:2.03|28000:2.23|:3.63;progressiva;;;;;;
+13;Piemonte;15000:1.62|28000:2.13|50000:2.75|:3.33;progressiva;;;;;;"Detrazione di 100 euro per ogni figlio con più di tre figli a carico e di 250 euro per ogni figlio con disabilità."
+14;Puglia;15000:1.33|28000:1.43|50000:1.63|:1.85;progressiva;;;;;;"Con più di tre figli a carico: detrazione di 20 euro per figlio, aumentata di 375 euro per ogni figlio con disabilità (L.R. 40/2015, art. 3)."
+15;Sardegna;:1.23;progressiva;;;;;;"Con reddito imponibile fino a 50.000 euro: detrazione di 200 euro per ogni figlio minorenne a carico, aumentata di 100 euro per figlio con disabilità (L.R. 48/2018, art. 2)."
+16;Sicilia;:1.23;progressiva;;;;;;
+17;Toscana;15000:1.42|28000:1.43|50000:3.32|:3.33;progressiva;;;;;;
+18;Trento;50000:1.23|:1.73;progressiva;;;;;30000:30000;"Con reddito imponibile fino a 50.000 euro: detrazione di 246 euro per ogni figlio a carico, in proporzione alla percentuale e ai mesi di carico."
+19;Umbria;15000:1.73|28000:3.02|50000:3.12|:3.33;progressiva;;28000:1.23;150:28000:50000;;;
+20;Valle d'Aosta;:1.23;progressiva;15000;;;;;
+21;Veneto;:1.23;progressiva;;;;;;"Aliquota dello 0,9% con reddito imponibile fino a 50.000 euro per le persone con disabilità (codice 2) o con un familiare con disabilità a carico (codice 1 nella casella Casi particolari addizionale regionale)."

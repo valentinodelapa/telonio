@@ -9,7 +9,9 @@ use Dichiarativi\Application\BaseClasses\DichiarativiController;
 use Dichiarativi\Application\Entities\Dichiarazione;
 use Dichiarativi\Application\Enumerations\ModelloDichiarativo;
 use Dichiarativi\Application\Models\AttoAccertamentoModel;
+use Dichiarativi\Application\Models\CertificazioneUnicaModel;
 use Dichiarativi\Application\Models\GaranziaRimborsoModel;
+use Dichiarativi\Application\Models\ValoreCertificazioneUnicaModel;
 use Dichiarativi\Application\Models\CampoModelloModel;
 use Dichiarativi\Application\Models\DichiarazioneModel;
 use Dichiarativi\Application\Services\ModelliContribuente;
@@ -90,6 +92,13 @@ class ContribuenteDichiarativiController extends DichiarativiController
         $this->vars['modelli'] = $modelli;
         $this->vars['versamenti'] = $versamenti;
         $this->vars['atti'] = (new AttoAccertamentoModel($this->dataMapper))->getElenco($soggetto);
+        $this->vars['certificazioni'] = [];
+        if ($soggetto->isPersonaFisica()) {
+            $valoreModel = new ValoreCertificazioneUnicaModel($this->dataMapper);
+            foreach ((new CertificazioneUnicaModel($this->dataMapper))->getPerAnno($soggetto, $anno) as $certificazione) {
+                $this->vars['certificazioni'][] = ['certificazione' => $certificazione, 'valori' => $valoreModel->getValori($certificazione)];
+            }
+        }
         $this->vars['garanzie'] = (new GaranziaRimborsoModel($this->dataMapper))->getElenco($soggetto);
         $this->vars['pageTitle'] = $soggetto->nominativo . ' · dichiarazioni anno ' . $anno;
         $this->impostaBricioleContribuente($soggetto, $anno);

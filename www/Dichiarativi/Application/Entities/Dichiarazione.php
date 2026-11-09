@@ -6,8 +6,10 @@ use Anagrafica\Application\Entities\Soggetto;
 use Contabilita\Application\Enumerations\CodiceCaricaIva;
 use Contabilita\Application\Enumerations\ImpegnoPresentazione;
 use Deleghe\Application\Entities\Intermediario;
+use Dichiarativi\Application\Enumerations\CinquePerMille;
 use Dichiarativi\Application\Enumerations\ModalitaSaldo;
 use Dichiarativi\Application\Enumerations\ModelloDichiarativo;
+use Dichiarativi\Application\Enumerations\OttoPerMille;
 use Dichiarativi\Application\Enumerations\StatoDichiarazione;
 use Dichiarativi\Application\Enumerations\TipologiaDichiarazione;
 use SismaFramework\Orm\CustomTypes\SismaDate;
@@ -62,6 +64,11 @@ class Dichiarazione extends ReferencedEntity
     protected ?SismaDateTime $dataElaborazione = null;
     protected ?string $avvisi = null;
     protected ?string $annotazioni = null;
+    protected ?OttoPerMille $ottoPerMille = null;
+    protected ?int $finalitaStato = null;
+    protected ?CinquePerMille $cinquePerMille = null;
+    protected ?string $beneficiarioCinquePerMille = null;
+    protected ?string $duePerMille = null;
     protected SismaDateTime $dataInserimento;
 
     #[\Override]

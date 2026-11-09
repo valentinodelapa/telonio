@@ -59,6 +59,7 @@ class DatiFiscali extends BaseEntity implements Storicizzabile
     protected bool $nonResidenteIva = false;
     protected bool $startupInnovativa = false;
     protected bool $gruppoIvaArt70bis = false;
+    protected bool $coltivatoreIap = false;
 
     #[\Override]
     protected function setEncryptedProperties(): void

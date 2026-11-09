@@ -38,9 +38,9 @@ class CompatibilitaDifferenziate
         '/art\.\s*2,\s*comma\s*3|art\.\s*5,\s*comma\s*[123]|canone\s+concordato|L\.\s*n?\.?\s*431\/1998.*concordat/iu' => [UtilizzoImmobile::locatoCanoneConcordato],
         '/canone\s+libero|art\.\s*2,\s*comma\s*1\b/iu' => [UtilizzoImmobile::locatoLiberoMercato],
         '/Tipo\s+contratto:\s*Locazione(?!\s+(?:ai|a|o)\s)/iu' => [UtilizzoImmobile::locatoLiberoMercato, UtilizzoImmobile::locatoCanoneConcordato],
-        '/locat[ie]\s+o\s+concess[ie]\s+in\s+comodato\s+o\s+utilizzat[ie]\s+direttamente/iu' => [UtilizzoImmobile::locatoLiberoMercato, UtilizzoImmobile::locatoCanoneConcordato, UtilizzoImmobile::comodato, UtilizzoImmobile::strumentale],
-        '/locazione\s+o\s+comodato/iu' => [UtilizzoImmobile::locatoLiberoMercato, UtilizzoImmobile::locatoCanoneConcordato, UtilizzoImmobile::comodato],
-        '/comodato\s+d.uso\s+gratuito|in\s+comodato(?!\s+o)/iu' => [UtilizzoImmobile::comodato],
+        '/locat[ie]\s+o\s+concess[ie]\s+in\s+comodato\s+o\s+utilizzat[ie]\s+direttamente/iu' => [UtilizzoImmobile::locatoLiberoMercato, UtilizzoImmobile::locatoCanoneConcordato, UtilizzoImmobile::comodato, UtilizzoImmobile::comodatoFamiliare, UtilizzoImmobile::strumentale],
+        '/locazione\s+o\s+comodato/iu' => [UtilizzoImmobile::locatoLiberoMercato, UtilizzoImmobile::locatoCanoneConcordato, UtilizzoImmobile::comodato, UtilizzoImmobile::comodatoFamiliare],
+        '/comodato\s+d.uso\s+gratuito|in\s+comodato(?!\s+o)/iu' => [UtilizzoImmobile::comodato, UtilizzoImmobile::comodatoFamiliare],
         '/a\s+disposizione|non\s+locat[ei]\s+e\s+non\s+concess[ei]/iu' => [UtilizzoImmobile::aDisposizione],
         '/utilizzat[ie]\s+direttamente\s+dal\s+soggetto\s+passivo/iu' => [UtilizzoImmobile::strumentale],
     ];

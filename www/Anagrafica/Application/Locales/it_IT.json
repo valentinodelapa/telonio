@@ -53,6 +53,10 @@
                 "soggettoCollegato": "Soggetto collegato",
                 "ruolo": "Ruolo",
                 "quotaPartecipazione": "Quota di partecipazione (%)",
+                "disabile": "Figlio con disabilità (L. 104/1992)",
+                "convivente": "Convivente con il soggetto",
+                "affidamento": "Figlio in affidamento con detrazione al 100%",
+                "percentualeDetrazione": "Percentuale della detrazione del figlio",
                 "tipoDocumento": "Tipo documento",
                 "numero": "Numero",
                 "rilasciatoDa": "Rilasciato da",
@@ -102,7 +106,27 @@
                 "regimeDetrazioneIva": "Regime speciale agricolo",
                 "opzioniOrdinarie": "IVA nei modi ordinari per opzione",
                 "rinunciaEsonero": "Rinuncia all'esonero dell'art. 34, c. 6",
-                "nessunRegimeDetrazione": "Nessuno"
+                "nessunRegimeDetrazione": "Nessuno",
+                "tipoContratto": "Tipo di contratto",
+                "dataInizioContratto": "Inizio",
+                "dataFineContratto": "Fine",
+                "canoneAnnuo": "Canone annuo",
+                "conduttore": "Conduttore",
+                "codiceFiscaleConduttore": "Codice fiscale del conduttore",
+                "cedolareSecca": "Cedolare secca",
+                "cedolareRevocataDal": "Revocata dal",
+                "cedolareRidotta": "Unità scelta per il 21% (locazioni brevi)",
+                "veneziaCentro": "Venezia centro, Giudecca, Murano o Burano (canone al 75%)",
+                "emergenzaCalamita": "Comune con stato di emergenza o zona rossa del sisma 2016 (cedolare al 10%)",
+                "giovaneAgricoltore": "Affitto a un giovane coltivatore diretto o IAP per almeno cinque anni",
+                "dataRegistrazione": "Data di registrazione",
+                "serieRegistrazione": "Serie",
+                "numeroRegistrazione": "Numero",
+                "codiceUfficio": "Codice ufficio",
+                "codiceIdentificativo": "Codice identificativo del contratto",
+                "cin": "CIN",
+                "rinegoziazione": "Rinegoziazione in diminuzione",
+                "coltivatoreIap": "Coltivatore diretto o IAP iscritto nella previdenza agricola"
             },
             "azioni": {
                 "salva": "Salva",
@@ -144,7 +168,9 @@
             "etichettaIsa": "ISA",
             "etichettaSostituto": "Sostituto d'imposta",
             "etichettaTrasparenza": "Trasparenza fiscale",
-            "etichettaVentilazione": "Ventilazione dei corrispettivi"
+            "etichettaVentilazione": "Ventilazione dei corrispettivi",
+            "testoSi": "Sì",
+            "testoNo": "No"
         },
         "indirizzo": {
             "form": {
@@ -154,7 +180,10 @@
         },
         "legame": {
             "form": {
-                "aiutoLegame": "Indica chi ricopre il ruolo presso questo soggetto (socio, amministratore, legale rappresentante, ...).",
+                "aiutoLegame": "Indica chi ricopre il ruolo presso questo soggetto (socio, amministratore, legale rappresentante, ...) o è suo familiare (coniuge, figlio, genitore, ...).",
+                "sezioneFamiliare": "Familiari (prospetto dei familiari a carico)",
+                "aiutoFamiliare": "Solo per i legami familiari. Le date sono quelle del legame (matrimonio e separazione, nascita o adozione, inizio e fine della convivenza): la dichiarazione dei redditi ne ricava i mesi a carico. Senza percentuale la detrazione del figlio è proposta al 100% se il coniuge è a carico, altrimenti al 50%.",
+                "percentualeAutomatica": "Proposta automatica",
                 "segnapostoCollegato": "Cerca per nominativo o codice fiscale",
                 "aiutoNuovoCollegato": "Il soggetto non è ancora in anagrafica? Inseriscilo prima dall'elenco soggetti."
             }
@@ -178,7 +207,9 @@
                 "sezionePossessori": "Possessori",
                 "sezioneGraffati": "Identificativi graffati",
                 "nessunGraffato": "Nessuna particella o subalterno graffato all'unità.",
-                "confermaEliminaImmobile": "Eliminare l'immobile con i suoi dati catastali e i possessi?"
+                "confermaEliminaImmobile": "Eliminare l'immobile con i suoi dati catastali e i possessi?",
+                "sezioneContratti": "Contratti di locazione",
+                "nessunContratto": "Nessun contratto di locazione o di affitto."
             }
         },
         "identificativoGraffato": {
@@ -240,6 +271,31 @@
                 "scaduto": "Scaduto",
                 "inserito": "Inserito il",
                 "modificato": "ultima modifica"
+            }
+        },
+        "contrattoLocazione": {
+            "form": {
+                "aiutoContratto": "I locatori sono i possessori dell'immobile nel periodo del contratto: nel quadro RB ciascuno indica il canone per intero, qualunque sia la sua quota.",
+                "sezioneContratto": "Contratto",
+                "sezioneCedolare": "Cedolare secca",
+                "sezioneRegistrazione": "Registrazione",
+                "aiutoDataFine": "Fine effettiva (scadenza, disdetta, risoluzione). Vuota se in corso.",
+                "aiutoCanone": "Canone annuo pattuito, senza le spese (condominio, utenze, riscaldamento). Per le locazioni brevi il corrispettivo lordo dell'intero soggiorno.",
+                "aiutoCodiceIdentificativo": "Codice di 16 o 17 caratteri della ricevuta di registrazione; in alternativa gli estremi di registrazione.",
+                "aiutoCin": "Codice identificativo nazionale per le locazioni brevi e turistiche (18 caratteri)."
+            },
+            "show": {
+                "sezioneRegistrazione": "Registrazione",
+                "sezionePertinenze": "Pertinenze locate insieme",
+                "nessunaPertinenza": "Nessuna pertinenza: il canone è tutto dell'immobile.",
+                "sezioneVariazioni": "Variazioni del canone",
+                "nessunaVariazione": "Nessuna variazione: vale il canone del contratto."
+            },
+            "pertinenza": {
+                "aiutoPertinenza": "Box, cantina o altra pertinenza con rendita autonoma locata con lo stesso contratto: il canone si ripartisce in proporzione alle rendite catastali."
+            },
+            "variazione": {
+                "aiutoVariazioneCanone": "Nuovo canone annuo dalla data, per l'aggiornamento ISTAT o la rinegoziazione: nel quadro RB il canone dell'anno si conta in proporzione ai giorni."
             }
         }
     }

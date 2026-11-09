@@ -30,7 +30,9 @@ Usage: sisma tabelle-dichiarativi [--sql=FILE]
 
 Allinea le tabelle campo_modello e quadro_modello alle sorgenti in
 Dichiarativi/Database/sorgenti (catalogo ricavato dalle specifiche
-tecniche con "sisma specifiche-dichiarativi").
+tecniche con "sisma specifiche-dichiarativi") e le tabelle delle
+aliquote delle addizionali all'IRPEF (comunali aggiornate con
+"sisma addizionali-comunali").
 
 Options:
   --sql=FILE   scrive lo script SQL idempotente invece di aggiornare il database
@@ -43,7 +45,7 @@ OUTPUT;
         try {
             $tabelle = new TabelleDichiarativi();
             $dati = $tabelle->leggi();
-            $this->output(sprintf('Modelli: %d, campi: %d, quadri: %d', count($dati['modelli']), count($dati['campi']), count($dati['quadri'])));
+            $this->output(sprintf('Modelli: %d, campi: %d, quadri: %d, addizionali regionali: %d, comunali: %d', count($dati['modelli']), count($dati['campi']), count($dati['quadri']), count($dati['regionali']), count($dati['comunali'])));
             $fileSql = $this->getOption('sql');
             return $fileSql === null ? $this->aggiornaDatabase($tabelle, $dati) : $this->scriviSql($fileSql, $tabelle, $dati);
         } catch (\Throwable $errore) {
@@ -56,11 +58,11 @@ OUTPUT;
     {
         $file = @fopen($fileSql, 'w') ?: throw new \RuntimeException('Impossibile scrivere ' . $fileSql);
         fwrite($file, "-- =====================================================\n"
-                . "-- Dichiarativi - catalogo dei campi e dei quadri dei modelli\n"
+                . "-- Dichiarativi - catalogo dei campi e dei quadri dei modelli, aliquote delle addizionali\n"
                 . "-- =====================================================\n"
                 . "-- Generato con \"sisma tabelle-dichiarativi --sql\" il " . date('d/m/Y H:i') . ": non modificare a mano.\n"
-                . "-- Fonte: Dichiarativi/Database/sorgenti, dalle specifiche tecniche dell'Agenzia delle Entrate (specifiche.csv).\n"
-                . sprintf("-- Righe: campo_modello %d, quadro_modello %d.\n", count($dati['campi']), count($dati['quadri']))
+                . "-- Fonte: Dichiarativi/Database/sorgenti, dalle specifiche tecniche dell'Agenzia delle Entrate (specifiche.csv) e dalle tabelle delle addizionali (addizionali.csv).\n"
+                . sprintf("-- Righe: campo_modello %d, quadro_modello %d, addizionale_regionale %d, addizionale_comunale %d.\n", count($dati['campi']), count($dati['quadri']), count($dati['regionali']), count($dati['comunali']))
                 . "-- Idempotente. Da eseguire dopo schema.sql.\n\n"
                 . "SET NAMES utf8mb4;\n\n");
         foreach ($tabelle->istruzioni($dati) as $istruzione) {
@@ -81,6 +83,7 @@ OUTPUT;
         }
         $connessione->commit();
         $this->output(sprintf('  campo_modello: %d campi', (int) $connessione->query('SELECT COUNT(*) FROM `campo_modello`')->fetchColumn()));
+        $this->output(sprintf('  addizionale_comunale: %d comuni', (int) $connessione->query('SELECT COUNT(*) FROM `addizionale_comunale`')->fetchColumn()));
         $this->output('Catalogo dei modelli aggiornato.');
         return true;
     }

@@ -5,10 +5,12 @@ la **dichiarazione IVA annuale** (modello IVA 2026 per l'anno 2025),
 proposta dai registri e dalle liquidazioni della Contabilità, con i
 controlli delle specifiche tecniche, il file telematico, il saldo da
 versare e il credito da compensare registrati in Deleghe F24, e il **modello
-IVA TR** per il credito trimestrale. Il catalogo
-dei campi copre già anche il modello **Redditi Persone fisiche 2026**, la
-cui proposta e il cui file telematico sono il prossimo passo (il modello
-risulta "non ancora gestito" nella scheda del contribuente).
+IVA TR** per il credito trimestrale. Dalla 0.5 gestisce anche il
+modello **Redditi Persone fisiche 2026** (anno 2025): redditi fondiari
+dagli immobili e dai contratti di locazione dell'Anagrafica, lavoro
+dipendente e pensione dall'archivio delle Certificazioni Uniche, redditi
+d'impresa e di lavoro autonomo dalla Contabilità, IRPEF, addizionali e
+cedolare secca, versamenti e crediti in Deleghe e file telematico.
 
 Il contribuente è il soggetto dell'Anagrafica; partita IVA, natura
 giuridica, codice ATECO, regime e periodicità IVA si leggono dai dati
@@ -78,13 +80,21 @@ dichiarazione:
 
 Il modulo è registrato in `MODULE_FOLDERS` e in `ModuloSuite`; richiede
 Telonio (>= 0.6.2), Anagrafica (>= 0.6.0), Deleghe (>= 0.5.0) e
-Contabilita (>= 0.3.0, per la tipologia dell'inversione contabile delle
-righe IVA, il pro-rata provvisorio, le qualifiche delle operazioni,
-l'aliquota teorica, le importazioni e le unità locali dei registri). `sisma
-aggiorna-database` esegue
+Contabilita (>= 0.7.0, per i righi della dichiarazione dei conti e i
+componenti del reddito per cassa). `sisma aggiorna-database` esegue
 `Dichiarativi/Database/schema.sql` e
 `Dichiarativi/Database/dati-riferimento.sql` (catalogo dei campi e dei
-quadri, generato da `sisma tabelle-dichiarativi --sql`).
+quadri e aliquote delle addizionali all'IRPEF, generato da `sisma
+tabelle-dichiarativi --sql`). Con il modulo IMU installato il quadro RB
+usa anche le caratteristiche IMU degli immobili.
+
+Le aliquote dell'addizionale comunale si aggiornano dall'elenco
+pubblicato ogni anno dall'Agenzia delle Entrate: `sisma
+addizionali-comunali` scarica il PDF indicato in
+`Database/sorgenti/addizionali.csv` e riscrive
+`addizionali-comunali-<anno>.csv`; la tabella regionale
+(`addizionali-regionali-<anno>.csv`) si trascrive dalle istruzioni del
+modello. Poi `sisma tabelle-dichiarativi` importa le tabelle.
 
 ## Modello dei dati
 
@@ -540,6 +550,129 @@ deleghe trasmesse o quietanzate fino alla presentazione della dichiarazione
 per il gruppo VW20, VW22 e VS campo 5. Con lo stesso criterio si propongono
 VL9 e VW24.
 
+## Modello Redditi PF
+
+La dichiarazione si crea dalla scheda del contribuente persona fisica e si
+propone (e ripropone) con i dati della suite; i valori corretti a mano
+restano tali alle riproposte, come per l'IVA. I quadri non proposti si
+compilano a mano dal catalogo (ad esempio le spese del quadro RP, i
+crediti d'imposta), e la proposta ne usa i valori nei calcoli.
+Nel frontespizio si indicano anche le scelte dell'otto per mille
+(istituzione e, per lo Stato, la finalità), del cinque per mille (finalità
+e codice fiscale del beneficiario) e del due per mille (partito della
+tabella del modello, `Services\Redditi\PartitiDuePerMille`).
+
+### Archivi
+
+- **Contratti di locazione** (Anagrafica, scheda dell'immobile): tipo
+  (canone libero, equo canone, concordato, Abruzzo, locazione breve,
+  affitto di terreni), date, canone annuo e variazioni (ISTAT,
+  rinegoziazione), cedolare secca con revoca, pertinenze locate insieme,
+  estremi di registrazione o codice identificativo e CIN;
+- **Certificazioni Uniche** (scheda del contribuente): sostituto
+  d'imposta e punti della certificazione usati dal quadro RC (redditi,
+  giorni, ritenute, addizionali, trattamento integrativo, somma esente e
+  ulteriore detrazione); le CU comprese nel conguaglio di un altro
+  sostituto si segnano e non si dichiarano;
+- **addizionali all'IRPEF**: tabelle per anno d'imposta delle aliquote
+  regionali (scaglioni, esenzioni e detrazioni strutturate; le
+  agevolazioni per figli e disabilità restano avvisi) e comunali (7.896
+  comuni: aliquota unica o scaglioni, soglia di esenzione, casi
+  particolari come avvisi). La tabella dell'anno vale per il saldo e per
+  l'acconto dell'anno successivo.
+
+### Proposta dei quadri
+
+- **prospetto dei familiari a carico** dai legami familiari
+  dell'Anagrafica (`PropostaFamiliari`): un rigo per ogni legame vigente
+  nell'anno con i mesi dal mese di inizio a quello di fine (art. 12,
+  comma 3, Tuir); a carico se il reddito del familiare (rigo RN1 della sua
+  dichiarazione nella suite o, senza, le sue Certificazioni Uniche) non
+  supera 2.840,51 euro, o 4.000 per i figli che nell'anno compiono al
+  massimo 24 anni (circolare 14/E del 2023), altrimenti il rigo del
+  coniuge resta con il solo codice fiscale e gli altri non si riportano;
+  coniuge nel rigo 1 (anche dal legame registrato dall'altro coniuge),
+  figli dal più anziano con la casella D per la disabilità, la percentuale
+  del legame o, senza, 100 se il coniuge è a carico e 50 altrimenti, la
+  colonna 8 per l'affidamento e la colonna 10 con i mesi da 21 a 29 anni;
+  ascendenti (G) e altri familiari (P) solo se conviventi; i righi oltre
+  il quinto nei moduli successivi;
+- **RA e RB**: un rigo per ogni situazione dell'anno (possesso, quota,
+  rendita, contratto, cedolare, esenzione IMU), con i calcoli dei
+  paragrafi 6.2-6.3 e 7.2 delle specifiche: rivalutazioni dei terreni e
+  regime dei coltivatori diretti e IAP (casella nei dati fiscali),
+  utilizzo dal possesso e dal contratto (abitazione principale anche
+  parzialmente locata, a disposizione, comodato a un familiare),
+  casi particolari IMU (abitazioni di lusso, esenti, stesso comune
+  dell'abitazione principale), canone per i giorni e ripartito tra le
+  pertinenze per rendita, cedolare al 21, 10 o 26 per cento, sezioni II
+  (Abruzzo) e III (CIN); moduli aggiuntivi oltre i righi del quadro;
+- **LC**: imposta della cedolare secca, acconti (100 per cento, in due rate
+  oltre 103 euro alla prima);
+- **RC**: righi dalle Certificazioni Uniche per tempo indeterminato,
+  determinato e pensione, assimilati e assegni del coniuge, giorni,
+  ritenute e addizionali trattenute, rigo RC14;
+- **RE, RG, RF e LM** secondo il regime dei dati fiscali: arti e
+  professioni (RE) e impresa in contabilità semplificata (RG) **per cassa**
+  dalle registrazioni della Contabilità (fatture incassate o pagate
+  nell'anno, con gli incassi della controparte assegnati alle fatture dalla
+  più vecchia), rappresentanza fino all'1 per cento dei compensi e alberghi
+  al 75 per cento fino al 2 per cento, solo la parte deducibile dei costi
+  dei conti con la percentuale deducibile; contabilità ordinaria (RF) con
+  l'utile del conto economico, la parte indeducibile di quei costi nei
+  righi RF16, RF18 o RF31 (codice 99) e il totale RF32, le altre variazioni
+  a mano; regime
+  forfetario (LM) con i ricavi incassati, il coefficiente di redditività
+  del codice ATECO 2007, i contributi della sezione INPS dei versamenti
+  F24 dell'anno e l'imposta sostitutiva del 15 o del 5 per cento;
+- **impresa familiare**: prospetto di imputazione dei righi RS6 e RS7 dai
+  legami "Collaboratore familiare" con la quota, quote del solo reddito
+  positivo nei righi RG33 o RF98 (avviso oltre il 49 per cento); nel
+  regime forfetario codice fiscale e quota, con la quota di reddito a
+  mano;
+- **perdite d'impresa** (righi RG35 e RF100, prospetto RS12-RS13): dai
+  residui della dichiarazione dell'anno prima nella suite, prima quelle in
+  misura limitata fino all'80 per cento del reddito e poi quelle in misura
+  piena; la perdita dell'anno va nel rigo RS13 nei primi tre periodi
+  d'imposta dall'inizio dell'attività, altrimenti nel rigo RS12;
+- **RP** (`CalcoloOneri`): totali del rigo RP15 dai righi da RP1 a RP14 di
+  tutti i moduli (franchigia di 129 euro sulle spese sanitarie, anche
+  rateizzate, e veterinarie; codici 11, 47, 56, 15, 24, 27 e 28 commisurati
+  al reddito o ai redditi dei terreni), rigo RN23 per le patologie esenti
+  dei familiari non a carico, deducibili dei righi RP32, RP33, RP34 e RP36,
+  totale RP39 (codici 7, 8 e 12 del rigo RP26 entro il 2, 10 e 20 per
+  cento del reddito); gli importi oltre i limiti delle specifiche sono
+  segnalati, non corretti;
+- **RN**: reddito complessivo, deduzione dell'abitazione principale, oneri
+  deducibili (RP39), imposta lorda con le esenzioni per redditi fondiari
+  e pensioni minime, detrazioni per familiari (con il primo figlio senza
+  l'altro genitore, percentuale C), per lavoro, pensione e altri redditi,
+  ulteriore detrazione, oneri detraibili del rigo RN13 (oltre 75.000 euro
+  il riordino delle detrazioni: limite di 14.000 o 8.000 euro per il
+  coefficiente dei figli del prospetto, imputato dagli oneri al 90 per
+  cento a quelli al 19, salvo la casella "riordino non automatizzato", e
+  oltre 120.000 euro il coefficiente degli oneri commisurati al reddito),
+  ritenute, trattamento
+  integrativo e somma esente, acconti versati da Deleghe, saldo e acconti
+  (40 e 60 per cento, 50 e 50 per i soggetti ISA);
+- **RV**: addizionale regionale e comunale dal domicilio fiscale (o dalla
+  residenza) al 1° gennaio, acconto comunale dal domicilio al 1° gennaio
+  dell'anno dopo;
+- **RX**: debiti e crediti di IRPEF, addizionali e cedolare, crediti
+  proposti in compensazione.
+
+### Controlli, versamenti e file
+
+I controlli delle specifiche (par. 6.1 e 7.1) segnalano gli errori dei
+quadri RA e RB. "Registra versamenti" scrive in Deleghe saldi e acconti
+(4001, 4033, 4034, 3801, 3844, 3843, 1840-1842, 1790-1792) alle scadenze
+del 30 giugno e del 30 novembre, senza gli importi di IRPEF e addizionali
+fino a 12 euro, e i crediti da compensare (oltre 5.000 euro alla
+presentazione). Il file "RPF26" ha il record B con i dati anagrafici, la
+residenza se variata nell'anno, il domicilio fiscale, le caselle dei
+quadri, le scelte dell'otto, cinque e due per mille, l'impegno e il
+visto, e i record C dei quadri.
+
 ## Fixture
 
 - **Alfa Consulting S.r.l.** (mensile): esercizio 2025 con prestazioni al
@@ -551,6 +684,17 @@ VL9 e VW24.
   quarto trimestre); dichiarazione IVA 2026 presentata con il credito di
   8.000 euro e il visto di conformità del commercialista Paolo Marini, che
   adotta il credito IVA 2025 già presente in Deleghe;
+- **modelli Redditi PF 2026**: Mario Rossi (dipendente con la CU, casa di
+  Massimeno locata con il box pertinenza e la cedolare al 21 per cento,
+  aggiornamento ISTAT, coniuge e due figli nei legami familiari con il
+  prospetto dei familiari proposto, scelte dell'otto per mille allo Stato
+  e del cinque per mille alla ricerca sanitaria), Lucia Ferri (negozio in
+  contabilità semplificata, quadro RG per cassa, impresa familiare con il
+  figlio Paolo collaboratore al 30 per cento, spese telefoniche deducibili
+  all'80 per cento, versamenti) e Sara Gallo
+  (grafica web forfetaria dal 2022: compensi incassati, coefficiente del
+  78 per cento, contributi della Gestione separata da Deleghe, imposta al
+  5 per cento);
 - **Alimentari Ferri** (trimestrale, ventilazione, sede operativa a Roma):
   liquidazioni trimestrali 2025 e dichiarazione IVA 2026 in bozza con la
   ventilazione annuale, il quadro VH dei primi tre trimestri, il VT dei
@@ -674,6 +818,11 @@ dei moduli devono essere dello stesso studio.
   n. 51732 del 15 gennaio 2026) e specifiche tecniche (allegato A al
   provvedimento n. 50925 dell'11 febbraio 2026):
   <https://www.agenziaentrate.gov.it/portale/it/iva_2026specifichetecniche>;
+- modello Redditi PF 2026, istruzioni dei fascicoli 1, 2 e 3 (aggiornate al
+  13 e al 28 maggio 2026), tabella delle addizionali regionali (fascicolo
+  1) e dei coefficienti di redditività (fascicolo 3), elenco delle aliquote
+  dell'addizionale comunale per il saldo 2025 e l'acconto 2026:
+  <https://www.agenziaentrate.gov.it/portale/modello-redditi-persone-fisiche-2026/modello-e-istruzioni>;
 - specifiche tecniche del modello Redditi PF 2026 (provvedimento n. 72078
   del 27 febbraio 2026, aggiornate al 10 giugno 2026):
   <https://www.agenziaentrate.gov.it/portale/modello-redditi-persone-fisiche-2026/software-di-compilazione>;
@@ -689,10 +838,13 @@ dei moduli devono essere dello stesso studio.
 
 ## Da completare
 
-- **Redditi PF** (ambito della 0.1): frontespizio e familiari a carico,
-  quadri RA e RB dagli immobili e dai possessi dell'Anagrafica, RC, RN
-  (IRPEF con le detrazioni), RV (addizionali regionale e comunale), RX,
-  acconti e versamenti in Deleghe, record B e file telematico "RPF26";
+- **Redditi PF**: rate dei bonus edilizi e del risparmio energetico
+  (sezioni III e IV del quadro RP, righi da RN14 a RN16, e il riordino
+  delle detrazioni su di esse), quadri RH, RL, RM, RT, RW e crediti CR/CE,
+  perdite di lavoro autonomo e dei forfetari, variazioni in diminuzione
+  del quadro RF, abbinamento manuale degli incassi alle fatture,
+  rateazione dei saldi, verifica del file RPF26 con il software di
+  controllo dell'Agenzia;
 - calcolo automatico di rimanenze e servizi non utilizzati nella rettifica per
   il cambio di regime;
 - verifica dei file con il software di controllo dell'Agenzia delle

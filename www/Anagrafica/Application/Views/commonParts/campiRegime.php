@@ -25,6 +25,9 @@ $regimiAmmessi = RegimeFiscale::perSoggetto($soggetto->tipoSoggetto, TipoAttivit
 <?= Campo::spunta('nonResidenteIva', $campi['nonResidenteIva'], $origineRegime, $erroriRegime, ['colonna' => 'col-md-6']) ?>
 <?= Campo::spunta('gruppoIvaArt70bis', $campi['gruppoIvaArt70bis'], $origineRegime, $erroriRegime, ['colonna' => 'col-md-6']) ?>
 <?= Campo::spunta('startupInnovativa', $campi['startupInnovativa'], $origineRegime, $erroriRegime, ['colonna' => 'col-md-6']) ?>
+<?php if ($soggetto->isPersonaFisica()): ?>
+    <?= Campo::spunta('coltivatoreIap', $campi['coltivatoreIap'], $origineRegime, $erroriRegime, ['colonna' => 'col-md-6']) ?>
+<?php endif; ?>
 <?= Campo::data('dataInizioAttivita', $campi['dataInizioAttivita'], $origineRegime, $erroriRegime, ['colonna' => 'col-md-4']) ?>
 <?php if ($soggetto->tipoSoggetto === TipoSoggetto::societaCapitali): ?>
     <?= Campo::spunta('trasparenzaFiscale', $campi['trasparenzaFiscale'], $origineRegime, $erroriRegime, ['colonna' => 'col-md-6']) ?>
