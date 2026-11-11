@@ -98,4 +98,35 @@ require Layout::percorso('header');
         </div>
     <?php endif; ?>
 </div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white d-flex align-items-center">
+        <span class="fw-semibold me-auto"><?= Html::e($sezioneCanoniNonPercepiti) ?></span>
+        <a href="/contratto-locazione/canone-non-percepito/contratto-locazione/<?= Html::e($id) ?>" class="btn btn-sm btn-outline-primary"><i class="bi bi-plus-lg me-1"></i><?= Html::e($azioni['aggiungi']) ?></a>
+    </div>
+    <?php if (count($canoniNonPercepiti) === 0): ?>
+        <div class="card-body small text-body-secondary"><?= Html::e($nessunCanoneNonPercepito) ?></div>
+    <?php else: ?>
+        <div class="table-responsive">
+            <table class="table table-sm mb-0">
+                <thead><tr><th><?= Html::e($campi['annoCanoni']) ?></th><th class="text-end"><?= Html::e($campi['canoniNonPercepiti']) ?></th><th><?= Html::e($campi['dataConvalida']) ?></th><th><?= Html::e($campi['note']) ?></th><th></th></tr></thead>
+                <tbody>
+                    <?php foreach ($canoniNonPercepiti as $canone): ?>
+                        <tr>
+                            <td><?= Html::e($canone->anno) ?></td>
+                            <td class="text-end"><?= $euro($canone->importo) ?></td>
+                            <td><?= Html::data($canone->dataConvalida) ?></td>
+                            <td><?= Html::e($canone->note ?? '') ?></td>
+                            <td class="text-end text-nowrap">
+                                <a href="/contratto-locazione/modifica-canone-non-percepito/canone-non-percepito/<?= Html::e($canone->id) ?>" class="btn btn-sm btn-outline-secondary" title="<?= Html::e($azioni['modifica']) ?>"><i class="bi bi-pencil"></i></a>
+                                <?= $pulsanteElimina('/contratto-locazione/elimina-canone-non-percepito/canone-non-percepito/' . $canone->id) ?>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    <?php endif; ?>
+    <div class="card-footer bg-white small text-body-secondary"><?= Html::e($aiutoCanoniNonPercepiti) ?></div>
+</div>
 <?php require Layout::percorso('footer'); ?>

@@ -2,6 +2,70 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.23.0-alpha] - 2026-11-11 - Partite Aperte e Altri Quadri del Modello Redditi
+
+Versioni dei moduli: `Anagrafica` 0.12.0, `Contabilita` 0.8.0, `Dichiarativi` 0.6.0 (richiede `Anagrafica` 0.12.0 e `Contabilita` 0.8.0), `Deleghe` 0.7.1; gli altri invariati.
+
+**Aggiornamento**: `sisma aggiorna-database` esegue `Anagrafica/Database/aggiornamento-0.12.sql` (tabelle `intervento_edilizio` e `canone_non_percepito`) e `Contabilita/Database/aggiornamento-0.8.sql` (tabelle `partita` e `abbinamento`, funzioni dei conti delle ritenute d'acconto) e `Dichiarativi/Database/aggiornamento-0.6.sql` (tabelle `attivita_estera`, `cessione_finanziaria` e `certificazione_autonomo`), idempotenti; poi `sisma partite-aperte` crea le partite delle registrazioni già presenti (abbinamenti dalla più vecchia, da verificare nello scadenzario) e `sisma tabelle-contabilita` aggiorna le funzioni del piano dei conti modello. `Deleghe/Database/dati-riferimento.sql` (eseguito anch'esso da `sisma aggiorna-database`) corregge le descrizioni dei codici tributo e aggiunge i codici dell'archivio dell'Agenzia del 03/11/2026.
+
+### ✨ Nuove Funzionalità
+
+#### `Anagrafica` 0.12.0 — archivio degli interventi edilizi
+
+- **interventi edilizi** nella scheda del fabbricato: per il contribuente che fruisce della detrazione, i dati del rigo del quadro RP nell'anno della spesa (recupero edilizio, sismabonus, bonus verde, facciate e superbonus; colonnine di ricarica; bonus mobili; risparmio energetico), la spesa, la percentuale e il numero delle rate;
+- **canoni non percepiti** sul contratto di locazione, con la data della convalida di sfratto, per il credito del rigo CR8 del modello Redditi PF;
+- **tabelle delle specifiche tecniche** del modello Redditi PF 2026 (`TabellaDetrazioniEdilizie`): codici ammessi per anno, percentuale di detrazione, rateazione (anche le 10 rate dal 2023 del superbonus 2022 e l'opzione 2023), numero della rata nell'anno e limiti di spesa; percentuale e rate proposte se non indicate, combinazioni non ammesse segnalate dal form.
+
+#### `Dichiarativi` 0.6.0 — bonus edilizi, perdite e variazioni nel modello Redditi PF
+
+- **quadro RP, sezioni III e IV** proposte dall'archivio degli interventi: righi da RP41 a RP47 con il numero della rata e il numero d'ordine dell'immobile, RP51 e RP52 con i dati catastali o la casella "Condominio", RP53 con gli estremi del contratto per il conduttore, RP56, RP57 e da RP61 a RP64, nei righi non compilati a mano e nei moduli successivi;
+- **totali RP48, RP49, RP60, RP65 e RP66** per percentuale dai righi di tutti i moduli, anche inseriti a mano, e **righi RN14, RN15 e RN16**;
+- **riordino delle detrazioni** oltre 75.000 euro esteso a tutte le entità della tabella di supporto delle specifiche: le rate delle spese dell'anno dei bonus edilizi, delle colonnine, dei mobili e del risparmio energetico sono imputate al limite prima degli oneri del rigo RN13, nell'ordine delle percentuali; le spese dei righi RP73 e RP83 (codice 2) consumano il limite con un avviso per i righi RN12 e RN17.
+- **perdite**: perdite di lavoro autonomo del 2006 e 2007 dal rigo RS10 dell'anno prima nel rigo RE24 (con il residuo nel rigo RS10), reddito complessivo non negativo con le perdite di lavoro autonomo (avviso per l'eccedenza); nel regime forfetario le perdite d'impresa dei periodi prima dell'ingresso dai righi RS12 e RS13 dell'anno prima nel rigo LM37 (misura limitata entro l'80 per cento del reddito), con un avviso per le perdite del regime di vantaggio e dei minimi da indicare a mano;
+- **rateazione dei versamenti Redditi**: saldo e primo acconto in unica soluzione al 30 giugno, a rate mensili fino a dicembre o differiti al 30 luglio con la maggiorazione dello 0,40 per cento (anche a rate), con il piano di rateazione e gli interessi in Deleghe;
+- **impresa familiare nel regime forfetario**: quote di reddito dei collaboratori (righi RS6 e RS7, col. 3) sul reddito del rigo LM36, senza ridurre l'imposta sostitutiva dovuta dal titolare (art. 1, comma 64, L. 190/2014; circolare 10/E del 2016);
+- **quadro RW** dall'archivio delle attività estere della scheda del contribuente: righi da RW1 a RW5 su più moduli con IVAFE (anche in misura fissa sui conti correnti con la soglia di giacenza per intermediario), IVIE (anche sull'abitazione principale di lusso con la detrazione), imposta sulle cripto-attività, credito per l'imposta patrimoniale estera e solo monitoraggio; righi RW6, RW7 e RW8 con eccedenze dell'anno prima e acconti versati, righi RX25, RX26 e RX27; saldi e acconti in Deleghe (4041, 4044, 4045, 4043, 4047, 4048, 1727, 1728, 1729); elenco ufficiale degli Stati esteri del modello con i Paesi a fiscalità privilegiata;
+- **quadro RH** dalle partecipazioni in società di persone della suite (legami di socio): reddito dalla contabilità della società secondo il regime e ritenute dagli abbinamenti delle partite, per la quota; totali dei righi da RH7 a RH22 anche con i righi a mano; redditi e ritenute nel quadro RN;
+- **quadro RM, rigo RM31**, dai proventi delle attività estere incassati senza intermediari: tipo di reddito, imposta sostitutiva del 26 per cento, rigo RX7 e versamento 1242;
+- **quadro RL** dall'archivio delle Certificazioni Uniche del lavoro autonomo e dei redditi diversi: righi RL14, RL15 e RL16 con le spese inerenti, compensi dei dilettanti (RL21-RL24), lavoro autonomo non abituale (RL25-RL27) con le deduzioni forfetarie, totali con i righi a mano, redditi nel quadro RN con le ritenute e la detrazione per gli altri redditi;
+- **quadro RT**, sezioni II e V, dall'archivio delle cessioni di titoli, partecipazioni non qualificate e cripto-attività: totali, righi del costo rideterminato, franchigia di 2.000 euro sulle cripto-attività detenute prima del 2025, minusvalenze e eccedenze d'imposta dalla dichiarazione dell'anno prima, imposta del 26 per cento, sezione VII, righi RX20 e RX21 e versamenti 1100 e 1715;
+- **quadro CE** (credito per le imposte estere, sezione I) sui righi proposti dalle attività estere con l'opzione per la tassazione ordinaria dei proventi o inseriti a mano: quote di imposta lorda, credito per anno entro l'imposta netta, righi CE23 e CE26 e rigo RN29;
+- **quadro CR**: residui della dichiarazione dell'anno prima dal rigo RN47, credito per i canoni non percepiti (rigo CR8) dai contratti dell'Anagrafica, righi RN24, RN25 e residui del rigo RN47 nell'ordine delle specifiche; scaglioni IRPEF per anno per la riliquidazione;
+- **formato del codice del rigo CR31** corretto a N2 (le specifiche lo indicano N1 con valori fino a 21);
+- **reddito complessivo**: comprende i righi dei quadri RH e RL, i redditi esteri del rigo RM31 con l'opzione per la tassazione ordinaria e i righi RM22, RT82 e RT86; imposta netta RN26 al netto del solo rigo RN25 (che comprende RN23); ritenute del rigo RN33 anche dai quadri RH, RL e RT;
+- **ritenute d'acconto del rigo RE26** dagli abbinamenti di tipo ritenuta degli incassi dell'anno (avviso per le imprese e i forfetari);
+- **variazioni in diminuzione del quadro RF**: parte non imponibile dei ricavi dei conti con la percentuale nel rigo RF55 (codice 99), totali RF55 col. 77 e RF56 dai righi da RF34 a RF55 anche inseriti a mano, somma algebrica RF57 con le variazioni in diminuzione.
+
+#### `Contabilita` 0.8.0
+
+- **partite aperte obbligatorie** del partitario clienti e fornitori: ogni fattura, addebito o insoluto apre una partita, incassi, pagamenti, note di credito e compensazioni si abbinano alle partite dal form della prima nota con la proposta dalla più vecchia; modi di chiusura incasso o pagamento, ritenuta d'acconto, compensazione tra cliente e fornitore, nota di credito, acconto e abbuono o perdita su crediti; acconti e note non abbinati come partite da abbinare ai documenti successivi; insoluti che riaprono il documento; scissione dei pagamenti al netto dell'IVA;
+- **scadenzario** dell'azienda per controparte con residui, abbinamenti e quadratura con il saldo del sottoconto; comando `sisma partite-aperte` per le registrazioni già presenti, con la conferma degli abbinamenti automatici;
+- **totali di ricavi e costi per cassa** (`ComponentiReddito::getTotaliCassa`) per il reddito delle società di persone imputato ai soci;
+- **componenti per cassa** dei quadri RG ed RE dagli abbinamenti: ritenute come parte del compenso, acconti alla data dell'incasso, insoluti nell'anno in cui si registrano, abbuoni e perdite esclusi;
+- **ricavi imponibili in parte**: la percentuale del conto vale anche per i ricavi (parte imponibile): nei quadri RE e RG per cassa conta la parte imponibile, nel quadro RF la parte non imponibile è una variazione in diminuzione (RF55 codice 99); il form controlla che la variazione sia in aumento per i costi e in diminuzione per i ricavi.
+
+### 🐛 Correzioni
+
+#### `Deleghe` 0.7.1
+
+- **descrizioni dei codici tributo con l'accento rovinato** ("ATTIVITÎ", "NONCHŸ", "IN CUI þ EFFETTUATO", "CREDITO DÆIMP."): nell'archivio dell'Agenzia le descrizioni in maiuscolo hanno lettere accentate e punteggiatura già alterate da una conversione precedente, che `LettoreFoglio` ricostruiva alla lettera; ora le sequenze corrispondono a À, É, È, apostrofo, trattino, barra ed euro (142 codici). `dati-riferimento.sql` rigenerato con `sisma tabelle-f24 --sql` dall'archivio del 03/11/2026, che aggiunge 32 codici, tra cui quelli della sanzione unica da ravvedimento (da 8960 a 8986, art. 13, comma 2-bis, D.Lgs. 472/1997), e le causali INPS `BISE` e `SALU`.
+
+### 🔧 Modifiche
+
+#### Dati demo
+
+- **Alfa Consulting**: partite del 2026 con RiBa insoluta e nuovo incasso con abbuono, acconto, incasso dal Comune in scissione dei pagamenti, pagamento al netto della ritenuta d'acconto e compensazione tra credito e debito verso Delta;
+- **Sara Gallo**: saldo e primo acconto dell'imposta sostitutiva in tre rate;
+- **Mario Rossi**: interessi svizzeri con la tassazione ordinaria e credito del quadro CE, canoni non percepiti del 2024 (rigo CR8), socio del Bar Centrale s.n.c. (contabilità 2025, quadro RH), interessi e dividendi esteri nel rigo RM31, lavoro autonomo occasionale nel quadro RL, attività estere 2025 (conto in Svizzera, azioni statunitensi, appartamento a Nizza, bitcoin) nel quadro RW, cessioni di azioni e bitcoin nel quadro RT; interventi sulla casa di Roma (ristrutturazione 2021, facciata condominiale 2024, schermature solari 2023, bagno e mobili 2025) e relative rate nel modello Redditi PF 2026.
+
+### ⚠️ Limiti Noti
+
+- **quadro CE**: sezione II (imprese, art. 165, comma 6) a mano; i righi proposti vengono solo dalle attività estere con l'opzione per la tassazione ordinaria;
+- **quadro CR**: i crediti dell'anno diversi dai residui (sisma Abruzzo, cultura, scuola e altri) a mano; il credito per i canoni non percepiti riliquida solo l'IRPEF lorda (senza la rendita catastale come minimo, le detrazioni e le addizionali: avviso) e richiede la dichiarazione dell'anno dei canoni nella suite;
+- **quadri parziali**: RM tranne il rigo RM31, RT sezioni I, III e IV, RL righi da RL1 a RL13 e RL17, concordato preventivo biennale nel quadro RH, addizionali dovute dei dilettanti (RL24) a mano;
+- **partite aperte**: la scadenza è la data del documento (i dati di pagamento della fattura elettronica non sono ancora letti);
+- **file RPF26** non ancora verificato con il software di controllo dell'Agenzia.
+
 ## [0.22.0-alpha] - 2026-11-09 - Modello Redditi Persone Fisiche
 
 Versioni dei moduli: `Anagrafica` 0.11.0, `Contabilita` 0.7.0, `Dichiarativi` 0.5.0 (richiede `Anagrafica` 0.11.0 e `Contabilita` 0.7.0), `Imu` 0.4.1 (richiede `Anagrafica` 0.11.0); gli altri invariati.

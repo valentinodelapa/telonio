@@ -3,9 +3,15 @@
 namespace Contabilita\Application\Services;
 
 use Anagrafica\Application\Entities\Soggetto;
+use Contabilita\Application\Entities\Abbinamento;
+use Contabilita\Application\Entities\Partita;
 use Contabilita\Application\Entities\RigaContabile;
 use Contabilita\Application\Enumerations\CausaleContabile;
 use Contabilita\Application\Enumerations\NaturaConto;
+use Contabilita\Application\Enumerations\TipoChiusura;
+use Contabilita\Application\Enumerations\TipoPartita;
+use Contabilita\Application\Models\AbbinamentoModel;
+use Contabilita\Application\Models\PartitaModel;
 use Contabilita\Application\Models\RigaContabileModel;
 use SismaFramework\Orm\CustomTypes\SismaDate;
 use SismaFramework\Orm\HelperClasses\DataMapper;
@@ -16,12 +22,20 @@ use SismaFramework\Orm\HelperClasses\DataMapper;
  *
  * Per cassa (quadri RG e RE, art. 66 e 54 Tuir): le fatture emesse e
  * ricevute concorrono in proporzione a quanto incassato o pagato
- * nell'anno; gli incassi e i pagamenti di ogni controparte (sul suo
- * sottoconto del partitario) chiudono le fatture dalla più vecchia
- * (FIFO), e le note di credito le chiudono senza movimento di denaro (nota
- * e fattura stornata si compensano). Le altre registrazioni (corrispettivi,
- * note di credito, spese pagate direttamente, ammortamenti e altre
- * scritture di rettifica) concorrono alla data di registrazione.
+ * nell'anno secondo gli abbinamenti delle partite (Services\PartiteAperte):
+ * incassi e pagamenti, ritenute d'acconto (parte del compenso),
+ * compensazioni, note di credito (nota e fattura stornata si compensano)
+ * e acconti (alla data dell'acconto); gli insoluti riducono l'incassato
+ * dell'anno in cui si registrano e i loro incassi lo ripristinano. Gli
+ * abbuoni e le perdite su crediti non valgono come incasso, e i conti
+ * economici delle loro registrazioni non concorrono (il ricavo non
+ * incassato non è tassato). Le altre registrazioni (corrispettivi, note
+ * di credito, spese pagate direttamente, ammortamenti e altre scritture
+ * di rettifica) concorrono alla data di registrazione.
+ *
+ * Per le aziende senza partite (registrazioni anteriori alle partite
+ * aperte, prima di "sisma partite-aperte") gli incassi chiudono le
+ * fatture della controparte dalla più vecchia (FIFO), con un avviso.
  *
  * Per competenza (quadro RF): saldi dei conti economici dell'anno.
  *
@@ -38,6 +52,9 @@ class ComponentiReddito
     /** @var string[] */
     private array $avvisi = [];
 
+    /** @var array{ricavi: float, costi: float} totali dell'ultimo calcolo per cassa (esclusi i conti con rigo "NO") */
+    private array $totaliCassa = ['ricavi' => 0.0, 'costi' => 0.0];
+
     public function __construct(private DataMapper $dataMapper = new DataMapper())
     {
 
@@ -52,8 +69,54 @@ class ComponentiReddito
     }
 
     /**
-     * Quota incassata o pagata nell'anno di ciascuna fattura (id della
-     * registrazione => frazione del totale).
+     * Quota incassata o pagata nell'anno di ciascuna fattura secondo gli
+     * abbinamenti delle partite (id della registrazione => frazione del
+     * totale, negativa se gli insoluti superano gli incassi dell'anno).
+     *
+     * @param Partita[] $partite tutte le partite del soggetto
+     * @param Abbinamento[] $abbinamenti tutti gli abbinamenti del soggetto
+     * @return array<int, float>
+     */
+    public static function getQuoteAbbinate(iterable $partite, iterable $abbinamenti, int $anno): array
+    {
+        $perPartita = [];
+        foreach ($abbinamenti as $abbinamento) {
+            $perPartita[$abbinamento->partita->id][] = $abbinamento;
+        }
+        $incassato = $totali = [];
+        foreach ($partite as $partita) {
+            $documento = $partita->tipo === TipoPartita::insoluto ? $partita->partitaOrigine : $partita;
+            if (($documento === null) || (in_array($partita->tipo, [TipoPartita::documento, TipoPartita::insoluto], true) === false)) {
+                continue;
+            }
+            $id = $documento->registrazioneContabile->id;
+            if ($partita->tipo === TipoPartita::documento) {
+                $totali[$id] = ($totali[$id] ?? 0.0) + $partita->importo;
+            } elseif ((int) $partita->data->format('Y') === $anno) {
+                $incassato[$id] = ($incassato[$id] ?? 0.0) - $partita->importo;
+            }
+            foreach ($perPartita[$partita->id] ?? [] as $abbinamento) {
+                // l'acconto conta alla data in cui è stato incassato o pagato
+                $data = (($abbinamento->tipo === TipoChiusura::acconto) && ($abbinamento->partitaCollegata !== null)) ? $abbinamento->partitaCollegata->data : $abbinamento->data;
+                if ($abbinamento->tipo->isIncasso() && ((int) $data->format('Y') === $anno)) {
+                    $incassato[$id] = ($incassato[$id] ?? 0.0) + $abbinamento->importo;
+                }
+            }
+        }
+        $quote = [];
+        foreach ($incassato as $id => $importo) {
+            if (($totali[$id] ?? 0) > 0) {
+                $quote[$id] = max(-1.0, min(1.0, $importo / $totali[$id]));
+            }
+        }
+        return $quote;
+    }
+
+    /**
+     * Quota incassata o pagata nell'anno di ciascuna fattura per le
+     * registrazioni senza partite: incassi e pagamenti chiudono le fatture
+     * della controparte dalla più vecchia (id della registrazione =>
+     * frazione del totale).
      *
      * @param RigaContabile[] $righe tutte le righe del soggetto
      * @return array<int, float>
@@ -113,17 +176,31 @@ class ComponentiReddito
     public function perCassa(Soggetto $soggetto, int $anno, bool $professionista): array
     {
         $this->avvisi = [];
+        $this->totaliCassa = ['ricavi' => 0.0, 'costi' => 0.0];
         $righe = iterator_to_array((new RigaContabileModel($this->dataMapper))->getMovimenti($soggetto, null, null, null), false);
-        $quote = $this->getQuoteIncassate($righe, $anno);
         $documentiConPartita = [];
         foreach ($righe as $riga) {
             if (($riga->controparte !== null) && $riga->conto->natura->isPatrimoniale()) {
                 $documentiConPartita[$riga->registrazioneContabile->id] = true;
             }
         }
+        $partite = iterator_to_array((new PartitaModel($this->dataMapper))->getPerSoggetto($soggetto), false);
+        $conAbbuoni = [];
+        if ((count($partite) === 0) && (count($documentiConPartita) > 0)) {
+            $this->avvisi['partite'] = 'Le registrazioni non hanno ancora le partite aperte: incassi e pagamenti chiudono le fatture dalla più vecchia. Eseguire "sisma partite-aperte" e verificare gli abbinamenti nello scadenzario.';
+            $quote = $this->getQuoteIncassate($righe, $anno);
+        } else {
+            $abbinamenti = iterator_to_array((new AbbinamentoModel($this->dataMapper))->getPerSoggetto($soggetto), false);
+            $quote = self::getQuoteAbbinate($partite, $abbinamenti, $anno);
+            foreach ($abbinamenti as $abbinamento) {
+                if ($abbinamento->tipo === TipoChiusura::abbuono) {
+                    $conAbbuoni[$abbinamento->registrazioneContabile->id] = true;
+                }
+            }
+        }
         $componenti = [];
         foreach ($righe as $riga) {
-            if ($riga->conto->natura->isEconomico() === false) {
+            if (($riga->conto->natura->isEconomico() === false) || isset($conAbbuoni[$riga->registrazioneContabile->id])) {
                 continue;
             }
             $registrazione = $riga->registrazioneContabile;
@@ -138,9 +215,22 @@ class ComponentiReddito
     }
 
     /**
+     * Ricavi e costi dell'ultimo calcolo per cassa (es. reddito della
+     * società di persone da imputare ai soci, quadro RH).
+     *
+     * @return array{ricavi: float, costi: float}
+     */
+    public function getTotaliCassa(): array
+    {
+        return array_map(fn(float $importo) => round($importo, 2), $this->totaliCassa);
+    }
+
+    /**
      * Componenti per competenza dell'anno (utile del quadro RF) e parte
      * indeducibile dei costi dei conti con la percentuale deducibile, per
-     * rigo della variazione in aumento (RF16, RF18, RF31:99).
+     * rigo della variazione in aumento (RF16, RF18, RF31:99), e parte non
+     * imponibile dei ricavi con la percentuale (variazione in diminuzione
+     * RF55:99).
      *
      * @return array{ricavi: float, costi: float, utile: float, variazioni: array<string, float>}
      */
@@ -153,6 +243,11 @@ class ComponentiReddito
         foreach ((new RigaContabileModel($this->dataMapper))->getMovimenti($soggetto, null, $dal, $al) as $riga) {
             if ($riga->conto->natura === NaturaConto::ricavo) {
                 $ricavi += $riga->avere - $riga->dare;
+                if ($riga->conto->percentualeDeducibile !== null) {
+                    // parte non imponibile dei ricavi: variazione in diminuzione
+                    $rigo = RighiRedditi::VARIAZIONE_DIMINUZIONE;
+                    $variazioni[$rigo] = ($variazioni[$rigo] ?? 0.0) + ($riga->avere - $riga->dare) * (100 - $riga->conto->percentualeDeducibile) / 100;
+                }
             } elseif ($riga->conto->natura === NaturaConto::costo) {
                 $costi += $riga->dare - $riga->avere;
                 if ($riga->conto->percentualeDeducibile !== null) {
@@ -173,10 +268,13 @@ class ComponentiReddito
             return;
         }
         $importo = ($conto->natura === NaturaConto::ricavo ? $riga->avere - $riga->dare : $riga->dare - $riga->avere) * $frazione;
-        if (($conto->natura === NaturaConto::costo) && ($conto->percentualeDeducibile !== null)) {
-            // nei quadri RG ed RE solo la parte deducibile
+        if ($conto->percentualeDeducibile !== null) {
+            // nei quadri RG ed RE solo la parte deducibile dei costi e la parte imponibile dei ricavi
             $importo *= $conto->percentualeDeducibile / 100;
         }
         $componenti[$rigo] = ($componenti[$rigo] ?? 0.0) + $importo;
+        if ($rigo !== RighiRedditi::ESCLUSO) {
+            $this->totaliCassa[$conto->natura === NaturaConto::ricavo ? 'ricavi' : 'costi'] += $importo;
+        }
     }
 }

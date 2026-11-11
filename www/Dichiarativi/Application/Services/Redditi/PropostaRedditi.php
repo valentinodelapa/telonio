@@ -11,7 +11,9 @@ use SismaFramework\Orm\HelperClasses\DataMapper;
 /**
  * Proposta del modello Redditi persone fisiche dai dati della suite:
  * terreni (RA) e fabbricati (RB) dai possessi dell'Anagrafica con i
- * contratti di locazione, cedolare secca (LC); lavoro dipendente e
+ * contratti di locazione, cedolare secca (LC); rate dei bonus edilizi
+ * (quadro RP, sezioni III e IV) dall'archivio degli interventi
+ * (PropostaBonusEdilizi); lavoro dipendente e
  * pensione (RC) dalle Certificazioni Uniche, IRPEF (RN), addizionali (RV) e
  * risultato (RX) con PropostaIrpef.
  *
@@ -22,7 +24,7 @@ use SismaFramework\Orm\HelperClasses\DataMapper;
 class PropostaRedditi
 {
 
-    public const QUADRI = ['FA', 'RA', 'RB', 'LC', 'RE', 'RG', 'RF', 'LM', 'RC', 'RP', 'RS', 'RN', 'RV', 'RX'];
+    public const QUADRI = ['FA', 'RA', 'RB', 'LC', 'RH', 'RL', 'RE', 'RG', 'RF', 'LM', 'RC', 'RP', 'RS', 'RM', 'RT', 'RW', 'CE', 'CR', 'RN', 'RV', 'RX'];
     private const RIGHI_RA = 22;
     private const RIGHI_RB = 9;
 
@@ -57,18 +59,35 @@ class PropostaRedditi
         $pagineFa = PropostaFamiliari::impagina($familiari->getRighi($soggetto, $anno));
         array_push($this->avvisi, ...$familiari->getAvvisi());
 
-        $moduli = max(1, (int) ceil(count($righiRa) / self::RIGHI_RA), (int) ceil(count($righiRb) / self::RIGHI_RB), count($pagineFa), max($quadri->getModuli() ?: [1]));
+        $bonus = (new PropostaBonusEdilizi($this->dataMapper))->carica($soggetto, $anno);
+        $esteri = (new PropostaEsteri($this->dataMapper))->carica($soggetto, $anno);
+        $plusvalenze = (new PropostaPlusvalenze($this->dataMapper))->carica($soggetto, $anno);
+        $partecipazioni = (new PropostaPartecipazioni($this->dataMapper))->carica($soggetto, $anno);
+        array_push($this->avvisi, ...$partecipazioni->getAvvisi());
+        array_push($this->avvisi, ...$esteri->getAvvisi());
+
+        $moduli = max(1, (int) ceil(count($righiRa) / self::RIGHI_RA), (int) ceil(count($righiRb) / self::RIGHI_RB), count($pagineFa), $bonus->getModuliNecessari(), $esteri->getModuliNecessari(), $plusvalenze->getModuliNecessari(), $partecipazioni->getModuliNecessari(), max($quadri->getModuli() ?: [1]));
         for ($modulo = 1; $modulo <= $moduli; $modulo++) {
             $quadri->usaModulo($modulo)->avviaProposta(...self::QUADRI);
         }
         PropostaFamiliari::proponi($quadri, $pagineFa);
+        $bonus->proponiRighi($quadri, $soggetto);
         $quadri->usaModulo(1);
         $this->proponiTerreni($quadri, $righiRa);
         $cedolare = $this->proponiFabbricati($quadri, $righiRb);
         $quadri->usaModulo(1);
         $this->proponiCedolare($quadri, $cedolare);
         array_push($this->avvisi, ...(new PropostaImpresa($this->dataMapper))->proponi($soggetto, $anno, $quadri));
-        array_push($this->avvisi, ...(new PropostaIrpef($this->dataMapper))->proponi($dichiarazione, $quadri));
+        $esteri->proponi($quadri, $soggetto, $anno);
+        $plusvalenze->proponi($quadri);
+        $partecipazioni->proponi($quadri);
+        $crediti = new PropostaCrediti($this->dataMapper);
+        $crediti->proponiCrediti($quadri, $soggetto, $anno);
+        array_push($this->avvisi, ...$crediti->getAvvisi());
+        $altri = new PropostaAltriRedditi($this->dataMapper);
+        $altri->proponi($quadri, $soggetto, $anno);
+        array_push($this->avvisi, ...$altri->getAvvisi());
+        array_push($this->avvisi, ...(new PropostaIrpef($this->dataMapper))->proponi($dichiarazione, $quadri, $bonus));
         $quadri->usaModulo(1);
 
         array_push($this->avvisi, ...$quadri->getDifferenzeManuali());

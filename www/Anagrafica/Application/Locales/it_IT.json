@@ -111,6 +111,9 @@
                 "dataInizioContratto": "Inizio",
                 "dataFineContratto": "Fine",
                 "canoneAnnuo": "Canone annuo",
+                "annoCanoni": "Anno dei canoni",
+                "canoniNonPercepiti": "Canoni scaduti e non percepiti",
+                "dataConvalida": "Data della convalida dello sfratto",
                 "conduttore": "Conduttore",
                 "codiceFiscaleConduttore": "Codice fiscale del conduttore",
                 "cedolareSecca": "Cedolare secca",
@@ -126,7 +129,22 @@
                 "codiceIdentificativo": "Codice identificativo del contratto",
                 "cin": "CIN",
                 "rinegoziazione": "Rinegoziazione in diminuzione",
-                "coltivatoreIap": "Coltivatore diretto o IAP iscritto nella previdenza agricola"
+                "coltivatoreIap": "Coltivatore diretto o IAP iscritto nella previdenza agricola",
+                "beneficiario": "Contribuente che fruisce della detrazione",
+                "tipoDetrazione": "Detrazione",
+                "annoSpesa": "Anno della spesa",
+                "tipologiaIntervento": "Codice dell'intervento",
+                "codicePercentuale": "Casella \"Percentuale\"",
+                "spesaDetraibile": "Spesa detraibile",
+                "detrazioneIntervento": "Detrazione %",
+                "rateazione": "Numero di rate",
+                "descrizioneIntervento": "Descrizione",
+                "codiceFiscaleCondominio": "Codice fiscale del condominio",
+                "casiParticolari": "Interventi o casi particolari",
+                "interventoCondominiale": "Parti comuni condominiali (casella \"Condominio\")",
+                "acquistoEreditaDonazione": "Acquisto, eredità o donazione",
+                "maggiorazioneSisma": "Maggiorazione sisma",
+                "opzione2023": "Opzione 2023 (10 rate)"
             },
             "azioni": {
                 "salva": "Salva",
@@ -209,7 +227,10 @@
                 "nessunGraffato": "Nessuna particella o subalterno graffato all'unità.",
                 "confermaEliminaImmobile": "Eliminare l'immobile con i suoi dati catastali e i possessi?",
                 "sezioneContratti": "Contratti di locazione",
-                "nessunContratto": "Nessun contratto di locazione o di affitto."
+                "nessunContratto": "Nessun contratto di locazione o di affitto.",
+                "sezioneInterventi": "Interventi edilizi con detrazione",
+                "nessunIntervento": "Nessun intervento: le rate del recupero edilizio, del bonus mobili, delle colonnine e del risparmio energetico si propongono nel quadro RP dagli interventi registrati qui.",
+                "rataAnnoPrecedente": "Rata dell'anno scorso"
             }
         },
         "identificativoGraffato": {
@@ -289,13 +310,33 @@
                 "sezionePertinenze": "Pertinenze locate insieme",
                 "nessunaPertinenza": "Nessuna pertinenza: il canone è tutto dell'immobile.",
                 "sezioneVariazioni": "Variazioni del canone",
-                "nessunaVariazione": "Nessuna variazione: vale il canone del contratto."
+                "nessunaVariazione": "Nessuna variazione: vale il canone del contratto.",
+                "sezioneCanoniNonPercepiti": "Canoni non percepiti (sfratto per morosità)",
+                "nessunCanoneNonPercepito": "Nessun canone non percepito.",
+                "aiutoCanoniNonPercepiti": "Le imposte pagate sui canoni non percepiti accertati con la convalida dello sfratto danno ai locatori il credito d'imposta del rigo CR8 nella dichiarazione dell'anno della convalida."
             },
             "pertinenza": {
                 "aiutoPertinenza": "Box, cantina o altra pertinenza con rendita autonoma locata con lo stesso contratto: il canone si ripartisce in proporzione alle rendite catastali."
             },
+            "canone": {
+                "aiutoCanoneNonPercepito": "Canoni dell'anno scaduti e non percepiti, per l'intero contratto come nel quadro RB, accertati nel procedimento di convalida di sfratto per morosità (art. 26 Tuir)."
+            },
             "variazione": {
                 "aiutoVariazioneCanone": "Nuovo canone annuo dalla data, per l'aggiornamento ISTAT o la rinegoziazione: nel quadro RB il canone dell'anno si conta in proporzione ai giorni."
+            }
+        },
+        "interventoEdilizio": {
+            "form": {
+                "aiutoIntervento": "Dati del rigo del quadro RP nell'anno della spesa: ogni anno la dichiarazione propone il rigo con il numero della rata e il suo importo, fino all'ultima rata.",
+                "sezioneIntervento": "Intervento",
+                "sezioneCaselle": "Altre caselle del rigo",
+                "segnapostoBeneficiario": "Possessore, detentore o familiare convivente",
+                "aiutoTipologia": "Col. 2 di RP41-RP47 (vuota per il recupero ordinario), col. 1 di RP56 (da 2 a 5) o di RP61-RP64.",
+                "aiutoCodicePercentuale": "Casella \"Percentuale\" del rigo (col. 7, 4 o 6), se prevista per l'anno e il codice.",
+                "aiutoSpesa": "Spesa del contribuente entro il limite per unità immobiliare.",
+                "aiutoProposta": "Se vuota è proposta dalle tabelle delle specifiche tecniche.",
+                "aiutoCasiParticolari": "Col. 4: per il recupero edilizio 1 o 4, per il risparmio energetico 1, 2 o 3.",
+                "possessoriImmobile": "Possessori dell'immobile"
             }
         }
     }

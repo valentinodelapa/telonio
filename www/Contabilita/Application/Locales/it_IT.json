@@ -134,8 +134,8 @@
                 "opzioneAl": "Opzione fino al",
                 "regimeDatiFiscali": "Come nei dati fiscali",
                 "rigoRedditi": "Rigo della dichiarazione dei redditi",
-                "percentualeDeducibile": "Percentuale deducibile (%)",
-                "variazioneRedditi": "Variazione in aumento del quadro RF"
+                "percentualeDeducibile": "Percentuale deducibile o imponibile (%)",
+                "variazioneRedditi": "Variazione del quadro RF"
             },
             "azioni": {
                 "salva": "Salva",
@@ -188,7 +188,8 @@
                 "stampeDefinitive": "Stampe definitive",
                 "bilancio": "Bilancio di verifica",
                 "piano": "Piano dei conti",
-                "gruppoIva": "IVA di gruppo"
+                "gruppoIva": "IVA di gruppo",
+                "scadenzario": "Scadenzario"
             },
             "selezionare": "— Seleziona —",
             "nessuno": "— Nessuno —",
@@ -259,9 +260,9 @@
             "form": {
                 "aiuto": "Il codice indica il livello: NN mastro, NN.NN conto, NN.NN.NNNN sottoconto (si registra solo sui sottoconti). La funzione indica il conto alle proposte automatiche della prima nota; la voce CEE lo raccorda allo schema di bilancio.",
                 "rigoDallaVoce": "Dalla voce di bilancio",
-                "aiutoPercentualeDeducibile": "Solo per i costi deducibili in parte (es. 20 per le auto, 80 per la telefonia); vuota se interamente deducibile. Nei quadri RG ed RE conta solo la parte deducibile.",
-                "variazioneAltre": "RF31 codice 99 (altre variazioni)",
-                "aiutoVariazione": "Rigo del quadro RF (contabilità ordinaria) in cui la suite propone la parte indeducibile.",
+                "aiutoPercentualeDeducibile": "Per i costi deducibili in parte (es. 20 per le auto, 80 per la telefonia) o i ricavi imponibili in parte; vuota se interamente deducibile o imponibile. Nei quadri RG ed RE conta solo la parte deducibile o imponibile.",
+                "variazioneAltre": "RF31 o RF55 codice 99 (altre variazioni)",
+                "aiutoVariazione": "Rigo del quadro RF (contabilità ordinaria) per la parte indeducibile dei costi (in aumento) o non imponibile dei ricavi (in diminuzione, RF55).",
                 "aiutoRigoRedditi": "Rigo dei quadri RG (imprese in contabilità semplificata) o RE (professionisti) in cui confluiscono i costi e i ricavi del conto; vuoto: proposto dalla voce di conto economico."
             }
         },
@@ -306,12 +307,51 @@
                 "aiutoCompensazione": "Prodotti agricoli della Tabella A, parte I: percentuale del gruppo di prodotti (D.M. 12 maggio 1992 e successivi). Senza percentuale è un'operazione diversa.",
                 "aiutoOperazioneDiversa": "Op. diverse: acquisto di beni non ammortizzabili o servizi usati solo per le operazioni diverse da quelle agricole, l'IVA si detrae (art. 34, c. 5). Connesse: acquisto per le attività connesse occasionali, va nel rigo VF18. Gli altri acquisti non danno detrazione.",
                 "destinazioneDiverse": "Op. diverse",
-                "destinazioneConnesse": "Connesse"
+                "destinazioneConnesse": "Connesse",
+                "testiPartite": {
+                    "titoloPartite": "Partite aperte",
+                    "aiutoPartite": "Abbinamento obbligatorio delle righe dei clienti e dei fornitori: la proposta chiude le partite dalla più vecchia e ripartisce l'importo tra incasso o pagamento, ritenuta, abbuono e compensazione secondo le altre righe. Verificarla e salvare.",
+                    "cliente": "Cliente",
+                    "fornitore": "Fornitore",
+                    "apreLaPartita": "apre una partita di",
+                    "chiude": "chiude partite per",
+                    "nessunAcconto": "Nessun acconto o nota di credito aperti da abbinare.",
+                    "nessunaPartita": "Nessuna partita aperta: l'importo si registra come acconto.",
+                    "partita": "Partita",
+                    "scadenza": "Scadenza",
+                    "importo": "Importo",
+                    "residuo": "Residuo",
+                    "eccedenzaAcconto": "Registra l'importo non abbinato come acconto (partita da abbinare ai documenti successivi)",
+                    "eccedenzaNota": "L'importo non abbinato resta una nota di credito da abbinare ai documenti successivi.",
+                    "insolutoDi": "Insoluto che riapre",
+                    "nuovaPartita": "— nessun documento: nuova partita —"
+                }
             },
             "show": {
                 "daFattura": "Dalla fattura elettronica",
                 "generataDa": "Registrazione generata dalla liquidazione IVA: si aggiorna rielaborandola.",
                 "generataCorrispettivi": "Registrazione dei corrispettivi del mese: si modifica dalla maschera mensile."
+            }
+        },
+        "partita": {
+            "index": {
+                "aiuto": "Partite del partitario clienti e fornitori: documenti, insoluti, acconti e note di credito da abbinare, con gli abbinamenti di incassi, pagamenti, ritenute, compensazioni e abbuoni. Il totale delle partite deve corrispondere al saldo del sottoconto della controparte.",
+                "soloAperte": "Partite aperte",
+                "tutteLePartite": "Tutte le partite",
+                "nessunaPartita": "Nessuna partita aperta.",
+                "residuoTotale": "Da incassare o pagare",
+                "saldoConto": "saldo del conto",
+                "nonQuadra": "Differenza",
+                "aiutoQuadratura": "Il saldo del sottoconto non corrisponde alle partite: righe sul sottoconto senza la controparte o registrazioni senza partite (eseguire \"sisma partite-aperte\").",
+                "daVerificare": "abbinamenti automatici da verificare",
+                "confermaAbbinamenti": "Conferma gli abbinamenti",
+                "automatico": "da verificare",
+                "colonnaPartita": "Partita",
+                "scadenza": "Scadenza",
+                "importo": "Importo",
+                "colonnaAbbinamenti": "Abbinamenti",
+                "residuo": "Residuo",
+                "riapre": "Riapre"
             }
         },
         "registroIva": {

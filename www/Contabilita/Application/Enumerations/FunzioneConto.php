@@ -25,6 +25,8 @@ enum FunzioneConto: string
     case arrotondamentiAttivi = 'ARA';
     case arrotondamentiPassivi = 'ARP';
     case ivaGruppo = 'IVG';
+    case ritenuteSubite = 'RTS';
+    case ritenuteDaVersare = 'RTV';
 
     public function getLabel(): string
     {
@@ -43,6 +45,8 @@ enum FunzioneConto: string
             self::arrotondamentiAttivi => 'Arrotondamenti attivi',
             self::arrotondamentiPassivi => 'Arrotondamenti passivi',
             self::ivaGruppo => 'IVA di gruppo (debiti e crediti trasferiti alla controllante)',
+            self::ritenuteSubite => 'Erario c/ritenute subite (incassi dei compensi)',
+            self::ritenuteDaVersare => 'Erario c/ritenute da versare (pagamenti ai professionisti)',
         };
     }
 

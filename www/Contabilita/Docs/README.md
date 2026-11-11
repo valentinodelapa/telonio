@@ -108,7 +108,12 @@ Le fixture (`sisma fixtures`) coprono tutte le funzioni del modulo:
   l'amministratore unico con codice carica 1, intermediario dello studio),
   inviata; stampe definitive di gennaio del libro giornale e del registro
   delle vendite (pagina 2026/1: le registrazioni di gennaio non sono più
-  modificabili);
+  modificabili); partite aperte nello scadenzario: RiBa della fattura n. 4
+  a Beta insoluta e incassata di nuovo con un abbuono di 4 euro, acconto di
+  1.000 euro di Beta, incasso dal Comune al netto dell'IVA in scissione
+  dei pagamenti, pagamento a Gamma al netto della ritenuta d'acconto
+  (816 euro di bonifico e 160 di ritenuta da versare) e compensazione
+  della fattura n. 5 a Delta con il debito per la fattura D/45;
 - **Ferri Lucia, "Alimentari Ferri"** (ditta individuale, contabilità
   semplificata, IVA trimestrale, ventilazione dei corrispettivi nei dati
   fiscali): acquisti di merci per la rivendita al 4%, 10% e 22% da un
@@ -140,6 +145,8 @@ Le fixture (`sisma fixtures`) coprono tutte le funzioni del modulo:
 | `Controparte` | cliente o fornitore dell'azienda con dati fiscali, sede, recapiti per la fatturazione, pubblica amministrazione (scissione dei pagamenti), sottoconti del partitario, costo o ricavo e codice IVA abituali |
 | `RegistrazioneContabile` | registrazione di prima nota: numero nell'esercizio, causale, documento, controparte e, per i documenti IVA, registro, protocollo, data di competenza ed esigibilità; origine e riferimento per le registrazioni generate |
 | `RigaContabile` | riga in partita doppia sul sottoconto, con la controparte delle righe del partitario |
+| `Partita` | partita del partitario: controparte e sottoconto, registrazione che la apre, tipo (documento, insoluto con il documento riaperto, acconto, nota di credito da abbinare), documento, scadenza e importo |
+| `Abbinamento` | chiusura di una partita da parte di una registrazione: data, importo, modo (incasso o pagamento, ritenuta, compensazione, nota di credito, acconto, abbuono o perdita), partita collegata (acconto o nota usati) e flag "automatico" della migrazione |
 | `RigaIva` | riga del registro: codice IVA, imponibile e imposta con il segno del documento, detraibilità, acquisto per rivendita (ventilazione) e di altri prodotti, qualifica, aliquota teorica, ripartizione degli acquisti promiscui tra le attività, contropartita |
 | `LiquidazioneIva` | liquidazione del mese o trimestre con il prospetto (IVA esigibile, di cui ventilata, e detraibile, riporti, acconto, interessi, dovuto o credito), la scadenza, il giroconto, il trimestre anticipato delle attività trimestrali e il gruppo IVA a cui il risultato è trasferito |
 | `AccontoIva` | acconto dell'anno con metodo, base e importo; con il gruppo IVA l'acconto del gruppo versato dalla controllante |
@@ -211,12 +218,72 @@ cui confluisce, anche con il codice della voce per i righi RG10 e RG22
 `RighiRedditi`). I costi deducibili solo in parte (auto, telefonia) hanno
 sul conto la percentuale deducibile e il rigo del quadro RF in cui va la
 parte indeducibile (RF16 imposte, RF18 mezzi di trasporto, RF31 codice 99
-altre variazioni, predefinito). Il servizio `ComponentiReddito` calcola i
+altre variazioni, predefinito); i ricavi imponibili solo in parte hanno la
+percentuale imponibile e la parte non imponibile va tra le variazioni in
+diminuzione (RF55 codice 99). Il servizio `ComponentiReddito` calcola i
 componenti per cassa (le fatture concorrono per la parte incassata o
-pagata nell'anno; gli incassi e i pagamenti della controparte chiudono le
-fatture dalla più vecchia, le note di credito senza movimento di denaro;
-dei costi conta la parte deducibile) e l'utile per competenza con le
-variazioni per la parte indeducibile.
+pagata nell'anno secondo gli abbinamenti delle partite aperte, vedi sotto;
+dei costi conta la parte deducibile, dei ricavi la parte imponibile) e
+l'utile per competenza con le variazioni in aumento e in diminuzione.
+
+## Partite aperte e scadenzario
+
+Le righe di una registrazione sui sottoconti dei clienti e dei fornitori
+formano un gruppo per controparte e sottoconto (`Services\PartiteAperte`),
+con l'importo nel segno del partitario (dare per i clienti, avere per i
+fornitori):
+
+- **in apertura** (fatture, addebiti, insoluti) nasce una `Partita` per
+  l'intero importo; con la scissione dei pagamenti la partita è al netto
+  dell'IVA stornata dal cliente. La fattura si può abbinare agli acconti e
+  alle note di credito ancora aperti della controparte;
+- **in chiusura** (incassi, pagamenti, note di credito, compensazioni)
+  l'importo si abbina alle partite aperte con un `Abbinamento` per partita
+  e modo di chiusura: incasso o pagamento, ritenuta d'acconto (subita dal
+  professionista o operata sul fornitore: conti con funzione "Erario
+  c/ritenute subite" e "Erario c/ritenute da versare"), abbuono, sconto o
+  perdita (righe sui conti economici), compensazione (righe dell'altro
+  ruolo della stessa controparte) e nota di credito. L'importo non
+  abbinato è una nuova partita: acconto, se indicato, o nota di credito
+  da abbinare;
+- l'**insoluto** (giroconto che addebita di nuovo il cliente) riapre il
+  documento scelto: è una partita di tipo insoluto collegata al documento.
+
+L'abbinamento è **obbligatorio**: il form della prima nota mostra per ogni
+gruppo le partite abbinabili (registrate non dopo la registrazione, dalla
+scadenza più vecchia) con la proposta, che chiude le partite dalla più
+vecchia e ripartisce l'importo tra i modi di chiusura in proporzione (un
+incasso di due parcelle con la ritenuta: per ciascuna l'80 per cento di
+incasso e il 20 di ritenuta). La registrazione si salva solo dopo che la
+proposta è stata mostrata; il salvataggio controlla che ogni partita non
+riceva più del suo residuo e che l'importo sia abbinato per intero o
+registrato come acconto. Le registrazioni dirette (fixture, test) usano la
+proposta. Le partite già abbinate da altre registrazioni non si eliminano
+né si riducono sotto quanto abbinato.
+
+Lo **scadenzario** dell'azienda elenca per controparte le partite aperte (o
+tutte) con scadenza, abbinamenti e residuo, e confronta il totale con il
+saldo del sottoconto: una differenza indica righe sul sottoconto senza la
+controparte o registrazioni senza partite.
+
+Per **cassa** (quadri RG ed RE del modello Redditi) ogni fattura concorre
+in proporzione a quanto abbinato nell'anno come incasso o pagamento,
+ritenuta (parte del compenso), compensazione, nota di credito e acconto
+(alla data dell'acconto); l'insoluto toglie l'importo nell'anno in cui si
+registra e i suoi incassi lo ripristinano. Abbuoni e perdite non contano
+come incasso e i conti economici delle loro registrazioni non concorrono
+(il ricavo non incassato non è tassato). Le ritenute abbinate nell'anno
+agli incassi dei clienti sono proposte nel rigo RE26. `ComponentiReddito`
+espone anche i totali dei ricavi e dei costi dell'ultimo calcolo per cassa,
+usati per il reddito delle società di persone imputato ai soci (quadro RH).
+
+`sisma partite-aperte [--soggetto=ID]` crea le partite delle registrazioni
+anteriori alla versione 0.8: in ordine di giornale le fatture aprono le
+partite e incassi, pagamenti e note di credito le chiudono dalla più
+vecchia, con l'eccedenza come acconto. Questi abbinamenti sono segnati
+"da verificare" nello scadenzario finché non si confermano o si
+modificano dal form della registrazione. Le aziende senza partite sono
+calcolate per cassa con la chiusura dalla più vecchia, con un avviso.
 
 ## Clienti e fornitori
 
@@ -766,6 +833,10 @@ suite sono in sola lettura per tutti.
 - RFC 5652 (Cryptographic Message Syntax) per la busta CAdES.
 
 ## Da completare
+
+- scadenze di pagamento delle fatture (oggi la scadenza della partita è
+  la data del documento): lettura dei dati di pagamento della fattura
+  elettronica e rate;
 
 - registrazione all'incasso dell'IVA a esigibilità differita e IVA per
   cassa (art. 32-bis D.L. 83/2012); oggi esclusa dalla liquidazione con un

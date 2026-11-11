@@ -31,6 +31,7 @@ use Contabilita\Application\Services\AttivitaSeparate;
 use Contabilita\Application\Services\ControlloRegistrazione;
 use Contabilita\Application\Services\CorrispettiviMensili;
 use Contabilita\Application\Services\FatturaPa\PropostaDaFattura;
+use Contabilita\Application\Services\PartiteAperte;
 use Contabilita\Application\Services\PropostaRighe;
 use Contabilita\Application\Services\RegimeIva;
 use Contabilita\Application\Services\SalvataggioRegistrazione;
@@ -45,8 +46,10 @@ use SismaFramework\Orm\CustomTypes\SismaDate;
  * doppia. "Proponi le righe" compone la partita doppia dalla causale e
  * dalle righe IVA (Services\PropostaRighe), "Aggiungi righe" aggiunge
  * righe vuote; il salvataggio controlla l'insieme
- * (Services\ControlloRegistrazione). Le registrazioni delle fatture
- * elettroniche partono dalla proposta della fattura.
+ * (Services\ControlloRegistrazione) e l'abbinamento obbligatorio delle
+ * righe dei clienti e dei fornitori alle partite aperte
+ * (Services\PartiteAperte). Le registrazioni delle fatture elettroniche
+ * partono dalla proposta della fattura.
  */
 class RegistrazioneController extends ContabilitaController
 {
@@ -133,11 +136,12 @@ class RegistrazioneController extends ContabilitaController
         foreach ((new RigaIvaModel($this->dataMapper))->getRighe($registrazione) as $riga) {
             $righeIva[] = self::datiRigaIva($riga, $segno);
         }
-        $righe = [];
+        $righe = $entitaRighe = [];
         foreach ((new RigaContabileModel($this->dataMapper))->getRighe($registrazione) as $riga) {
             $righe[] = self::datiRiga($riga);
+            $entitaRighe[] = $riga;
         }
-        return $this->gestisci($request, $registrazione, $righeIva, $righe, 'Registrazione n. ' . $registrazione->numero);
+        return $this->gestisci($request, $registrazione, $righeIva, $righe, 'Registrazione n. ' . $registrazione->numero, null, $entitaRighe);
     }
 
     /**
@@ -166,10 +170,11 @@ class RegistrazioneController extends ContabilitaController
         }
         $this->getEsercizio($soggetto, $registrazione->esercizioContabile->anno);
         $datiIva = array_map(fn(RigaIva $riga) => self::datiRigaIva($riga, $registrazione->causale->getSegno()), $righeIva);
-        $righe = [];
+        $righe = $entitaRighe = [];
         try {
             foreach ((new PropostaRighe($this->dataMapper))->proponi($this->piano, $registrazione, $righeIva) as $riga) {
                 $righe[] = self::datiRiga($riga);
+                $entitaRighe[] = $riga;
             }
         } catch (\DomainException $errore) {
             $proposta->avvisi[] = $errore->getMessage();
@@ -177,7 +182,7 @@ class RegistrazioneController extends ContabilitaController
         foreach (array_merge($proposta->avvisi, $fattura->avvisi === null ? [] : explode("\n", $fattura->avvisi)) as $avviso) {
             $this->vars['avvisiProposta'][] = $avviso;
         }
-        return $this->gestisci($request, $registrazione, $datiIva, $righe, 'Registrazione della fattura n. ' . $fattura->numero, $fattura);
+        return $this->gestisci($request, $registrazione, $datiIva, $righe, 'Registrazione della fattura n. ' . $fattura->numero, $fattura, $entitaRighe);
     }
 
     /**
@@ -236,10 +241,14 @@ class RegistrazioneController extends ContabilitaController
     /**
      * @param array<int, array<string, mixed>> $datiIva righe IVA da mostrare (importi del documento)
      * @param array<int, array<string, mixed>> $datiRighe righe in partita doppia da mostrare
+     * @param RigaContabile[] $righeIniziali righe salvate o proposte, per gli abbinamenti alle partite
      */
-    private function gestisci(Request $request, RegistrazioneContabile $registrazione, array $datiIva, array $datiRighe, string $titolo, ?FatturaElettronica $fattura = null): Response
+    private function gestisci(Request $request, RegistrazioneContabile $registrazione, array $datiIva, array $datiRighe, string $titolo, ?FatturaElettronica $fattura = null, array $righeIniziali = []): Response
     {
         $soggetto = $registrazione->soggetto;
+        $partiteAperte = new PartiteAperte($this->dataMapper);
+        $righeCorrenti = $righeIniziali;
+        $scelteInviate = null;
         $chiaveProtocollo = SalvataggioRegistrazione::chiaveProtocollo($registrazione);
         $form = new RegistrazioneContabileForm($registrazione);
         $erroriRighe = [];
@@ -251,6 +260,8 @@ class RegistrazioneController extends ContabilitaController
             $testataValida = $form->isValid();
             [$righeIva, $datiIva, $ivaValide] = $this->leggiRigheIva($request, $registrazione, $erroriRighe);
             [$righe, $datiRighe, $righeValide] = $this->leggiRighe($request, $erroriRighe);
+            $righeCorrenti = $righe;
+            $scelteInviate = self::leggiAbbinamenti($request);
             if ($testataValida) {
                 $registrazione = $form->resolveEntity();
             }
@@ -259,7 +270,9 @@ class RegistrazioneController extends ContabilitaController
             } elseif ($azione === 'proponi') {
                 if ($testataValida && $ivaValide) {
                     try {
-                        $datiRighe = array_map(fn(RigaContabile $riga) => self::datiRiga($riga), (new PropostaRighe($this->dataMapper))->proponi($this->piano, $registrazione, $righeIva));
+                        $righeCorrenti = (new PropostaRighe($this->dataMapper))->proponi($this->piano, $registrazione, $righeIva);
+                        $datiRighe = array_map(fn(RigaContabile $riga) => self::datiRiga($riga), $righeCorrenti);
+                        $scelteInviate = [];
                         $this->vars['messaggioProposta'] = count($datiRighe) > 0 ? 'Righe in partita doppia proposte: verificarle e salvare.' : 'Nessuna riga da proporre per la causale.';
                     } catch (\DomainException $errore) {
                         $erroriRighe[] = $errore->getMessage();
@@ -277,8 +290,19 @@ class RegistrazioneController extends ContabilitaController
                     }
                 }
                 if (count($errori) === 0) {
+                    // abbinamento obbligatorio: ogni gruppo del partitario deve essere stato mostrato e confermato
+                    $gruppi = $partiteAperte->getGruppi($registrazione, $righe);
+                    $erroriPartite = count(array_diff_key($gruppi, $scelteInviate)) > 0
+                            ? ['Verificare l\'abbinamento alle partite aperte proposto qui sotto e salvare.']
+                            : $partiteAperte->verifica($registrazione, $gruppi, $scelteInviate);
+                    foreach ($erroriPartite as $messaggio) {
+                        $erroriRighe[] = $messaggio;
+                        $errori['partite'] = $messaggio;
+                    }
+                }
+                if (count($errori) === 0) {
                     try {
-                        $registrazione = (new SalvataggioRegistrazione($this->dataMapper))->salva($registrazione, $righeIva, $righe, $chiaveProtocollo, $fattura);
+                        $registrazione = (new SalvataggioRegistrazione($this->dataMapper))->salva($registrazione, $righeIva, $righe, $chiaveProtocollo, $fattura, array_intersect_key($scelteInviate, $gruppi));
                     } catch (\DomainException $errore) {
                         $errori['dataRegistrazione'] = $errore->getMessage();
                         $form->getFilterErrors()->dataRegistrazioneCustomMessage = $errore->getMessage();
@@ -297,6 +321,7 @@ class RegistrazioneController extends ContabilitaController
             }
         }
         $this->impostaVariabiliForm($form, $registrazione);
+        $this->vars['partiteRegistrazione'] = $this->datiPartite($partiteAperte, $registrazione, $righeCorrenti, $scelteInviate);
         $this->vars['registrazione'] = $registrazione;
         $this->vars['fattura'] = $fattura;
         $this->vars['datiIva'] = array_merge($datiIva, array_fill(0, $registrazione->causale->isIva() ? max(1, $righeVuote - (count($datiIva) > 0 ? 1 : 0)) : 0, []));
@@ -438,6 +463,103 @@ class RegistrazioneController extends ContabilitaController
             $righe[] = $riga;
         }
         return [$righe, $dati, $valide];
+    }
+
+    /**
+     * Gruppi del partitario della registrazione con le partite abbinabili e
+     * gli abbinamenti inviati, salvati o proposti, per la vista.
+     *
+     * @param RigaContabile[] $righe
+     */
+    private function datiPartite(PartiteAperte $servizio, RegistrazioneContabile $registrazione, array $righe, ?array $scelteInviate): array
+    {
+        try {
+            $gruppi = $servizio->getGruppi($registrazione, $righe);
+        } catch (\Error) {
+            return [];
+        }
+        if (count($gruppi) === 0) {
+            return [];
+        }
+        $scelte = $scelteInviate ?? $servizio->getScelte($registrazione);
+        $proposte = $servizio->proponi($registrazione, $gruppi);
+        $dati = [];
+        foreach ($gruppi as $chiave => $gruppo) {
+            $scelta = $scelte[$chiave] ?? $proposte[$chiave];
+            $voci = [];
+            foreach ($servizio->getAbbinabili($gruppo['controparte'], $gruppo['conto'], $gruppo['apertura'], $registrazione) as $id => $voce) {
+                $partita = $voce['partita'];
+                $voci[] = ['id' => $id, 'etichetta' => $partita->getEtichetta(), 'scadenza' => ($partita->dataScadenza ?? $partita->data)->format('d/m/Y'),
+                    'importo' => $partita->importo, 'residuo' => $voce['residuo'], 'tipo' => PartiteAperte::tipoAbbinamentoApertura($partita)->value];
+            }
+            if ($gruppo['apertura']) {
+                $colonne = array_values(array_unique(array_column($voci, 'tipo')));
+            } else {
+                $usati = [];
+                foreach ($scelta['abbinamenti'] as $quote) {
+                    $usati = array_merge($usati, array_keys($quote));
+                }
+                $colonne = array_values(array_unique(array_merge(array_keys($gruppo['composizione']), $usati)));
+                $colonne = count($colonne) === 0 ? ['DEN'] : $colonne;
+            }
+            $riapribili = [];
+            if ($gruppo['apertura'] && ($registrazione->causale->isDocumentoRichiesto() === false)) {
+                foreach ($servizio->getRiapribili($gruppo['controparte'], $gruppo['conto'], $registrazione) as $partita) {
+                    $riapribili[$partita->id] = $partita->getEtichetta() . ' (' . number_format($partita->importo, 2, ',', '.') . ')';
+                }
+            }
+            $dati[] = ['chiave' => $chiave, 'controparte' => $gruppo['controparte']->denominazione, 'cliente' => $gruppo['cliente'], 'apertura' => $gruppo['apertura'],
+                'importo' => $gruppo['importo'], 'colonne' => array_map('strval', $colonne), 'abbinabili' => $voci, 'scelte' => $scelta, 'riapribili' => $riapribili,
+                'nota' => in_array($registrazione->causale, [CausaleContabile::notaCreditoEmessa, CausaleContabile::notaCreditoRicevuta], true)];
+        }
+        return $dati;
+    }
+
+    /**
+     * Abbinamenti inviati per gruppo del partitario (solo i gruppi mostrati
+     * nel form, segnati dal campo "presente").
+     *
+     * @return array<string, array{abbinamenti: array<int, array<string, float>>, acconto: bool, riapre: ?int}>
+     */
+    private static function leggiAbbinamenti(Request $request): array
+    {
+        $input = $request->input['partite'] ?? [];
+        $scelte = [];
+        foreach (is_array($input) ? $input : [] as $chiave => $gruppo) {
+            if ((is_array($gruppo) === false) || (isset($gruppo['presente']) === false)) {
+                continue;
+            }
+            $abbinamenti = [];
+            foreach (is_array($gruppo['abbinamenti'] ?? null) ? $gruppo['abbinamenti'] : [] as $id => $quote) {
+                if ((ctype_digit((string) $id) === false) || (is_array($quote) === false)) {
+                    continue;
+                }
+                foreach ($quote as $tipo => $valore) {
+                    $numero = self::numero($valore);
+                    if (($numero !== null) && (abs($numero) >= 0.005)) {
+                        $abbinamenti[(int) $id][(string) $tipo] = $numero;
+                    }
+                }
+            }
+            $riapre = (string) ($gruppo['riapre'] ?? '');
+            $scelte[(string) $chiave] = ['abbinamenti' => $abbinamenti, 'acconto' => (string) ($gruppo['acconto'] ?? '') === '1', 'riapre' => ctype_digit($riapre) ? (int) $riapre : null];
+        }
+        return $scelte;
+    }
+
+    /**
+     * Importo scritto all'italiana (1.234,56) o con il punto decimale.
+     */
+    private static function numero(mixed $valore): ?float
+    {
+        $testo = str_replace(' ', '', trim((string) $valore));
+        if ($testo === '') {
+            return null;
+        }
+        if (str_contains($testo, ',')) {
+            $testo = str_replace(',', '.', str_replace('.', '', $testo));
+        }
+        return is_numeric($testo) ? round((float) $testo, 2) : null;
     }
 
     /**

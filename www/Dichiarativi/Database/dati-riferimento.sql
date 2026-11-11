@@ -1,7 +1,7 @@
 -- =====================================================
 -- Dichiarativi - catalogo dei campi e dei quadri dei modelli, aliquote delle addizionali
 -- =====================================================
--- Generato con "sisma tabelle-dichiarativi --sql" il 07/11/2026 20:45: non modificare a mano.
+-- Generato con "sisma tabelle-dichiarativi --sql" il 11/11/2026 09:52: non modificare a mano.
 -- Fonte: Dichiarativi/Database/sorgenti, dalle specifiche tecniche dell'Agenzia delle Entrate (specifiche.csv) e dalle tabelle delle addizionali (addizionali.csv).
 -- Righe: campo_modello 6162, quadro_modello 57, addizionale_regionale 21, addizionale_comunale 7896.
 -- Idempotente. Da eseguire dopo schema.sql.
@@ -1568,7 +1568,7 @@ INSERT INTO `campo_modello` (`modello`, `anno`, `codice`, `quadro`, `descrizione
 ('RPF', 2026, 'CR030001', 'CR', 'Residuo precedente dichiarazione', 'NP'),
 ('RPF', 2026, 'CR030003', 'CR', 'di cui compensato nel mod. F24', 'NP'),
 ('RPF', 2026, 'CR030004', 'CR', 'Credito residuo', 'NP'),
-('RPF', 2026, 'CR031001', 'CR', 'Codice', 'N1'),
+('RPF', 2026, 'CR031001', 'CR', 'Codice', 'N2'),
 ('RPF', 2026, 'CR031002', 'CR', 'Importo', 'NP'),
 ('RPF', 2026, 'CR031003', 'CR', 'Residuo 2024', 'NP'),
 ('RPF', 2026, 'CR031004', 'CR', 'Rata / Spesa 2023', 'NP'),

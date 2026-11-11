@@ -20,6 +20,7 @@ use Deleghe\Application\Enumerations\SezioneF24;
 use Deleghe\Application\Enumerations\StatoDelega;
 use Deleghe\Application\Fixtures\IntermediarioStudioFixture;
 use Dichiarativi\Application\Entities\Dichiarazione;
+use Dichiarativi\Application\Enumerations\ModalitaSaldo;
 use Dichiarativi\Application\Enumerations\ModelloDichiarativo;
 use Dichiarativi\Application\HelperClasses\AziendaDemo;
 use Dichiarativi\Application\Services\Frontespizio;
@@ -37,7 +38,9 @@ use Telonio\Application\Fixtures\StudioFixture;
  * coefficiente del 78 per cento del codice ATECO 2007 (74.10.21, prima del
  * passaggio ad ATECO 2025), i contributi della Gestione separata versati
  * con l'F24 di giugno e l'imposta sostitutiva del 5 per cento per i primi
- * cinque anni dell'attività (casella del rigo LM21 barrata).
+ * cinque anni dell'attività (casella del rigo LM21 barrata); saldo e
+ * primo acconto in tre rate mensili dal 30 giugno (piano di rateazione in
+ * Deleghe).
  */
 class RedditiGallo2025Fixture extends BaseFixture
 {
@@ -130,6 +133,10 @@ class RedditiGallo2025Fixture extends BaseFixture
         $quadri = new QuadriDichiarazione($dichiarazione, $this->dataMapper);
         (new PropostaRedditi($this->dataMapper))->proponi($dichiarazione, $quadri);
         $quadri = new QuadriDichiarazione($dichiarazione, $this->dataMapper);
+        // saldo e primo acconto in tre rate mensili dal 30 giugno
+        $dichiarazione->modalitaSaldo = ModalitaSaldo::rate;
+        $dichiarazione->numeroRate = 3;
+        $this->dataMapper->save($dichiarazione);
         (new VersamentiRedditi($this->dataMapper))->registraVersamenti($dichiarazione, $quadri);
         $this->addEntity($dichiarazione);
     }

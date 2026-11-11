@@ -31,6 +31,8 @@ class PropostaIrpef
     /** @var string[] */
     private array $avvisi = [];
 
+    private PropostaBonusEdilizi $bonus;
+
     public function __construct(private DataMapper $dataMapper = new DataMapper())
     {
 
@@ -41,9 +43,10 @@ class PropostaIrpef
      *
      * @return string[]
      */
-    public function proponi(Dichiarazione $dichiarazione, QuadriDichiarazione $quadri): array
+    public function proponi(Dichiarazione $dichiarazione, QuadriDichiarazione $quadri, ?PropostaBonusEdilizi $bonus = null): array
     {
         $this->avvisi = [];
+        $this->bonus = $bonus ?? new PropostaBonusEdilizi($this->dataMapper);
         $quadri->usaModulo(1);
         $this->proponiLavoro($quadri, $dichiarazione->soggetto, $dichiarazione->anno);
         $quadri->usaModulo(1);
@@ -143,7 +146,23 @@ class PropostaIrpef
         $fondiari = $q('RA023011') + $q('RA023012') + $q('RB010013') + $q('RB010019');
         // redditi d'impresa e di lavoro autonomo (perdite di lavoro autonomo in diminuzione; quelle d'impresa a mano nei righi delle perdite)
         $impresa = $q('RE025001') + $q('RG036001') + $q('RF101001');
-        $complessivo = $fondiari + $q('RC005006') + $q('RC009002') + $impresa;
+        // altri redditi del quadro RL: capitale (RL3), trust (RL4), redditi diversi (RL19), dilettanti oltre 30.658 euro (RL22) e lavoro autonomo non abituale (RL32)
+        $impresa += $q('RL003002') + $q('RL004002') + $q('RL019001') + $q('RL022002') + $q('RL032001');
+        // partecipazioni (quadro RH): impresa, associazioni tra professionisti (la perdita riduce gli altri redditi) e società semplici
+        $impresa += $q('RH014001') + $q('RH017001') + $q('RH018001');
+        // plusvalenze delle partecipazioni qualificate dei regimi transitori (RT sez. III e IV, a mano), redditi a tassazione separata
+        // con l'opzione per l'ordinaria (RM22) e redditi di capitale esteri con l'opzione per la tassazione ordinaria (RM31, col. 7)
+        $impresa += $q('RT082001') + $q('RT082002') + $q('RT082003') + $q('RT086001') + $q('RM022001');
+        foreach ($quadri->getModuli() as $modulo) {
+            if ($quadri->get('RM031007', $modulo) !== null) {
+                $impresa += $quadri->getImporto('RM031003', $modulo);
+            }
+        }
+        // perdite di lavoro autonomo (RE25 negativo) in diminuzione degli altri redditi, reddito complessivo non negativo (specifiche 16.2.1)
+        $complessivo = max(0, $fondiari + $q('RC005006') + $q('RC009002') + $impresa);
+        if ($fondiari + $q('RC005006') + $q('RC009002') + $impresa < 0) {
+            $this->avvisi[] = 'Quadro RN: le perdite superano gli altri redditi, reddito complessivo pari a zero: verifica il trattamento della perdita eccedente (il modello prevede il riporto solo per le perdite di lavoro autonomo del 2006 e 2007, rigo RS10).';
+        }
         if (($complessivo === 0) && ($q('RB010014') + $q('RB010015') + $q('RB010016') + $q('LM038001') === 0)) {
             return;
         }
@@ -188,7 +207,8 @@ class PropostaIrpef
         }
         // altri redditi con detrazione (specifiche 21.4): assimilati diversi dagli assegni del coniuge, lavoro autonomo (RE), impresa minore (RG)
         $altriRedditi = (($quadri->get('RC007002', 1) !== null) && ($quadri->get('RC007001', 1) === null)) || (($quadri->get('RC008002', 1) !== null) && ($quadri->get('RC008001', 1) === null))
-                || ($quadri->get('RE006001', 1) !== null) || ($quadri->get('RE020001', 1) !== null) || ($quadri->get('RG012001', 1) !== null) || ($quadri->get('RG024001', 1) !== null);
+                || ($quadri->get('RE006001', 1) !== null) || ($quadri->get('RE020001', 1) !== null) || ($quadri->get('RG012001', 1) !== null) || ($quadri->get('RG024001', 1) !== null)
+                || ($quadri->get('RL014002', 1) !== null) || ($quadri->get('RL015002', 1) !== null) || ($quadri->get('RL016002', 1) !== null) || ($quadri->get('RL030001', 1) !== null);
         $lavoro = CalcoloIrpef::detrazioniLavoro($redditoDetrazioni, $q('RC006001'), $determinato, $q('RC006002'), $altriRedditi,
                 count(array_intersect($tipologie, [2, 3, 4, 8, 9])) > 0, count(array_intersect($tipologie, [1, 7])) > 0);
         $quadri->proponi('RN007001', (int) round($lavoro[1]) ?: null);
@@ -197,27 +217,44 @@ class PropostaIrpef
         $riferimentoCuneo = $redditoDetrazioni + $q('RC014003') + $q('RC014004');
         $cuneo = $q('RC014005') === 1;
         $quadri->proponi('RN007005', $cuneo ? ((int) round(CalcoloIrpef::ulterioreDetrazione($riferimentoCuneo, $q('RC014008'))) ?: null) : null);
-        // oneri detraibili della sezione I del quadro RP (specifiche 23.1), con il riordino oltre 75.000 euro (art. 16-ter Tuir)
+        // oneri detraibili della sezione I del quadro RP (specifiche 23.1) e rate dei bonus edilizi (par. 13-15), con il riordino oltre 75.000 euro (art. 16-ter Tuir)
         $riordino = max(0, $q('RN001001') - $q('RN002001'));
-        $altreSezioni = count(array_filter(array_merge(...array_map('array_keys', $quadri->getValori() ?: [[]])), fn(string $codice) => preg_match('/^RP0(4[1-9]|[5-8][0-9])/', $codice) === 1)) > 0;
-        if (($riordino > 75000) && $altreSezioni) {
-            $this->avvisi[] = 'Rigo RN13: reddito oltre 75.000 euro con le sezioni da III a VI del quadro RP (rate dei bonus edilizi, arredi, altre detrazioni): il limite del riordino (art. 16-ter Tuir) va ripartito anche sui righi RN12 e da RN14 a RN17, controlla gli importi spettanti.';
+        $this->bonus->proponiTotali($quadri, $anno);
+        array_push($this->avvisi, ...$this->bonus->getAvvisi());
+        $quadri->proponi('RN013001', $oneri->rn13($quadri, (float) $riordino, $familiari['figliRiordino'], $familiari['disabile'], $this->bonus->getEntitaRiordino()) ?: null);
+        foreach ($this->bonus->detrazioni($oneri->getImputate()) as $codice => $importo) {
+            $quadri->proponi($codice, $importo ?: null);
         }
-        $quadri->proponi('RN013001', $oneri->rn13($quadri, (float) $riordino, $familiari['figliRiordino'], $familiari['disabile']) ?: null);
         array_push($this->avvisi, ...array_diff($oneri->getAvvisi(), $this->avvisi));
         $familiariELavoro = $q('RN006001') + $q('RN006002') + $q('RN006004') + $q('RN007001') + $q('RN007002') + $q('RN007004') + $q('RN007005');
         $quadri->proponi('RN008001', $familiariELavoro ?: null);
         $totaleDetrazioni = $familiariELavoro + $q('RN012003') + $q('RN013001') + $q('RN014001') + $q('RN015001') + $q('RN016001') + $q('RN017001') + $q('RN017002')
                 + $q('RN018002') + $q('RN019002') + $q('RN020002') + $q('RN021002') + $q('RN021003');
         $quadri->proponi('RN022001', $totaleDetrazioni ?: null);
-        $netta = max(0, $q('RN005001') - $q('RN022001') - $q('RN023001') - $q('RN025001'));
+        // crediti d'imposta del quadro CR (RN24) e totale con le spese sanitarie per patologie (RN25); imposta netta (specifiche, rigo RN26)
+        PropostaCrediti::proponiUtilizzo($quadri);
+        $netta = max(0, $q('RN005001') - $q('RN022001') - $q('RN025001'));
         $quadri->proponi('RN026001', $netta ?: null);
+        // credito per le imposte pagate all'estero (quadro CE, rigo RN29)
+        array_push($this->avvisi, ...CalcoloCreditoEstero::proponi($quadri, $anno));
 
-        // ritenute: lavoro dipendente (RC10, RC11) e cedolare a credito per le ritenute sulle locazioni brevi (LC1, col. 5)
+        // ritenute: lavoro dipendente (RC10, RC11), lavoro autonomo e impresa, altri redditi (RL) e cedolare a credito per le ritenute sulle locazioni brevi (LC1, col. 5)
         $cedolareNegativa = max(0, $q('LC001004') - $q('LC001003'));
-        $ritenute = $q('RC010001') + $q('RC010006') + $q('RC011001') + $q('RE026001') + $q('RG037006') + $q('RF102006') + $cedolareNegativa;
+        $ritenute = $q('RC010001') + $q('RC010006') + $q('RC011001') + $q('RE026001') + $q('RG037006') + $q('RF102006') + $cedolareNegativa
+                + $q('RL003003') + $q('RL004005') + $q('RL020001') + $q('RL023002') + $q('RL033001') + $q('RH019001') + $q('RT113001');
         $quadri->proponi('RN033004', $ritenute ?: null);
-        $differenza = $q('RN026001') - $q('RN027001') - $q('RN028001') - $q('RN029002') - $q('RN031002') - $q('RN033004');
+        // altri crediti d'imposta (specifiche 27.1): canoni non percepiti (CR8), crediti delle partecipazioni (RH20) e dei trust (RL4), codice 2 del rigo CR31
+        $altriCrediti = $q('CR008001') + $q('RH020002') + $q('RL004007') - $q('LM040040');
+        foreach ($quadri->getModuli() as $modulo) {
+            if ($quadri->getImporto('CR031001', $modulo) === 2) {
+                $altriCrediti += $quadri->getImporto('CR031002', $modulo);
+            }
+        }
+        $quadri->proponi('RN032002', $altriCrediti > 0 ? $altriCrediti : null);
+        // differenza (specifiche, rigo RN34, senza il prospetto ZFU del quadro RS)
+        $differenza = $q('RN026001') - $q('RN027001') - $q('RN028001') - $q('RN029002') - $q('RN030003') - $q('RN030006') - $q('RN030008')
+                - $q('RN031002') - $q('RN032001') - $q('RN032002') - $q('RN032005') - $q('RN032008') - $q('RN032010') - $q('RN032011') - $q('RN032012')
+                + $q('RN033003') - $q('RN033004') - $q('RN032015') - $q('RN032016') - $q('RN032017') - $q('RN032018') - $q('RN032019') - $q('RN032020') - $q('RN032021');
         $quadri->proponi('RN034001', $differenza ?: null);
 
         // trattamento integrativo (RN43) e somma che non concorre al reddito (RN44)

@@ -42,6 +42,15 @@ class ComponentiRedditoTest extends ContabilitaTestCase
         return $righe;
     }
 
+    /**
+     * Movimenti dell'azienda senza partite aperte (registrazioni anteriori
+     * alle partite: chiusura dalla più vecchia).
+     */
+    private function rispondiSenzaPartite(array $righe): void
+    {
+        $this->testAdapter->impostaSelectCallback(fn(string $cmd) => new TestResultSet(preg_match('/FROM\W+(partita|abbinamento)\W/', $cmd) === 1 ? [] : $righe));
+    }
+
     public function testIncassiSulleFattureDallaPiuVecchia(): void
     {
         $cliente = $this->conti['06.01.0001'];
@@ -65,10 +74,11 @@ class ComponentiRedditoTest extends ContabilitaTestCase
         $this->assertEqualsWithDelta([1 => 1.0, 3 => 0.5], $servizio->getQuoteIncassate($righe, 2025), 0.0001);
         $this->assertEqualsWithDelta([3 => 0.5], $servizio->getQuoteIncassate($righe, 2026), 0.0001);
 
-        $this->testAdapter->impostaSelectCallback(fn() => new TestResultSet($righe));
+        $this->rispondiSenzaPartite($righe);
         $componenti = $servizio->perCassa($this->azienda, 2025, false);
         $this->assertSame(2000.0, $componenti['RG2']);
         $this->assertSame(300.0, $componenti['RG22:99']);
+        $this->assertArrayHasKey('partite', $servizio->getAvvisi());
         // professionista: compensi nel quadro RE
         $this->assertSame(2000.0, $servizio->perCassa($this->azienda, 2025, true)['RE2']);
 
@@ -82,8 +92,14 @@ class ComponentiRedditoTest extends ContabilitaTestCase
         $this->assertSame(['ricavi' => 2000.0, 'costi' => 300.0, 'utile' => 1700.0, 'variazioni' => ['RF31:99' => 60.0]], $servizio->perCompetenza($this->azienda, 2025));
         $consulenze->variazioneRedditi = 'RF18';
         $this->assertSame(['RF18' => 60.0], $servizio->perCompetenza($this->azienda, 2025)['variazioni']);
-        $this->testAdapter->impostaSelectCallback(fn() => new TestResultSet($righe));
+        $this->rispondiSenzaPartite($righe);
         $this->assertSame(240.0, $servizio->perCassa($this->azienda, 2025, false)['RG22:99']);
+
+        // ricavi imponibili al 90 per cento: nel quadro RG la parte imponibile, nel quadro RF la variazione in diminuzione del 10 per cento
+        $ricavi->percentualeDeducibile = 90.0;
+        $this->assertSame(1800.0, $servizio->perCassa($this->azienda, 2025, false)['RG2']);
+        $this->testAdapter->impostaSelectCallback(fn() => new TestResultSet($nel2025));
+        $this->assertEquals(['RF18' => 60.0, 'RF55:99' => 200.0], $servizio->perCompetenza($this->azienda, 2025)['variazioni']);
     }
 
     public function testNotaDiCreditoChiudeLaFattura(): void

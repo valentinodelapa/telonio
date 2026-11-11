@@ -23,9 +23,26 @@ class CalcoloIrpef
 
     public const SCAGLIONI = [[28000.0, 23.0], [50000.0, 35.0], [null, 43.0]];
 
-    public static function impostaLorda(float $imponibile): float
+    public static function impostaLorda(float $imponibile, ?int $anno = null): float
     {
-        return CalcoloAddizionali::perScaglioni(max(0.0, $imponibile), self::SCAGLIONI);
+        return CalcoloAddizionali::perScaglioni(max(0.0, $imponibile), $anno === null ? self::SCAGLIONI : self::scaglioni($anno));
+    }
+
+    /**
+     * Scaglioni e aliquote dell'art. 11 Tuir per anno d'imposta (per la
+     * riliquidazione delle dichiarazioni degli anni precedenti): fino al
+     * 2021 cinque scaglioni, nel 2022 e 2023 quattro (L. 234/2021), dal 2024
+     * tre (D.Lgs. 216/2023, L. 207/2024).
+     *
+     * @return list<array{0: ?float, 1: float}>
+     */
+    public static function scaglioni(int $anno): array
+    {
+        return match (true) {
+            $anno <= 2021 => [[15000.0, 23.0], [28000.0, 27.0], [55000.0, 38.0], [75000.0, 41.0], [null, 43.0]],
+            $anno <= 2023 => [[15000.0, 23.0], [28000.0, 25.0], [50000.0, 35.0], [null, 43.0]],
+            default => self::SCAGLIONI,
+        };
     }
 
     public static function quoziente(float $valore): float

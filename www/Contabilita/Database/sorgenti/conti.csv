@@ -59,7 +59,7 @@ piano_conti_id;id;codice;descrizione;natura;funzione;voce_cee
 1;58;06.03.0003;Erario c/acconto IVA;A;ACI;A.C.II.5-bis
 1;59;06.03.0004;Erario c/acconti IRES;A;;A.C.II.5-bis
 1;60;06.03.0005;Erario c/acconti IRAP;A;;A.C.II.5-bis
-1;61;06.03.0006;Erario c/ritenute subite;A;;A.C.II.5-bis
+1;61;06.03.0006;Erario c/ritenute subite;A;RTS;A.C.II.5-bis
 1;62;06.04;Crediti verso altri;A;;
 1;63;06.04.0001;Anticipi a fornitori;A;;A.C.II.5-quater
 1;64;06.04.0002;Crediti verso dipendenti;A;;A.C.II.5-quater
@@ -105,7 +105,7 @@ piano_conti_id;id;codice;descrizione;natura;funzione;voce_cee
 1;104;13.03.0002;Mutui passivi;P;;P.D.4
 1;105;13.04;Debiti tributari;P;;
 1;106;13.04.0001;IVA su vendite;P;IVV;P.D.12
-1;107;13.04.0002;Erario c/ritenute da versare;P;;P.D.12
+1;107;13.04.0002;Erario c/ritenute da versare;P;RTV;P.D.12
 1;108;13.04.0003;Erario c/IRES;P;;P.D.12
 1;109;13.04.0004;Erario c/IRAP;P;;P.D.12
 1;110;13.05;Debiti previdenziali;P;;

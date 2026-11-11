@@ -108,6 +108,111 @@ require Layout::percorso('header');
         <?php endif; ?>
         <div class="card-footer bg-white small text-body-secondary"><?= Html::e($aiutoCertificazioni) ?></div>
     </div>
+
+    <div class="card shadow-sm mt-3">
+        <div class="card-header bg-white fw-semibold d-flex align-items-center">
+            <span class="me-auto"><?= Html::e($sezioneCertificazioniAutonomo) ?></span>
+            <a href="/certificazione-autonomo/create/soggetto/<?= Html::e($soggetto->id) ?>/anno/<?= Html::e($anno) ?>" class="btn btn-sm btn-outline-primary"><i class="bi bi-plus-lg me-1"></i><?= Html::e($azioni['aggiungi']) ?></a>
+        </div>
+        <?php if (count($certificazioniAutonomo) === 0): ?>
+            <div class="card-body small text-body-secondary"><?= Html::e($nessunaCertificazioneAutonomo) ?></div>
+        <?php else: ?>
+            <div class="table-responsive">
+                <table class="table mb-0 align-middle small">
+                    <thead class="table-light">
+                        <tr><th><?= Html::e($campi['denominazioneSostituto']) ?></th><th><?= Html::e($campi['causaleCu']) ?></th><th class="text-end"><?= Html::e($campi['ammontareLordo']) ?></th><th class="text-end"><?= Html::e($campi['ritenuteAcconto']) ?></th><th></th></tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($certificazioniAutonomo as $certificazione): ?>
+                            <tr>
+                                <td><?= Html::e($certificazione->denominazioneSostituto) ?></td>
+                                <td><?= Html::e($certificazione->causale) ?></td>
+                                <td class="text-end text-nowrap"><?= Html::e(Importo::euro($certificazione->ammontareLordo)) ?></td>
+                                <td class="text-end text-nowrap"><?= Html::e(Importo::euro($certificazione->ritenuteAcconto)) ?></td>
+                                <td class="text-end text-nowrap">
+                                    <a href="/certificazione-autonomo/update/certificazione-autonomo/<?= Html::e($certificazione->id) ?>" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+                                    <form method="post" action="/certificazione-autonomo/delete/certificazione-autonomo/<?= Html::e($certificazione->id) ?>" class="d-inline" data-conferma="<?= Html::e($confermaElimina) ?>"><?= $campoCsrf ?><button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php endif; ?>
+        <div class="card-footer bg-white small text-body-secondary"><?= Html::e($aiutoCertificazioniAutonomo) ?></div>
+    </div>
+
+    <div class="card shadow-sm mt-3">
+        <div class="card-header bg-white fw-semibold d-flex align-items-center gap-2">
+            <span class="me-auto"><?= Html::e($sezioneAttivitaEstere) ?></span>
+            <?php if (count($attivitaEstere) > 0): ?>
+                <form method="post" action="/attivita-estera/copia/soggetto/<?= Html::e($soggetto->id) ?>/anno/<?= Html::e($anno) ?>" class="d-inline"><?= $campoCsrf ?><button type="submit" class="btn btn-sm btn-outline-secondary"><i class="bi bi-copy me-1"></i><?= Html::e($copiaNellAnnoSuccessivo) ?></button></form>
+            <?php endif; ?>
+            <a href="/attivita-estera/create/soggetto/<?= Html::e($soggetto->id) ?>/anno/<?= Html::e($anno) ?>" class="btn btn-sm btn-outline-primary"><i class="bi bi-plus-lg me-1"></i><?= Html::e($azioni['aggiungi']) ?></a>
+        </div>
+        <?php if (count($attivitaEstere) === 0): ?>
+            <div class="card-body small text-body-secondary"><?= Html::e($nessunaAttivitaEstera) ?></div>
+        <?php else: ?>
+            <div class="table-responsive">
+                <table class="table mb-0 align-middle small">
+                    <thead class="table-light">
+                        <tr><th><?= Html::e($campi['descrizioneAttivita']) ?></th><th><?= Html::e($campi['codiceInvestimento']) ?></th><th><?= Html::e($campi['codiceStatoEstero']) ?></th><th class="text-end"><?= Html::e($campi['quotaPossesso']) ?></th><th class="text-end"><?= Html::e($valoreFinaleBreve) ?></th><th class="text-end"><?= Html::e($campi['proventi']) ?></th><th></th></tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($attivitaEstere as $attivita): ?>
+                            <tr>
+                                <td><?= Html::e($attivita->descrizione) ?></td>
+                                <td><?= Html::e($attivita->codiceInvestimento->getLabel()) ?></td>
+                                <td><?= Html::e(\Dichiarativi\Application\Services\TabelleRiferimento\StatiEsteriRedditi::getDenominazione($attivita->codiceStatoEstero) ?? '') ?></td>
+                                <td class="text-end"><?= Html::e(number_format($attivita->quota, 2, ',', '.')) ?></td>
+                                <td class="text-end text-nowrap"><?= Html::e(Importo::euro($attivita->valoreFinale)) ?></td>
+                                <td class="text-end text-nowrap"><?= $attivita->proventi === null ? '' : Html::e(Importo::euro($attivita->proventi)) ?></td>
+                                <td class="text-end text-nowrap">
+                                    <a href="/attivita-estera/update/attivita-estera/<?= Html::e($attivita->id) ?>" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+                                    <form method="post" action="/attivita-estera/delete/attivita-estera/<?= Html::e($attivita->id) ?>" class="d-inline" data-conferma="<?= Html::e($confermaElimina) ?>"><?= $campoCsrf ?><button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php endif; ?>
+        <div class="card-footer bg-white small text-body-secondary"><?= Html::e($aiutoAttivitaEstere) ?></div>
+    </div>
+
+    <div class="card shadow-sm mt-3">
+        <div class="card-header bg-white fw-semibold d-flex align-items-center">
+            <span class="me-auto"><?= Html::e($sezioneCessioni) ?></span>
+            <a href="/cessione-finanziaria/create/soggetto/<?= Html::e($soggetto->id) ?>/anno/<?= Html::e($anno) ?>" class="btn btn-sm btn-outline-primary"><i class="bi bi-plus-lg me-1"></i><?= Html::e($azioni['aggiungi']) ?></a>
+        </div>
+        <?php if (count($cessioni) === 0): ?>
+            <div class="card-body small text-body-secondary"><?= Html::e($nessunaCessione) ?></div>
+        <?php else: ?>
+            <div class="table-responsive">
+                <table class="table mb-0 align-middle small">
+                    <thead class="table-light">
+                        <tr><th><?= Html::e($campi['dataCessione']) ?></th><th><?= Html::e($campi['descrizioneCessione']) ?></th><th class="text-end"><?= Html::e($campi['corrispettivo']) ?></th><th class="text-end"><?= Html::e($campi['costoAcquisto']) ?></th><th class="text-end"><?= Html::e($differenzaCessione) ?></th><th></th></tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($cessioni as $cessione): ?>
+                            <tr>
+                                <td><?= Html::data($cessione->dataCessione) ?></td>
+                                <td><?= Html::e($cessione->descrizione) ?> <span class="badge text-bg-light border"><?= Html::e($cessione->tipo === 'C' ? 'Cripto' : 'Titoli') ?></span></td>
+                                <td class="text-end text-nowrap"><?= Html::e(Importo::euro($cessione->corrispettivo)) ?></td>
+                                <td class="text-end text-nowrap"><?= Html::e(Importo::euro($cessione->costo)) ?></td>
+                                <td class="text-end text-nowrap"><?= Html::e(Importo::euro($cessione->getDifferenza())) ?></td>
+                                <td class="text-end text-nowrap">
+                                    <a href="/cessione-finanziaria/update/cessione-finanziaria/<?= Html::e($cessione->id) ?>" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+                                    <form method="post" action="/cessione-finanziaria/delete/cessione-finanziaria/<?= Html::e($cessione->id) ?>" class="d-inline" data-conferma="<?= Html::e($confermaElimina) ?>"><?= $campoCsrf ?><button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php endif; ?>
+        <div class="card-footer bg-white small text-body-secondary"><?= Html::e($aiutoCessioni) ?></div>
+    </div>
 <?php endif; ?>
 
 <div class="card shadow-sm mt-3">

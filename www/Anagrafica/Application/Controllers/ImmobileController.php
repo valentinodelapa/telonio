@@ -17,10 +17,12 @@ use Anagrafica\Application\Forms\ImmobileForm;
 use Anagrafica\Application\Forms\PossessoForm;
 use Anagrafica\Application\Models\DatiCatastaliModel;
 use Anagrafica\Application\Models\ContrattoLocazioneModel;
+use Anagrafica\Application\Models\InterventoEdilizioModel;
 use Anagrafica\Application\Models\IdentificativoGraffatoModel;
 use Anagrafica\Application\Models\ImmobileModel;
 use Anagrafica\Application\Models\PertinenzaLocataModel;
 use Anagrafica\Application\Models\PossessoModel;
+use Anagrafica\Application\Models\CanoneNonPercepitoModel;
 use Anagrafica\Application\Models\VariazioneCanoneModel;
 use Anagrafica\Application\Services\ControlloQuote;
 use Anagrafica\Application\Services\SincronizzazioneSoggetto;
@@ -215,6 +217,7 @@ class ImmobileController extends AnagraficaController
         $this->vars['possessi'] = (new PossessoModel($this->dataMapper))->getStoricoImmobile($immobile);
         $this->vars['graffati'] = (new IdentificativoGraffatoModel($this->dataMapper))->getElenco($immobile);
         $this->vars['contratti'] = (new ContrattoLocazioneModel($this->dataMapper))->getElenco($immobile);
+        $this->vars['interventi'] = (new InterventoEdilizioModel($this->dataMapper))->getElenco($immobile);
         $this->vars['pageTitle'] = $immobile->tipoCatasto->getLabel() . ' ' . $immobile->getIdentificativo();
         $this->vars['briciole'] = ['Anagrafica' => '/soggetto/index', 'Immobili' => '/immobile/index', $immobile->getIdentificativo() => null];
         return $this->render->generateView('immobile/show', $this->vars);
@@ -232,6 +235,7 @@ class ImmobileController extends AnagraficaController
         $primaTransazione = $this->dataMapper->startTransaction();
         $possessoModel->deleteByImmobile($immobile);
         $this->eliminaContratti($immobile);
+        (new InterventoEdilizioModel($this->dataMapper))->deleteByImmobile($immobile);
         (new DatiCatastaliModel($this->dataMapper))->deleteByImmobile($immobile);
         (new IdentificativoGraffatoModel($this->dataMapper))->deleteByImmobile($immobile);
         $this->dataMapper->delete($immobile);
@@ -254,6 +258,7 @@ class ImmobileController extends AnagraficaController
         foreach ((new ContrattoLocazioneModel($this->dataMapper))->getElenco($immobile) as $contratto) {
             $pertinenzaModel->deleteByContrattoLocazione($contratto);
             $variazioneModel->deleteByContrattoLocazione($contratto);
+            (new CanoneNonPercepitoModel($this->dataMapper))->deleteByContrattoLocazione($contratto);
             $this->dataMapper->delete($contratto);
         }
         $pertinenzaModel->deleteByImmobile($immobile);

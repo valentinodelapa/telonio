@@ -147,6 +147,30 @@ identificativo e CIN. I locatori sono i possessori dell'immobile; il
 servizio `CanoniLocazione` calcola il canone di un periodo per i quadri
 RA, RB e LC del modello Redditi. L'utilizzo "comodato a un familiare che
 vi dimora" del possesso corrisponde all'utilizzo 10 del quadro RB.
+Sul contratto si registrano anche i canoni scaduti e non percepiti di un
+anno con la data della convalida di sfratto per morosità: danno ai
+locatori il credito d'imposta del rigo CR8 del modello Redditi PF
+(art. 26 Tuir).
+
+### Interventi edilizi
+
+Nella scheda dei fabbricati si registrano gli interventi per i quali un
+contribuente persona fisica (possessore, detentore o familiare
+convivente) fruisce di una detrazione in rate annuali nel quadro RP del
+modello Redditi: recupero edilizio, sismabonus, bonus verde, facciate e
+superbonus (righi RP41-RP47), colonnine di ricarica (RP56), bonus mobili
+(RP57) e risparmio energetico (RP61-RP64). Si indicano i dati del rigo
+nell'anno della spesa (anno, codice dell'intervento, caselle
+"Percentuale", "Interventi particolari", "Acquisto, eredità o
+donazione", "Maggiorazione sisma", "Opzione 2023", codice fiscale e
+casella del condominio per le parti comuni) e la spesa del contribuente.
+Percentuale di detrazione e numero delle rate, se non indicati, sono
+proposti dal servizio `TabellaDetrazioniEdilizie`, che riporta le
+tabelle delle specifiche tecniche del modello Redditi PF 2026 (codici
+ammessi per anno, percentuale, rateazione, numero della rata nell'anno,
+limiti di spesa); il form segnala i codici e le combinazioni non ammessi.
+Ogni anno la dichiarazione propone i righi con il numero della rata e il
+suo importo, fino all'ultima.
 
 ## Regime fiscale
 

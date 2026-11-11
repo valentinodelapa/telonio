@@ -20,6 +20,13 @@ class SpecificheDichiarativi
 
     public const COLONNE_SPECIFICHE = ['modello', 'anno', 'url', 'provvedimento'];
 
+    /**
+     * Formati incoerenti nelle specifiche ufficiali, corretti alla lettura:
+     * il codice del rigo CR31 del modello Redditi PF 2026 è indicato N1 ma
+     * i valori ammessi vanno da 12 a 21.
+     */
+    public const CORREZIONI_FORMATO = ['RPF' => [2026 => ['CR031001' => 'N2']]];
+
     public function __construct(private string $cartella = TabelleDichiarativi::CARTELLA)
     {
 
@@ -65,6 +72,11 @@ class SpecificheDichiarativi
         $campi = $lettore->leggi($tsv);
         if (count($campi) < 100) {
             throw new \UnexpectedValueException(sprintf('Specifiche %s %d: trovati solo %d campi, impaginazione del PDF cambiata?', $specifica['modello'], $specifica['anno'], count($campi)));
+        }
+        foreach (self::CORREZIONI_FORMATO[$specifica['modello']][$specifica['anno']] ?? [] as $codice => $formato) {
+            if (isset($campi[$codice])) {
+                $campi[$codice]['formato'] = $formato;
+            }
         }
         ksort($campi);
         $quadri = $lettore->getQuadri();

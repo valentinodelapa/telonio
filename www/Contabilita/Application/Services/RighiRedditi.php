@@ -25,7 +25,11 @@ final class RighiRedditi
         'RF16' => 'RF16 - Imposte indeducibili',
         'RF18' => 'RF18 - Mezzi di trasporto (art. 164 Tuir)',
         'RF31:99' => 'RF31 codice 99 - Altre variazioni in aumento (es. telefonia, art. 102, comma 9)',
+        'RF55:99' => 'RF55 codice 99 - Altre variazioni in diminuzione (ricavi in parte non imponibili)',
     ];
+
+    /** Variazione dei conti di ricavo (le altre sono dei conti di costo) */
+    public const VARIAZIONE_DIMINUZIONE = 'RF55:99';
 
     /**
      * @return array<string, string> rigo => descrizione

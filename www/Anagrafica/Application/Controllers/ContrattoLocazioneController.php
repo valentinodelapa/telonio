@@ -3,15 +3,18 @@
 namespace Anagrafica\Application\Controllers;
 
 use Anagrafica\Application\BaseClasses\AnagraficaController;
+use Anagrafica\Application\Entities\CanoneNonPercepito;
 use Anagrafica\Application\Entities\ContrattoLocazione;
 use Anagrafica\Application\Entities\Immobile;
 use Anagrafica\Application\Entities\PertinenzaLocata;
 use Anagrafica\Application\Entities\VariazioneCanone;
 use Anagrafica\Application\Enumerations\TipoCatasto;
 use Anagrafica\Application\Enumerations\TipoContrattoLocazione;
+use Anagrafica\Application\Forms\CanoneNonPercepitoForm;
 use Anagrafica\Application\Forms\ContrattoLocazioneForm;
 use Anagrafica\Application\Forms\PertinenzaLocataForm;
 use Anagrafica\Application\Forms\VariazioneCanoneForm;
+use Anagrafica\Application\Models\CanoneNonPercepitoModel;
 use Anagrafica\Application\Models\PertinenzaLocataModel;
 use Anagrafica\Application\Models\VariazioneCanoneModel;
 use SismaFramework\Core\HttpClasses\Request;
@@ -48,6 +51,7 @@ class ContrattoLocazioneController extends AnagraficaController
         $this->vars['immobile'] = $immobile;
         $this->vars['pertinenze'] = (new PertinenzaLocataModel($this->dataMapper))->getByContrattoLocazione($contrattoLocazione);
         $this->vars['variazioni'] = (new VariazioneCanoneModel($this->dataMapper))->getElenco($contrattoLocazione);
+        $this->vars['canoniNonPercepiti'] = (new CanoneNonPercepitoModel($this->dataMapper))->getElenco($contrattoLocazione);
         $this->vars['pageTitle'] = 'Contratto di locazione';
         $this->vars['briciole'] = ['Anagrafica' => '/soggetto/index', 'Immobili' => '/immobile/index', $immobile->getIdentificativo() => '/immobile/show/immobile/' . $immobile->id, 'Contratto' => null];
         return $this->render->generateView('contrattoLocazione/show', $this->vars);
@@ -61,6 +65,7 @@ class ContrattoLocazioneController extends AnagraficaController
         $transazione = $this->dataMapper->startTransaction();
         (new PertinenzaLocataModel($this->dataMapper))->deleteByContrattoLocazione($contrattoLocazione);
         (new VariazioneCanoneModel($this->dataMapper))->deleteByContrattoLocazione($contrattoLocazione);
+        (new CanoneNonPercepitoModel($this->dataMapper))->deleteByContrattoLocazione($contrattoLocazione);
         $this->dataMapper->delete($contrattoLocazione);
         $this->dataMapper->commitTransaction($transazione);
         $this->aggiungiMessaggio('Contratto di locazione eliminato.');
@@ -113,6 +118,30 @@ class ContrattoLocazioneController extends AnagraficaController
         return $this->gestisciVariazione($request, $variazioneCanone, 'Modifica variazione del canone');
     }
 
+    public function canoneNonPercepito(Request $request, ContrattoLocazione $contrattoLocazione): Response
+    {
+        $this->autorizzaImmobile($contrattoLocazione->immobile);
+        $canone = new CanoneNonPercepito($this->dataMapper);
+        $canone->contrattoLocazione = $contrattoLocazione;
+        return $this->gestisciCanone($request, $canone, 'Canoni non percepiti');
+    }
+
+    public function modificaCanoneNonPercepito(Request $request, CanoneNonPercepito $canoneNonPercepito): Response
+    {
+        $this->autorizzaImmobile($canoneNonPercepito->contrattoLocazione->immobile);
+        return $this->gestisciCanone($request, $canoneNonPercepito, 'Modifica canoni non percepiti');
+    }
+
+    public function eliminaCanoneNonPercepito(Request $request, CanoneNonPercepito $canoneNonPercepito): Response
+    {
+        $contratto = $canoneNonPercepito->contrattoLocazione;
+        $this->autorizzaImmobile($contratto->immobile);
+        $this->verificaCsrf($request);
+        $this->dataMapper->delete($canoneNonPercepito);
+        $this->aggiungiMessaggio('Canoni non percepiti eliminati.');
+        return $this->vaiAlContratto($contratto);
+    }
+
     public function eliminaVariazione(Request $request, VariazioneCanone $variazioneCanone): Response
     {
         $contratto = $variazioneCanone->contrattoLocazione;
@@ -162,6 +191,19 @@ class ContrattoLocazioneController extends AnagraficaController
         }
         $this->impostaVariabiliForm($form, $variazione);
         return $this->formFiglio($variazione->contrattoLocazione, $titolo, 'contrattoLocazione/variazione', $form->getResponseType());
+    }
+
+    private function gestisciCanone(Request $request, CanoneNonPercepito $canone, string $titolo): Response
+    {
+        $form = new CanoneNonPercepitoForm($canone);
+        if ($this->isInvioValido($request, $form)) {
+            $canone = $form->resolveEntity();
+            $this->dataMapper->save($canone);
+            $this->aggiungiMessaggio('Canoni non percepiti salvati.');
+            return $this->vaiAlContratto($canone->contrattoLocazione);
+        }
+        $this->impostaVariabiliForm($form, $canone);
+        return $this->formFiglio($canone->contrattoLocazione, $titolo, 'contrattoLocazione/canone', $form->getResponseType());
     }
 
     private function formFiglio(ContrattoLocazione $contratto, string $titolo, string $vista, $responseType): Response

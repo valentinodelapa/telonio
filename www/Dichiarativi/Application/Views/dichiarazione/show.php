@@ -123,7 +123,16 @@ require Layout::percorso('header');
                 <?php endforeach; ?>
             </ul>
             <div class="card-body">
-                <form method="post" action="/dichiarazione/versamenti/dichiarazione/<?= Html::e($id) ?>"><?= $campoCsrf ?><button type="submit" class="btn btn-sm btn-outline-primary"><i class="bi bi-credit-card-2-front me-1"></i><?= Html::e($azioni['registraVersamenti']) ?></button></form>
+                <form method="post" action="/dichiarazione/versamenti/dichiarazione/<?= Html::e($id) ?>" class="row g-2 align-items-end"><?= $campoCsrf ?>
+                    <div class="col-8">
+                        <label class="form-label small mb-0" for="modalitaSaldo"><?= Html::e($campi['modalitaSaldoRedditi']) ?></label>
+                        <select class="form-select form-select-sm" id="modalitaSaldo" name="modalitaSaldo">
+                            <?php foreach ($modalitaSaldo as $modalita): ?><option value="<?= Html::e($modalita->value) ?>" <?= $modalita === $dichiarazione->modalitaSaldo ? 'selected' : '' ?>><?= Html::e($modalita->getLabelRedditi()) ?></option><?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-4"><label class="form-label small mb-0" for="numeroRate"><?= Html::e($campi['numeroRate']) ?></label><input type="number" min="2" max="7" class="form-control form-control-sm" id="numeroRate" name="numeroRate" value="<?= Html::e($dichiarazione->numeroRate ?? '') ?>"></div>
+                    <div class="col-12"><button type="submit" class="btn btn-sm btn-outline-primary"><i class="bi bi-credit-card-2-front me-1"></i><?= Html::e($azioni['registraVersamenti']) ?></button></div>
+                </form>
                 <div class="small text-body-secondary mt-2"><?= Html::e($aiutoVersamentiRedditi) ?></div>
             </div>
         </div>

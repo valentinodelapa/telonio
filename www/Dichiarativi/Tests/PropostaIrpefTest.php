@@ -2,15 +2,25 @@
 
 namespace Dichiarativi\Tests;
 
+use Anagrafica\Application\Entities\Comune;
+use Anagrafica\Application\Entities\Immobile;
+use Anagrafica\Application\Entities\InterventoEdilizio;
 use Anagrafica\Application\Entities\Soggetto;
+use Anagrafica\Application\Enumerations\TipoCatasto;
+use Anagrafica\Application\Enumerations\TipoDetrazioneEdilizia;
 use Anagrafica\Application\Enumerations\TipoSoggetto;
 use Dichiarativi\Application\Entities\CampoModello;
 use Dichiarativi\Application\Entities\Dichiarazione;
 use Dichiarativi\Application\Enumerations\FormatoCampo;
 use Dichiarativi\Application\Enumerations\ModelloDichiarativo;
 use Dichiarativi\Application\Services\QuadriDichiarazione;
+use Dichiarativi\Application\Services\Redditi\PropostaBonusEdilizi;
+use Dichiarativi\Application\Services\Redditi\CalcoloCreditoEstero;
+use Dichiarativi\Application\Services\Redditi\CalcoloIrpef;
+use Dichiarativi\Application\Services\Redditi\PropostaCrediti;
 use Dichiarativi\Application\Services\Redditi\PropostaImpresa;
 use Dichiarativi\Application\Services\Redditi\PropostaIrpef;
+use Dichiarativi\Application\Services\Redditi\PropostaPartecipazioni;
 use Dichiarativi\Application\Services\TabelleRiferimento\TabelleDichiarativi;
 use Telonio\Tests\SuiteTestCase;
 use Telonio\Tests\TestResultSet;
@@ -65,6 +75,76 @@ class PropostaIrpefTest extends SuiteTestCase
             $quadri->imposta($codice, $valore);
         }
         return $quadri;
+    }
+
+    public function testCreditoImposteEstere(): void
+    {
+        $quadri = $this->creaQuadri(['RN001005' => 40000, 'RN005001' => 10000, 'RN026001' => 8000,
+            'CE001001' => '071', 'CE001002' => 2025, 'CE001003' => 1000, 'CE001004' => 350]);
+        $this->assertSame([], CalcoloCreditoEstero::proponi($quadri, 2025));
+        $q = fn(string $codice) => $quadri->getImporto($codice, 1);
+        $this->assertSame(40000, $q('CE001005'));
+        // quota di imposta lorda: 1.000 / 40.000 x 10.000 = 250, sotto l'imposta estera
+        $this->assertSame(250, $q('CE001010'));
+        $this->assertSame(250, $q('CE001011'));
+        $this->assertSame(2025, $q('CE004001'));
+        $this->assertSame(8000, $q('CE004003'));
+        $this->assertSame(250, $q('CE004004'));
+        $this->assertSame(250, $q('CE026001'));
+        $this->assertSame(250, $q('RN029002'));
+        // imposta estera oltre il 43 per cento del reddito estero
+        $quadri->imposta('CE001004', 500);
+        $this->assertCount(1, CalcoloCreditoEstero::proponi($quadri, 2025));
+    }
+
+    public function testCreditiDelQuadroCr(): void
+    {
+        // residui della dichiarazione dell'anno prima
+        $precedenti = $this->creaQuadri(['RN047011' => 1200, 'RN047039' => 300]);
+        $quadri = $this->creaQuadri([]);
+        PropostaCrediti::proponiResidui($quadri, $precedenti);
+        $this->assertSame(1200, $quadri->getImporto('CR007001', 1));
+        $this->assertSame(3, $quadri->getImporto('CR031001', 1));
+        $this->assertSame(300, $quadri->getImporto('CR031003', 1));
+        // utilizzo fino all'imposta lorda meno le detrazioni: prima casa, poi mediazioni
+        $quadri = $this->creaQuadri(['CR007001' => 3000, 'CR031001' => 16, 'CR031002' => 500, 'RN005001' => 2000]);
+        PropostaCrediti::proponiUtilizzo($quadri);
+        $q = fn(string $codice) => $quadri->getImporto($codice, 1);
+        $this->assertSame(3000, $q('RN024001'));
+        $this->assertSame(1000, $q('RN047011'));
+        $this->assertSame(500, $q('RN024004'));
+        $this->assertSame(500, $q('RN047014'));
+        $this->assertSame(3500, $q('RN025001'));
+    }
+
+    public function testScaglioniPerAnno(): void
+    {
+        $this->assertEqualsWithDelta(7720.0, CalcoloIrpef::impostaLorda(30000, 2021), 0.001);
+        $this->assertEqualsWithDelta(7400.0, CalcoloIrpef::impostaLorda(30000, 2023), 0.001);
+        $this->assertEqualsWithDelta(7140.0, CalcoloIrpef::impostaLorda(30000, 2025), 0.001);
+    }
+
+    public function testTotaliPartecipazioni(): void
+    {
+        // righi RH inseriti a mano: impresa in utile e in perdita, associazione tra professionisti con ritenute, società semplice
+        $quadri = $this->creaQuadri(['RH001001' => '09990012008', 'RH001002' => 1, 'RH001003' => 50, 'RH001004' => 9000,
+            'RH002001' => '01234560785', 'RH002002' => 1, 'RH002003' => 20, 'RH002004' => -2000,
+            'RH003001' => '01234980587', 'RH003002' => 2, 'RH003003' => 30, 'RH003004' => 3000, 'RH003009' => 600,
+            'RH004001' => '09990010994', 'RH004002' => 4, 'RH004003' => 10, 'RH004004' => 1000]);
+        (new PropostaPartecipazioni($this->dataMapper))->proponi($quadri);
+        $q = fn(string $codice) => $quadri->getImporto($codice, 1);
+        $this->assertSame(9000, $q('RH007002'));
+        $this->assertSame(2000, $q('RH008001'));
+        $this->assertSame(7000, $q('RH009002'));
+        $this->assertSame(7000, $q('RH014001'));
+        $this->assertSame(3000, $q('RH017001'));
+        $this->assertSame(1000, $q('RH018001'));
+        $this->assertSame(600, $q('RH019001'));
+        // nel quadro RN: redditi di partecipazione e ritenute
+        $this->testAdapter->impostaSelectCallback(fn() => new TestResultSet([]));
+        (new PropostaIrpef($this->dataMapper))->proponi($quadri->getDichiarazione(), $quadri);
+        $this->assertSame(11000, $q('RN001005'));
+        $this->assertSame(600, $q('RN033004'));
     }
 
     public function testLavoratoreDipendente(): void
@@ -212,5 +292,143 @@ class PropostaIrpefTest extends SuiteTestCase
         $this->assertSame([1500, 1500], $utilizzo['rs12']);
         $this->assertSame([0, null], $utilizzo['rs13']);
         $this->assertSame(0, PropostaImpresa::utilizzaPerdite(5000, null, false)['limitata']);
+    }
+
+    public function testBonusEdilizi(): void
+    {
+        // righi inseriti a mano: recupero 2022 al 50% (rata 2.000) e 2025 sull'abitazione principale (codice 3, rata 3.000),
+        // bonus mobili 2025 (rata 500), risparmio energetico 2025 al 36% (rata 1.000), ONLUS al 26% (5.000)
+        $righi = ['RP041001' => 2022, 'RP041008' => 4, 'RP041009' => 20000, 'RP041010' => 2000, 'RP041011' => 1,
+            'RP042001' => 2025, 'RP042007' => 3, 'RP042008' => 1, 'RP042009' => 30000, 'RP042010' => 3000, 'RP042011' => 1,
+            'RP057001' => 1, 'RP057002' => 5000, 'RP057003' => 500,
+            'RP061001' => 1, 'RP061002' => 2025, 'RP061007' => 1, 'RP061008' => 10000, 'RP061010' => 1000,
+            'RP008001' => 61, 'RP008002' => 5000];
+        $quadri = $this->creaQuadri(['RC001001' => 2, 'RC001002' => 1, 'RC001003' => 30000, 'RC005006' => 30000, 'RC006001' => 365, 'RC014005' => 2] + $righi);
+        $this->testAdapter->impostaSelectCallback(fn() => new TestResultSet([]));
+        (new PropostaIrpef($this->dataMapper))->proponi($quadri->getDichiarazione(), $quadri);
+        $q = fn(string $codice) => $quadri->getImporto($codice, 1);
+        $this->assertSame(5000, $q('RP048002'));
+        $this->assertSame(2500, $q('RP049002'));
+        $this->assertSame(500, $q('RP060001'));
+        $this->assertSame(1000, $q('RP065011'));
+        $this->assertSame(360, $q('RP066011'));
+        $this->assertSame(2500, $q('RN014001'));
+        $this->assertSame(250, $q('RN015001'));
+        $this->assertSame(360, $q('RN016001'));
+        $this->assertSame(1300, $q('RN013001'));
+
+        // 90.000 euro senza figli: limite 7.000 imputato prima alle rate dell'anno al 50% (recupero 3.000, mobili 500), poi al 36%
+        // (risparmio energetico 1.000) e infine al 26% (2.500 su 5.000); la rata del 2022 non è soggetta al riordino
+        $quadri = $this->creaQuadri(['RC001001' => 2, 'RC001002' => 1, 'RC001003' => 90000, 'RC005006' => 90000, 'RC006001' => 365, 'RC014005' => 2] + $righi);
+        (new PropostaIrpef($this->dataMapper))->proponi($quadri->getDichiarazione(), $quadri);
+        $q = fn(string $codice) => $quadri->getImporto($codice, 1);
+        $this->assertSame(2500, $q('RN014001'));
+        $this->assertSame(250, $q('RN015001'));
+        $this->assertSame(360, $q('RN016001'));
+        $this->assertSame(650, $q('RN013001'));
+        // 130.000 euro: limite 8.000 x 0,50 = 4.000 alle rate al 50% (3.000 di recupero e 500 di mobili), 500 al 36%, niente al 26%
+        $quadri = $this->creaQuadri(['RC001001' => 2, 'RC001002' => 1, 'RC001003' => 130000, 'RC005006' => 130000, 'RC006001' => 365, 'RC014005' => 2] + $righi);
+        (new PropostaIrpef($this->dataMapper))->proponi($quadri->getDichiarazione(), $quadri);
+        $q = fn(string $codice) => $quadri->getImporto($codice, 1);
+        $this->assertSame(2500, $q('RN014001'));
+        $this->assertSame(250, $q('RN015001'));
+        $this->assertSame(180, $q('RN016001'));
+        $this->assertSame(0, $q('RN013001'));
+        // i totali del quadro RP restano quelli ordinari
+        $this->assertSame(1000, $q('RP065011'));
+    }
+
+    public function testRighiDallArchivioDegliInterventi(): void
+    {
+        $comune = new Comune($this->dataMapper);
+        $comune->id = 1;
+        $comune->codiceCatastale = 'H501';
+        $immobile = new Immobile($this->dataMapper);
+        $immobile->id = 7;
+        $immobile->tipoCatasto = TipoCatasto::fabbricati;
+        $immobile->comune = $comune;
+        $immobile->foglio = '120';
+        $immobile->particella = '45';
+        $immobile->subalterno = '8';
+        $crea = function (TipoDetrazioneEdilizia $tipo, int $anno, ?int $tipologia, ?int $codice, float $spesa, float $percentuale, int $rateazione, bool $condominio = false) use ($immobile): InterventoEdilizio {
+            $intervento = new InterventoEdilizio($this->dataMapper);
+            $intervento->immobile = $immobile;
+            $intervento->tipo = $tipo;
+            $intervento->anno = $anno;
+            $intervento->tipologia = $tipologia;
+            $intervento->codicePercentuale = $codice;
+            $intervento->spesa = $spesa;
+            $intervento->percentualeDetrazione = $percentuale;
+            $intervento->rateazione = $rateazione;
+            $intervento->condominio = $condominio;
+            return $intervento;
+        };
+        $interventi = ['RE' => [$crea(TipoDetrazioneEdilizia::ristrutturazione, 2022, 5, 1, 50000, 110, 10), $crea(TipoDetrazioneEdilizia::ristrutturazione, 2025, null, 3, 30000, 50, 10, true)],
+            'CR' => [], 'AR' => [$crea(TipoDetrazioneEdilizia::arredo, 2025, null, null, 5000, 50, 10)], 'EN' => [$crea(TipoDetrazioneEdilizia::risparmioEnergetico, 2024, 2, 2, 20000, 70, 10)]];
+        // un rigo RP41 inserito a mano resta: gli interventi vanno nei righi successivi
+        $quadri = $this->creaQuadri(['RP041001' => 2019, 'RP041008' => 7, 'RP041009' => 10000, 'RP041010' => 1000]);
+        $bonus = new PropostaBonusEdilizi($this->dataMapper);
+        (new \ReflectionProperty(PropostaBonusEdilizi::class, 'interventi'))->setValue($bonus, $interventi);
+        (new \ReflectionProperty(PropostaBonusEdilizi::class, 'anno'))->setValue($bonus, 2025);
+        $this->testAdapter->impostaSelectCallback(fn() => new TestResultSet([]));
+        $this->assertSame(1, $bonus->getModuliNecessari());
+        $bonus->proponiRighi($quadri, $quadri->getDichiarazione()->soggetto);
+        $q = fn(string $codice) => $quadri->get($codice, 1);
+        $this->assertSame('2019', $q('RP041001'));
+        // superbonus 2022 in 10 rate dal 2023: terza rata di 5.000
+        $this->assertSame('2022', $q('RP042001'));
+        $this->assertSame('3', $q('RP042008'));
+        $this->assertSame('5000', $q('RP042010'));
+        $this->assertSame('1', $q('RP042011'));
+        $this->assertSame('3', $q('RP043007'));
+        $this->assertSame('3000', $q('RP043010'));
+        $this->assertSame('2', $q('RP043011'));
+        // dati catastali dell'immobile (n. 1) e casella "Condominio" per le parti comuni (n. 2)
+        $this->assertSame('H501', $q('RP051003'));
+        $this->assertSame('U', $q('RP051004'));
+        $this->assertSame('120', $q('RP051006'));
+        $this->assertSame('45', $q('RP051A07'));
+        $this->assertSame('8', $q('RP051008'));
+        $this->assertSame('2', $q('RP052001'));
+        $this->assertSame('1', $q('RP052002'));
+        $this->assertNull($q('RP052003'));
+        $this->assertSame('1', $q('RP057001'));
+        $this->assertSame('500', $q('RP057003'));
+        $this->assertSame('2', $q('RP061007'));
+        $this->assertSame('2000', $q('RP061010'));
+        // non possiede l'immobile e non è il conduttore: avviso per il rigo RP53
+        $this->assertNotEmpty(array_filter($bonus->getAvvisi(), fn(string $avviso) => str_contains($avviso, 'RP53')));
+
+        // totali: 70% (risparmio energetico 2024) e 110% (superbonus), riordino solo per le spese del 2025
+        $bonus->proponiTotali($quadri, 2025);
+        $this->assertSame(1000 + 3000, $quadri->getImporto('RP048002', 1));
+        $this->assertSame(5000, $quadri->getImporto('RP048010', 1));
+        $this->assertSame(5500, $quadri->getImporto('RP049010', 1));
+        $this->assertSame(2000, $quadri->getImporto('RP065004', 1));
+        $this->assertSame(['50ri' => 3000.0, '50ar' => 500.0], $bonus->getEntitaRiordino());
+        $this->assertSame(['RN014001' => 2000 + 5500, 'RN015001' => 250, 'RN016001' => 1400], $bonus->detrazioni(null));
+    }
+
+    public function testPerditeForfetarioELavoroAutonomo(): void
+    {
+        // forfetario con 10.000 euro di reddito netto, residui dell'anno prima: 9.000 in misura limitata (fino a 8.000) e 3.000 in misura piena (2.000)
+        $quadri = $this->creaQuadri([]);
+        $impresa = new PropostaImpresa($this->dataMapper);
+        (new \ReflectionProperty(PropostaImpresa::class, 'perditePrecedenti'))->setValue($impresa, ['limitata' => 9000, 'piena' => 3000, 'lavoroAutonomo' => 0, 'vantaggio' => 0]);
+        (new \ReflectionMethod(PropostaImpresa::class, 'proponiPerditeForfetario'))->invoke($impresa, $quadri, 10000, true);
+        $this->assertSame(8000, $quadri->getImporto('LM037003', 1));
+        $this->assertSame(2000, $quadri->getImporto('LM037004', 1));
+        $this->assertSame(10000, $quadri->getImporto('LM037005', 1));
+        $this->assertSame(10000, $quadri->getImporto('LM037002', 1));
+        $this->assertNull($quadri->get('LM037001', 1));
+        $this->assertCount(1, $impresa->getAvvisi());
+
+        // perdita di lavoro autonomo oltre gli altri redditi: reddito complessivo pari a zero
+        $quadri = $this->creaQuadri(['RC001001' => 2, 'RC001002' => 1, 'RC001003' => 20000, 'RC005006' => 20000, 'RC006001' => 365, 'RC014005' => 2,
+            'RE025001' => -25000]);
+        $this->testAdapter->impostaSelectCallback(fn() => new TestResultSet([]));
+        $avvisi = (new PropostaIrpef($this->dataMapper))->proponi($quadri->getDichiarazione(), $quadri);
+        $this->assertSame(0, $quadri->getImporto('RN001005', 1));
+        $this->assertNotEmpty(array_filter($avvisi, fn(string $avviso) => str_contains($avviso, 'perdita eccedente')));
     }
 }

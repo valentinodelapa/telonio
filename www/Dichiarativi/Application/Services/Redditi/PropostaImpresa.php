@@ -12,6 +12,7 @@ use Anagrafica\Application\Models\CodiceAtecoModel;
 use Anagrafica\Application\Models\DatiFiscaliModel;
 use Anagrafica\Application\Models\LegameModel;
 use Contabilita\Application\Services\ComponentiReddito;
+use Contabilita\Application\Services\PartiteAperte;
 use Contabilita\Application\Services\RighiRedditi;
 use Deleghe\Application\Enumerations\SezioneF24;
 use Deleghe\Application\Enumerations\StatoDelega;
@@ -27,8 +28,9 @@ use SismaFramework\Orm\HelperClasses\DataMapper;
  * regime dei dati fiscali dell'Anagrafica al 31 dicembre:
  * - RE (arti e professioni) e RG (impresa in contabilità semplificata) per
  *   cassa, dai componenti per rigo (ComponentiReddito, RighiRedditi);
- * - RF (contabilità ordinaria): utile o perdita del conto economico, le
- *   variazioni fiscali si indicano a mano (totali RF32 e RF56);
+ * - RF (contabilità ordinaria): utile o perdita del conto economico
+ *   con le variazioni dei conti con la percentuale; le altre variazioni
+ *   fiscali si indicano a mano (totali RF32 e RF56 ricalcolati);
  * - LM, sezione II (forfetario, L. 190/2014): ricavi incassati per il
  *   coefficiente di redditività del codice ATECO 2007, contributi
  *   previdenziali dai versamenti F24 della sezione INPS dell'anno,
@@ -38,8 +40,10 @@ use SismaFramework\Orm\HelperClasses\DataMapper;
  *   RS7) dai legami "Collaboratore familiare" con la quota dell'Anagrafica,
  *   quote del reddito positivo (i collaboratori non partecipano alle
  *   perdite) nei righi RG33 o RF98 e reddito di spettanza nei righi RG34 o
- *   RF99; nel regime forfetario il prospetto con le sole quote (l'imposta
- *   sostitutiva resta al titolare, art. 1, comma 64, L. 190/2014);
+ *   RF99; nel regime forfetario le quote del reddito netto dei contributi
+ *   (rigo LM36), che non riducono il reddito del titolare: l'imposta
+ *   sostitutiva è dovuta dal titolare sul reddito al lordo delle quote
+ *   (art. 1, comma 64, L. 190/2014; circolare 10/E del 2016, par. 4.4);
  * - perdite d'impresa degli anni precedenti (righi RG35 e RF100) dal
  *   prospetto delle perdite non compensate (righi RS12 e RS13, col. 2) della
  *   dichiarazione dell'anno prima nella suite: prima quelle in misura
@@ -56,11 +60,14 @@ class PropostaImpresa
     /** @var string[] */
     private array $avvisi = [];
 
-    /** @var array{limitata: int, piena: int}|null perdite residue della dichiarazione dell'anno prima */
+    /** @var array{limitata: int, piena: int, lavoroAutonomo: int, vantaggio: int}|null perdite residue della dichiarazione dell'anno prima */
     private ?array $perditePrecedenti = null;
 
     /** Primi tre periodi d'imposta dall'inizio dell'attività (perdite in misura piena) */
     private bool $primiTreAnni = false;
+
+    /** Ritenute d'acconto subite nell'anno (abbinamenti delle partite) */
+    private int $ritenute = 0;
 
     /** @var list<array{codiceFiscale: string, quota: float, nominativo: string}> collaboratori dell'impresa familiare */
     private array $collaboratori = [];
@@ -96,6 +103,11 @@ class PropostaImpresa
         $this->collaboratori = $dati->tipoAttivita === TipoAttivita::impresaFamiliare ? $this->getCollaboratori($soggetto, $anno) : [];
         if (($dati->tipoAttivita === TipoAttivita::impresaFamiliare) && (count($this->collaboratori) === 0)) {
             $this->avvisi[] = 'Impresa familiare senza collaboratori nei legami dell\'Anagrafica (ruolo "Collaboratore familiare" con la quota): prospetto del quadro RS e rigo RG33 o RF98 da compilare a mano.';
+        }
+        // ritenute d'acconto abbinate nell'anno agli incassi dei clienti (partite aperte della contabilità)
+        $this->ritenute = (int) round((new PartiteAperte($this->dataMapper))->getRitenute($soggetto, $anno));
+        if (($this->ritenute > 0) && (($professionista === false) || ($dati->regimeFiscale === RegimeFiscale::forfetario))) {
+            $this->avvisi[] = 'Ritenute d\'acconto subite nell\'anno secondo gli incassi della contabilità: ' . number_format($this->ritenute, 0, ',', '.') . ' euro, da indicare a mano nel rigo delle ritenute.';
         }
         match (true) {
             in_array($dati->regimeFiscale, [RegimeFiscale::forfetario], true) => $this->proponiForfetario($quadri, $soggetto, $anno, $dati, $componenti->perCassa($soggetto, $anno, $professionista), $professionista),
@@ -205,6 +217,17 @@ class PropostaImpresa
         $quadri->proponi('RE021005', $differenza ?: null);
         $reddito = $differenza - $quadri->getImporto('RE021001');
         $quadri->proponi('RE023001', $reddito ?: null);
+        // ritenute sui compensi incassati nell'anno (abbinamenti di tipo ritenuta, istruzioni del rigo RE26)
+        $quadri->proponi('RE026001', $this->ritenute ?: null);
+        // perdite di lavoro autonomo del 2006 e 2007 senza limiti di tempo (rigo RS10 dell'anno prima, istruzioni del rigo RE24)
+        if ($this->perditePrecedenti !== null) {
+            $pregresse = $this->perditePrecedenti['lavoroAutonomo'];
+            $quadri->proponi('RE024001', min($pregresse, max(0, $reddito)) ?: null);
+            $quadri->proponi('RS010001', max(0, $pregresse - $quadri->getImporto('RE024001')) ?: null);
+        }
+        if ($quadri->getImporto('RE024001') > max(0, $reddito)) {
+            $this->avvisi[] = 'Rigo RE24: le perdite pregresse non possono superare il reddito del rigo RE23.';
+        }
         $quadri->proponi('RE025001', ($reddito - $quadri->getImporto('RE024001')) ?: null);
     }
 
@@ -212,8 +235,9 @@ class PropostaImpresa
      * Quadro RF, contabilità ordinaria: utile o perdita del conto economico;
      * variazioni in aumento per la parte indeducibile dei costi dei conti con
      * la percentuale deducibile (righi RF16, RF18 e RF31 codice 99) e totale
-     * del rigo RF32 (specifiche, controlli del record C); le altre
-     * variazioni in aumento e quelle in diminuzione (RF56) a mano.
+     * del rigo RF32, variazione in diminuzione per la parte non imponibile
+     * dei ricavi (rigo RF55 codice 99) e totale del rigo RF56 (specifiche,
+     * controlli del record C); le altre variazioni a mano.
      */
     private function proponiOrdinaria(QuadriDichiarazione $quadri, DatiFiscali $dati, array $competenza): void
     {
@@ -236,6 +260,18 @@ class PropostaImpresa
             $aumento += $quadri->getImporto($codice);
         }
         $quadri->proponi('RF032001', $aumento ?: null);
+        // variazioni in diminuzione: parte non imponibile dei ricavi (RF55 codice 99), totale RF55 col. 77 e RF56
+        $this->proponiAltraVariazione($quadri, 99, $variazioni['RF55:99'] ?? 0, 'RF055', 75);
+        $altre = 0;
+        for ($coppia = 2; $coppia <= 76; $coppia += 2) {
+            $altre += $quadri->getImporto(sprintf('RF055%03d', $coppia));
+        }
+        $quadri->proponi('RF055077', $altre ?: null);
+        $diminuzione = 0;
+        foreach (['RF034002', 'RF035001', 'RF036001', 'RF038001', 'RF039001', 'RF040001', 'RF043003', 'RF044001', 'RF046002', 'RF047002', 'RF048001', 'RF050007', 'RF055077'] as $codice) {
+            $diminuzione += $quadri->getImporto($codice);
+        }
+        $quadri->proponi('RF056001', $diminuzione ?: null);
         $somma = $quadri->getImporto('RF004001') - $quadri->getImporto('RF005001') + $quadri->getImporto('RF032001') - $quadri->getImporto('RF056001');
         $quadri->proponi('RF057001', $somma ?: null);
         $quadri->proponi('RF058004', $somma > 0 ? $somma : null);
@@ -249,7 +285,7 @@ class PropostaImpresa
         $quadri->proponi('RF099003', $spettanza ?: null);
         $netto = $this->proponiPerdite($quadri, $spettanza, 'RF100');
         $quadri->proponi('RF101001', $netto > 0 ? $netto : null);
-        $this->avvisi[] = 'Quadro RF: utile del conto economico proposto (' . $utile . ' euro) con le variazioni dei conti deducibili in parte; indica le altre variazioni in aumento (righi da RF6 a RF31) e quelle in diminuzione (righi da RF33 a RF55, totale RF56), poi riproponi.';
+        $this->avvisi[] = 'Quadro RF: utile del conto economico proposto (' . $utile . ' euro) con le variazioni dei conti deducibili o imponibili in parte; indica le altre variazioni in aumento (righi da RF6 a RF31) e in diminuzione (righi da RF34 a RF55): i totali RF32 e RF56 si ricalcolano alla riproposta.';
     }
 
     /**
@@ -279,6 +315,7 @@ class PropostaImpresa
         $quadri->proponi('LM035002', $deducibili ?: null);
         $netto = max(0, $quadri->getImporto('LM034003') - $quadri->getImporto('LM035002'));
         $quadri->proponi('LM036001', $netto ?: null);
+        $this->proponiPerditeForfetario($quadri, $netto, $professionista);
         $imponibile = max(0, $netto - $quadri->getImporto('LM037005'));
         $quadri->proponi('LM038001', $imponibile ?: null);
         $nuova = $quadri->get('LM021003') === null && ($dati->dataInizioAttivita !== null) && ($anno - (int) $dati->dataInizioAttivita->format('Y') <= 4);
@@ -286,7 +323,9 @@ class PropostaImpresa
             $this->avvisi[] = 'Quadro LM: attività iniziata nel ' . $dati->dataInizioAttivita->format('Y') . ', imposta sostitutiva del 5 per cento se ricorrono le condizioni del comma 65: barra la casella del rigo LM21, col. 3, e riproponi.';
         }
         if (count($this->collaboratori) > 0) {
-            $this->imputaCollaboratori($quadri, $this->collaboratori, null);
+            // quote dei collaboratori sul reddito netto dei contributi prima delle perdite (rigo LM36), come per i righi RG33 e RF98:
+            // non riducono il reddito del titolare, che paga l'imposta sostitutiva sul reddito al lordo delle quote (comma 64; circ. 10/E del 2016, par. 4.4)
+            $this->imputaCollaboratori($quadri, $this->collaboratori, $netto);
         }
         $imposta = (int) round($imponibile * ($quadri->get('LM021003') !== null ? 0.05 : 0.15));
         $quadri->proponi('LM039001', $imposta ?: null);
@@ -470,18 +509,47 @@ class PropostaImpresa
             return null;
         }
         $quadri = new QuadriDichiarazione($precedente, $this->dataMapper);
-        return ['limitata' => $quadri->getImporto('RS012002', 1), 'piena' => $quadri->getImporto('RS013002', 1)];
+        return ['limitata' => $quadri->getImporto('RS012002', 1), 'piena' => $quadri->getImporto('RS013002', 1), 'lavoroAutonomo' => $quadri->getImporto('RS010001', 1),
+            'vantaggio' => array_sum(array_map(fn(string $codice) => $quadri->getImporto($codice, 1), ['LM050001', 'LM050002', 'LM050003', 'LM050004', 'LM050005', 'LM050006', 'LM051002', 'RS008006', 'RS009006']))];
+    }
+
+    /**
+     * Rigo LM37 (istruzioni del quadro LM, sezione III): perdite d'impresa
+     * dei periodi precedenti all'ingresso nel regime dai righi RS12 (misura
+     * limitata, entro l'80 per cento del reddito) e RS13 (misura piena)
+     * della dichiarazione dell'anno prima nella suite, col. 1 o 2 per la
+     * gestione previdenziale del rigo LM34. Le perdite del regime di
+     * vantaggio e dei minimi (righi LM50, LM51, RS8 e RS9) restano a mano.
+     */
+    private function proponiPerditeForfetario(QuadriDichiarazione $quadri, int $netto, bool $professionista): void
+    {
+        if ($this->perditePrecedenti === null) {
+            return;
+        }
+        $limitata = min($this->perditePrecedenti['limitata'], (int) floor($netto * 0.8));
+        $piena = min($this->perditePrecedenti['piena'], $netto - $limitata);
+        $quadri->proponi('LM037003', $limitata ?: null);
+        $quadri->proponi('LM037004', $piena ?: null);
+        $quadri->proponi('LM037005', ($quadri->getImporto('LM037003') + $quadri->getImporto('LM037004')) ?: null);
+        $quadri->proponi($professionista ? 'LM037002' : 'LM037001', $quadri->getImporto('LM037005') ?: null);
+        $residuo = $this->perditePrecedenti['limitata'] + $this->perditePrecedenti['piena'] - $quadri->getImporto('LM037005');
+        if ($residuo > 0) {
+            $this->avvisi[] = sprintf('Rigo LM37: restano %s euro di perdite pregresse non utilizzate, da riportare negli anni successivi.', number_format($residuo, 0, ',', '.'));
+        }
+        if ($this->perditePrecedenti['vantaggio'] > 0) {
+            $this->avvisi[] = 'Quadro LM: nella dichiarazione dell\'anno prima ci sono perdite del regime di vantaggio o dei minimi (righi LM50, LM51, RS8 o RS9): indicale a mano nel rigo LM37 e nei prospetti.';
+        }
     }
 
     /**
      * Variazione del rigo RF31 con il codice indicato: nella coppia con lo
      * stesso codice o nella prima libera.
      */
-    private function proponiAltraVariazione(QuadriDichiarazione $quadri, int $codice, int $importo): void
+    private function proponiAltraVariazione(QuadriDichiarazione $quadri, int $codice, int $importo, string $rigo = 'RF031', int $ultimaCoppia = 65): void
     {
         $libera = null;
-        for ($coppia = 1; $coppia <= 65; $coppia += 2) {
-            $presente = $quadri->get(sprintf('RF031%03d', $coppia));
+        for ($coppia = 1; $coppia <= $ultimaCoppia; $coppia += 2) {
+            $presente = $quadri->get(sprintf('%s%03d', $rigo, $coppia));
             if ((int) $presente === $codice) {
                 $libera = $coppia;
                 break;
@@ -491,10 +559,10 @@ class PropostaImpresa
             }
         }
         if ($libera === null) {
-            $this->avvisi[] = 'Rigo RF31: nessuna coppia libera per la variazione con il codice ' . $codice . ', aggiungi un modulo a mano.';
+            $this->avvisi[] = 'Rigo ' . substr($rigo, 0, 2) . (int) substr($rigo, 2) . ': nessuna coppia libera per la variazione con il codice ' . $codice . ', aggiungi un modulo a mano.';
             return;
         }
-        $quadri->proponi(sprintf('RF031%03d', $libera), $importo > 0 ? $codice : null);
-        $quadri->proponi(sprintf('RF031%03d', $libera + 1), $importo ?: null);
+        $quadri->proponi(sprintf('%s%03d', $rigo, $libera), $importo > 0 ? $codice : null);
+        $quadri->proponi(sprintf('%s%03d', $rigo, $libera + 1), $importo ?: null);
     }
 }

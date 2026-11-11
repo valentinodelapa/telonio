@@ -41,6 +41,7 @@
                 "tipoModulo": "Tipo di modulo",
                 "soggettoFonte": "Soggetto da cui proporlo (operazioni straordinarie)",
                 "modalitaSaldo": "Versamento del saldo",
+                "modalitaSaldoRedditi": "Saldo e primo acconto",
                 "numeroRate": "Rate",
                 "dataDifferimento": "Data del versamento differito",
                 "maggiorazioneUlteriore": "Nei 30 giorni successivi al termine (ulteriore 0,40%)",
@@ -70,6 +71,49 @@
                 "codiceFiscaleSostituto": "Codice fiscale del sostituto",
                 "denominazioneSostituto": "Sostituto d'imposta",
                 "conguagliata": "Compresa nel conguaglio di un altro sostituto",
+                "codiceInvestimento": "Codice del bene (col. 3)",
+                "codiceStatoEstero": "Stato estero (col. 4)",
+                "descrizioneAttivita": "Descrizione (conto, titolo, immobile)",
+                "intermediario": "Intermediario",
+                "titoloPossesso": "Titolo di possesso (col. 1)",
+                "quotaPossesso": "Quota di possesso %",
+                "tipoContribuente": "Delegato o titolare effettivo (col. 2)",
+                "dataInizioDetenzione": "Inizio detenzione nell'anno",
+                "dataFineDetenzione": "Fine detenzione nell'anno",
+                "criterioValore": "Criterio del valore (col. 6)",
+                "valoreIniziale": "Valore iniziale",
+                "valoreFinale": "Valore finale o giacenza media",
+                "valoreMassimo": "Valore massimo nell'anno",
+                "creditoImpostaEstera": "Imposta patrimoniale estera (col. 12)",
+                "mesiAbitazionePrincipale": "Mesi di abitazione principale",
+                "codiceQuadri": "Quadri dei redditi (col. 14)",
+                "soloMonitoraggio": "Solo monitoraggio (col. 16)",
+                "tipoProventi": "Tipo di proventi",
+                "proventi": "Proventi lordi incassati",
+                "impostaEstera": "Imposte pagate all'estero sui proventi",
+                "tassazioneOrdinaria": "Opzione per la tassazione ordinaria (i proventi entrano nel reddito complessivo, credito del quadro CE)",
+                "quotaPartecipazione": "Quota di partecipazione % (titolare effettivo)",
+                "codiceFiscaleEntita": "Codice della società o entità (col. 17)",
+                "cointestatario1": "Codice fiscale del cointestatario",
+                "cointestatario2": "Codice fiscale del secondo cointestatario",
+                "piuCointestatari": "Più di due cointestatari",
+                "tipoCessione": "Tipo",
+                "causaleCu": "Causale (punto 1 della CU)",
+                "ammontareLordo": "Ammontare lordo corrisposto",
+                "sommeNonSoggette": "Somme non soggette a ritenuta",
+                "ritenuteAcconto": "Ritenute a titolo d'acconto",
+                "ritenuteImposta": "Ritenute a titolo d'imposta",
+                "ritenuteSospese": "Ritenute sospese",
+                "addizionaleRegionaleTrattenuta": "Addizionale regionale trattenuta",
+                "addizionaleComunaleTrattenuta": "Addizionale comunale trattenuta",
+                "speseInerenti": "Spese inerenti (del contribuente)",
+                "dataCessione": "Data della cessione",
+                "descrizioneCessione": "Descrizione (titolo, quantità, intermediario)",
+                "corrispettivo": "Corrispettivo",
+                "costoAcquisto": "Costo o valore di acquisto",
+                "costoRideterminato": "Costo rideterminato (rivalutazione, righi RT12 e RT42)",
+                "paesePrivilegiato": "Partecipazione in un Paese a regime fiscale privilegiato (RT16)",
+                "anteriore2025": "Cripto-attività detenute dal 2024 o prima (franchigia di 2.000 euro)",
                 "note": "Note"
             },
             "azioni": {
@@ -130,7 +174,19 @@
                 "nessunaCertificazione": "Nessuna Certificazione Unica per l'anno.",
                 "redditiCertificati": "Redditi",
                 "ritenuteCertificate": "Ritenute IRPEF",
-                "aiutoCertificazioni": "Lavoro dipendente, pensione e assimilati: i punti della certificazione compilano il quadro RC, le ritenute del rigo RN33 e le addizionali trattenute del quadro RV."
+                "aiutoCertificazioni": "Lavoro dipendente, pensione e assimilati: i punti della certificazione compilano il quadro RC, le ritenute del rigo RN33 e le addizionali trattenute del quadro RV.",
+                "sezioneAttivitaEstere": "Investimenti e attività finanziarie all'estero",
+                "nessunaAttivitaEstera": "Nessuna attività estera per l'anno.",
+                "copiaNellAnnoSuccessivo": "Copia nell'anno successivo",
+                "valoreFinaleBreve": "Valore finale",
+                "sezioneCertificazioniAutonomo": "Certificazioni Uniche - lavoro autonomo e redditi diversi",
+                "nessunaCertificazioneAutonomo": "Nessuna certificazione del lavoro autonomo per l'anno.",
+                "aiutoCertificazioniAutonomo": "Lavoro autonomo occasionale, obblighi di fare, attività commerciali occasionali, dilettanti, opere dell'ingegno e associazione in partecipazione: compilano il quadro RL secondo la causale, con le ritenute nel rigo RN33.",
+                "sezioneCessioni": "Cessioni di titoli, partecipazioni e cripto-attività",
+                "nessunaCessione": "Nessuna cessione per l'anno.",
+                "differenzaCessione": "Plus o minusvalenza",
+                "aiutoCessioni": "Cessioni in regime dichiarativo (non nel risparmio amministrato o gestito): compilano le sezioni II e V del quadro RT con le minusvalenze degli anni precedenti e l'imposta sostitutiva del 26 per cento (codici 1100 e 1715).",
+                "aiutoAttivitaEstere": "Conti, titoli, immobili e cripto-attività detenuti all'estero: compilano il quadro RW con IVIE, IVAFE e imposta sulle cripto-attività e i versamenti F24; proventi e imposte estere servono ai redditi di fonte estera."
             }
         },
         "dichiarazione": {
@@ -172,7 +228,7 @@
                 "rigoVy1": "IVA del gruppo da versare (VY1)",
                 "rigoVy5": "Credito del gruppo da riportare o compensare (VY5)",
                 "nessunRedditoProposto": "Nessun reddito proposto: riproponi la dichiarazione dopo aver registrato possessi, contratti e Certificazioni Uniche.",
-                "aiutoVersamentiRedditi": "Saldi e acconti di IRPEF, addizionali, cedolare secca e imposta dei forfetari nelle scadenze del 30 giugno e del 30 novembre; i crediti da compensare del quadro RX in Deleghe."
+                "aiutoVersamentiRedditi": "Saldi e acconti di IRPEF, addizionali, cedolare secca e imposta dei forfetari nelle scadenze del 30 giugno (o 30 luglio con lo 0,40%) e del 30 novembre; saldo e primo acconto anche a rate mensili fino a dicembre, con il piano di rateazione e gli interessi in Deleghe; i crediti da compensare del quadro RX in Deleghe."
             },
             "quadro": {
                 "aiutoQuadro": "I valori modificati diventano manuali e la proposta non li sovrascrive; spuntare \"Ripristina\" per tornare al valore proposto. Dopo il salvataggio i totali sono ricalcolati. Importi in unità di euro.",
@@ -202,6 +258,36 @@
                 "aiutoScadenza": "Se vuota si propone con il rimborso: tre anni dall'esecuzione o, se inferiore, il periodo mancante alla decadenza dell'accertamento. Dopo aver indicato il ritardo nei documenti svuotala per ricalcolarla.",
                 "aiutoDocumenti": "Solo se la consegna supera i quindici giorni dalla notifica: la decadenza è differita dal sedicesimo giorno alla consegna (art. 57, c. 3).",
                 "aiutoDataRimborso": "Esecuzione del rimborso; per le compensazioni di gruppo la presentazione della dichiarazione."
+            }
+        },
+        "attivitaEstera": {
+            "form": {
+                "aiutoAttivitaEstera": "Un rigo del quadro RW per bene. I conti correnti presso lo stesso intermediario si sommano per la soglia dei 5.000 euro di giacenza media (IVAFE); con un valore massimo complessivo fino a 15.000 euro e senza IVAFE non si indicano.",
+                "sezioneBene": "Bene e possesso",
+                "sezioneValori": "Valori e imposte",
+                "sezioneProventi": "Proventi di fonte estera",
+                "sezioneTitolari": "Titolare effettivo e cointestatari",
+                "aiutoIntermediario": "Per i conti correnti: i conti dello stesso intermediario si sommano.",
+                "aiutoDate": "Vuote se il bene è detenuto tutto l'anno.",
+                "aiutoValoreFinale": "Al 31 dicembre o alla fine della detenzione; per i conti correnti il valore medio di giacenza.",
+                "aiutoValoreMassimo": "Per i conti correnti: monitoraggio oltre 15.000 euro e colonna 9 nei Paesi non collaborativi.",
+                "aiutoCreditoImposta": "Imposta patrimoniale versata nello Stato estero: si scomputa da IVIE o IVAFE.",
+                "aiutoMesiAbitazione": "Solo codice 19: mesi per la detrazione di 200 euro (vuoto = tutti i mesi di possesso).",
+                "aiutoProventi": "Interessi, dividendi e altri redditi incassati nell'anno, al lordo delle imposte estere.",
+                "aiutoImpostaEstera": "Ritenute o imposte pagate nello Stato estero (credito d'imposta del quadro CE).",
+                "proposto": "— Proposto —"
+            }
+        },
+        "certificazioneAutonomo": {
+            "form": {
+                "aiutoCertificazioneAutonomo": "Riporta gli importi della Certificazione Unica - lavoro autonomo. La causale indica il rigo del quadro RL; i compensi del lavoro autonomo abituale (causale A) vanno nel quadro RE.",
+                "aiutoSpeseInerenti": "Solo per i righi RL14, RL15 e RL16: spese specificamente inerenti alla produzione del reddito, non oltre i compensi."
+            }
+        },
+        "cessioneFinanziaria": {
+            "form": {
+                "aiutoCessione": "Una riga per cessione. Le cessioni con il costo rideterminato vanno ciascuna in un rigo e contano solo se in plusvalenza; le minusvalenze degli anni precedenti vengono dalla dichiarazione dell'anno prima.",
+                "aiutoCosto": "Per le cripto-attività detenute dal 2024 o prima, il costo o il valore rideterminato al 1° gennaio 2025."
             }
         },
         "certificazioneUnica": {

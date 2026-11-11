@@ -13,6 +13,7 @@ $voci = [
     'primaNota' => ['/registrazione/index/soggetto/' . $soggetto->id . $suffissoAnno, 'bi-journal-text'],
     'fatture' => ['/fattura-elettronica/index/soggetto/' . $soggetto->id, 'bi-file-earmark-code'],
     'controparti' => ['/controparte/index/soggetto/' . $soggetto->id, 'bi-person-lines-fill'],
+    'scadenzario' => ['/partita/index/soggetto/' . $soggetto->id, 'bi-calendar-check'],
     'registri' => ['/registro-iva/index/soggetto/' . $soggetto->id, 'bi-journals'],
     'liquidazioni' => ['/liquidazione-iva/index/soggetto/' . $soggetto->id . ($annoEsercizio === null ? '' : '/anno/' . $annoEsercizio), 'bi-calculator'],
     'gruppoIva' => ['/gruppo-iva/index/soggetto/' . $soggetto->id . ($annoEsercizio === null ? '' : '/anno/' . $annoEsercizio), 'bi-diagram-2'],

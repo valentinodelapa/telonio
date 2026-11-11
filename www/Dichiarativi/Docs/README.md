@@ -105,6 +105,9 @@ modello. Poi `sisma tabelle-dichiarativi` importa le tabelle.
 | `dichiarazione` | Una per contribuente, modello e anno d'imposta: tipo (ordinaria, correttiva, integrativa), stato, frontespizio, flag di conferma, presentazione, avvisi dell'ultima proposta |
 | `valore_dichiarazione` | Valore di un campo per modulo e codice, in forma canonica, con il segno di valore manuale |
 | `modulo_dichiarazione` | Moduli oltre al primo: tipo (attività separata, soggetto trasformato, prima frazione d'anno), soggetto da cui proporli, data dell'operazione straordinaria e attività separata della Contabilità |
+| `attivita_estera` | Investimento o attività finanziaria all'estero del contribuente per anno (quadro RW) con proventi e imposte estere |
+| `certificazione_autonomo` | Certificazione Unica del lavoro autonomo e dei redditi diversi (quadro RL) |
+| `cessione_finanziaria` | Cessione di titoli, partecipazioni non qualificate o cripto-attività per anno (quadro RT) |
 | `sottoscrizione_controllo` | Componenti dell'organo di controllo che sottoscrivono la dichiarazione (codici 1-4) |
 
 La dichiarazione conserva anche chi appone il visto di conformità (il
@@ -166,6 +169,11 @@ Le descrizioni sono un ausilio per l'interfaccia; codici e formati sono
 i dati vincolanti. Il PDF dell'IVA 2026 non indica il formato dei 14
 campi del quadro VP e quello dei Redditi PF dei campi `FC000002` e
 `FC000004`: il comando li segnala.
+
+Le incoerenze di formato delle specifiche ufficiali sono corrette alla
+lettura (`SpecificheDichiarativi::CORREZIONI_FORMATO`): il codice del rigo
+CR31 del modello Redditi PF 2026 è indicato N1 ma ammette i valori da 12
+a 21 (N2).
 
 ## Dichiarazione IVA
 
@@ -569,11 +577,32 @@ tabella del modello, `Services\Redditi\PartitiDuePerMille`).
   affitto di terreni), date, canone annuo e variazioni (ISTAT,
   rinegoziazione), cedolare secca con revoca, pertinenze locate insieme,
   estremi di registrazione o codice identificativo e CIN;
+- **Interventi edilizi** (Anagrafica, scheda del fabbricato): dati del
+  rigo del quadro RP nell'anno della spesa, spesa del contribuente,
+  percentuale e numero delle rate (dalle tabelle delle specifiche);
 - **Certificazioni Uniche** (scheda del contribuente): sostituto
   d'imposta e punti della certificazione usati dal quadro RC (redditi,
   giorni, ritenute, addizionali, trattamento integrativo, somma esente e
   ulteriore detrazione); le CU comprese nel conguaglio di un altro
   sostituto si segnano e non si dichiarano;
+- **Certificazioni Uniche del lavoro autonomo** (scheda del contribuente):
+  sostituto, causale (punto 1), ammontare lordo, somme non soggette,
+  ritenute d'acconto, d'imposta e sospese, addizionali trattenute e spese
+  inerenti indicate dal contribuente;
+- **Attività estere** (scheda del contribuente, per anno): conti correnti,
+  titoli, partecipazioni, polizze, immobili, beni e cripto-attività
+  detenuti all'estero con codice del bene, Stato (codici della tabella 10
+  delle istruzioni, non i codici catastali: sorgente
+  `stati-esteri-redditi.csv` con i Paesi a fiscalità privilegiata delle
+  specifiche), possesso, quota, valori, date di detenzione, imposta
+  patrimoniale estera, titolare effettivo e cointestatari; proventi lordi
+  (interessi, dividendi, altri) e imposte pagate all'estero per i redditi
+  di fonte estera. Copia nell'anno successivo con il valore finale come
+  iniziale;
+- **Cessioni** (scheda del contribuente, per anno): cessioni di titoli,
+  partecipazioni non qualificate e cripto-attività in regime dichiarativo
+  con corrispettivo, costo (anche rideterminato), Paese a regime
+  privilegiato e, per le cripto-attività, detenzione dal 2024 o prima;
 - **addizionali all'IRPEF**: tabelle per anno d'imposta delle aliquote
   regionali (scaglioni, esenzioni e detrazioni strutturate; le
   agevolazioni per figli e disabilità restano avvisi) e comunali (7.896
@@ -620,16 +649,25 @@ tabella del modello, `Services\Redditi\PartitiDuePerMille`).
   al 75 per cento fino al 2 per cento, solo la parte deducibile dei costi
   dei conti con la percentuale deducibile; contabilità ordinaria (RF) con
   l'utile del conto economico, la parte indeducibile di quei costi nei
-  righi RF16, RF18 o RF31 (codice 99) e il totale RF32, le altre variazioni
-  a mano; regime
+  righi RF16, RF18 o RF31 (codice 99) e il totale RF32, la parte non
+  imponibile dei ricavi dei conti con la percentuale nel rigo RF55 (codice
+  99) e il totale RF56 dai righi da RF34 a RF55 anche inseriti a mano, le
+  altre variazioni a mano; perdite pregresse di lavoro autonomo del 2006 e
+  2007 (rigo RS10 dell'anno prima) nel rigo RE24, reddito complessivo non
+  negativo con le perdite di lavoro autonomo; regime
   forfetario (LM) con i ricavi incassati, il coefficiente di redditività
   del codice ATECO 2007, i contributi della sezione INPS dei versamenti
-  F24 dell'anno e l'imposta sostitutiva del 15 o del 5 per cento;
+  F24 dell'anno, le perdite d'impresa dei periodi prima del regime (righi
+  RS12 e RS13 dell'anno prima) nel rigo LM37, entro l'80 per cento del
+  reddito quelle in misura limitata, e l'imposta sostitutiva del 15 o del
+  5 per cento;
 - **impresa familiare**: prospetto di imputazione dei righi RS6 e RS7 dai
   legami "Collaboratore familiare" con la quota, quote del solo reddito
   positivo nei righi RG33 o RF98 (avviso oltre il 49 per cento); nel
-  regime forfetario codice fiscale e quota, con la quota di reddito a
-  mano;
+  regime forfetario le quote del reddito del rigo LM36 (netto dei
+  contributi, prima delle perdite), che non riducono l'imposta
+  sostitutiva dovuta dal titolare sull'intero reddito (comma 64,
+  circolare 10/E del 2016);
 - **perdite d'impresa** (righi RG35 e RF100, prospetto RS12-RS13): dai
   residui della dichiarazione dell'anno prima nella suite, prima quelle in
   misura limitata fino all'80 per cento del reddito e poi quelle in misura
@@ -643,31 +681,125 @@ tabella del modello, `Services\Redditi\PartitiDuePerMille`).
   totale RP39 (codici 7, 8 e 12 del rigo RP26 entro il 2, 10 e 20 per
   cento del reddito); gli importi oltre i limiti delle specifiche sono
   segnalati, non corretti;
+- **bonus edilizi** (`PropostaBonusEdilizi`): dagli interventi del
+  contribuente con una rata nell'anno i righi da RP41 a RP47 (numero
+  della rata, importo e numero d'ordine dell'immobile), RP51 e RP52 con i
+  dati catastali o la casella "Condominio", RP53 con gli estremi del
+  contratto se il contribuente è il conduttore, RP56, RP57 e da RP61 a
+  RP64, nei righi non compilati a mano e nei moduli successivi; totali dei
+  righi RP48, RP49, RP60, RP65 e RP66 per percentuale dai righi di tutti i
+  moduli (anche inseriti a mano, con la percentuale dalle tabelle) e righi
+  RN14, RN15 e RN16;
 - **RN**: reddito complessivo, deduzione dell'abitazione principale, oneri
   deducibili (RP39), imposta lorda con le esenzioni per redditi fondiari
   e pensioni minime, detrazioni per familiari (con il primo figlio senza
   l'altro genitore, percentuale C), per lavoro, pensione e altri redditi,
   ulteriore detrazione, oneri detraibili del rigo RN13 (oltre 75.000 euro
   il riordino delle detrazioni: limite di 14.000 o 8.000 euro per il
-  coefficiente dei figli del prospetto, imputato dagli oneri al 90 per
-  cento a quelli al 19, salvo la casella "riordino non automatizzato", e
-  oltre 120.000 euro il coefficiente degli oneri commisurati al reddito),
+  coefficiente dei figli del prospetto, imputato nell'ordine della tabella
+  di supporto delle specifiche dalle rate al 110 per cento dei bonus
+  edilizi delle spese dell'anno fino agli oneri al 19, salvo la casella
+  "riordino non automatizzato", e oltre 120.000 euro il coefficiente degli
+  oneri commisurati al reddito; i righi RN14, RN15 e RN16 con le rate delle
+  spese dell'anno ricondotte nel limite; le spese dei righi RP73 e RP83
+  codice 2 consumano il limite, i righi RN12 e RN17 restano a mano),
   ritenute, trattamento
   integrativo e somma esente, acconti versati da Deleghe, saldo e acconti
   (40 e 60 per cento, 50 e 50 per i soggetti ISA);
 - **RV**: addizionale regionale e comunale dal domicilio fiscale (o dalla
   residenza) al 1° gennaio, acconto comunale dal domicilio al 1° gennaio
   dell'anno dopo;
-- **RX**: debiti e crediti di IRPEF, addizionali e cedolare, crediti
+- **RW** dalle attività estere (`CalcoloQuadroRw`, `PropostaEsteri`):
+  righi da RW1 a RW5 nei moduli necessari con giorni (IVAFE e
+  cripto-attività) e mesi di almeno 15 giorni (IVIE); IVAFE dello 0,20
+  per cento (0,40 nei Paesi a fiscalità privilegiata, colonna 21) e dei
+  conti correnti di 34,20 euro se la giacenza media complessiva presso lo
+  stesso intermediario supera 5.000 euro (valore complessivo in colonna
+  8, come nell'esempio delle istruzioni); conti esclusi se il valore
+  massimo complessivo non supera 15.000 euro e l'IVAFE non è dovuta; IVIE
+  dell'1,06 per cento se supera 200 euro, abitazione principale di lusso
+  (codice 19) allo 0,40 per cento con la detrazione di 200 euro, nessuna
+  IVIE per il nudo proprietario; imposta sulle cripto-attività dello 0,20
+  per cento; credito per l'imposta patrimoniale estera; solo monitoraggio
+  per i beni da 16 a 18; codice dei quadri reddituali proposto (2 con i
+  proventi, 5 per i prodotti finanziari infruttiferi). Righi RW6, RW7 e
+  RW8 con il totale, l'eccedenza della colonna 5 del rigo RX dell'anno
+  prima e gli acconti versati in Deleghe;
+- **RH** dalle partecipazioni in società di persone dell'Anagrafica
+  (legami di socio con la quota) che tengono la contabilità nella suite
+  (`PropostaPartecipazioni`): reddito della società dalla Contabilità
+  secondo il regime (ordinaria: utile con le variazioni proposte dai
+  conti; semplificata e professionisti: ricavi meno costi per cassa) e
+  ritenute subite dagli abbinamenti delle partite, imputati per la quota;
+  tipo 2 per gli studi associati, 3 o 4 per le società semplici, 1 per le
+  altre. Totali da RH7 a RH22 anche con i righi a mano (senza concordato
+  preventivo biennale) e redditi e ritenute nel quadro RN. Le
+  partecipazioni in società fuori dalla suite si inseriscono a mano con
+  il prospetto della società;
+- **RM**, rigo RM31, dai proventi delle attività estere incassati senza
+  intermediari residenti: tipo di reddito dell'appendice (G interessi dei
+  conti, A interessi dei titoli, B OICR, H dividendi, I altri), Stato,
+  reddito al lordo delle imposte estere e imposta sostitutiva del 26 per
+  cento (art. 18 Tuir), un modulo per attività; totale nel rigo RX7 e
+  versamento 1242. Gli altri righi del quadro RM a mano;
+- **CE**, sezione I (`CalcoloCreditoEstero`), sui righi da CE1 a CE3
+  proposti dalle attività estere con l'opzione per la tassazione
+  ordinaria dei proventi (rigo RM31, col. 7: i proventi entrano nel rigo
+  RN1) o inseriti a mano: reddito complessivo, imposta lorda e netta
+  dell'anno, quota di imposta lorda, credito entro l'imposta estera,
+  righi CE4 e CE5 per anno con la capienza nell'imposta netta, righi
+  CE23 e CE26 e credito del rigo RN29 (art. 165 Tuir; avviso per
+  l'imposta estera oltre il 43 per cento del reddito estero); sezione II
+  (imprese) a mano;
+- **CR** (`PropostaCrediti`): residui della dichiarazione dell'anno prima
+  dalle colonne del rigo RN47 nei righi CR7, CR9, CR10, CR12, CR13, CR14,
+  CR15, CR17 e CR31 (un modulo per codice), come indicato dalle
+  istruzioni; credito del rigo CR8 per i canoni non percepiti dei
+  contratti con la convalida di sfratto nell'anno (cedolare secca
+  sull'aliquota del contratto, altrimenti riliquidazione dell'IRPEF lorda
+  della dichiarazione di quell'anno nella suite con gli scaglioni
+  dell'anno, entro l'imposta netta; avviso di verifica); righi RN24, RN25
+  e residui del rigo RN47 (colonne 11, 44, 12, 13, 14 e 15) nell'ordine
+  di utilizzo del paragrafo 31 delle specifiche. Imposta netta RN26 =
+  RN5 - RN22 - RN25;
+- **RL** dalle Certificazioni Uniche del lavoro autonomo
+  (`CalcoloQuadroRl`, `PropostaAltriRedditi`) secondo la tabella di
+  raccordo delle istruzioni: righi RL14 (V1), RL15 (M, M2, O) e RL16 (M1,
+  O1) con le spese non oltre i compensi, RL21-RL24 per i dilettanti (N:
+  esenti fino a 10.000 euro, a titolo d'imposta fino a 30.658,28, ritenute
+  d'acconto al netto del 23 per cento), RL25 (B), RL26 (E, F) e RL27 (C,
+  D) con le deduzioni forfetarie del rigo RL31 (25 o, per i nati dopo il
+  1990, 40 per cento; 15 per cento della levata dei protesti); totali
+  RL18, RL19 e RL30-RL32 anche con i righi a mano; redditi nel rigo RN1,
+  ritenute nel rigo RN33 e detrazione per gli altri redditi. Causali L e
+  L1, Campione d'Italia e addizionali dovute dei dilettanti a mano;
+- **RT**, sezioni II e V, dalle cessioni (`CalcoloQuadroRt`,
+  `PropostaPlusvalenze`): totali dei righi RT11 e RT41, un rigo RT12 o
+  RT42 per ogni cessione con il costo rideterminato (che conta solo in
+  plusvalenza), franchigia di 2.000 euro sulle cripto-attività detenute
+  prima del 2025 (paragrafo 37 delle specifiche), minusvalenze residue
+  degli anni precedenti dai righi RT102 e RT105 della dichiarazione
+  dell'anno prima (scalate di un anno, dalla più vecchia), eccedenze
+  d'imposta dalla colonna 5 dei righi RX20 e RX21, imposta del 26 per
+  cento, residui della sezione VII e righi RX20 e RX21. Sezioni I, III e
+  IV e minusvalenze certificate dagli intermediari a mano;
+- **RX**: debiti e crediti di IRPEF, addizionali, cedolare, IVIE, IVAFE,
+  imposte sulle cripto-attività e sostitutive delle plusvalenze, crediti
   proposti in compensazione.
 
 ### Controlli, versamenti e file
 
 I controlli delle specifiche (par. 6.1 e 7.1) segnalano gli errori dei
 quadri RA e RB. "Registra versamenti" scrive in Deleghe saldi e acconti
-(4001, 4033, 4034, 3801, 3844, 3843, 1840-1842, 1790-1792) alle scadenze
-del 30 giugno e del 30 novembre, senza gli importi di IRPEF e addizionali
-fino a 12 euro, e i crediti da compensare (oltre 5.000 euro alla
+(4001, 4033, 4034, 3801, 3844, 3843, 1840-1842, 1790-1792, IVIE 4041 e
+acconti 4044-4045, IVAFE 4043 e acconti 4047-4048, cripto-attività 1727 e
+acconti 1728-1729, con gli acconti calcolati come per l'IRPEF;
+plusvalenze 1100 e cripto-attività 1715; redditi di capitale esteri del
+rigo RM31 1242) alle
+scadenze del 30 giugno e del 30 novembre, senza gli importi fino a 12
+euro; saldo e primo acconto si possono differire al 30 luglio
+con la maggiorazione dello 0,40 per cento e versare a rate mensili fino a
+dicembre (piano di rateazione di Deleghe con gli interessi), e i crediti da compensare (oltre 5.000 euro alla
 presentazione). Il file "RPF26" ha il record B con i dati anagrafici, la
 residenza se variata nell'anno, il domicilio fiscale, le caselle dei
 quadri, le scelte dell'otto, cinque e due per mille, l'impegno e il
@@ -687,14 +819,26 @@ visto, e i record C dei quadri.
 - **modelli Redditi PF 2026**: Mario Rossi (dipendente con la CU, casa di
   Massimeno locata con il box pertinenza e la cedolare al 21 per cento,
   aggiornamento ISTAT, coniuge e due figli nei legami familiari con il
-  prospetto dei familiari proposto, scelte dell'otto per mille allo Stato
+  prospetto dei familiari proposto, rate dei bonus edilizi della casa di
+  Roma dall'archivio degli interventi: ristrutturazione 2021, facciata
+  condominiale 2024, schermature solari 2023, bagno e mobili 2025;
+  attività estere: conto in Svizzera, azioni statunitensi, metà di un
+  appartamento a Nizza dal 10 luglio e bitcoin, con IVAFE, IVIE e i
+  versamenti; relazione a un convegno con la CU del lavoro autonomo
+  occasionale nel rigo RL15; socio al 50 per cento del Bar Centrale s.n.c.
+  in contabilità semplificata (quadro RH dalla contabilità della società);
+  interessi e dividendi esteri nel rigo RM31 (interessi svizzeri con
+  l'opzione per la tassazione ordinaria e il credito del quadro CE);
+  canoni del 2024 non percepiti con lo sfratto convalidato nel 2025
+  (credito del rigo CR8); cessione di azioni in plusvalenza e di bitcoin nel quadro
+  RT; scelte dell'otto per mille allo Stato
   e del cinque per mille alla ricerca sanitaria), Lucia Ferri (negozio in
   contabilità semplificata, quadro RG per cassa, impresa familiare con il
   figlio Paolo collaboratore al 30 per cento, spese telefoniche deducibili
   all'80 per cento, versamenti) e Sara Gallo
   (grafica web forfetaria dal 2022: compensi incassati, coefficiente del
   78 per cento, contributi della Gestione separata da Deleghe, imposta al
-  5 per cento);
+  5 per cento, saldo e primo acconto in tre rate);
 - **Alimentari Ferri** (trimestrale, ventilazione, sede operativa a Roma):
   liquidazioni trimestrali 2025 e dichiarazione IVA 2026 in bozza con la
   ventilazione annuale, il quadro VH dei primi tre trimestri, il VT dei
@@ -838,12 +982,11 @@ dei moduli devono essere dello stesso studio.
 
 ## Da completare
 
-- **Redditi PF**: rate dei bonus edilizi e del risparmio energetico
-  (sezioni III e IV del quadro RP, righi da RN14 a RN16, e il riordino
-  delle detrazioni su di esse), quadri RH, RL, RM, RT, RW e crediti CR/CE,
-  perdite di lavoro autonomo e dei forfetari, variazioni in diminuzione
-  del quadro RF, abbinamento manuale degli incassi alle fatture,
-  rateazione dei saldi, verifica del file RPF26 con il software di
+- **Redditi PF**: quadro CE sezione II (imprese); quadro CR, righi dei
+  crediti dell'anno (sisma Abruzzo, cultura, scuola e altri) oltre ai
+  residui; quadro RM tranne il rigo RM31; concordato preventivo biennale nel quadro RH; quadro RL, righi RL1-RL13
+  e RL17 (a mano); quadro RT, sezioni
+  I, III e IV; verifica del file RPF26 con il software di
   controllo dell'Agenzia;
 - calcolo automatico di rimanenze e servizi non utilizzati nella rettifica per
   il cambio di regime;

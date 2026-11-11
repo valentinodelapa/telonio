@@ -5,6 +5,7 @@ namespace Contabilita\Application\Forms;
 use Contabilita\Application\Services\RighiRedditi;
 use Contabilita\Application\Entities\Conto;
 use Contabilita\Application\Enumerations\LivelloConto;
+use Contabilita\Application\Enumerations\NaturaConto;
 use Contabilita\Application\Models\ContoModel;
 use SismaFramework\Core\BaseClasses\BaseForm;
 use SismaFramework\Core\Enumerations\FilterType;
@@ -77,6 +78,16 @@ class ContoForm extends BaseForm
         }
         if (($variazione !== null) && ($variazione !== '') && ((isset(RighiRedditi::VARIAZIONI[$variazione]) === false) || ($percentuale === null))) {
             $this->formFilterError->variazioneRedditiCustomMessage = 'Rigo della variazione non previsto o senza la percentuale deducibile.';
+            $valido = false;
+        }
+        $natura = $this->entityData->natura ?? null;
+        if (($percentuale !== null) && ($natura instanceof NaturaConto) && (in_array($natura, [NaturaConto::costo, NaturaConto::ricavo], true) === false)) {
+            $this->formFilterError->percentualeDeducibileCustomMessage = 'La percentuale riguarda i conti di costo (parte deducibile) e di ricavo (parte imponibile).';
+            $valido = false;
+        }
+        if (($variazione !== null) && ($variazione !== '') && ($natura instanceof NaturaConto)
+                && (($variazione === RighiRedditi::VARIAZIONE_DIMINUZIONE) !== ($natura === NaturaConto::ricavo))) {
+            $this->formFilterError->variazioneRedditiCustomMessage = $natura === NaturaConto::ricavo ? 'Per i ricavi la variazione è in diminuzione (RF55).' : 'Per i costi la variazione è in aumento (RF16, RF18 o RF31).';
             $valido = false;
         }
         $piano = $this->entity->pianoConti;

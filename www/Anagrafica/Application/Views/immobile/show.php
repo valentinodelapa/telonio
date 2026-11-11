@@ -133,6 +133,37 @@ require Layout::percorso('header');
     <?php endif; ?>
 </div>
 
+<?php if ($fabbricato): ?>
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white d-flex align-items-center">
+            <span class="fw-semibold me-auto"><?= Html::e($sezioneInterventi) ?></span>
+            <a href="/intervento-edilizio/create/immobile/<?= Html::e($id) ?>" class="btn btn-sm btn-outline-primary"><i class="bi bi-plus-lg me-1"></i><?= Html::e($azioni['aggiungi']) ?></a>
+        </div>
+        <?php if (count($interventi) === 0): ?>
+            <div class="card-body small text-body-secondary"><?= Html::e($nessunIntervento) ?></div>
+        <?php else: ?>
+            <div class="table-responsive">
+                <table class="table table-sm table-anagrafica mb-0">
+                    <thead><tr><th><?= Html::e($campi['beneficiario']) ?></th><th><?= Html::e($campi['tipoDetrazione']) ?></th><th class="text-end"><?= Html::e($campi['spesaDetraibile']) ?></th><th class="text-end"><?= Html::e($campi['rateazione']) ?></th><th class="text-end"><?= Html::e($rataAnnoPrecedente) ?></th><th></th></tr></thead>
+                    <tbody>
+                        <?php foreach ($interventi as $intervento): ?>
+                            <?php $rata = $intervento->getNumeroRata((int) date('Y') - 1); ?>
+                            <tr>
+                                <td><?= Html::e($intervento->soggetto->nominativo) ?></td>
+                                <td><?= Html::e($intervento->getDescrizioneBreve()) ?><?= $intervento->descrizione !== null ? '<div class="small text-body-secondary">' . Html::e($intervento->descrizione) . '</div>' : '' ?></td>
+                                <td class="text-end text-nowrap"><?= $euro($intervento->spesa) ?></td>
+                                <td class="text-end"><?= Html::e($intervento->rateazione) ?></td>
+                                <td class="text-end text-nowrap"><?= $rata === null ? '<span class="text-body-secondary">-</span>' : Html::e($rata . 'ª · ') . $euro((float) $intervento->getImportoRata()) ?></td>
+                                <td class="text-end text-nowrap"><?= $pulsanteModifica('/intervento-edilizio/update/intervento-edilizio/' . $intervento->id) ?> <?= $pulsanteElimina('/intervento-edilizio/delete/intervento-edilizio/' . $intervento->id) ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php endif; ?>
+    </div>
+<?php endif; ?>
+
 <div class="card shadow-sm mb-4">
     <div class="card-header bg-white d-flex align-items-center">
         <span class="fw-semibold me-auto"><?= Html::e($sezionePossessori) ?></span>

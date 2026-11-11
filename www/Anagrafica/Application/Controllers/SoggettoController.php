@@ -14,6 +14,7 @@ use Anagrafica\Application\Forms\SoggettoForm;
 use Anagrafica\Application\Models\ContoCorrenteModel;
 use Anagrafica\Application\Models\DatiCatastaliModel;
 use Anagrafica\Application\Models\DatiFiscaliModel;
+use Anagrafica\Application\Models\InterventoEdilizioModel;
 use Anagrafica\Application\Models\PossessoModel;
 use Anagrafica\Application\Models\DocumentoIdentitaModel;
 use Anagrafica\Application\Models\IndirizzoModel;
@@ -189,6 +190,7 @@ class SoggettoController extends AnagraficaController
         $primaTransazione = $this->dataMapper->startTransaction();
         $legameModel->deleteBySoggetto($soggetto);
         (new PossessoModel($this->dataMapper))->deleteBySoggetto($soggetto);
+        (new InterventoEdilizioModel($this->dataMapper))->deleteBySoggetto($soggetto);
         (new IndirizzoModel($this->dataMapper))->deleteBySoggetto($soggetto);
         (new RecapitoModel($this->dataMapper))->deleteBySoggetto($soggetto);
         (new ContoCorrenteModel($this->dataMapper))->deleteBySoggetto($soggetto);

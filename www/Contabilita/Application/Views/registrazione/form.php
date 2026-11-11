@@ -169,6 +169,8 @@ require Layout::percorso('header');
         </div>
     </div>
 
+    <?php require __DIR__ . '/partite.php'; ?>
+
     <div class="d-flex align-items-center gap-2 mt-4">
         <button type="submit" name="azione" value="salva" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i><?= Html::e($azioni['salva']) ?></button>
         <?php if ((isset($registrazione->id) === false) && ($fattura === null)): ?>

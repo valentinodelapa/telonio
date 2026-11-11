@@ -380,8 +380,12 @@ class DichiarazioneController extends DichiarativiController
         if ($dichiarazione->modello->isRedditi()) {
             $quadri = new QuadriDichiarazione($dichiarazione, $this->dataMapper);
             $servizio = new VersamentiRedditi($this->dataMapper);
+            $rate = (int) ($request->input['numeroRate'] ?? 0);
+            $dichiarazione->modalitaSaldo = ModalitaSaldo::tryFrom((string) ($request->input['modalitaSaldo'] ?? '')) ?? $dichiarazione->modalitaSaldo;
+            $dichiarazione->numeroRate = $rate > 1 ? $rate : null;
             try {
                 $primaTransazione = $this->dataMapper->startTransaction();
+                $this->dataMapper->save($dichiarazione);
                 $messaggi = array_merge($servizio->registraVersamenti($dichiarazione, $quadri), $servizio->registraCrediti($dichiarazione, $quadri));
                 $this->dataMapper->commitTransaction($primaTransazione);
                 $this->aggiungiMessaggio(implode(' ', $messaggi), 'info');

@@ -22,9 +22,10 @@ use Dichiarativi\Application\Services\QuadriDichiarazione;
  * - rigo RN13: oltre 75.000 euro di reddito di riferimento il riordino delle
  *   detrazioni (art. 16-ter Tuir): limite di spesa da importo base (14.000 o
  *   8.000 euro) e coefficiente per i figli del prospetto dei familiari,
- *   imputato agli oneri dalla percentuale più alta (imputazione automatica,
- *   salvo la casella "Riordino non automatizzato"), e oltre 120.000 euro il
- *   coefficiente di abbattimento degli oneri commisurati al reddito.
+ *   imputato agli oneri e alle rate dei bonus edilizi dell'anno dalla
+ *   percentuale più alta (imputazione automatica, salvo la casella "Riordino
+ *   non automatizzato"), e oltre 120.000 euro il coefficiente di
+ *   abbattimento degli oneri commisurati al reddito.
  *
  * I limiti degli importi che le specifiche pongono come controlli bloccanti
  * (per rigo, per codice, per gruppi di codici) non correggono gli importi
@@ -52,14 +53,23 @@ class CalcoloOneri
     /** Oneri al 19% non commisurati e non soggetti al riordino (oltre ai righi da RP1 a RP7 e ai codici 11, 15, 47) */
     private const NON_COMMISURATI_19 = [8, 9, 10, 45, 46, 99];
 
-    /** Ordine dell'imputazione automatica (tabella di supporto, entità del rigo RN13) */
-    private const ORDINE_RIORDINO = ['90si', '35', '30', '26no', '26si', '19no', '19si'];
+    /**
+     * Ordine dell'imputazione automatica (tabella di supporto per il riordino,
+     * par. 10.4): entità del rigo RN13 e, con PropostaBonusEdilizi, le rate
+     * delle spese dell'anno dei righi RN14 ("ri"), RN15 ("co" colonnine, "ar"
+     * bonus mobili) e RN16 ("rq"); "100" (RP83 codice 2, rigo RN17) e "19res"
+     * (RP73, rigo RN12) consumano il limite ma i loro righi restano a mano.
+     */
+    public const ORDINE_RIORDINO = ['110ri', '110co', '110rq', '100', '90si', '75ri', '65ri', '65co', '65rq', '50ri', '50ar', '50rq', '36ri', '36rq', '35', '30', '26no', '26si', '19res', '19no', '19si'];
 
     /** @var string[] */
     private array $avvisi = [];
 
     /** @var array<string, float> entità per il rigo RN13 */
     private array $entita = [];
+
+    /** @var array<string, float>|null entità ricondotte nel limite del riordino (null fino a 75.000 euro) */
+    private ?array $imputate = null;
 
     /**
      * Totali delle sezioni I e II nel modulo 1 (già in proposta) e rigo RN23.
@@ -160,40 +170,81 @@ class CalcoloOneri
     /**
      * Rigo RN13 (par. 23.1): fino a 75.000 euro di reddito di riferimento per
      * il riordino i totali del rigo RP15 per le percentuali; oltre, il limite
-     * di spesa imputato dalla percentuale più alta.
+     * di spesa imputato a tutte le entità del riordino dalla percentuale più
+     * alta (le rate dei bonus edilizi dell'anno comprese, vedi getImputate()).
      *
      * @param float $redditoRiordino RN1 col. 1 - RN2 (con RS37 col. 14)
      * @param int $figli figli del prospetto dei familiari (codici fiscali dei righi F, F1, D e affido preadottivo)
+     * @param array<string, float> $bonusEdilizi entità delle rate dei bonus edilizi (PropostaBonusEdilizi::getEntitaRiordino())
      */
-    public function rn13(QuadriDichiarazione $quadri, float $redditoRiordino, int $figli, bool $disabile): int
+    public function rn13(QuadriDichiarazione $quadri, float $redditoRiordino, int $figli, bool $disabile, array $bonusEdilizi = []): int
     {
+        $this->imputate = null;
         if ($redditoRiordino <= 75000) {
             $q = fn(string $codice) => $quadri->getImporto($codice, 1);
             return (int) round($q('RP015002') * 0.19 + $q('RP015003') * 0.19 + $q('RP015004') * 0.26 + $q('RP015005') * 0.26
                     + $q('RP015006') * 0.30 + $q('RP015007') * 0.35 + $q('RP015008') * 0.90);
         }
+        $entita = $this->entita;
+        foreach ($bonusEdilizi as $nome => $importo) {
+            $entita[$nome] = $importo;
+        }
+        $entita += $this->altreEntita($quadri);
+        $entita += array_fill_keys(self::ORDINE_RIORDINO, 0.0);
         $limite = self::limiteRiordino($redditoRiordino, $figli, $disabile);
-        $soggetti = array_sum(array_map(fn(string $entita) => $this->entita[$entita], self::ORDINE_RIORDINO));
+        $soggetti = array_sum(array_map(fn(string $nome) => $entita[$nome], self::ORDINE_RIORDINO));
         if ($quadri->get('RP000001', 1) !== null) {
             // riordino non automatizzato: il contribuente ha già ricondotto gli oneri nel limite
             if ($soggetti > $limite) {
                 $this->avvisi[] = sprintf('Quadro RP: con la casella "Riordino delle detrazioni non automatizzato" gli oneri soggetti al riordino (%s euro) non possono superare il limite di %s euro (scarto della dichiarazione).',
                         number_format($soggetti, 0, ',', '.'), number_format($limite, 0, ',', '.'));
             }
-            $imputati = $this->entita;
+            $imputati = $entita;
         } else {
-            $imputati = $this->entita;
+            $imputati = $entita;
             $residuo = (float) $limite;
-            foreach (self::ORDINE_RIORDINO as $entita) {
-                $imputati[$entita] = min($this->entita[$entita], $residuo);
-                $residuo -= $imputati[$entita];
+            foreach (self::ORDINE_RIORDINO as $nome) {
+                $imputati[$nome] = min($entita[$nome], $residuo);
+                $residuo -= $imputati[$nome];
             }
         }
+        if (($entita['100'] > 0) || ($entita['19res'] > 0)) {
+            $this->avvisi[] = 'Righi RN12 e RN17: reddito oltre 75.000 euro con l\'affitto di terreni dei giovani agricoltori (RP73) o le erogazioni all\'ospedale Galliera (RP83, codice 2): riconduci a mano i righi nel limite del riordino (spesa imputata: ' . number_format($imputati['19res'], 0, ',', '.') . ' e ' . number_format($imputati['100'], 0, ',', '.') . ' euro).';
+        }
+        $this->imputate = $imputati;
         $abbattimento = self::coefficienteAbbattimento($redditoRiordino);
         return (int) round(($this->entita['commisurate19'] + $imputati['19si']) * 0.19 * $abbattimento
                 + $this->entita['nonCommisurate19'] * 0.19 + $imputati['19no'] * 0.19
                 + $imputati['26si'] * 0.26 * $abbattimento + $imputati['26no'] * 0.26
                 + $imputati['30'] * 0.30 + $imputati['35'] * 0.35 + $imputati['90si'] * 0.90 * $abbattimento);
+    }
+
+    /**
+     * Entità ricondotte nel limite del riordino dall'ultimo rn13(), null se
+     * il reddito di riferimento non supera 75.000 euro.
+     *
+     * @return array<string, float>|null
+     */
+    public function getImputate(): ?array
+    {
+        return $this->imputate;
+    }
+
+    /**
+     * Entità dei righi RN12 (RP73) e RN17 (RP83 codice 2, entro il 30 per
+     * cento dell'imposta lorda) per l'ordine dell'imputazione.
+     *
+     * @return array{"100": float, "19res": float}
+     */
+    private function altreEntita(QuadriDichiarazione $quadri): array
+    {
+        $galliera = 0;
+        foreach ($quadri->getModuli() ?: [1] as $modulo) {
+            if ($quadri->getImporto('RP083001', $modulo) === 2) {
+                $galliera += $quadri->getImporto('RP083002', $modulo);
+            }
+        }
+        return ['100' => (float) min($galliera, 0.3 * $quadri->getImporto('RN005001', 1)), '19res' => (float) $quadri->getImporto('RP073001', 1)];
     }
 
     /**

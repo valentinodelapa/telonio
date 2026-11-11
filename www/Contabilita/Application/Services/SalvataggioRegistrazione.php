@@ -26,6 +26,11 @@ use SismaFramework\Orm\HelperClasses\DataMapper;
  * dati copiati dalla registrazione e collegamento alla fattura
  * elettronica da cui deriva.
  *
+ * Le righe sui sottoconti dei clienti e dei fornitori aprono o chiudono
+ * le partite (Services\PartiteAperte): gli abbinamenti scelti
+ * nel form o, per le registrazioni dirette (fixture, test, migrazione),
+ * quelli proposti dalla più vecchia.
+ *
  * Le registrazioni dei periodi già stampati in via definitiva (libro
  * giornale o registro IVA) non si salvano né si eliminano.
  */
@@ -41,13 +46,21 @@ class SalvataggioRegistrazione
      * @param RigaIva[] $righeIva con il segno del documento
      * @param RigaContabile[] $righe
      * @param string|null $chiaveProtocollo registro e anno del protocollo prima della modifica ("id|anno")
-     * @throws \DomainException se la registrazione cade in un periodo stampato in via definitiva
+     * @param array|null $abbinamenti scelte per gruppo del partitario (PartiteAperte), null = proposta automatica
+     * @throws \DomainException se la registrazione cade in un periodo stampato in via definitiva o gli abbinamenti non sono validi
      */
-    public function salva(RegistrazioneContabile $registrazione, array $righeIva, array $righe, ?string $chiaveProtocollo = null, ?FatturaElettronica $fattura = null): RegistrazioneContabile
+    public function salva(RegistrazioneContabile $registrazione, array $righeIva, array $righe, ?string $chiaveProtocollo = null, ?FatturaElettronica $fattura = null, ?array $abbinamenti = null): RegistrazioneContabile
     {
         $blocco = (new StampeDefinitive($this->dataMapper))->getBlocco($registrazione, $righeIva);
         if ($blocco !== null) {
             throw new \DomainException($blocco);
+        }
+        $partite = new PartiteAperte($this->dataMapper);
+        $gruppi = $partite->getGruppi($registrazione, $righe);
+        $scelte = $abbinamenti ?? $partite->proponi($registrazione, $gruppi);
+        $errori = $partite->verifica($registrazione, $gruppi, $scelte);
+        if (count($errori) > 0) {
+            throw new \DomainException(implode(' ', $errori));
         }
         $registrazioneModel = new RegistrazioneContabileModel($this->dataMapper);
         $primaTransazione = $this->dataMapper->startTransaction();
@@ -85,6 +98,7 @@ class SalvataggioRegistrazione
             $riga->ordine = $indice + 1;
             $this->dataMapper->save($riga);
         }
+        $partite->registra($registrazione, $gruppi, $scelte);
         if ($fattura !== null) {
             $fattura->registrazioneContabile = $registrazione;
             $fattura->controparte = $registrazione->controparte ?? $fattura->controparte;
@@ -116,11 +130,13 @@ class SalvataggioRegistrazione
      */
     public function elimina(RegistrazioneContabile $registrazione): void
     {
-        $blocco = (new StampeDefinitive($this->dataMapper))->getBlocco($registrazione);
+        $partite = new PartiteAperte($this->dataMapper);
+        $blocco = (new StampeDefinitive($this->dataMapper))->getBlocco($registrazione) ?? $partite->getBloccoEliminazione($registrazione);
         if ($blocco !== null) {
             throw new \DomainException($blocco);
         }
         $primaTransazione = $this->dataMapper->startTransaction();
+        $partite->elimina($registrazione);
         $fattura = (new FatturaElettronicaModel($this->dataMapper))->getPerRegistrazione($registrazione);
         if ($fattura !== null) {
             $fattura->registrazioneContabile = null;

@@ -302,7 +302,14 @@ class TelematicoAndStampaTest extends SuiteTestCase
     {
         // LettoreFoglio::normalizza (con riparazione testo corrotto Windows-1252 / halfwidth)
         $this->assertSame('Testo normale', LettoreFoglio::normalizza("  Testo\u{A0}  normale "));
-        $this->assertNotEmpty(LettoreFoglio::normalizza("dï¿‚ï¾’imposta"));
+        $this->assertSame('d’imposta', LettoreFoglio::normalizza("dï¿‚ï¾’imposta"));
+        $this->assertSame('attività', LettoreFoglio::normalizza("attivitï¿ƒï¾\u{A0}"));
+        // sequenze delle descrizioni in maiuscolo (archivio TabF24_20261103)
+        $this->assertSame('FONDO DI SOLIDARIETÀ PER LE VITTIME', LettoreFoglio::normalizza("FONDO DI SOLIDARIETï¿ƒï¾Ž PER LE VITTIME"));
+        $this->assertSame('SPORTIVE NONCHÉ DA ALTRI', LettoreFoglio::normalizza("SPORTIVE NONCHï¿‚ï¾Ÿ DA ALTRI"));
+        $this->assertSame('IN CUI È EFFETTUATO', LettoreFoglio::normalizza("IN CUI ï¿ƒï¾¾ EFFETTUATO"));
+        $this->assertSame("CREDITO D'IMP. E INTER.-CONTR. DL461/97", LettoreFoglio::normalizza("CREDITO Dï¿ƒï¾†IMP. E INTER.ï¿ƒï¾»CONTR. DL461ï¿ƒï¾§97"));
+        $this->assertSame('Î e Æ non corrotti', LettoreFoglio::normalizza('Î e Æ non corrotti'));
 
         // LettoreTabellaHtml
         $html = '<html><body><table><thead><tr><th>Settore</th><th>Codice</th><th>Descrizione</th></tr></thead>'

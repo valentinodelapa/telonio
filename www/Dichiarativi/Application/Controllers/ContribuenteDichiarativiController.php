@@ -8,8 +8,11 @@ use Deleghe\Application\Models\VersamentoModel;
 use Dichiarativi\Application\BaseClasses\DichiarativiController;
 use Dichiarativi\Application\Entities\Dichiarazione;
 use Dichiarativi\Application\Enumerations\ModelloDichiarativo;
+use Dichiarativi\Application\Models\AttivitaEsteraModel;
 use Dichiarativi\Application\Models\AttoAccertamentoModel;
+use Dichiarativi\Application\Models\CertificazioneAutonomoModel;
 use Dichiarativi\Application\Models\CertificazioneUnicaModel;
+use Dichiarativi\Application\Models\CessioneFinanziariaModel;
 use Dichiarativi\Application\Models\GaranziaRimborsoModel;
 use Dichiarativi\Application\Models\ValoreCertificazioneUnicaModel;
 use Dichiarativi\Application\Models\CampoModelloModel;
@@ -92,6 +95,9 @@ class ContribuenteDichiarativiController extends DichiarativiController
         $this->vars['modelli'] = $modelli;
         $this->vars['versamenti'] = $versamenti;
         $this->vars['atti'] = (new AttoAccertamentoModel($this->dataMapper))->getElenco($soggetto);
+        $this->vars['certificazioniAutonomo'] = (new CertificazioneAutonomoModel($this->dataMapper))->getPerAnno($soggetto, $anno);
+        $this->vars['cessioni'] = (new CessioneFinanziariaModel($this->dataMapper))->getPerAnno($soggetto, $anno);
+        $this->vars['attivitaEstere'] = (new AttivitaEsteraModel($this->dataMapper))->getPerAnno($soggetto, $anno);
         $this->vars['certificazioni'] = [];
         if ($soggetto->isPersonaFisica()) {
             $valoreModel = new ValoreCertificazioneUnicaModel($this->dataMapper);

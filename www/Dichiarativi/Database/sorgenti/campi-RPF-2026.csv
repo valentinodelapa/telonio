@@ -372,7 +372,7 @@ CR017002;NP;"di cui compensato nel mod. F24"
 CR030001;NP;"Residuo precedente dichiarazione"
 CR030003;NP;"di cui compensato nel mod. F24"
 CR030004;NP;"Credito residuo"
-CR031001;N1;Codice
+CR031001;N2;Codice
 CR031002;NP;Importo
 CR031003;NP;"Residuo 2024"
 CR031004;NP;"Rata / Spesa 2023"
