@@ -7,11 +7,18 @@ namespace Telonio\Application\Services\Aggiornamenti;
  * (<Modulo>/Database), nell'ordine di MODULE_FOLDERS (dipendenze prima):
  *
  * - modulo non ancora installato (nessuna delle tabelle del suo schema.sql
- *   esiste): schema.sql e dati-riferimento.sql; gli aggiornamento-*.sql
- *   sono solo registrati, perché lo schema è già quello della versione;
+ *   esiste): schema.sql e dati-riferimento.sql; gli aggiornamento-* sono
+ *   solo registrati, perché lo schema è già quello della versione e non ci
+ *   sono dati da migrare;
  * - modulo installato: gli aggiornamento-<versione>.sql non ancora
  *   registrati, in ordine di versione, poi schema.sql (tabelle nuove), la
  *   registrazione degli aggiornamenti eseguiti e dati-riferimento.sql.
+ *
+ * Le migrazioni dei dati scritte in PHP (aggiornamento-<versione>.php, che
+ * restituisce una funzione con un parametro per i messaggi) dei moduli
+ * installati si eseguono alla fine, quando lo schema e i dati di
+ * riferimento di tutti i moduli sono aggiornati, e si registrano subito
+ * dopo; devono essere idempotenti come gli script SQL.
  *
  * Tutti gli script sono idempotenti (CREATE TABLE IF NOT EXISTS, ADD COLUMN
  * IF NOT EXISTS, INSERT ... ON DUPLICATE KEY UPDATE): su un database
@@ -23,7 +30,7 @@ class PianoAggiornamentoDatabase
 
     public const SCHEMA = 'schema.sql';
     public const DATI = 'dati-riferimento.sql';
-    private const AGGIORNAMENTO = '/^aggiornamento-(\d+(?:\.\d+)*)\.sql$/';
+    private const AGGIORNAMENTO = '/^aggiornamento-(\d+(?:\.\d+)*)\.(sql|php)$/';
 
     /**
      * @param array<string, string> $moduli cartella Database indicizzata per nome del modulo
@@ -35,7 +42,7 @@ class PianoAggiornamentoDatabase
     {
         $tabelleEsistenti = array_flip(array_map('strtolower', $tabelleEsistenti));
         $scriptEseguiti = array_flip($scriptEseguiti);
-        $passi = [];
+        $passi = $migrazioni = [];
         foreach ($moduli as $modulo => $cartella) {
             $schema = $cartella . DIRECTORY_SEPARATOR . self::SCHEMA;
             $dati = $cartella . DIRECTORY_SEPARATOR . self::DATI;
@@ -43,7 +50,12 @@ class PianoAggiornamentoDatabase
             $daApplicare = array_values(array_filter($this->getAggiornamenti($cartella), fn($script) => isset($scriptEseguiti[$modulo . '/' . $script]) === false));
             if ($installato) {
                 foreach ($daApplicare as $script) {
-                    $passi[] = new PassoAggiornamento($modulo, $script, $cartella . DIRECTORY_SEPARATOR . $script, true, false);
+                    $passo = new PassoAggiornamento($modulo, $script, $cartella . DIRECTORY_SEPARATOR . $script, true, false);
+                    if ($passo->isMigrazione()) {
+                        $migrazioni[] = new PassoAggiornamento($modulo, $script, $passo->percorso, true, true);
+                    } else {
+                        $passi[] = $passo;
+                    }
                 }
             }
             if (is_file($schema)) {
@@ -52,13 +64,16 @@ class PianoAggiornamentoDatabase
             // Registrazione dopo lo schema: il registro (aggiornamento_database)
             // è creato dallo schema del modulo base.
             foreach ($daApplicare as $script) {
-                $passi[] = new PassoAggiornamento($modulo, $script, $cartella . DIRECTORY_SEPARATOR . $script, false, true);
+                $passo = new PassoAggiornamento($modulo, $script, $cartella . DIRECTORY_SEPARATOR . $script, false, true);
+                if (($installato === false) || ($passo->isMigrazione() === false)) {
+                    $passi[] = $passo;
+                }
             }
             if (is_file($dati)) {
                 $passi[] = new PassoAggiornamento($modulo, self::DATI, $dati, true, false);
             }
         }
-        return $passi;
+        return array_merge($passi, $migrazioni);
     }
 
     /**
@@ -74,17 +89,18 @@ class PianoAggiornamentoDatabase
     }
 
     /**
-     * @return string[] aggiornamento-<versione>.sql in ordine di versione
+     * @return string[] aggiornamento-<versione>.sql e .php in ordine di
+     *         versione (a parità di versione prima lo script SQL)
      */
     public function getAggiornamenti(string $cartella): array
     {
         $script = [];
         foreach (is_dir($cartella) ? scandir($cartella) : [] as $file) {
             if (preg_match(self::AGGIORNAMENTO, $file, $parti) === 1) {
-                $script[$parti[1]] = $file;
+                $script[] = [$parti[1], $parti[2] === 'sql' ? 0 : 1, $file];
             }
         }
-        uksort($script, 'version_compare');
-        return array_values($script);
+        usort($script, fn(array $primo, array $secondo) => version_compare($primo[0], $secondo[0]) ?: $primo[1] <=> $secondo[1]);
+        return array_column($script, 2);
     }
 }

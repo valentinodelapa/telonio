@@ -277,8 +277,10 @@ agli incassi dei clienti sono proposte nel rigo RE26. `ComponentiReddito`
 espone anche i totali dei ricavi e dei costi dell'ultimo calcolo per cassa,
 usati per il reddito delle società di persone imputato ai soci (quadro RH).
 
-`sisma partite-aperte [--soggetto=ID]` crea le partite delle registrazioni
-anteriori alla versione 0.8: in ordine di giornale le fatture aprono le
+All'aggiornamento alla versione 0.8.1 `sisma aggiorna-database` (quindi
+`aggiorna.sh`) crea le partite delle registrazioni che non le hanno
+(`Database/aggiornamento-0.8.1.php`); `sisma partite-aperte [--soggetto=ID]`
+lo ripete per le registrazioni che non le hanno: in ordine di giornale le fatture aprono le
 partite e incassi, pagamenti e note di credito le chiudono dalla più
 vecchia, con l'eccedenza come acconto. Questi abbinamenti sono segnati
 "da verificare" nello scadenzario finché non si confermano o si

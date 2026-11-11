@@ -101,7 +101,7 @@ docker exec telonio_php sh -c 'cd /var/www/html && sisma calendario-fiscale'
 # Aggiorna i piani dei conti modello e i codici IVA della suite dalle sorgenti del modulo Contabilita
 docker exec telonio_php sh -c 'cd /var/www/html && sisma tabelle-contabilita'
 
-# Crea le partite aperte delle registrazioni anteriori a Contabilita 0.8 (abbinamenti da verificare nello scadenzario)
+# Ricrea le partite aperte delle registrazioni che non le hanno (sisma aggiorna-database lo fa già all'aggiornamento a Contabilita 0.8.1)
 docker exec telonio_php sh -c 'cd /var/www/html && sisma partite-aperte'
 
 # Scarica di nuovo gli schemi XSD ufficiali usati da Contabilita (comunicazione delle liquidazioni periodiche IVA, fattura elettronica)
@@ -256,7 +256,7 @@ Lo script cerca su GitHub l'ultima release del canale (`CANALE_AGGIORNAMENTI` in
 1.  esegue il dump del database in `backups/` (`<database>_<data>_prima-di-<versione>.sql.gz`);
 2.  ferma `php` e `nginx` e sposta il codice attuale in `.aggiornamenti/telonio-<versione>`: `.env`, `backups/`, `rclone/`, `www/filesystemMedia` (documenti caricati) e `www/Logs` restano al loro posto;
 3.  mette al suo posto il codice nuovo, ricostruisce e riavvia i container (`docker compose up -d --build`);
-4.  aggiorna il database con `sisma aggiorna-database`: gli script di aggiornamento dei moduli non ancora applicati, gli schemi (tabelle nuove) e i dati di riferimento;
+4.  aggiorna il database con `sisma aggiorna-database`: gli script di aggiornamento dei moduli non ancora applicati, gli schemi (tabelle nuove), i dati di riferimento e le migrazioni dei dati in PHP;
 5.  controlla che l'applicazione risponda su `HTTP_BIND:HTTP_PORT`.
 
 Se un passo fallisce rimette il codice precedente e ripristina il database dal dump; la versione non riuscita resta in `.aggiornamenti/` per l'analisi. Restano le due versioni precedenti e gli ultimi due archivi scaricati. Opzioni: `--si` (senza conferma), `--canale=` (canale diverso), `--archivio=FILE` (archivio già scaricato), `--senza-backup` (database esterno: backup a cura propria). I file di Compose sono quelli di `COMPOSE_FILE` e `COMPOSE_PROFILES` in `.env` o, se assenti, produzione con database interno e backup.

@@ -44,7 +44,8 @@ Porta il database alla versione del codice installato con gli script SQL
 dei moduli (<Modulo>/Database), nell'ordine di MODULE_FOLDERS:
   - modulo nuovo: schema.sql e dati-riferimento.sql
   - modulo installato: gli aggiornamento-<versione>.sql non ancora
-    applicati, poi schema.sql (tabelle nuove) e dati-riferimento.sql
+    applicati, poi schema.sql (tabelle nuove) e dati-riferimento.sql;
+    alla fine le migrazioni dei dati aggiornamento-<versione>.php
 Gli script applicati sono registrati nella tabella aggiornamento_database.
 Vale anche per la prima installazione su un database vuoto. Al termine
 elimina la cache dei riferimenti tra le entità (Cache/referenceCache.json).
@@ -106,7 +107,18 @@ OUTPUT;
 
     private function eseguiPasso(DatabaseAmministrazione $database, PassoAggiornamento $passo): void
     {
-        if ($passo->esegui) {
+        if ($passo->esegui && $passo->isMigrazione()) {
+            $this->output('  ' . $passo->getDescrizione());
+            $migrazione = require $passo->percorso;
+            if (is_callable($migrazione) === false) {
+                throw new \RuntimeException($passo->getDescrizione() . ': lo script non restituisce una funzione.');
+            }
+            try {
+                $migrazione(fn(string $messaggio) => $this->output('    ' . $messaggio));
+            } catch (\Throwable $errore) {
+                throw new \RuntimeException($passo->getDescrizione() . ': ' . $errore->getMessage(), 0, $errore);
+            }
+        } elseif ($passo->esegui) {
             $this->output('  ' . $passo->getDescrizione());
             $sql = file_get_contents($passo->percorso);
             if ($sql === false) {

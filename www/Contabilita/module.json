@@ -1,6 +1,6 @@
 {
   "name": "Contabilita",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "framework_version": "12.14.0",
   "description": "Contabilità in partita doppia delle aziende clienti: piano dei conti, prima nota, registri e liquidazioni IVA e loro comunicazione, fatture elettroniche, giornale, schede contabili, bilancio di verifica e stampe definitive",
   "authors": [
@@ -8,7 +8,7 @@
   ],
   "requires": {
     "sismaframework": ">=12.14.0",
-    "Telonio": ">=0.4.0",
+    "Telonio": ">=0.8.0",
     "Anagrafica": ">=0.9.0",
     "Deleghe": ">=0.1.0"
   },

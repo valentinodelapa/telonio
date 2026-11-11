@@ -138,6 +138,25 @@ solo i permessi DML). Il piano (`Services\Aggiornamenti\PianoAggiornamentoDataba
   in ordine di versione, poi `schema.sql` (tabelle nuove), la registrazione
   e `dati-riferimento.sql`.
 
+Le migrazioni dei dati che non si scrivono in SQL (es. le partite aperte
+ricavate dalle registrazioni già presenti in Contabilita 0.8.1) sono script
+`aggiornamento-<versione>.php` che restituiscono una funzione con un
+parametro per i messaggi:
+
+```php
+<?php
+return function (callable $messaggio): void {
+    // migrazione idempotente con le entità e i servizi del modulo
+    $messaggio('fatto');
+};
+```
+
+Per i moduli installati si eseguono alla fine, dopo lo schema e i dati di
+riferimento di tutti i moduli, e si registrano come gli script SQL; sui
+moduli nuovi si registrano soltanto (non ci sono dati da migrare). Così
+`aggiorna.sh`, che esegue `sisma aggiorna-database`, non richiede passi
+manuali.
+
 Il registro è la tabella `aggiornamento_database` (modulo, script, data).
 Sui database aggiornati a mano, prima del registro, gli script di
 aggiornamento vengono rieseguiti una volta: per questo **tutti gli script

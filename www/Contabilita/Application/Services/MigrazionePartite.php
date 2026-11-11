@@ -5,6 +5,7 @@ namespace Contabilita\Application\Services;
 use Anagrafica\Application\Entities\Soggetto;
 use Contabilita\Application\Models\AbbinamentoModel;
 use Contabilita\Application\Models\PartitaModel;
+use Contabilita\Application\Models\PianoContiModel;
 use Contabilita\Application\Models\RegistrazioneContabileModel;
 use Contabilita\Application\Models\RigaContabileModel;
 use SismaFramework\Orm\CustomTypes\SismaDate;
@@ -34,6 +35,34 @@ class MigrazionePartite
     public function getAvvisi(): array
     {
         return $this->avvisi;
+    }
+
+    /**
+     * Migrazione di tutte le aziende con la contabilità (o della sola
+     * indicata), con un messaggio per azienda e per avviso.
+     *
+     * @param callable(string): void $messaggio
+     * @return int registrazioni con partite create
+     */
+    public function eseguiTutte(callable $messaggio, ?int $soggetto = null): int
+    {
+        $totale = 0;
+        foreach ((new PianoContiModel($this->dataMapper))->getEntityCollection() as $piano) {
+            $azienda = $piano->soggetto;
+            if (($azienda === null) || (($soggetto !== null) && ($azienda->id !== $soggetto))) {
+                continue;
+            }
+            $create = $this->esegui($azienda);
+            $totale += $create;
+            if ($create > 0) {
+                $messaggio(sprintf('%s: partite per %d registrazioni', $azienda->nominativo, $create));
+            }
+        }
+        foreach ($this->avvisi as $avviso) {
+            $messaggio('Attenzione: ' . $avviso);
+        }
+        $messaggio(sprintf('Partite create per %d registrazioni: verificare gli abbinamenti nello scadenzario.', $totale));
+        return $totale;
     }
 
     /**

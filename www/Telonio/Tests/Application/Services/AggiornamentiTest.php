@@ -186,12 +186,14 @@ class AggiornamentiTest extends TestCase
             'aggiornamento-0.10.sql' => '-- 0.10',
             'aggiornamento-0.3.sql' => '-- 0.3',
             'aggiornamento-0.5.sql' => '-- 0.5',
+            'aggiornamento-0.5.php' => '<?php return fn() => null;',
             'dati-riferimento.sql' => 'INSERT ...',
             'note.sql' => '-- ignorato',
         ]);
         $nuovo = $this->creaModulo('Nuovo', [
             'schema.sql' => 'CREATE TABLE IF NOT EXISTS `adempimento` (id INT);',
             'aggiornamento-0.2.sql' => '-- 0.2',
+            'aggiornamento-0.2.php' => '<?php return fn() => null;',
             'dati-riferimento.sql' => 'INSERT ...',
         ]);
         $piano = new PianoAggiornamentoDatabase();
@@ -212,8 +214,12 @@ class AggiornamentiTest extends TestCase
             'esegue Installato/dati-riferimento.sql',
             'esegue Nuovo/schema.sql',
             'registra Nuovo/aggiornamento-0.2.sql',
+            'registra Nuovo/aggiornamento-0.2.php',
             'esegue Nuovo/dati-riferimento.sql',
+            // migrazioni dei dati dei moduli installati alla fine, eseguite e registrate
+            'esegue Installato/aggiornamento-0.5.php',
         ], $descrizioni);
+        $this->assertTrue($passi[count($passi) - 1]->registra);
         $this->assertSame(['soggetto', 'nuova'], $piano->getTabelle($installato . DIRECTORY_SEPARATOR . 'schema.sql'));
     }
 

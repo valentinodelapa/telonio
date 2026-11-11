@@ -19,6 +19,14 @@ final class PassoAggiornamento
 
     }
 
+    /**
+     * Migrazione dei dati in PHP (aggiornamento-<versione>.php).
+     */
+    public function isMigrazione(): bool
+    {
+        return str_ends_with($this->script, '.php');
+    }
+
     public function getDescrizione(): string
     {
         return $this->modulo . '/Database/' . $this->script;

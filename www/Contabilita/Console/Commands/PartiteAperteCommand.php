@@ -2,15 +2,14 @@
 
 namespace Contabilita\Console\Commands;
 
-use Anagrafica\Application\Models\SoggettoModel;
-use Contabilita\Application\Models\PianoContiModel;
 use Contabilita\Application\Services\MigrazionePartite;
 use SismaFramework\Console\BaseClasses\BaseCommand;
-use SismaFramework\Orm\HelperClasses\DataMapper;
 
 /**
- * Crea le partite aperte e gli abbinamenti delle registrazioni già
- * presenti (anteriori alla versione 0.8 della contabilità).
+ * Crea le partite aperte e gli abbinamenti delle registrazioni che non li
+ * hanno. All'aggiornamento alla versione 0.8.1 della contabilità lo
+ * esegue già "sisma aggiorna-database" (Database/aggiornamento-0.8.1.php);
+ * il comando resta per ripeterlo.
  *
  * Uso:
  *   sisma partite-aperte                  tutte le aziende
@@ -47,23 +46,8 @@ OUTPUT;
     protected function execute(): bool
     {
         try {
-            $dataMapper = new DataMapper();
-            $migrazione = new MigrazionePartite($dataMapper);
             $filtro = $this->getOption('soggetto');
-            $totale = 0;
-            foreach ((new PianoContiModel($dataMapper))->getEntityCollection() as $piano) {
-                $soggetto = $piano->soggetto;
-                if (($soggetto === null) || (($filtro !== null) && ((int) $filtro !== $soggetto->id))) {
-                    continue;
-                }
-                $create = $migrazione->esegui($soggetto);
-                $totale += $create;
-                $this->output(sprintf('  %s: %d registrazioni', $soggetto->nominativo, $create));
-            }
-            foreach ($migrazione->getAvvisi() as $avviso) {
-                $this->output('  Attenzione: ' . $avviso);
-            }
-            $this->output(sprintf('Partite create per %d registrazioni: verificare gli abbinamenti nello scadenzario.', $totale));
+            (new MigrazionePartite())->eseguiTutte(fn(string $messaggio) => $this->output('  ' . $messaggio), $filtro === null ? null : (int) $filtro);
             return true;
         } catch (\Throwable $errore) {
             $this->output('Errore: ' . $errore->getMessage());

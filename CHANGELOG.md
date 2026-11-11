@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.24.0-alpha] - 2026-11-11 - Migrazioni dei Dati nell'Aggiornamento
+
+Versioni dei moduli: `Telonio` 0.8.0, `Contabilita` 0.8.1 (richiede `Telonio` 0.8.0); gli altri invariati.
+
+**Aggiornamento**: `aggiorna.sh` (cioè `sisma aggiorna-database`) esegue `Contabilita/Database/aggiornamento-0.8.1.php`, che crea le partite aperte delle registrazioni che non le hanno (abbinamenti dalla più vecchia, da verificare nello scadenzario): chi ha già eseguito a mano `sisma partite-aperte` dopo la 0.23.0-alpha non ha effetti, le registrazioni con partite non sono toccate. Nessun passo manuale.
+
+### ✨ Nuove Funzionalità
+
+#### `Telonio` 0.8.0
+
+- **migrazioni dei dati in PHP** nell'aggiornamento del database: `sisma aggiorna-database` (e quindi `aggiorna.sh`) esegue gli script `aggiornamento-<versione>.php` dei moduli installati dopo gli script SQL di tutti i moduli e li registra come gli altri; sulle installazioni nuove si registrano soltanto.
+
+### 🐛 Correzioni
+
+#### `Contabilita` 0.8.1
+
+- **partite aperte delle registrazioni già presenti**: con la 0.23.0-alpha andavano create a mano con `sisma partite-aperte` dopo l'aggiornamento; ora le crea l'aggiornamento del database (`aggiornamento-0.8.1.php`), e il comando resta per ripeterlo.
+
 ## [0.23.0-alpha] - 2026-11-11 - Partite Aperte e Altri Quadri del Modello Redditi
 
 Versioni dei moduli: `Anagrafica` 0.12.0, `Contabilita` 0.8.0, `Dichiarativi` 0.6.0 (richiede `Anagrafica` 0.12.0 e `Contabilita` 0.8.0), `Deleghe` 0.7.1; gli altri invariati.

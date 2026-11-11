@@ -150,6 +150,32 @@ class AggiornamentiCommandsTest extends TestCase
         $this->assertFileDoesNotExist($cache);
     }
 
+    public function testAggiornaDatabaseEsegueLeMigrazioniPhp(): void
+    {
+        $moduli = ['Contabilita' => $this->creaModulo([
+                'schema.sql' => 'CREATE TABLE IF NOT EXISTS `partita` (id INT);',
+                'aggiornamento-0.8.php' => '<?php return function (callable $messaggio): void { $messaggio("partite create"); };',
+                'aggiornamento-0.9.php' => '<?php return function (callable $messaggio): void { throw new \DomainException("dati incoerenti"); };',
+        ])];
+        $registrati = [];
+        $database = $this->createStub(DatabaseAmministrazione::class);
+        $database->method('getTabelle')->willReturn(['partita']);
+        $database->method('getScriptEseguiti')->willReturn([]);
+        $database->method('esegui')->willReturn([]);
+        $database->method('registra')->willReturnCallback(function (string $modulo, string $script) use (&$registrati) {
+            $registrati[] = $modulo . '/' . $script;
+        });
+        $cache = $this->percorsoTemporaneo();
+
+        $esito = $this->esegui(new AggiornaDatabaseCommand($database, moduli: $moduli, fileCache: $cache));
+
+        // la prima migrazione è eseguita e registrata, la seconda fallisce e non si registra
+        $this->assertFalse($esito['esito']);
+        $this->assertStringContainsString('    partite create', $esito['output']);
+        $this->assertStringContainsString('Errore: Contabilita/Database/aggiornamento-0.9.php: dati incoerenti', $esito['output']);
+        $this->assertSame(['Contabilita/aggiornamento-0.8.php'], $registrati);
+    }
+
     public function testAggiornaDatabaseSiFermaAlPrimoErrore(): void
     {
         $moduli = ['Anagrafica' => $this->creaModulo([
