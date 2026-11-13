@@ -855,7 +855,10 @@ visto, e i record C dei quadri.
   con il pro-rata definitivo del 15% (registrato come provvisorio del
   2026), VT con i privati in Lombardia ed Emilia-Romagna, saldo con gli
   interessi dei trimestrali in cinque rate e visto di conformità del CAF
-  Imprese Lombardia (responsabile Anna Colombo);
+  Imprese Lombardia (responsabile Anna Colombo); bollo virtuale sulle
+  fatture esenti ai pazienti, versato in Deleghe con i differimenti sotto i
+  5.000 euro (primo e secondo trimestre al 1° dicembre 2025), e una fattura
+  esente all'assicurazione senza bollo, tra quelle da verificare;
 - **Autotrasporti Emiliani S.r.l.** (trimestrale per natura
   dell'attività, Bologna): trasporti e acquisti di gasolio del 2025,
   quattro liquidazioni senza interessi (quarto trimestre al 16 febbraio

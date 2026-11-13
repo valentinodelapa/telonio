@@ -15,6 +15,7 @@ use Contabilita\Application\Models\PartitaModel;
 use Contabilita\Application\Models\PianoContiModel;
 use Contabilita\Application\Services\Partitario;
 use Contabilita\Application\Services\RegistrazioneDocumentoIva;
+use Contabilita\Application\Services\RitenuteOperate;
 use Contabilita\Application\Services\SalvataggioRegistrazione;
 use SismaFramework\Core\BaseClasses\BaseFixture;
 use SismaFramework\Orm\CustomTypes\SismaDate;
@@ -88,6 +89,8 @@ class PartiteAlfaFixture extends BaseFixture
         $contoGamma = $partitario->getConto($gamma, false);
         $this->registra(CausaleContabile::pagamento, '2026-02-15', $gamma, 'Pagamento fattura G/12 al netto della ritenuta', [[$contoGamma, 976, 0, $gamma], [$banca, 0, 816, null], [$ritenute, 0, 160, null]],
                 [$this->chiave($gamma, $contoGamma) => self::scelta([$this->partita($gamma, 'G/12')->id => ['DEN' => 816.0, 'RIT' => 160.0]])], 816.0);
+        // versamento della ritenuta di febbraio (1040, entro il 16 marzo) nell'archivio di Deleghe F24
+        (new RitenuteOperate($this->dataMapper))->registra($this->esercizio->soggetto, 2026, 2);
         // compensazione tra il credito verso Delta (fattura n. 5) e il debito (fattura D/45)
         RegistrazioneDocumentoIva::registra($this->dataMapper, $this->esercizio, $delta, CausaleContabile::fatturaVendita, '2026-04-10', '5', ['22' => 500.0]);
         $debito = $partitario->getConto($delta, false);

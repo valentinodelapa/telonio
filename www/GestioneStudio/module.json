@@ -1,6 +1,6 @@
 {
   "name": "GestioneStudio",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "framework_version": "12.14.0",
   "description": "Gestione dello studio: scadenzario di tutti i moduli, calendario fiscale degli adempimenti e adempimenti dei clienti",
   "authors": [

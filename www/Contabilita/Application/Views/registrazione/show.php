@@ -44,6 +44,9 @@ require __DIR__ . '/../commonParts/navAzienda.php';
             <?php if ($registrazione->totaleDocumento !== null): ?>
                 <dt class="col-sm-3"><?= Html::e($campi['totaleDocumento']) ?></dt><dd class="col-sm-3"><?= Html::e(Importo::euro($registrazione->totaleDocumento)) ?></dd>
             <?php endif; ?>
+            <?php if (($registrazione->impostaBollo ?? 0) > 0): ?>
+                <dt class="col-sm-3"><?= Html::e($campi['impostaBollo']) ?></dt><dd class="col-sm-3"><?= Html::e(Importo::euro($registrazione->impostaBollo)) ?></dd>
+            <?php endif; ?>
             <?php if ($fattura !== null): ?>
                 <dt class="col-sm-3"><?= Html::e($daFattura) ?></dt><dd class="col-sm-3"><a href="/fattura-elettronica/show/fattura/<?= Html::e($fattura->id) ?>"><?= Html::e($fattura->nomeFile) ?></a></dd>
             <?php endif; ?>

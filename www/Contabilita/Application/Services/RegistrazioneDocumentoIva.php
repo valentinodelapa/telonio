@@ -52,6 +52,7 @@ final class RegistrazioneDocumentoIva
             $registrazione->dataCompetenzaIva = new SismaDate($data);
             $registrazione->esigibilita = $opzioni['esigibilita'] ?? EsigibilitaIva::immediata;
             $registrazione->importazione = $opzioni['importazione'] ?? false;
+            $registrazione->impostaBollo = $opzioni['bollo'] ?? null;
             $segno = $causale->getSegno();
             foreach ($imponibili as $codice => $imponibile) {
                 $riga = new RigaIva($dataMapper);

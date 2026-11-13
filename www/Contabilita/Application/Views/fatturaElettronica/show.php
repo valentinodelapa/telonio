@@ -57,6 +57,9 @@ require __DIR__ . '/../commonParts/navAzienda.php';
                         <?php endforeach; ?>
                     </tbody>
                 </table>
+                <?php if ($corpo->bollo !== null): ?>
+                    <div class="card-footer bg-white small"><?= Html::e($bolloVirtuale) ?>: € <?= Html::e(Importo::euro($corpo->bollo)) ?></div>
+                <?php endif; ?>
             </div>
             <?php if (count($corpo->descrizioni) > 0 || $corpo->causale !== null): ?>
                 <div class="card shadow-sm">

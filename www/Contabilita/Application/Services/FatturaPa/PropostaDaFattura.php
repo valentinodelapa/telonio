@@ -72,6 +72,8 @@ class PropostaDaFattura
         $registrazione->registroIva = (new RegistroIvaModel($this->dataMapper))->getPerTipo($soggetto, $causale->getTipoRegistroIva())[0] ?? null;
         $registrazione->dataCompetenzaIva = $fattura->direzione === DirezioneFattura::emessa ? $fattura->data : $registrazione->dataRegistrazione;
         $registrazione->esigibilita = $corpo->getEsigibilita();
+        // bollo virtuale delle fatture emesse, versato per trimestre (Services\ImpostaBolloFatture)
+        $registrazione->impostaBollo = $fattura->direzione === DirezioneFattura::emessa ? $corpo->bollo : null;
         $segno = $causale->getSegno();
         $rivendita = ($causale->getTipoRegistroIva() === TipoRegistroIva::acquisti)
                 && (new RegimeIva($this->dataMapper))->isVentilazione($soggetto, (int) $fattura->data->format('Y'))

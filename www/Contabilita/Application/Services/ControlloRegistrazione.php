@@ -75,6 +75,13 @@ class ControlloRegistrazione
         } elseif ($registrazione->dataCompetenzaIva->format('Y-m-d') > $registrazione->dataRegistrazione->format('Y-m-d')) {
             $errori['dataCompetenzaIva'] = 'La competenza IVA non può essere successiva alla registrazione.';
         }
+        if ($registrazione->impostaBollo !== null) {
+            if ($tipo !== TipoRegistroIva::vendite) {
+                $errori['impostaBollo'] = 'Il bollo virtuale si indica solo sulle fatture emesse.';
+            } elseif ($registrazione->impostaBollo < 0) {
+                $errori['impostaBollo'] = 'L\'imposta di bollo non può essere negativa.';
+            }
+        }
         if (count($righeIva) === 0) {
             $errori['righeIva'] = 'Indicare almeno una riga IVA.';
             return $errori;

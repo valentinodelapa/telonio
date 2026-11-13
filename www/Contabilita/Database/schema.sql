@@ -269,6 +269,7 @@ CREATE TABLE IF NOT EXISTS `registrazione_contabile` (
   `data_competenza_iva` DATE NULL COMMENT 'Data che determina il periodo di liquidazione',
   `esigibilita` CHAR(1) NOT NULL DEFAULT 'I' COMMENT 'I immediata, D differita, S scissione dei pagamenti',
   `totale_documento` DECIMAL(15,2) NULL,
+  `imposta_bollo` DECIMAL(10,2) NULL COMMENT 'Imposta di bollo virtuale sulla fattura elettronica emessa (art. 6, c. 2, D.M. 17 giugno 2014)',
   `importazione` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Acquisto con documento doganale (VF28 campi 3-4, VC colonna 2)',
   `origine` VARCHAR(30) NULL COMMENT 'Registrazione generata (es. liquidazione IVA)',
   `riferimento_origine` VARCHAR(50) NULL,

@@ -21,6 +21,8 @@ class CorpoFattura
     public string $numero;
     public ?float $importoTotale = null;
     public ?string $causale = null;
+    /** imposta di bollo virtuale (DatiBollo, BolloVirtuale SI) */
+    public ?float $bollo = null;
 
     /** @var array<int, array{aliquota: float, natura: ?NaturaIva, imponibile: float, imposta: float, esigibilita: EsigibilitaIva, riferimentoNormativo: ?string}> */
     public array $riepiloghi = [];

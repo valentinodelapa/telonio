@@ -40,6 +40,8 @@ class RegistrazioneContabile extends ReferencedEntity
     protected ?SismaDate $dataCompetenzaIva = null;
     protected EsigibilitaIva $esigibilita = EsigibilitaIva::immediata;
     protected ?float $totaleDocumento = null;
+    /** imposta di bollo assolta in modo virtuale sulla fattura elettronica emessa */
+    protected ?float $impostaBollo = null;
     protected bool $importazione = false;
     protected ?string $origine = null;
     protected ?string $riferimentoOrigine = null;

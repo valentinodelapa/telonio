@@ -30,8 +30,10 @@ class RegistrazioneContabileForm extends BaseForm
                 $this->addRequest($campo, trim($this->request->input[$campo]));
             }
         }
-        if (isset($this->request->input['totaleDocumento']) && is_string($this->request->input['totaleDocumento'])) {
-            $this->addRequest('totaleDocumento', Importo::normalizza($this->request->input['totaleDocumento']));
+        foreach (['totaleDocumento', 'impostaBollo'] as $campo) {
+            if (isset($this->request->input[$campo]) && is_string($this->request->input[$campo])) {
+                $this->addRequest($campo, Importo::normalizza($this->request->input[$campo]));
+            }
         }
     }
 
@@ -49,7 +51,8 @@ class RegistrazioneContabileForm extends BaseForm
             $this->addFilterFieldMode('registroIva', FilterType::isEntity)
                     ->addFilterFieldMode('dataCompetenzaIva', FilterType::isDate)
                     ->addFilterFieldMode('esigibilita', FilterType::isEnumeration)
-                    ->addFilterFieldMode('importazione', FilterType::isBoolean);
+                    ->addFilterFieldMode('importazione', FilterType::isBoolean)
+                    ->addFilterFieldMode('impostaBollo', FilterType::isNumeric, [], true);
         }
     }
 

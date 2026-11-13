@@ -112,7 +112,8 @@ Le fixture (`sisma fixtures`) coprono tutte le funzioni del modulo:
   a Beta insoluta e incassata di nuovo con un abbuono di 4 euro, acconto di
   1.000 euro di Beta, incasso dal Comune al netto dell'IVA in scissione
   dei pagamenti, pagamento a Gamma al netto della ritenuta d'acconto
-  (816 euro di bonifico e 160 di ritenuta da versare) e compensazione
+  (816 euro di bonifico e 160 di ritenuta da versare, con il versamento
+  1040 di febbraio registrato in Deleghe per il 16 marzo) e compensazione
   della fattura n. 5 a Delta con il debito per la fattura D/45;
 - **Ferri Lucia, "Alimentari Ferri"** (ditta individuale, contabilità
   semplificata, IVA trimestrale, ventilazione dei corrispettivi nei dati
@@ -143,7 +144,7 @@ Le fixture (`sisma fixtures`) coprono tutte le funzioni del modulo:
 | `PartecipanteGruppoIva` | controllata del gruppo: anno di ingresso e di uscita, cessazione del controllo in corso d'anno, possesso (data, percentuale, detentore), sola catena di controllo |
 | `LiquidazioneGruppoIva` | liquidazione periodica del gruppo: debiti, crediti e interessi trasferiti, riporti, credito di gruppo dell'anno precedente, acconto, dovuto o credito |
 | `Controparte` | cliente o fornitore dell'azienda con dati fiscali, sede, recapiti per la fatturazione, pubblica amministrazione (scissione dei pagamenti), sottoconti del partitario, costo o ricavo e codice IVA abituali |
-| `RegistrazioneContabile` | registrazione di prima nota: numero nell'esercizio, causale, documento, controparte e, per i documenti IVA, registro, protocollo, data di competenza ed esigibilità; origine e riferimento per le registrazioni generate |
+| `RegistrazioneContabile` | registrazione di prima nota: numero nell'esercizio, causale, documento, controparte e, per i documenti IVA, registro, protocollo, data di competenza ed esigibilità, imposta di bollo virtuale delle fatture emesse; origine e riferimento per le registrazioni generate |
 | `RigaContabile` | riga in partita doppia sul sottoconto, con la controparte delle righe del partitario |
 | `Partita` | partita del partitario: controparte e sottoconto, registrazione che la apre, tipo (documento, insoluto con il documento riaperto, acconto, nota di credito da abbinare), documento, scadenza e importo |
 | `Abbinamento` | chiusura di una partita da parte di una registrazione: data, importo, modo (incasso o pagamento, ritenuta, compensazione, nota di credito, acconto, abbuono o perdita), partita collegata (acconto o nota usati) e flag "automatico" della migrazione |
@@ -808,8 +809,63 @@ registrazione), esigibilità e righe IVA dai riepiloghi con il codice IVA
 per aliquota e natura. Per gli acquisti in inversione contabile (fatture
 ricevute con natura N6 e integrazioni TD16-TD19) si propone il codice di
 integrazione (`RC`, `UE`, `ES`) con l'aliquota del documento o, se manca,
-il 22% da verificare. Salvata la registrazione la fattura risulta
-registrata; eliminando la registrazione torna da registrare.
+il 22% da verificare. Per le fatture emesse propone anche l'imposta di
+bollo virtuale dei `DatiBollo` (2 euro se l'importo non è indicato).
+Salvata la registrazione la fattura risulta registrata; eliminando la
+registrazione torna da registrare.
+
+## Ritenute e imposta di bollo
+
+La pagina "Ritenute e bollo" dell'azienda (`RitenuteBolloController`)
+riepiloga per anno i due tributi che l'azienda versa con l'F24 oltre
+all'IVA e li registra nell'archivio di Deleghe F24 (origine `Contabilita`),
+dove si generano le deleghe; i versamenti già in una delega confermata non
+si toccano e le differenze sono segnalate.
+
+**Ritenute d'acconto operate** (`Services\RitenuteOperate`): sui compensi
+di lavoro autonomo e sulle provvigioni pagati (artt. 25 e 25-bis D.P.R.
+600/1973). Sono le righe sui conti con la funzione "Erario c/ritenute da
+versare" delle registrazioni con il cliente o fornitore, di norma il
+pagamento al netto della ritenuta (vedi "Partite aperte e scadenzario"):
+avere meno dare, nel mese della registrazione, cioè del pagamento. Le righe
+senza controparte (il versamento in F24, un giroconto) non contano. Il
+versamento del mese (riferimento `ritenute-<anno>-<mese>`) è dovuto entro il
+16 del mese successivo (art. 18 D.Lgs. 241/1997 e art. 8 D.P.R. 602/1973;
+dal 2027 artt. 8 e 32 D.Lgs. 33/2025), con il codice tributo 1040, che dal
+2017 comprende anche le provvigioni (risoluzione 13/E/2016), il mese nel
+campo della rateazione (`00MM`) e l'anno; i termini festivi e del 16 agosto
+slittano come gli altri versamenti. Le ritenute sui redditi di lavoro
+dipendente (paghe) e le certificazioni (CU, 770) non sono gestite.
+
+**Imposta di bollo sulle fatture elettroniche** (`Services\ImpostaBolloFatture`):
+2 euro sulle fatture con operazioni senza IVA oltre 77,47 euro, assolta in
+modo virtuale e versata per trimestre (art. 6, c. 2, D.M. 17 giugno 2014).
+L'imposta è quella indicata nelle registrazioni delle vendite (campo
+"Imposta di bollo" della prima nota, proposto dalla fattura importata),
+raggruppata per trimestre della data del documento. Termini: 31 maggio,
+30 settembre (secondo trimestre), 30 novembre e fine febbraio dell'anno
+dopo (quarto), con lo slittamento al primo giorno lavorativo; codici
+2521-2524 (risoluzione 42/E/2019). Senza interessi e sanzioni l'imposta del
+primo trimestre inferiore a 5.000 euro si versa nel termine del secondo, e
+quella del primo e del secondo, se insieme inferiore a 5.000 euro, nel
+termine del terzo, ciascuna con il codice del suo trimestre (art. 17, c.
+1-bis, D.L. 124/2019; dal 2027 art. 152, c. 2, D.Lgs. 123/2025, testo unico
+registro e altri tributi indiretti). Si registrano i versamenti dell'anno
+intero (riferimento `bollo-fatture-<anno>`): si aggiornano alla fine di
+ogni trimestre.
+
+L'importo dovuto è quello che l'Agenzia delle entrate calcola sulle fatture
+inviate al Sistema di interscambio e mette a disposizione nel portale
+Fatture e corrispettivi, integrando le fatture senza l'annotazione del
+bollo (art. 12-novies D.L. 34/2019; dal 2027 art. 152, c. 1, D.Lgs.
+123/2025): la pagina elenca da verificare le fatture emesse senza bollo con
+operazioni senza IVA soggette (nature N1, N2, N3.4, N3.5, N3.6 e N4) oltre
+77,47 euro. Non sono soggette le esportazioni di merci (N3.1) e le cessioni
+intracomunitarie (N3.2) (art. 15 della tabella B del D.P.R. 642/1972 e art.
+66, c. 5, D.L. 331/1993; dal 2027 art. 19 della tabella dell'allegato 3 del
+D.Lgs. 123/2025), San Marino, il regime del margine e l'inversione
+contabile. La rilevazione contabile del bollo (costo e addebito al cliente)
+resta a cura dell'utente.
 
 ## Tabelle di riferimento
 
@@ -837,8 +893,9 @@ I piani delle aziende e i modelli e codici degli studi non sono toccati.
 
 ## Scadenzario dello studio
 
-Il modulo non espone scadenze proprie: i versamenti delle liquidazioni e
-dell'acconto compaiono nello scadenzario da Deleghe F24, le liquidazioni
+Il modulo non espone scadenze proprie: i versamenti delle liquidazioni,
+dell'acconto, delle ritenute e del bollo compaiono nello scadenzario da
+Deleghe F24, le liquidazioni
 come adempimenti del calendario fiscale di GestioneStudio. La scrivania
 mostra le aziende in contabilità, le fatture da registrare e le
 liquidazioni dell'anno.
@@ -933,7 +990,15 @@ riportano ancora il D.P.R. 633/1972.
 - artt. 2214-2220 c.c., art. 39 D.P.R. 633/1972, art. 8 L. 383/2001,
   art. 7 D.L. 357/1994 (stampe dei libri);
 - artt. 2424 e 2425 c.c. nel testo modificato dal D.Lgs. 139/2015;
-- RFC 5652 (Cryptographic Message Syntax) per la busta CAdES.
+- RFC 5652 (Cryptographic Message Syntax) per la busta CAdES;
+- artt. 25 e 25-bis D.P.R. 600/1973, art. 18 D.Lgs. 241/1997, art. 8
+  D.P.R. 602/1973, D.Lgs. 33/2025 (artt. 8 e 32, dal 2027), risoluzione
+  AdE 13/E/2016 (ritenute);
+- art. 6, c. 2, D.M. 17 giugno 2014, art. 17, c. 1-bis, D.L. 124/2019,
+  art. 12-novies D.L. 34/2019, D.P.R. 642/1972 (tabella B, art. 15), art.
+  66, c. 5, D.L. 331/1993, D.Lgs. 123/2025 (artt. 152 e allegato 3, dal
+  2027: testo nella G.U. n. 186 del 12 agosto 2025, S.O. n. 29),
+  risoluzione AdE 42/E/2019 (imposta di bollo sulle fatture elettroniche).
 
 ## Da completare
 
@@ -954,4 +1019,9 @@ riportano ancora il D.P.R. 633/1972.
   trasmessi (portale Fatture e corrispettivi) e scarico automatico delle
   fatture;
 - commenti del codice con le norme del Testo unico IVA (le citazioni
-  visibili sono già adeguate, vedi sopra).
+  visibili sono già adeguate, vedi sopra);
+- proposta della ritenuta d'acconto nel pagamento dai `DatiRitenuta` della
+  fattura ricevuta; ritenute su lavoro dipendente, certificazione unica e
+  modello 770 dei sostituti d'imposta;
+- importazione del bollo calcolato dall'Agenzia delle entrate e scritture
+  contabili del bollo.

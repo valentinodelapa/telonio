@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.26.0-alpha] - 2026-11-13 - Ritenute d'Acconto e Imposta di Bollo
+
+Versioni dei moduli: `Contabilita` 0.10.0, `Dichiarativi` 0.7.1 (richiede `Contabilita` 0.10.0), `GestioneStudio` 0.2.1; gli altri invariati.
+
+**Aggiornamento**: `aggiorna.sh` (cioè `sisma aggiorna-database`) esegue `Contabilita/Database/aggiornamento-0.10.sql` (colonna `registrazione_contabile.imposta_bollo`) e il `dati-riferimento.sql` di `GestioneStudio` (nuova fonte dell'adempimento del bollo sulle fatture elettroniche). Nessun passo manuale.
+
+### ✨ Nuove Funzionalità
+
+#### `Contabilita` 0.10.0 — ritenute d'acconto e imposta di bollo
+
+- **ritenute d'acconto operate**: nuova pagina "Ritenute e bollo" dell'azienda. Riepiloga per mese le ritenute dei pagamenti a professionisti e agenti (righe su "Erario c/ritenute da versare" delle registrazioni con il fornitore) e registra in Deleghe F24 il versamento con il codice 1040 entro il 16 del mese successivo (mese di riferimento e anno nell'F24).
+- **imposta di bollo sulle fatture elettroniche**: nuovo campo "Imposta di bollo" nelle registrazioni delle vendite, proposto dai dati del bollo della fattura elettronica emessa importata. La pagina riepiloga il bollo per trimestre e registra in Deleghe F24 i versamenti con i codici 2521-2524 nei termini del D.M. 17 giugno 2014, con il differimento senza interessi sotto i 5.000 euro (art. 17, c. 1-bis, D.L. 124/2019; dal 2027 art. 152, c. 2, D.Lgs. 123/2025). Segnala le fatture emesse senza bollo con operazioni senza IVA soggette oltre 77,47 euro.
+
+#### `Dichiarativi` 0.7.1
+
+- dati demo: bollo virtuale sulle fatture esenti del poliambulatorio, con i versamenti 2025 differiti al terzo trimestre.
+
+#### `GestioneStudio` 0.2.1
+
+- **fonte dell'imposta di bollo sulle fatture elettroniche**: l'adempimento cita anche il differimento sotto i 5.000 euro (art. 17, c. 1-bis, D.L. 124/2019) e, dal 2027, l'art. 152, c. 2, del testo unico registro e altri tributi indiretti (D.Lgs. 123/2025).
+
 ## [0.25.0-alpha] - 2026-11-13 - Testo Unico IVA, Rate delle Partite e Trimestrali per Natura
 
 Versioni dei moduli: `Anagrafica` 0.13.0, `Contabilita` 0.9.0, `Dichiarativi` 0.7.0, `GestioneStudio` 0.2.0, `Deleghe` 0.7.2; gli altri invariati.

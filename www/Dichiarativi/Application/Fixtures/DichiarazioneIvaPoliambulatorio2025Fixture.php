@@ -2,6 +2,7 @@
 
 namespace Dichiarativi\Application\Fixtures;
 
+use Contabilita\Application\Services\ImpostaBolloFatture;
 use Anagrafica\Application\Enumerations\NaturaGiuridica;
 use Anagrafica\Application\Enumerations\PeriodicitaIva;
 use Anagrafica\Application\Enumerations\RuoloLegame;
@@ -36,7 +37,10 @@ use Telonio\Application\Fixtures\StudioFixture;
  * ecografo usato (VE40), quadro VT con i certificati ai privati in
  * Lombardia e, dal sezionale dell'ambulatorio di Piacenza, in
  * Emilia-Romagna, saldo con gli interessi dei trimestrali versato in cinque
- * rate, visto di conformità del CAF.
+ * rate, visto di conformità del CAF. Imposta di bollo virtuale sulle
+ * fatture esenti dei pazienti, versata con i differimenti sotto i 5.000
+ * euro; la fattura esente all'assicurazione senza bollo è tra quelle da
+ * verificare.
  */
 class DichiarazioneIvaPoliambulatorio2025Fixture extends BaseFixture
 {
@@ -73,7 +77,8 @@ class DichiarazioneIvaPoliambulatorio2025Fixture extends BaseFixture
         RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $forniture, $acquisto, '2025-02-10', 'MS/12', ['22' => 20000.0]);
         foreach (['03', '06', '09', '12'] as $indice => $mese) {
             RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $laboratorio, $acquisto, '2025-' . $mese . '-10', 'LS/' . ($indice + 1), ['22' => 10000.0]);
-            RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $pazienti, $vendita, '2025-' . $mese . '-28', (string) ($indice + 1), ['N4' => 30000.0]);
+            // prestazioni esenti con il bollo virtuale di 2 euro
+            RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $pazienti, $vendita, '2025-' . $mese . '-28', (string) ($indice + 1), ['N4' => 30000.0], ['bollo' => 2.0]);
         }
         RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $pazienti, $vendita, '2025-11-15', '5', ['22' => 5000.0]);
         RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $pazienti, $vendita, '2025-12-15', '6', ['22' => 5000.0]);
@@ -90,6 +95,8 @@ class DichiarazioneIvaPoliambulatorio2025Fixture extends BaseFixture
         $prorata->percentuale = 15;
         $prorata->note = 'Percentuale di detrazione definitiva 2024';
         $this->dataMapper->save($prorata);
+        // bollo delle fatture elettroniche: primo e secondo trimestre differiti al termine del terzo (sotto i 5.000 euro)
+        (new ImpostaBolloFatture($this->dataMapper))->registra($sole, 2025);
         $elaborazione = new ElaborazioneLiquidazione($this->dataMapper);
         for ($trimestre = 1; $trimestre <= 3; $trimestre++) {
             $elaborazione->elabora($sole, 2025, $trimestre, 0.0, false);

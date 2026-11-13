@@ -140,7 +140,8 @@
                 "validoFino": "Operazioni fino al",
                 "giorniPagamento": "Termini di pagamento (giorni)",
                 "fineMesePagamento": "Scadenze a fine mese",
-                "modalitaPagamento": "Modalità di pagamento abituale"
+                "modalitaPagamento": "Modalità di pagamento abituale",
+                "impostaBollo": "Imposta di bollo"
             },
             "azioni": {
                 "salva": "Salva",
@@ -194,6 +195,7 @@
                 "bilancio": "Bilancio di verifica",
                 "piano": "Piano dei conti",
                 "gruppoIva": "IVA di gruppo",
+                "ritenuteBollo": "Ritenute e bollo",
                 "scadenzario": "Scadenzario"
             },
             "selezionare": "— Seleziona —",
@@ -336,7 +338,8 @@
                     "titoloScadenze": "Scadenze",
                     "aiutoScadenze": "rate del documento: dai dati di pagamento della fattura elettronica o dai termini della controparte; una riga in più per aggiungerne, svuotarla per toglierla",
                     "modalita": "Modalità di pagamento"
-                }
+                },
+                "aiutoBollo": "Bollo virtuale della fattura elettronica emessa (2 euro se le operazioni senza IVA superano 77,47 euro): si versa per trimestre."
             },
             "show": {
                 "daFattura": "Dalla fattura elettronica",
@@ -447,7 +450,8 @@
                 "descrizioni": "Prime righe del documento",
                 "titoloRegistrazione": "Registrazione",
                 "titoloPagamenti": "Dati di pagamento",
-                "senzaScadenza": "alla data del documento"
+                "senzaScadenza": "alla data del documento",
+                "bolloVirtuale": "Bollo virtuale"
             }
         },
         "stampaContabile": {
@@ -562,6 +566,34 @@
                 "aiutoUscita": "Fuoriuscita dal 1° gennaio (VG campo 4).",
                 "aiutoCessazione": "Cessazione del controllo in corso d'anno: le liquidazioni del mese (o trimestre) e successive non si trasferiscono.",
                 "aiutoDetentore": "Società della catena che possiede la maggioranza (VG campo 5)."
+            }
+        },
+        "ritenuteBollo": {
+            "index": {
+                "titoloRitenute": "Ritenute d'acconto operate",
+                "aiutoRitenute": "Righe sui conti Erario c/ritenute da versare dei pagamenti a professionisti e agenti, nel mese del pagamento; versamento con il codice %s entro il 16 del mese successivo (art. 18 D.Lgs. 241/1997; dal 2027 art. 8 D.Lgs. 33/2025).",
+                "nessunaRitenuta": "Nessuna ritenuta operata nell'anno.",
+                "mese": "Mese",
+                "percipienti": "Pagamenti",
+                "ritenuteOperate": "Ritenute",
+                "registrati": "Versamenti registrati",
+                "registraVersamento": "Registra il versamento",
+                "aggiornaVersamento": "Aggiorna il versamento",
+                "registraVersamenti": "Registra i versamenti",
+                "aggiornaVersamenti": "Aggiorna i versamenti",
+                "daVersare": "da versare (non ancora in delega)",
+                "inDelega": "in delega del",
+                "titoloBollo": "Imposta di bollo sulle fatture elettroniche",
+                "aiutoBolloAnnuale": "Bollo virtuale delle fatture emesse per trimestre della data del documento: codici 2521-2524 (art. 6, c. 2, D.M. 17 giugno 2014); l'importo dovuto è quello calcolato dall'Agenzia delle entrate nel portale Fatture e corrispettivi.",
+                "trimestre": "Trimestre",
+                "fatture": "Fatture",
+                "imposta": "Imposta",
+                "codiceTributo": "Codice tributo",
+                "differito": "differito",
+                "aiutoDifferito": "Imposta inferiore a 5.000 euro: versata senza interessi nel termine del trimestre successivo (art. 17, c. 1-bis, D.L. 124/2019; dal 2027 art. 152, c. 2, D.Lgs. 123/2025).",
+                "titoloDaVerificare": "Fatture senza bollo da verificare",
+                "aiutoDaVerificare": "Fatture emesse con operazioni senza IVA soggette al bollo (escluse esportazioni di merci e cessioni intracomunitarie) oltre 77,47 euro: indicare il bollo nella registrazione se è stato assolto.",
+                "senzaIva": "operazioni senza IVA"
             }
         }
     }

@@ -46,6 +46,9 @@ class CalendarioFiscaleTest extends GestioneStudioTestCase
         $this->assertSame('artt. 8 e 32, D.Lgs. 33/2025', $perCodice['RITENUTE']['nuova_fonte']);
         $this->assertStringStartsWith('art. 16 della Tariffa (allegato 4) del D.Lgs. 174/2024', $perCodice['LIBRI_SOCIALI']['nuova_fonte']);
         $this->assertNull($perCodice['SALDO_PRIMO_ACCONTO']['nuova_fonte'], 'il D.P.R. 435/2001 resta in vigore');
+        // bollo delle fatture elettroniche: differimento sotto i 5.000 euro, dal 2027 nel testo unico registro
+        $this->assertStringContainsString('art. 17, c. 1-bis, D.L. 124/2019', $perCodice['BOLLO_FATTURE']['fonte']);
+        $this->assertStringContainsString('art. 152, c. 2, D.Lgs. 123/2025', $perCodice['BOLLO_FATTURE']['nuova_fonte']);
         $adempimento = new \GestioneStudio\Application\Entities\Adempimento();
         $adempimento->fonte = $perCodice['LIPE']['fonte'];
         $adempimento->nuovaFonte = $perCodice['LIPE']['nuova_fonte'];

@@ -2,6 +2,7 @@
 
 namespace Contabilita\Application\Services\FatturaPa;
 
+use Contabilita\Application\Services\ImpostaBolloFatture;
 use Contabilita\Application\Enumerations\ModalitaPagamento;
 use Contabilita\Application\Enumerations\EsigibilitaIva;
 use Contabilita\Application\Enumerations\NaturaIva;
@@ -93,6 +94,11 @@ class LetturaFatturaPa
         $totale = $this->testo($nodo, $generali . 'ImportoTotaleDocumento');
         $corpo->importoTotale = $totale === null ? null : (float) $totale;
         $corpo->causale = $this->testo($nodo, $generali . 'Causale');
+        // bollo virtuale: l'importo è facoltativo nel tracciato, di norma 2 euro
+        if (strtoupper((string) $this->testo($nodo, $generali . 'DatiBollo/BolloVirtuale')) === 'SI') {
+            $importoBollo = $this->testo($nodo, $generali . 'DatiBollo/ImportoBollo');
+            $corpo->bollo = $importoBollo === null ? ImpostaBolloFatture::IMPORTO : round((float) $importoBollo, 2);
+        }
         foreach ($this->nodi($nodo, 'DatiBeniServizi/DatiRiepilogo') as $riepilogo) {
             $naturaTesto = $this->testo($riepilogo, 'Natura');
             $natura = $naturaTesto === null ? null : NaturaIva::daFile($naturaTesto);
