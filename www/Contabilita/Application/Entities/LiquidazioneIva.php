@@ -33,6 +33,8 @@ class LiquidazioneIva extends ReferencedEntity
     protected int $anno;
     protected int $periodo;
     protected PeriodicitaIva $periodicita;
+    /** Trimestrale per natura (art. 74, c. 4): senza interessi, quarto trimestre liquidato e versato entro il 16 febbraio */
+    protected bool $trimestraleSpeciale = false;
     protected float $ivaEsigibile = 0.0;
     protected float $ivaDetraibile = 0.0;
     protected float $ivaVentilata = 0.0;
@@ -125,5 +127,14 @@ class LiquidazioneIva extends ReferencedEntity
     public function getSaldoTrasferito(): float
     {
         return $this->isTrasferita() ? round($this->importoDovuto - $this->creditoFinale, 2) : 0.0;
+    }
+
+    /**
+     * Quarto trimestre dei trimestrali per opzione: si versa con il saldo
+     * della dichiarazione annuale (non per i trimestrali per natura).
+     */
+    public function isQuartoTrimestreConDichiarazione(): bool
+    {
+        return ($this->periodicita === PeriodicitaIva::trimestrale) && ($this->periodo === 4) && ($this->trimestreSeparato === false) && ($this->trimestraleSpeciale === false);
     }
 }

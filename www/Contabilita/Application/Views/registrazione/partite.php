@@ -44,6 +44,29 @@ $importoTesto = fn(?float $valore): string => $valore === null || abs($valore) <
                             </table>
                         </div>
                     <?php endif; ?>
+                    <?php if ($gruppo['apertura']): ?>
+                        <?php $rate = array_merge($gruppo['scelte']['rate'] ?? [], [['data' => '', 'importo' => null, 'modalita' => null]]); ?>
+                        <div class="small fw-semibold mt-2"><?= Html::e($testiPartite['titoloScadenze']) ?> <span class="fw-normal text-body-secondary"><?= Html::e($testiPartite['aiutoScadenze']) ?></span></div>
+                        <div class="table-responsive">
+                            <table class="table table-sm align-middle mb-1" style="max-width: 46rem">
+                                <thead class="table-light"><tr><th style="width: 3rem">#</th><th style="width: 11rem"><?= Html::e($testiPartite['scadenza']) ?></th><th class="text-end" style="width: 9rem"><?= Html::e($testiPartite['importo']) ?></th><th><?= Html::e($testiPartite['modalita']) ?></th></tr></thead>
+                                <tbody>
+                                    <?php foreach ($rate as $indice => $rata): ?>
+                                        <?php $nomeRata = $prefisso . '[rate][' . $indice . ']'; ?>
+                                        <tr>
+                                            <td class="text-body-secondary"><?= Html::e($indice + 1) ?></td>
+                                            <td><input type="date" class="form-control form-control-sm" name="<?= Html::e($nomeRata) ?>[data]" value="<?= Html::e($rata['data']) ?>"></td>
+                                            <td><input type="text" class="form-control form-control-sm text-end" inputmode="decimal" name="<?= Html::e($nomeRata) ?>[importo]" value="<?= Html::e($importoTesto($rata['importo'])) ?>"></td>
+                                            <td><select class="form-select form-select-sm" name="<?= Html::e($nomeRata) ?>[modalita]">
+                                                    <option value="">-</option>
+                                                    <?php foreach ($modalitaPagamento as $modalita): ?><option value="<?= Html::e($modalita->value) ?>" <?= ($rata['modalita'] ?? null) === $modalita->value ? 'selected' : '' ?>><?= Html::e($modalita->getLabel()) ?></option><?php endforeach; ?>
+                                                </select></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    <?php endif; ?>
                     <?php if (($gruppo['apertura'] === false) && ($gruppo['nota'] === false)): ?>
                         <div class="form-check small"><input class="form-check-input" type="checkbox" value="1" id="acconto-<?= Html::e($gruppo['chiave']) ?>" name="<?= Html::e($prefisso) ?>[acconto]" <?= $gruppo['scelte']['acconto'] ? 'checked' : '' ?>><label class="form-check-label" for="acconto-<?= Html::e($gruppo['chiave']) ?>"><?= Html::e($testiPartite['eccedenzaAcconto']) ?></label></div>
                     <?php elseif ($gruppo['nota']): ?>

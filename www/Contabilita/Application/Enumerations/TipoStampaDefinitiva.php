@@ -2,6 +2,8 @@
 
 namespace Contabilita\Application\Enumerations;
 
+use Contabilita\Application\HelperClasses\RiferimentiIva;
+
 /**
  * Libro o registro stampato in via definitiva con le pagine numerate.
  */
@@ -20,13 +22,14 @@ enum TipoStampaDefinitiva: string
     }
 
     /**
-     * Norma della numerazione progressiva delle pagine.
+     * Norma della numerazione progressiva delle pagine per l'anno della
+     * stampa (di default l'anno in corso).
      */
-    public function getNorma(): string
+    public function getNorma(?int $anno = null): string
     {
         return match ($this) {
             self::giornale => 'art. 2215 c.c.; art. 2219 c.c.',
-            self::registroIva => 'art. 39 D.P.R. 633/1972',
+            self::registroIva => RiferimentiIva::cita('tenutaRegistri', $anno),
         };
     }
 }

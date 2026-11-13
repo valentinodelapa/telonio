@@ -57,7 +57,7 @@ class SalvataggioRegistrazione
         }
         $partite = new PartiteAperte($this->dataMapper);
         $gruppi = $partite->getGruppi($registrazione, $righe);
-        $scelte = $abbinamenti ?? $partite->proponi($registrazione, $gruppi);
+        $scelte = $abbinamenti ?? $partite->proponi($registrazione, $gruppi, $fattura);
         $errori = $partite->verifica($registrazione, $gruppi, $scelte);
         if (count($errori) > 0) {
             throw new \DomainException(implode(' ', $errori));

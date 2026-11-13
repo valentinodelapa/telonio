@@ -227,7 +227,9 @@ nell'anno:
 - **VH**: solo per i periodi la cui comunicazione delle liquidazioni
   periodiche non risulta inviata in Contabilità, con gli importi del rigo
   VP14 ricalcolati dalla liquidazione (e l'acconto nel VH17); il quarto
-  trimestre dei trimestrali si liquida nella dichiarazione;
+  trimestre dei trimestrali per opzione si liquida nella dichiarazione,
+  quello dei trimestrali per natura dell'attività (art. 74, c. 4, D.P.R.
+  633/1972) va nel VH16;
 - **VL**: IVA dovuta o a credito; credito dell'anno precedente (VL8) e sua
   parte compensata in F24 (VL9) dall'archivio dei crediti di Deleghe
   (codice 6099 dell'anno precedente), VL25 = VL8 - VL9; interessi dei
@@ -241,7 +243,9 @@ nell'anno:
   VL4, sezioni 2 e 3 nel modulo 1), un gruppo per soggetto nelle
   operazioni straordinarie (VA1), due gruppi con la prima frazione d'anno
   (VA3), con il risultato nel primo modulo del gruppo; interessi annuali
-  dell'1% dei trimestrali (VL36); VL38, VL39 e VL41;
+  dell'1% dei trimestrali per opzione (VL36; non per i trimestrali per
+  natura, che versano il quarto trimestre entro il 16 febbraio e lo
+  comprendono nel VL30); VL38, VL39 e VL41;
 - **VT** (modulo 1): operazioni imponibili di tutti i moduli (VE24 e VE26)
   ripartite tra consumatori finali (corrispettivi e fatture a clienti senza
   partita IVA) e soggetti IVA in proporzione alle righe dei registri, e
@@ -852,6 +856,12 @@ visto, e i record C dei quadri.
   2026), VT con i privati in Lombardia ed Emilia-Romagna, saldo con gli
   interessi dei trimestrali in cinque rate e visto di conformità del CAF
   Imprese Lombardia (responsabile Anna Colombo);
+- **Autotrasporti Emiliani S.r.l.** (trimestrale per natura
+  dell'attività, Bologna): trasporti e acquisti di gasolio del 2025,
+  quattro liquidazioni senza interessi (quarto trimestre al 16 febbraio
+  2026, 6034), comunicazioni dei primi tre trimestri inviate e del quarto
+  (trimestre "4") preparata e non inviata, dichiarazione IVA 2025 proposta
+  con il VH16 e il VL30 dei quattro trimestri, senza il VL36;
 - **Omega Export S.r.l.** (mensile, Torino, collegio sindacale):
   esportazioni del 2024 e del 2025, cessioni intracomunitarie, acquisti con
   dichiarazione d'intento e importazioni (una in dogana con la

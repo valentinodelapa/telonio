@@ -39,7 +39,7 @@ require __DIR__ . '/../commonParts/navAzienda.php';
             <?php endif; ?>
             <?php if ($registrazione->registroIva !== null): ?>
                 <dt class="col-sm-3"><?= Html::e($campi['registroIva']) ?></dt><dd class="col-sm-3"><?= Html::e($registrazione->registroIva->getEtichetta()) ?> · <?= Html::e($campi['protocolloIva']) ?> <?= Html::e($registrazione->protocolloIva) ?></dd>
-                <dt class="col-sm-3"><?= Html::e($campi['dataCompetenzaIva']) ?></dt><dd class="col-sm-3"><?= Html::data($registrazione->dataCompetenzaIva) ?> · <?= Html::e($registrazione->esigibilita->getLabel()) ?></dd>
+                <dt class="col-sm-3"><?= Html::e($campi['dataCompetenzaIva']) ?></dt><dd class="col-sm-3"><?= Html::data($registrazione->dataCompetenzaIva) ?> · <?= Html::e($registrazione->esigibilita->getLabel($registrazione->dataCompetenzaIva)) ?></dd>
             <?php endif; ?>
             <?php if ($registrazione->totaleDocumento !== null): ?>
                 <dt class="col-sm-3"><?= Html::e($campi['totaleDocumento']) ?></dt><dd class="col-sm-3"><?= Html::e(Importo::euro($registrazione->totaleDocumento)) ?></dd>

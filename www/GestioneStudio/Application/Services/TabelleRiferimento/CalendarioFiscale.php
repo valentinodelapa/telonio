@@ -29,7 +29,7 @@ class CalendarioFiscale
 {
 
     public const CARTELLA = __DIR__ . '/../../../Database/sorgenti/';
-    public const COLONNE_ADEMPIMENTI = ['id', 'codice', 'denominazione', 'categoria', 'ambito', 'proroga_agosto', 'fonte'];
+    public const COLONNE_ADEMPIMENTI = ['id', 'codice', 'denominazione', 'categoria', 'ambito', 'proroga_agosto', 'fonte', 'nuova_fonte', 'nuova_fonte_dal'];
     public const COLONNE_TERMINI = ['adempimento_id', 'ordine', 'periodo', 'mese', 'giorno', 'anni_successivi'];
     public const COLONNE_PROROGHE = ['adempimento_id', 'ordine', 'anno', 'data', 'condizione', 'provvedimento', 'note'];
     private const ORDINE_MASSIMO = 99;
@@ -65,7 +65,7 @@ class CalendarioFiscale
     public function istruzioni(array $dati): \Generator
     {
         $generatore = new GeneratoreSql();
-        yield from $generatore->generaUpsert('adempimento', ['id', 'studio_id', 'codice', 'denominazione', 'categoria', 'ambito', 'fonte', 'slittamento_festivi', 'proroga_agosto', 'attivo'], $dati['adempimenti']);
+        yield from $generatore->generaUpsert('adempimento', ['id', 'studio_id', 'codice', 'denominazione', 'categoria', 'ambito', 'fonte', 'nuova_fonte', 'nuova_fonte_dal', 'slittamento_festivi', 'proroga_agosto', 'attivo'], $dati['adempimenti']);
         $idAdempimenti = implode(', ', array_column($dati['adempimenti'], 'id'));
         yield 'UPDATE `adempimento` SET `attivo` = 0 WHERE `studio_id` IS NULL AND `id` NOT IN (' . $idAdempimenti . ');';
         yield from $generatore->generaUpsert('termine_adempimento', ['id', 'adempimento_id', 'ordine', 'periodo', 'mese', 'giorno', 'anni_successivi'], $dati['termini']);
@@ -95,9 +95,13 @@ class CalendarioFiscale
             if ($riga['fonte'] === null) {
                 throw new \UnexpectedValueException('adempimenti.csv, riga ' . $numero . ': fonte normativa mancante');
             }
+            $dal = $riga['nuova_fonte_dal'] === null ? null : \DateTimeImmutable::createFromFormat('!Y-m-d', $riga['nuova_fonte_dal']);
+            if (($dal === false) || (($riga['nuova_fonte'] === null) !== ($dal === null)) || (($dal !== null) && ($dal->format('Y-m-d') !== $riga['nuova_fonte_dal']))) {
+                throw new \UnexpectedValueException('adempimenti.csv, riga ' . $numero . ': nuova fonte e data di decorrenza (AAAA-MM-GG) vanno indicate insieme');
+            }
             $codici[$riga['codice']] = true;
             $adempimenti[$id] = ['id' => $id, 'studio_id' => null, 'codice' => $riga['codice'], 'denominazione' => $riga['denominazione'], 'categoria' => $riga['categoria'],
-                'ambito' => $riga['ambito'], 'fonte' => $riga['fonte'], 'slittamento_festivi' => 1, 'proroga_agosto' => (int) $riga['proroga_agosto'], 'attivo' => 1];
+                'ambito' => $riga['ambito'], 'fonte' => $riga['fonte'], 'nuova_fonte' => $riga['nuova_fonte'], 'nuova_fonte_dal' => $riga['nuova_fonte_dal'], 'slittamento_festivi' => 1, 'proroga_agosto' => (int) $riga['proroga_agosto'], 'attivo' => 1];
         }
         return $adempimenti;
     }

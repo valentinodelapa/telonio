@@ -76,6 +76,17 @@ class EntitiesAndEnumerationsTest extends GestioneStudioTestCase
         // la qualifica di sostituto d'imposta non è in Anagrafica: mai proposto
         $this->assertFalse(AmbitoAdempimento::sostitutiImposta->isProponibile($srl));
 
+        // IVA trimestrale per opzione o per natura dell'attività (art. 74, c. 4) dalla casella dei dati fiscali
+        $dati = new \Anagrafica\Application\Entities\DatiFiscali($this->dataMapper);
+        $dati->partitaIva = '01234560785';
+        $dati->periodicitaIva = \Anagrafica\Application\Enumerations\PeriodicitaIva::trimestrale;
+        $this->assertTrue(AmbitoAdempimento::ivaTrimestrale->isProponibile($srl, $dati));
+        $this->assertFalse(AmbitoAdempimento::ivaTrimestraleSpeciale->isProponibile($srl, $dati));
+        $dati->trimestraleSpeciale = true;
+        $this->assertFalse(AmbitoAdempimento::ivaTrimestrale->isProponibile($srl, $dati));
+        $this->assertTrue(AmbitoAdempimento::ivaTrimestraleSpeciale->isProponibile($srl, $dati));
+        $this->assertFalse(AmbitoAdempimento::ivaMensile->isProponibile($srl, $dati));
+
         // deceduti e cessati: nessuna proposta
         $persona->dataDecesso = new SismaDate('2025-03-01');
         $srl->dataCessazione = new SismaDate('2025-12-31');

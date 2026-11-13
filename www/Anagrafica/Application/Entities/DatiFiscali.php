@@ -52,6 +52,8 @@ class DatiFiscali extends BaseEntity implements Storicizzabile
     protected bool $sostitutoImposta = false;
     protected bool $trasparenzaFiscale = false;
     protected bool $ventilazioneCorrispettivi = false;
+    /** Trimestrale per natura dell'attività (art. 74, c. 4, D.P.R. 633/1972; dal 2027 art. 139, c. 4, D.Lgs. 10/2026): senza interessi, quarto trimestre entro il 16 febbraio */
+    protected bool $trimestraleSpeciale = false;
     protected ?RegimeDetrazioneIva $regimeDetrazioneIva = null;
     protected ?string $opzioniOrdinarie = null;
     protected bool $rinunciaEsonero = false;

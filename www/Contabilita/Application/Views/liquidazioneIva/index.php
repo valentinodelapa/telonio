@@ -10,7 +10,7 @@ require Layout::percorso('header');
 require __DIR__ . '/../commonParts/navAzienda.php';
 ?>
 <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
-    <h1 class="h5 mb-0 me-auto"><?= Html::e($navAzienda['liquidazioni']) ?> <?= Html::e($annoIva) ?><?= $periodicita === null ? '' : ' · ' . Html::e($periodicita->getLabel()) ?></h1>
+    <h1 class="h5 mb-0 me-auto"><?= Html::e($navAzienda['liquidazioni']) ?> <?= Html::e($annoIva) ?><?= $periodicita === null ? '' : ' · ' . Html::e($periodicita->getLabel()) . ($trimestraleSpeciale ? ' ' . Html::e($perNatura) : '') ?></h1>
     <a href="/comunicazione-lipe/index/soggetto/<?= Html::e($soggetto->id) ?>/anno/<?= Html::e($annoIva) ?>" class="btn btn-sm btn-outline-secondary"><i class="bi bi-send me-1"></i><?= Html::e($comunicazioniLipe) ?></a>
     <div class="dropdown">
         <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-calendar3 me-1"></i><?= Html::e($annoIva) ?></button>

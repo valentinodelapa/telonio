@@ -80,6 +80,8 @@ class ControlloRegistrazione
             return $errori;
         }
         $segno = $registrazione->causale->getSegno();
+        // data dell'operazione per i codici validi fino a una data: quella del documento o la competenza
+        $dataOperazione = $registrazione->dataDocumento ?? $registrazione->dataCompetenzaIva;
         foreach ($righeIva as $indice => $riga) {
             $codice = $riga->codiceIva;
             $numero = 'Riga IVA ' . ($indice + 1) . ': ';
@@ -97,6 +99,9 @@ class ControlloRegistrazione
                 $errori['righeIva'] = $numero . 'l\'imposta non corrisponde all\'aliquota ' . $codice->aliquota . '% (attesa ' . number_format($codice->calcolaImposta($riga->imponibile), 2, ',', '.') . ').';
             } elseif (($riga->detraibilita < 0) || ($riga->detraibilita > 100)) {
                 $errori['righeIva'] = $numero . 'detraibilità tra 0 e 100.';
+            } elseif (($dataOperazione !== null) && ($codice->isValidoAl($dataOperazione) === false)) {
+                $errori['righeIva'] = $numero . 'il codice ' . $codice->codice . ' vale per le operazioni fino al ' . $codice->validoFino->format('d/m/Y')
+                        . ($codice->getNorma($dataOperazione) === null ? '' : ' (' . $codice->getNorma($dataOperazione) . ')') . ': usare il codice dell\'operazione con l\'imposta.';
             }
             if (isset($errori['righeIva'])) {
                 return $errori;

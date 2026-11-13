@@ -30,6 +30,7 @@ require __DIR__ . '/../commonParts/nav.php';
     <?= Html::e($adempimento->categoria->getLabel()) ?> · <?= Html::e($campi['ambito']) ?>: <?= Html::e($adempimento->ambito->getLabel()) ?>
 </p>
 <?php if ($adempimento->fonte !== null): ?><p class="small text-body-secondary mb-1"><?= Html::e($campi['fonte']) ?>: <?= Html::e($adempimento->fonte) ?></p><?php endif; ?>
+<?php if (($adempimento->nuovaFonte !== null) && ($adempimento->nuovaFonteDal !== null)): ?><p class="small text-body-secondary mb-1"><?= Html::e($campi['nuovaFonteDal']) ?> <?= Html::data($adempimento->nuovaFonteDal) ?>: <?= Html::e($adempimento->nuovaFonte) ?></p><?php endif; ?>
 <?php if ($adempimento->note !== null): ?><p class="small"><?= Html::e($adempimento->note) ?></p><?php endif; ?>
 
 <div class="card shadow-sm my-4">

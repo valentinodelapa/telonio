@@ -33,11 +33,25 @@ class CalendarioFiscaleTest extends GestioneStudioTestCase
     public function testSorgentiDelModulo(): void
     {
         $dati = (new CalendarioFiscale())->leggi();
-        $this->assertCount(22, $dati['adempimenti']);
-        $this->assertCount(66, $dati['termini']);
+        $this->assertCount(23, $dati['adempimenti']);
+        $this->assertCount(70, $dati['termini']);
         $perCodice = array_column($dati['adempimenti'], null, 'codice');
         // fonte normativa con il punto e virgola, tra virgolette nel CSV
         $this->assertSame('art. 18, D.Lgs. 241/1997; art. 8, D.P.R. 602/1973', $perCodice['RITENUTE']['fonte']);
+        // dal 2027 testi unici: Testo unico IVA e testo unico adempimenti e accertamento
+        $this->assertSame(['art. 51, c. 1, D.Lgs. 141/2026', '2027-01-01'], [$perCodice['LIPE']['nuova_fonte'], $perCodice['LIPE']['nuova_fonte_dal']]);
+        $this->assertSame('art. 111, c. 1, D.Lgs. 10/2026', $perCodice['IVA_ACCONTO']['nuova_fonte']);
+        $this->assertNull($perCodice['IVA_MENSILE']['nuova_fonte'], 'il D.P.R. 100/1998 resta in vigore');
+        // testo unico versamenti e riscossione e testo unico tributi erariali minori, dal 2027 (D.L. 200/2025, art. 4)
+        $this->assertSame('artt. 8 e 32, D.Lgs. 33/2025', $perCodice['RITENUTE']['nuova_fonte']);
+        $this->assertStringStartsWith('art. 16 della Tariffa (allegato 4) del D.Lgs. 174/2024', $perCodice['LIBRI_SOCIALI']['nuova_fonte']);
+        $this->assertNull($perCodice['SALDO_PRIMO_ACCONTO']['nuova_fonte'], 'il D.P.R. 435/2001 resta in vigore');
+        $adempimento = new \GestioneStudio\Application\Entities\Adempimento();
+        $adempimento->fonte = $perCodice['LIPE']['fonte'];
+        $adempimento->nuovaFonte = $perCodice['LIPE']['nuova_fonte'];
+        $adempimento->nuovaFonteDal = new \SismaFramework\Orm\CustomTypes\SismaDate('2027-01-01');
+        $this->assertStringStartsWith('art. 21-bis', $adempimento->getFonte(new \DateTimeImmutable('2026-11-30')));
+        $this->assertSame('art. 51, c. 1, D.Lgs. 141/2026', $adempimento->getFonte(new \DateTimeImmutable('2027-03-02')), 'LIPE del quarto trimestre 2026');
         foreach ($dati['adempimenti'] as $adempimento) {
             $this->assertNotNull($adempimento['fonte']);
             $this->assertNull($adempimento['studio_id']);
@@ -82,6 +96,8 @@ class CalendarioFiscaleTest extends GestioneStudioTestCase
             'codice duplicato' => [$adempimento . "2;IVA;Altro;VER;IVA;1;fonte\n", $termine . "2;1;anno;3;16;0\n", '', 'codice'],
             'categoria' => ["1;IVA;IVA;XXX;IVA;1;fonte\n", $termine, '', 'categoria'],
             'senza fonte' => ["1;IVA;IVA;VER;IVA;1;\n", $termine, '', 'fonte'],
+            'nuova fonte senza data' => ["1;IVA;IVA;VER;IVA;1;fonte;art. 51;\n", $termine, '', 'insieme'],
+            'data della nuova fonte' => ["1;IVA;IVA;VER;IVA;1;fonte;art. 51;01/01/2027\n", $termine, '', 'insieme'],
             'adempimento inesistente' => [$adempimento, "9;1;anno;3;16;0\n", '', 'inesistente'],
             'giorno' => [$adempimento, "1;1;anno;4;31;0\n", '', 'giorno'],
             'ordine duplicato' => [$adempimento, $termine . $termine, '', 'ordine'],
@@ -123,8 +139,8 @@ class CalendarioFiscaleTest extends GestioneStudioTestCase
         $sql = file_get_contents($file);
         unlink($file);
         $this->assertTrue($esito);
-        $this->assertStringContainsString('Adempimenti: 22, termini: 66', $output);
-        $this->assertStringContainsString('Righe: adempimento 22, termine_adempimento 66', $sql);
+        $this->assertStringContainsString('Adempimenti: 23, termini: 70', $output);
+        $this->assertStringContainsString('Righe: adempimento 23, termine_adempimento 70', $sql);
         $this->assertStringContainsString("'REDDITI_SC'", $sql);
     }
 }

@@ -2,6 +2,8 @@
 
 namespace Contabilita\Application\Controllers;
 
+use Contabilita\Application\Services\ScadenzePagamento;
+use Contabilita\Application\Enumerations\ModalitaPagamento;
 use Anagrafica\Application\Entities\Soggetto;
 use Contabilita\Application\BaseClasses\ContabilitaController;
 use Contabilita\Application\Entities\FatturaElettronica;
@@ -321,7 +323,9 @@ class RegistrazioneController extends ContabilitaController
             }
         }
         $this->impostaVariabiliForm($form, $registrazione);
-        $this->vars['partiteRegistrazione'] = $this->datiPartite($partiteAperte, $registrazione, $righeCorrenti, $scelteInviate);
+        $fatturaCollegata = $fattura ?? (isset($registrazione->id) ? (new FatturaElettronicaModel($this->dataMapper))->getPerRegistrazione($registrazione) : null);
+        $this->vars['partiteRegistrazione'] = $this->datiPartite($partiteAperte, $registrazione, $righeCorrenti, $scelteInviate, $fatturaCollegata);
+        $this->vars['modalitaPagamento'] = ModalitaPagamento::cases();
         $this->vars['registrazione'] = $registrazione;
         $this->vars['fattura'] = $fattura;
         $this->vars['datiIva'] = array_merge($datiIva, array_fill(0, $registrazione->causale->isIva() ? max(1, $righeVuote - (count($datiIva) > 0 ? 1 : 0)) : 0, []));
@@ -471,7 +475,7 @@ class RegistrazioneController extends ContabilitaController
      *
      * @param RigaContabile[] $righe
      */
-    private function datiPartite(PartiteAperte $servizio, RegistrazioneContabile $registrazione, array $righe, ?array $scelteInviate): array
+    private function datiPartite(PartiteAperte $servizio, RegistrazioneContabile $registrazione, array $righe, ?array $scelteInviate, ?FatturaElettronica $fattura = null): array
     {
         try {
             $gruppi = $servizio->getGruppi($registrazione, $righe);
@@ -482,10 +486,14 @@ class RegistrazioneController extends ContabilitaController
             return [];
         }
         $scelte = $scelteInviate ?? $servizio->getScelte($registrazione);
-        $proposte = $servizio->proponi($registrazione, $gruppi);
+        $proposte = $servizio->proponi($registrazione, $gruppi, $fattura);
         $dati = [];
         foreach ($gruppi as $chiave => $gruppo) {
             $scelta = $scelte[$chiave] ?? $proposte[$chiave];
+            if ($gruppo['apertura']) {
+                // rate inviate (anche vuote per l'importo cambiato), salvate o proposte
+                $scelta['rate'] = ScadenzePagamento::normalizza(count($scelta['rate'] ?? []) > 0 ? $scelta['rate'] : $proposte[$chiave]['rate'], $gruppo['importo']);
+            }
             $voci = [];
             foreach ($servizio->getAbbinabili($gruppo['controparte'], $gruppo['conto'], $gruppo['apertura'], $registrazione) as $id => $voce) {
                 $partita = $voce['partita'];
@@ -541,8 +549,18 @@ class RegistrazioneController extends ContabilitaController
                     }
                 }
             }
+            $rate = [];
+            foreach (is_array($gruppo['rate'] ?? null) ? $gruppo['rate'] : [] as $rata) {
+                $data = is_array($rata) ? trim((string) ($rata['data'] ?? '')) : '';
+                $importo = is_array($rata) ? self::numero($rata['importo'] ?? '') : null;
+                if (($data === '') && ($importo === null)) {
+                    continue;
+                }
+                $modalita = trim((string) ($rata['modalita'] ?? ''));
+                $rate[] = ['data' => $data, 'importo' => $importo ?? 0.0, 'modalita' => $modalita === '' ? null : $modalita];
+            }
             $riapre = (string) ($gruppo['riapre'] ?? '');
-            $scelte[(string) $chiave] = ['abbinamenti' => $abbinamenti, 'acconto' => (string) ($gruppo['acconto'] ?? '') === '1', 'riapre' => ctype_digit($riapre) ? (int) $riapre : null];
+            $scelte[(string) $chiave] = ['abbinamenti' => $abbinamenti, 'acconto' => (string) ($gruppo['acconto'] ?? '') === '1', 'riapre' => ctype_digit($riapre) ? (int) $riapre : null, 'rate' => $rate];
         }
         return $scelte;
     }

@@ -65,3 +65,7 @@ adempimento_id;ordine;periodo;mese;giorno;anni_successivi
 20;12;dicembre;1;25;1
 21;1;anno;3;16;0
 22;1;anno;6;30;0
+23;1;1° trimestre;5;16;0
+23;2;2° trimestre;8;16;0
+23;3;3° trimestre;11;16;0
+23;4;4° trimestre;2;16;1

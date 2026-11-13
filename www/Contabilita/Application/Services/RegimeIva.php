@@ -40,6 +40,15 @@ class RegimeIva
     }
 
     /**
+     * L'azienda è trimestrale per natura dell'attività nell'anno (art. 74,
+     * c. 4, D.P.R. 633/1972; dal 2027 art. 139, c. 4, D.Lgs. 10/2026).
+     */
+    public function isTrimestraleSpeciale(Soggetto $soggetto, int $anno): bool
+    {
+        return $this->getDatiFiscali($soggetto, $anno)?->trimestraleSpeciale ?? false;
+    }
+
+    /**
      * @throws \DomainException se nell'anno l'azienda non liquida l'IVA
      */
     public function getPeriodicita(Soggetto $soggetto, int $anno): PeriodicitaIva

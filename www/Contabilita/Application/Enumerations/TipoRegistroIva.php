@@ -2,9 +2,12 @@
 
 namespace Contabilita\Application\Enumerations;
 
+use Contabilita\Application\HelperClasses\RiferimentiIva;
+
 /**
  * Registri IVA: fatture emesse (art. 23 D.P.R. 633/1972), corrispettivi
- * (art. 24) e acquisti (art. 25).
+ * (art. 24) e acquisti (art. 25); dal 2027 artt. 86, 87 e 88 del Testo
+ * unico IVA (D.Lgs. 10/2026).
  */
 enum TipoRegistroIva: string
 {
@@ -31,13 +34,16 @@ enum TipoRegistroIva: string
         };
     }
 
-    public function getNorma(): string
+    /**
+     * Norma del registro per la data o l'anno indicati (di default oggi).
+     */
+    public function getNorma(\DateTimeInterface|int|null $quando = null): string
     {
-        return match ($this) {
-            self::vendite => 'art. 23 D.P.R. 633/1972',
-            self::acquisti => 'art. 25 D.P.R. 633/1972',
-            self::corrispettivi => 'art. 24 D.P.R. 633/1972',
-        };
+        return RiferimentiIva::cita(match ($this) {
+            self::vendite => 'registroVendite',
+            self::acquisti => 'registroAcquisti',
+            self::corrispettivi => 'registroCorrispettivi',
+        }, $quando);
     }
 
     /**

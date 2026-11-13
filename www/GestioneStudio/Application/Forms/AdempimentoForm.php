@@ -35,6 +35,8 @@ class AdempimentoForm extends BaseForm
                 ->addFilterFieldMode('categoria', FilterType::isEnumeration)
                 ->addFilterFieldMode('ambito', FilterType::isEnumeration)
                 ->addFilterFieldMode('fonte', FilterType::isMaxLimitString, [255], true)
+                ->addFilterFieldMode('nuovaFonte', FilterType::isMaxLimitString, [255], true)
+                ->addFilterFieldMode('nuovaFonteDal', FilterType::isDate, [], true)
                 ->addFilterFieldMode('slittamentoFestivi', FilterType::isBoolean)
                 ->addFilterFieldMode('prorogaAgosto', FilterType::isBoolean)
                 ->addFilterFieldMode('attivo', FilterType::isBoolean)

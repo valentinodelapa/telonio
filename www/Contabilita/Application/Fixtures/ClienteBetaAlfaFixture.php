@@ -2,13 +2,15 @@
 
 namespace Contabilita\Application\Fixtures;
 
+use Contabilita\Application\Enumerations\ModalitaPagamento;
 use Anagrafica\Application\Fixtures\SoggettoAlfaFixture;
 use Contabilita\Application\Entities\Controparte;
 use Contabilita\Application\Services\Partitario;
 use SismaFramework\Core\BaseClasses\BaseFixture;
 
 /**
- * Cliente demo di Alfa, con il sottoconto del partitario.
+ * Cliente demo di Alfa, con il sottoconto del partitario e i termini di
+ * pagamento abituali (RIBA a 30 e 60 giorni fine mese) proposti come rate.
  */
 class ClienteBetaAlfaFixture extends BaseFixture
 {
@@ -36,6 +38,9 @@ class ClienteBetaAlfaFixture extends BaseFixture
         $controparte->provincia = 'MI';
         $controparte->codiceDestinatario = 'ABC1234';
         $controparte->cliente = true;
+        $controparte->giorniPagamento = '30,60';
+        $controparte->fineMesePagamento = true;
+        $controparte->modalitaPagamento = ModalitaPagamento::riba;
         $this->dataMapper->save($controparte);
         (new Partitario($this->dataMapper))->allinea($controparte);
         $this->addEntity($controparte);

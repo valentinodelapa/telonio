@@ -194,6 +194,13 @@ di regime è una nuova variazione (di norma dal 1° gennaio).
 - **periodicità IVA** (`Enumerations\PeriodicitaIva`): mensile o
   trimestrale, obbligatoria se il regime prevede le liquidazioni,
   esclusa per forfetario e vantaggio;
+- **trimestrale per natura dell'attività** (art. 74, c. 4, D.P.R.
+  633/1972; dal 2027 art. 139, c. 4, D.Lgs. 10/2026: autotrasportatori
+  di merci per conto terzi, distributori di carburante, esercenti
+  servizi pubblici individuati dai decreti): solo con la periodicità
+  trimestrale e la partita IVA. La Contabilità liquida senza gli interessi
+  dell'1% e il quarto trimestre entro il 16 febbraio; i requisiti
+  dell'attività non sono verificati;
 - **applica gli ISA**, anche con cause di esclusione e con ricavi o
   compensi entro il limite del decreto di approvazione: esclusa per i
   regimi forfetario e di vantaggio; serve, ad esempio, alle proroghe dei

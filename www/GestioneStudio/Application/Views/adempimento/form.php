@@ -18,6 +18,8 @@ require Layout::percorso('header');
             <?= Campo::selezioneEnum('categoria', $campi['categoria'], $formEntity, $errors, $categorie, ['richiesto' => true, 'colonna' => 'col-md-4']) ?>
             <?= Campo::selezioneEnum('ambito', $campi['ambito'], $formEntity, $errors, $ambiti, ['richiesto' => true, 'colonna' => 'col-md-8']) ?>
             <?= Campo::testo('fonte', $campi['fonte'], $formEntity, $errors, ['colonna' => 'col-12', 'attributi' => 'maxlength="255"']) ?>
+            <?= Campo::testo('nuovaFonte', $campi['nuovaFonte'], $formEntity, $errors, ['colonna' => 'col-md-9', 'attributi' => 'maxlength="255"']) ?>
+            <?= Campo::data('nuovaFonteDal', $campi['nuovaFonteDal'], $formEntity, $errors, ['colonna' => 'col-md-3']) ?>
             <?= Campo::spunta('slittamentoFestivi', $campi['slittamentoFestivi'], $formEntity, $errors, ['colonna' => 'col-md-6']) ?>
             <?= Campo::spunta('prorogaAgosto', $campi['prorogaAgosto'], $formEntity, $errors, ['colonna' => 'col-md-6']) ?>
             <?= Campo::spunta('attivo', $campi['attivo'], $formEntity, $errors, ['colonna' => 'col-md-6']) ?>

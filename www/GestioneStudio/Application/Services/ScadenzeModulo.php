@@ -44,7 +44,7 @@ class ScadenzeModulo implements FonteScadenze
                         descrizione: $adempimento->denominazione . ' - ' . $termine->getPeriodo(),
                         soggetto: $assegnazione->soggetto,
                         url: '/scadenzario/soggetto/soggetto/' . $assegnazione->soggetto->id,
-                        dettaglio: $termine->proroga === null ? $adempimento->fonte : 'Prorogato: ' . $termine->proroga->provvedimento,
+                        dettaglio: $termine->proroga === null ? $adempimento->getFonte($termine->data) : 'Prorogato: ' . $termine->proroga->provvedimento,
                         responsabile: $assegnazione->responsabile,
                 );
             }

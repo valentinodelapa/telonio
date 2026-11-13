@@ -31,7 +31,7 @@ require __DIR__ . '/../commonParts/navContabilita.php';
                         <td class="text-end"><?= Html::e(number_format($codice->aliquota, 2, ',', '')) ?></td>
                         <td class="small"><?= Html::e($codice->natura?->value ?? '') ?></td>
                         <td class="text-end"><?= Html::e(number_format($codice->detraibilita, 0, ',', '')) ?></td>
-                        <td class="small text-body-secondary"><?= Html::e($codice->norma ?? '') ?></td>
+                        <td class="small text-body-secondary"><?= Html::e($codice->getNorma() ?? '') ?><?= $codice->validoFino === null ? '' : '<div class="text-warning-emphasis">' . Html::e($operazioniFino) . ' ' . Html::data($codice->validoFino) . '</div>' ?></td>
                         <td class="text-end"><?php if ($codice->studio !== null): ?><a href="/codice-iva/update/codice/<?= Html::e($codice->id) ?>" class="btn btn-sm btn-link py-0"><i class="bi bi-pencil"></i></a><?php endif; ?></td>
                     </tr>
                 <?php endforeach; ?>

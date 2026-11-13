@@ -37,7 +37,7 @@ class TabelleContabilita
     public const COLONNE_PIANI = ['id', 'denominazione', 'descrizione'];
     public const COLONNE_CONTI = ['piano_conti_id', 'id', 'codice', 'descrizione', 'natura', 'funzione', 'voce_cee'];
     public const COLONNE_PRODOTTI = ['id', 'voce', 'descrizione', 'percentuale', 'aliquota', 'dal_anno', 'al_anno'];
-    public const COLONNE_CODICI_IVA = ['id', 'codice', 'descrizione', 'aliquota', 'natura', 'detraibilita', 'inversione_contabile', 'ventilazione', 'norma'];
+    public const COLONNE_CODICI_IVA = ['id', 'codice', 'descrizione', 'aliquota', 'natura', 'detraibilita', 'inversione_contabile', 'ventilazione', 'norma', 'norma_testo_unico', 'valido_fino'];
     public const PRIMO_ID_CONTO_STUDIO = 100000;
     private const DATA_CREAZIONE = '2026-10-31 00:00:00';
 
@@ -67,7 +67,7 @@ class TabelleContabilita
         $idPiani = implode(', ', array_column($dati['piani'], 'id'));
         yield 'DELETE FROM `conto` WHERE `piano_conti_id` IN (' . $idPiani . ') AND `id` NOT IN (' . implode(', ', array_column($dati['conti'], 'id')) . ');';
         yield from $generatore->generaUpsert('conto', ['id', 'piano_conti_id', 'parent_conto_id', 'codice', 'descrizione', 'livello', 'natura', 'funzione', 'voce_cee', 'attivo'], $dati['conti']);
-        yield from $generatore->generaUpsert('codice_iva', ['id', 'studio_id', 'codice', 'descrizione', 'aliquota', 'natura', 'detraibilita', 'inversione_contabile', 'ventilazione', 'norma', 'attivo'], $dati['codiciIva']);
+        yield from $generatore->generaUpsert('codice_iva', ['id', 'studio_id', 'codice', 'descrizione', 'aliquota', 'natura', 'detraibilita', 'inversione_contabile', 'ventilazione', 'norma', 'norma_testo_unico', 'valido_fino', 'attivo'], $dati['codiciIva']);
         yield 'DELETE FROM `prodotto_agricolo` WHERE `id` NOT IN (' . implode(', ', array_column($dati['prodotti'], 'id')) . ');';
         yield from $generatore->generaUpsert('prodotto_agricolo', ['id', 'voce', 'descrizione', 'percentuale', 'dal_anno', 'al_anno'], $dati['prodotti']);
         yield 'UPDATE `codice_iva` SET `attivo` = 0 WHERE `studio_id` IS NULL AND `id` NOT IN (' . implode(', ', array_column($dati['codiciIva'], 'id')) . ');';
@@ -189,9 +189,14 @@ class TabelleContabilita
             if ((($natura !== null) && ($aliquota > 0)) || (($natura === null) && ($aliquota <= 0) && ($ventilazione === false)) || (($riga['inversione_contabile'] === '1') && ($natura !== null))) {
                 throw $errore('la natura si indica solo senza aliquota, e l\'inversione contabile solo per le aliquote');
             }
+            $validoFino = $riga['valido_fino'] === null ? null : \DateTimeImmutable::createFromFormat('!Y-m-d', $riga['valido_fino']);
+            if (($validoFino === false) || (($validoFino !== null) && ($validoFino->format('Y-m-d') !== $riga['valido_fino']))) {
+                throw $errore('data di fine validità non valida (AAAA-MM-GG)');
+            }
             $codici[$riga['codice']] = true;
             $codiciIva[$id] = ['id' => $id, 'studio_id' => null, 'codice' => $riga['codice'], 'descrizione' => $riga['descrizione'], 'aliquota' => number_format($aliquota, 2, '.', ''),
-                'natura' => $natura?->value, 'detraibilita' => number_format($detraibilita, 2, '.', ''), 'inversione_contabile' => (int) $riga['inversione_contabile'], 'ventilazione' => (int) $ventilazione, 'norma' => $riga['norma'], 'attivo' => 1];
+                'natura' => $natura?->value, 'detraibilita' => number_format($detraibilita, 2, '.', ''), 'inversione_contabile' => (int) $riga['inversione_contabile'], 'ventilazione' => (int) $ventilazione, 'norma' => $riga['norma'],
+                'norma_testo_unico' => $riga['norma_testo_unico'], 'valido_fino' => $riga['valido_fino'], 'attivo' => 1];
         }
         return array_values($codiciIva);
     }

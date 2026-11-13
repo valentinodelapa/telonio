@@ -2,6 +2,7 @@
 
 namespace Anagrafica\Application\Forms;
 
+use Anagrafica\Application\Enumerations\PeriodicitaIva;
 use Anagrafica\Application\Entities\DatiFiscali;
 use Anagrafica\Application\Enumerations\ClassificazioneAteco;
 use Anagrafica\Application\Enumerations\RegimeDetrazioneIva;
@@ -53,6 +54,7 @@ class DatiFiscaliForm extends BaseForm
                 ->addFilterFieldMode('periodicitaIva', FilterType::isEnumeration, [], true)
                 ->addFilterFieldMode('soggettoIsa', FilterType::isBoolean)
                 ->addFilterFieldMode('ventilazioneCorrispettivi', FilterType::isBoolean)
+                ->addFilterFieldMode('trimestraleSpeciale', FilterType::isBoolean)
                 ->addFilterFieldMode('regimeDetrazioneIva', FilterType::isEnumeration, [], true)
                 ->addFilterFieldMode('opzioniOrdinarie', FilterType::isMaxLimitString, [23], true)
                 ->addFilterFieldMode('rinunciaEsonero', FilterType::isBoolean)
@@ -123,7 +125,7 @@ class DatiFiscaliForm extends BaseForm
         if ($dati->partitaIva === null) {
             $valido = true;
             foreach (['regimeFiscale' => $regime !== null, 'periodicitaIva' => $dati->periodicitaIva !== null, 'soggettoIsa' => (bool) $dati->soggettoIsa, 'trasparenzaFiscale' => (bool) ($dati->trasparenzaFiscale ?? false),
-                'ventilazioneCorrispettivi' => (bool) ($dati->ventilazioneCorrispettivi ?? false)] as $campo => $indicato) {
+                'ventilazioneCorrispettivi' => (bool) ($dati->ventilazioneCorrispettivi ?? false), 'trimestraleSpeciale' => (bool) ($dati->trimestraleSpeciale ?? false)] as $campo => $indicato) {
                 if ($indicato) {
                     $this->formFilterError->{$campo . 'CustomMessage'} = 'Previsto solo con la partita IVA.';
                     $valido = false;
@@ -163,6 +165,10 @@ class DatiFiscaliForm extends BaseForm
             $valido = false;
         } elseif (($regime->getPeriodicitaObbligata() !== null) && ($dati->periodicitaIva !== $regime->getPeriodicitaObbligata())) {
             $this->formFilterError->periodicitaIvaCustomMessage = 'Il regime prevede la liquidazione ' . mb_strtolower($regime->getPeriodicitaObbligata()->getLabel()) . '.';
+            $valido = false;
+        }
+        if (($dati->trimestraleSpeciale ?? false) && ($dati->periodicitaIva !== PeriodicitaIva::trimestrale)) {
+            $this->formFilterError->trimestraleSpecialeCustomMessage = 'I trimestrali per natura dell\'attività hanno la periodicità trimestrale.';
             $valido = false;
         }
         return $valido;

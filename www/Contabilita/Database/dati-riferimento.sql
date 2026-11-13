@@ -1,7 +1,7 @@
 -- =====================================================
 -- Contabilita - piani dei conti modello e codici IVA
 -- =====================================================
--- Generato con "sisma tabelle-contabilita --sql" il 07/11/2026 00:45: non modificare a mano.
+-- Generato con "sisma tabelle-contabilita --sql" il 11/11/2026 23:59: non modificare a mano.
 -- Fonte: Contabilita/Database/sorgenti (norma indicata per codice IVA).
 -- Righe: piano_conti 1, conto 194, codice_iva 45.
 -- Idempotente: aggiorna le tabelle della suite senza toccare i dati degli studi.
@@ -212,53 +212,53 @@ INSERT INTO `conto` (`id`, `piano_conti_id`, `parent_conto_id`, `codice`, `descr
 (194, 1, 62, '06.04.0004', 'IVA di gruppo c/liquidazioni', 'S', 'A', 'IVG', NULL, 1)
 ON DUPLICATE KEY UPDATE `piano_conti_id` = VALUES(`piano_conti_id`), `parent_conto_id` = VALUES(`parent_conto_id`), `codice` = VALUES(`codice`), `descrizione` = VALUES(`descrizione`), `livello` = VALUES(`livello`), `natura` = VALUES(`natura`), `funzione` = VALUES(`funzione`), `voce_cee` = VALUES(`voce_cee`), `attivo` = VALUES(`attivo`);
 
-INSERT INTO `codice_iva` (`id`, `studio_id`, `codice`, `descrizione`, `aliquota`, `natura`, `detraibilita`, `inversione_contabile`, `ventilazione`, `norma`, `attivo`) VALUES
-(1, NULL, '22', 'Aliquota ordinaria 22%', '22.00', NULL, '100.00', 0, 0, 'art. 16, c. 1, D.P.R. 633/1972', 1),
-(2, NULL, '10', 'Aliquota ridotta 10%', '10.00', NULL, '100.00', 0, 0, 'art. 16, c. 2, e tabella A, parte III, D.P.R. 633/1972', 1),
-(3, NULL, '5', 'Aliquota ridotta 5%', '5.00', NULL, '100.00', 0, 0, 'art. 16, c. 2, e tabella A, parte II-bis, D.P.R. 633/1972', 1),
-(4, NULL, '4', 'Aliquota minima 4%', '4.00', NULL, '100.00', 0, 0, 'art. 16, c. 2, e tabella A, parte II, D.P.R. 633/1972', 1),
-(5, NULL, 'A22', '22% detraibile al 40% (veicoli)', '22.00', NULL, '40.00', 0, 0, 'art. 19-bis1, c. 1, lett. c), D.P.R. 633/1972', 1),
-(6, NULL, 'I22', '22% indetraibile', '22.00', NULL, '0.00', 0, 0, 'art. 19-bis1 D.P.R. 633/1972', 1),
-(7, NULL, 'I10', '10% indetraibile', '10.00', NULL, '0.00', 0, 0, 'art. 19-bis1 D.P.R. 633/1972', 1),
-(20, NULL, 'N1', 'Escluse art. 15', '0.00', 'N1', '100.00', 0, 0, 'art. 15 D.P.R. 633/1972', 1),
-(21, NULL, 'N2.1', 'Non soggette, artt. 7-7-septies', '0.00', 'N2.1', '100.00', 0, 0, 'artt. da 7 a 7-septies D.P.R. 633/1972', 1),
-(22, NULL, 'N2.2', 'Non soggette, altri casi (es. forfetari, minimi)', '0.00', 'N2.2', '100.00', 0, 0, 'art. 1, c. 58, L. 190/2014', 1),
-(23, NULL, 'N3.1', 'Non imponibili, esportazioni', '0.00', 'N3.1', '100.00', 0, 0, 'art. 8, c. 1, lett. a) e b), D.P.R. 633/1972', 1),
-(24, NULL, 'N3.2', 'Non imponibili, cessioni intracomunitarie', '0.00', 'N3.2', '100.00', 0, 0, 'art. 41 D.L. 331/1993', 1),
-(25, NULL, 'N3.3', 'Non imponibili, cessioni verso San Marino', '0.00', 'N3.3', '100.00', 0, 0, 'art. 71 D.P.R. 633/1972', 1),
-(26, NULL, 'N3.4', 'Non imponibili, operazioni assimilate alle esportazioni e servizi internazionali (concorrono al plafond)', '0.00', 'N3.4', '100.00', 0, 0, 'artt. 8-bis e 9 D.P.R. 633/1972', 1),
-(27, NULL, 'N3.5', 'Non imponibili, a seguito di dichiarazione d''intento', '0.00', 'N3.5', '100.00', 0, 0, 'art. 8, c. 1, lett. c), D.P.R. 633/1972', 1),
-(28, NULL, 'N3.6', 'Non imponibili, altre operazioni che non concorrono al plafond', '0.00', 'N3.6', '100.00', 0, 0, 'specifiche tecniche della fattura elettronica, natura N3.6 (es. art. 38-quater D.P.R. 633/1972)', 1),
-(29, NULL, 'N4', 'Esenti art. 10', '0.00', 'N4', '100.00', 0, 0, 'art. 10 D.P.R. 633/1972', 1),
-(30, NULL, 'N5', 'Regime del margine', '0.00', 'N5', '100.00', 0, 0, 'art. 36 D.L. 41/1995', 1),
-(31, NULL, 'N6.1', 'Inversione contabile, rottami', '0.00', 'N6.1', '100.00', 0, 0, 'art. 74, c. 7 e 8, D.P.R. 633/1972', 1),
-(32, NULL, 'N6.2', 'Inversione contabile, oro e argento', '0.00', 'N6.2', '100.00', 0, 0, 'art. 17, c. 5, D.P.R. 633/1972', 1),
-(33, NULL, 'N6.3', 'Inversione contabile, subappalto edile', '0.00', 'N6.3', '100.00', 0, 0, 'art. 17, c. 6, lett. a), D.P.R. 633/1972', 1),
-(34, NULL, 'N6.4', 'Inversione contabile, cessione di fabbricati', '0.00', 'N6.4', '100.00', 0, 0, 'art. 17, c. 6, lett. a-bis), D.P.R. 633/1972', 1),
-(35, NULL, 'N6.5', 'Inversione contabile, telefoni cellulari', '0.00', 'N6.5', '100.00', 0, 0, 'art. 17, c. 6, lett. b), D.P.R. 633/1972', 1),
-(36, NULL, 'N6.6', 'Inversione contabile, prodotti elettronici', '0.00', 'N6.6', '100.00', 0, 0, 'art. 17, c. 6, lett. c), D.P.R. 633/1972', 1),
-(37, NULL, 'N6.7', 'Inversione contabile, comparto edile e connessi', '0.00', 'N6.7', '100.00', 0, 0, 'art. 17, c. 6, lett. a-ter), D.P.R. 633/1972', 1),
-(38, NULL, 'N6.8', 'Inversione contabile, settore energetico', '0.00', 'N6.8', '100.00', 0, 0, 'art. 17, c. 6, lett. d-bis), d-ter) e d-quater), D.P.R. 633/1972', 1),
-(39, NULL, 'N6.9', 'Inversione contabile, altri casi', '0.00', 'N6.9', '100.00', 0, 0, 'art. 17 D.P.R. 633/1972', 1),
-(40, NULL, 'N7', 'IVA assolta in altro Stato UE', '0.00', 'N7', '100.00', 0, 0, 'art. 41, c. 1, lett. b), D.L. 331/1993', 1),
-(60, NULL, 'RC22', 'Acquisto in inversione contabile 22% (integrazione)', '22.00', NULL, '100.00', 1, 0, 'art. 17, c. 5 e 6, D.P.R. 633/1972', 1),
-(61, NULL, 'RC10', 'Acquisto in inversione contabile 10% (integrazione)', '10.00', NULL, '100.00', 1, 0, 'art. 17, c. 6, D.P.R. 633/1972', 1),
-(62, NULL, 'RC4', 'Acquisto in inversione contabile 4% (integrazione)', '4.00', NULL, '100.00', 1, 0, 'art. 17, c. 6, D.P.R. 633/1972', 1),
-(63, NULL, 'UE22', 'Acquisto intracomunitario 22% (integrazione)', '22.00', NULL, '100.00', 1, 0, 'artt. 38, 46 e 47 D.L. 331/1993', 1),
-(64, NULL, 'UE10', 'Acquisto intracomunitario 10% (integrazione)', '10.00', NULL, '100.00', 1, 0, 'artt. 38, 46 e 47 D.L. 331/1993', 1),
-(65, NULL, 'UE4', 'Acquisto intracomunitario 4% (integrazione)', '4.00', NULL, '100.00', 1, 0, 'artt. 38, 46 e 47 D.L. 331/1993', 1),
-(66, NULL, 'ES22', 'Acquisto di servizi o beni dall''estero 22% (integrazione o autofattura)', '22.00', NULL, '100.00', 1, 0, 'art. 17, c. 2, D.P.R. 633/1972', 1),
-(70, NULL, 'VEN', 'Corrispettivi da ventilare (ripartiti in proporzione agli acquisti per rivendita)', '0.00', NULL, '100.00', 0, 1, 'art. 24, c. 3, D.P.R. 633/1972', 1),
-(80, NULL, 'C2', 'Conferimento agricolo con percentuale di compensazione 2%', '2.00', NULL, '100.00', 0, 0, 'art. 34, c. 1 e 2, D.P.R. 633/1972', 1),
-(81, NULL, 'C6.4', 'Conferimento agricolo con percentuale di compensazione 6,4%', '6.40', NULL, '100.00', 0, 0, 'art. 34, c. 1 e 2, D.P.R. 633/1972', 1),
-(82, NULL, 'C7', 'Conferimento agricolo con percentuale di compensazione 7%', '7.00', NULL, '100.00', 0, 0, 'art. 34, c. 1 e 2, D.P.R. 633/1972', 1),
-(83, NULL, 'C7.3', 'Conferimento agricolo con percentuale di compensazione 7,3%', '7.30', NULL, '100.00', 0, 0, 'art. 34, c. 1 e 2, D.P.R. 633/1972', 1),
-(84, NULL, 'C7.5', 'Conferimento agricolo con percentuale di compensazione 7,5%', '7.50', NULL, '100.00', 0, 0, 'art. 34, c. 1 e 2, D.P.R. 633/1972', 1),
-(85, NULL, 'C8.3', 'Conferimento agricolo con percentuale di compensazione 8,3%', '8.30', NULL, '100.00', 0, 0, 'art. 34, c. 1 e 2, D.P.R. 633/1972', 1),
-(86, NULL, 'C8.5', 'Conferimento agricolo con percentuale di compensazione 8,5%', '8.50', NULL, '100.00', 0, 0, 'art. 34, c. 1 e 2, D.P.R. 633/1972', 1),
-(87, NULL, 'C8.8', 'Conferimento agricolo con percentuale di compensazione 8,8%', '8.80', NULL, '100.00', 0, 0, 'art. 34, c. 1 e 2, D.P.R. 633/1972', 1),
-(88, NULL, 'C12.3', 'Conferimento agricolo con percentuale di compensazione 12,3%', '12.30', NULL, '100.00', 0, 0, 'art. 34, c. 1 e 2, D.P.R. 633/1972', 1)
-ON DUPLICATE KEY UPDATE `studio_id` = VALUES(`studio_id`), `codice` = VALUES(`codice`), `descrizione` = VALUES(`descrizione`), `aliquota` = VALUES(`aliquota`), `natura` = VALUES(`natura`), `detraibilita` = VALUES(`detraibilita`), `inversione_contabile` = VALUES(`inversione_contabile`), `ventilazione` = VALUES(`ventilazione`), `norma` = VALUES(`norma`), `attivo` = VALUES(`attivo`);
+INSERT INTO `codice_iva` (`id`, `studio_id`, `codice`, `descrizione`, `aliquota`, `natura`, `detraibilita`, `inversione_contabile`, `ventilazione`, `norma`, `norma_testo_unico`, `valido_fino`, `attivo`) VALUES
+(1, NULL, '22', 'Aliquota ordinaria 22%', '22.00', NULL, '100.00', 0, 0, 'art. 16, c. 1, D.P.R. 633/1972', 'art. 34, c. 1, D.Lgs. 10/2026', NULL, 1),
+(2, NULL, '10', 'Aliquota ridotta 10%', '10.00', NULL, '100.00', 0, 0, 'art. 16, c. 2, e tabella A, parte III, D.P.R. 633/1972', 'art. 34, c. 2, e tabella A, parte IV, D.Lgs. 10/2026', NULL, 1),
+(3, NULL, '5', 'Aliquota ridotta 5%', '5.00', NULL, '100.00', 0, 0, 'art. 16, c. 2, e tabella A, parte II-bis, D.P.R. 633/1972', 'art. 34, c. 2, e tabella A, parte III, D.Lgs. 10/2026', NULL, 1),
+(4, NULL, '4', 'Aliquota minima 4%', '4.00', NULL, '100.00', 0, 0, 'art. 16, c. 2, e tabella A, parte II, D.P.R. 633/1972', 'art. 34, c. 2, e tabella A, parte II, D.Lgs. 10/2026', NULL, 1),
+(5, NULL, 'A22', '22% detraibile al 40% (veicoli)', '22.00', NULL, '40.00', 0, 0, 'art. 19-bis1, c. 1, lett. c), D.P.R. 633/1972', 'art. 58, c. 1, lett. c), D.Lgs. 10/2026', NULL, 1),
+(6, NULL, 'I22', '22% indetraibile', '22.00', NULL, '0.00', 0, 0, 'art. 19-bis1 D.P.R. 633/1972', 'art. 58 D.Lgs. 10/2026', NULL, 1),
+(7, NULL, 'I10', '10% indetraibile', '10.00', NULL, '0.00', 0, 0, 'art. 19-bis1 D.P.R. 633/1972', 'art. 58 D.Lgs. 10/2026', NULL, 1),
+(20, NULL, 'N1', 'Escluse art. 15', '0.00', 'N1', '100.00', 0, 0, 'art. 15 D.P.R. 633/1972', 'art. 29 D.Lgs. 10/2026', NULL, 1),
+(21, NULL, 'N2.1', 'Non soggette, artt. 7-7-septies', '0.00', 'N2.1', '100.00', 0, 0, 'artt. da 7 a 7-septies D.P.R. 633/1972', 'artt. da 15 a 23 D.Lgs. 10/2026', NULL, 1),
+(22, NULL, 'N2.2', 'Non soggette, altri casi (es. forfetari, minimi)', '0.00', 'N2.2', '100.00', 0, 0, 'art. 1, c. 58, L. 190/2014; artt. 2, 3, 4 D.P.R. 633/1972', 'art. 1, c. 58, L. 190/2014 e art. 157 D.Lgs. 10/2026; artt. 3, 5 e 10 D.Lgs. 10/2026', NULL, 1),
+(23, NULL, 'N3.1', 'Non imponibili, esportazioni', '0.00', 'N3.1', '100.00', 0, 0, 'art. 8, c. 1, lett. a) e b), D.P.R. 633/1972', 'art. 45, c. 1, lett. a), b) e c), D.Lgs. 10/2026', NULL, 1),
+(24, NULL, 'N3.2', 'Non imponibili, cessioni intracomunitarie', '0.00', 'N3.2', '100.00', 0, 0, 'art. 41 D.L. 331/1993', 'art. 39 D.Lgs. 10/2026', NULL, 1),
+(25, NULL, 'N3.3', 'Non imponibili, cessioni verso San Marino', '0.00', 'N3.3', '100.00', 0, 0, 'art. 71 D.P.R. 633/1972; D.M. 21 giugno 2021', 'art. 50 D.Lgs. 10/2026; D.M. 21 giugno 2021', NULL, 1),
+(26, NULL, 'N3.4', 'Non imponibili, operazioni assimilate alle esportazioni e servizi internazionali (concorrono al plafond)', '0.00', 'N3.4', '100.00', 0, 0, 'artt. 8-bis e 9 D.P.R. 633/1972', 'artt. 48 e 49 D.Lgs. 10/2026', NULL, 1),
+(27, NULL, 'N3.5', 'Non imponibili, a seguito di dichiarazione d''intento', '0.00', 'N3.5', '100.00', 0, 0, 'art. 8, c. 1, lett. c), D.P.R. 633/1972; art. 1, c. 1, lett. c), D.L. 746/1983', 'art. 45, c. 1, lett. d), e art. 46 D.Lgs. 10/2026', NULL, 1),
+(28, NULL, 'N3.6', 'Non imponibili, altre operazioni che non concorrono al plafond', '0.00', 'N3.6', '100.00', 0, 0, 'specifiche tecniche della fattura elettronica, natura N3.6 (es. art. 38-quater D.P.R. 633/1972)', 'specifiche tecniche della fattura elettronica, natura N3.6 (es. art. 51 D.Lgs. 10/2026)', NULL, 1),
+(29, NULL, 'N4', 'Esenti art. 10', '0.00', 'N4', '100.00', 0, 0, 'art. 10 D.P.R. 633/1972', 'art. 37 D.Lgs. 10/2026', NULL, 1),
+(30, NULL, 'N5', 'Regime del margine', '0.00', 'N5', '100.00', 0, 0, 'art. 36 D.L. 41/1995', 'art. 143 D.Lgs. 10/2026', NULL, 1),
+(31, NULL, 'N6.1', 'Inversione contabile, rottami', '0.00', 'N6.1', '100.00', 0, 0, 'art. 74, c. 7 e 8, D.P.R. 633/1972', 'art. 139, c. 7 e 8, D.Lgs. 10/2026', NULL, 1),
+(32, NULL, 'N6.2', 'Inversione contabile, oro e argento', '0.00', 'N6.2', '100.00', 0, 0, 'art. 17, c. 5, D.P.R. 633/1972', 'art. 64, c. 5, D.Lgs. 10/2026', NULL, 1),
+(33, NULL, 'N6.3', 'Inversione contabile, subappalto edile', '0.00', 'N6.3', '100.00', 0, 0, 'art. 17, c. 6, lett. a), D.P.R. 633/1972', 'art. 64, c. 6, lett. a), D.Lgs. 10/2026', NULL, 1),
+(34, NULL, 'N6.4', 'Inversione contabile, cessione di fabbricati', '0.00', 'N6.4', '100.00', 0, 0, 'art. 17, c. 6, lett. a-bis), D.P.R. 633/1972', 'art. 64, c. 6, lett. b), D.Lgs. 10/2026', NULL, 1),
+(35, NULL, 'N6.5', 'Inversione contabile, telefoni cellulari', '0.00', 'N6.5', '100.00', 0, 0, 'art. 17, c. 6, lett. b), D.P.R. 633/1972', 'art. 64, c. 6, lett. e), e c. 8, D.Lgs. 10/2026', '2026-12-31', 1),
+(36, NULL, 'N6.6', 'Inversione contabile, prodotti elettronici', '0.00', 'N6.6', '100.00', 0, 0, 'art. 17, c. 6, lett. c), D.P.R. 633/1972', 'art. 64, c. 6, lett. f), e c. 8, D.Lgs. 10/2026', '2026-12-31', 1),
+(37, NULL, 'N6.7', 'Inversione contabile, comparto edile e connessi', '0.00', 'N6.7', '100.00', 0, 0, 'art. 17, c. 6, lett. a-ter), D.P.R. 633/1972', 'art. 64, c. 6, lett. c), D.Lgs. 10/2026', NULL, 1),
+(38, NULL, 'N6.8', 'Inversione contabile, settore energetico', '0.00', 'N6.8', '100.00', 0, 0, 'art. 17, c. 6, lett. d-bis), d-ter) e d-quater), D.P.R. 633/1972', 'art. 64, c. 6, lett. g), h) e i), e c. 8, D.Lgs. 10/2026', '2026-12-31', 1),
+(39, NULL, 'N6.9', 'Inversione contabile, altri casi', '0.00', 'N6.9', '100.00', 0, 0, 'art. 17 D.P.R. 633/1972', 'art. 64 D.Lgs. 10/2026', NULL, 1),
+(40, NULL, 'N7', 'IVA assolta in altro Stato UE', '0.00', 'N7', '100.00', 0, 0, 'art. 41, c. 1, lett. b), D.L. 331/1993; art. 7-octies e 74-sexies D.P.R. 633/1972', 'artt. 23, 39 e 150 D.Lgs. 10/2026', NULL, 1),
+(60, NULL, 'RC22', 'Acquisto in inversione contabile 22% (integrazione)', '22.00', NULL, '100.00', 1, 0, 'art. 17, c. 5 e 6, D.P.R. 633/1972', 'art. 64, c. 5 e 6, D.Lgs. 10/2026', NULL, 1),
+(61, NULL, 'RC10', 'Acquisto in inversione contabile 10% (integrazione)', '10.00', NULL, '100.00', 1, 0, 'art. 17, c. 6, D.P.R. 633/1972', 'art. 64, c. 6, D.Lgs. 10/2026', NULL, 1),
+(62, NULL, 'RC4', 'Acquisto in inversione contabile 4% (integrazione)', '4.00', NULL, '100.00', 1, 0, 'art. 17, c. 6, D.P.R. 633/1972', 'art. 64, c. 6, D.Lgs. 10/2026', NULL, 1),
+(63, NULL, 'UE22', 'Acquisto intracomunitario 22% (integrazione)', '22.00', NULL, '100.00', 1, 0, 'artt. 38, 46 e 47 D.L. 331/1993', 'artt. 8, 97 e 98 D.Lgs. 10/2026', NULL, 1),
+(64, NULL, 'UE10', 'Acquisto intracomunitario 10% (integrazione)', '10.00', NULL, '100.00', 1, 0, 'artt. 38, 46 e 47 D.L. 331/1993', 'artt. 8, 97 e 98 D.Lgs. 10/2026', NULL, 1),
+(65, NULL, 'UE4', 'Acquisto intracomunitario 4% (integrazione)', '4.00', NULL, '100.00', 1, 0, 'artt. 38, 46 e 47 D.L. 331/1993', 'artt. 8, 97 e 98 D.Lgs. 10/2026', NULL, 1),
+(66, NULL, 'ES22', 'Acquisto di servizi o beni dall''estero 22% (integrazione o autofattura)', '22.00', NULL, '100.00', 1, 0, 'art. 17, c. 2, D.P.R. 633/1972', 'art. 64, c. 2, D.Lgs. 10/2026', NULL, 1),
+(70, NULL, 'VEN', 'Corrispettivi da ventilare (ripartiti in proporzione agli acquisti per rivendita)', '0.00', NULL, '100.00', 0, 1, 'art. 24, c. 3, D.P.R. 633/1972; D.M. 24 febbraio 1973', 'art. 87, c. 3, D.Lgs. 10/2026; D.M. 24 febbraio 1973', NULL, 1),
+(80, NULL, 'C2', 'Conferimento agricolo con percentuale di compensazione 2%', '2.00', NULL, '100.00', 0, 0, 'art. 34, c. 1 e 2, D.P.R. 633/1972', 'art. 133, c. 1 e 2, D.Lgs. 10/2026', NULL, 1),
+(81, NULL, 'C6.4', 'Conferimento agricolo con percentuale di compensazione 6,4%', '6.40', NULL, '100.00', 0, 0, 'art. 34, c. 1 e 2, D.P.R. 633/1972', 'art. 133, c. 1 e 2, D.Lgs. 10/2026', NULL, 1),
+(82, NULL, 'C7', 'Conferimento agricolo con percentuale di compensazione 7%', '7.00', NULL, '100.00', 0, 0, 'art. 34, c. 1 e 2, D.P.R. 633/1972', 'art. 133, c. 1 e 2, D.Lgs. 10/2026', NULL, 1),
+(83, NULL, 'C7.3', 'Conferimento agricolo con percentuale di compensazione 7,3%', '7.30', NULL, '100.00', 0, 0, 'art. 34, c. 1 e 2, D.P.R. 633/1972', 'art. 133, c. 1 e 2, D.Lgs. 10/2026', NULL, 1),
+(84, NULL, 'C7.5', 'Conferimento agricolo con percentuale di compensazione 7,5%', '7.50', NULL, '100.00', 0, 0, 'art. 34, c. 1 e 2, D.P.R. 633/1972', 'art. 133, c. 1 e 2, D.Lgs. 10/2026', NULL, 1),
+(85, NULL, 'C8.3', 'Conferimento agricolo con percentuale di compensazione 8,3%', '8.30', NULL, '100.00', 0, 0, 'art. 34, c. 1 e 2, D.P.R. 633/1972', 'art. 133, c. 1 e 2, D.Lgs. 10/2026', NULL, 1),
+(86, NULL, 'C8.5', 'Conferimento agricolo con percentuale di compensazione 8,5%', '8.50', NULL, '100.00', 0, 0, 'art. 34, c. 1 e 2, D.P.R. 633/1972', 'art. 133, c. 1 e 2, D.Lgs. 10/2026', NULL, 1),
+(87, NULL, 'C8.8', 'Conferimento agricolo con percentuale di compensazione 8,8%', '8.80', NULL, '100.00', 0, 0, 'art. 34, c. 1 e 2, D.P.R. 633/1972', 'art. 133, c. 1 e 2, D.Lgs. 10/2026', NULL, 1),
+(88, NULL, 'C12.3', 'Conferimento agricolo con percentuale di compensazione 12,3%', '12.30', NULL, '100.00', 0, 0, 'art. 34, c. 1 e 2, D.P.R. 633/1972', 'art. 133, c. 1 e 2, D.Lgs. 10/2026', NULL, 1)
+ON DUPLICATE KEY UPDATE `studio_id` = VALUES(`studio_id`), `codice` = VALUES(`codice`), `descrizione` = VALUES(`descrizione`), `aliquota` = VALUES(`aliquota`), `natura` = VALUES(`natura`), `detraibilita` = VALUES(`detraibilita`), `inversione_contabile` = VALUES(`inversione_contabile`), `ventilazione` = VALUES(`ventilazione`), `norma` = VALUES(`norma`), `norma_testo_unico` = VALUES(`norma_testo_unico`), `valido_fino` = VALUES(`valido_fino`), `attivo` = VALUES(`attivo`);
 
 DELETE FROM `prodotto_agricolo` WHERE `id` NOT IN (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255, 256, 257, 258, 259, 260, 261, 262, 263, 264, 265, 266, 267, 268, 269, 270, 271, 272);
 

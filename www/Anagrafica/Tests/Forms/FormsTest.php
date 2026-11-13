@@ -248,6 +248,8 @@ class FormsTest extends SuiteTestCase
             'L. 398/1991 trimestrale' => ['EN', null, ['regimeFiscale' => 'L398', 'periodicitaIva' => 'T', 'enteNonCommerciale' => '1'], null],
             'forfetario con ventilazione' => ['PF', 'IMP', ['regimeFiscale' => 'FOR', 'ventilazioneCorrispettivi' => '1'], 'ventilazioneCorrispettiviCustomMessage'],
             'dettagliante con ventilazione' => ['PF', 'IMP', ['regimeFiscale' => 'SEM', 'periodicitaIva' => 'T', 'ventilazioneCorrispettivi' => '1'], null],
+            'trimestrale per natura' => ['PF', 'IMP', ['regimeFiscale' => 'SEM', 'periodicitaIva' => 'T', 'trimestraleSpeciale' => '1'], null],
+            'mensile per natura' => ['PF', 'IMP', ['regimeFiscale' => 'SEM', 'periodicitaIva' => 'M', 'trimestraleSpeciale' => '1'], 'trimestraleSpecialeCustomMessage'],
         ];
     }
 

@@ -23,6 +23,8 @@ CREATE TABLE IF NOT EXISTS `adempimento` (
   `categoria` CHAR(3) NOT NULL COMMENT 'Enumerations\\CategoriaAdempimento',
   `ambito` CHAR(3) NOT NULL DEFAULT 'TUT' COMMENT 'Enumerations\\AmbitoAdempimento: soggetti a cui si propone',
   `fonte` VARCHAR(255) NULL COMMENT 'Norma che fissa il termine',
+  `nuova_fonte` VARCHAR(255) NULL COMMENT 'Norma che fissa il termine dalla data nuova_fonte_dal (es. testi unici dal 2027)',
+  `nuova_fonte_dal` DATE NULL COMMENT 'Termini dal giorno indicato: si cita nuova_fonte',
   `slittamento_festivi` TINYINT(1) NOT NULL DEFAULT 1 COMMENT 'Termine di sabato o festivo al primo giorno lavorativo (art. 7, c. 1, lett. h, D.L. 70/2011)',
   `proroga_agosto` TINYINT(1) NOT NULL DEFAULT 1 COMMENT 'Termini dal 1° al 20 agosto al 20 agosto (art. 37, c. 11-bis, D.L. 223/2006)',
   `attivo` TINYINT(1) NOT NULL DEFAULT 1,

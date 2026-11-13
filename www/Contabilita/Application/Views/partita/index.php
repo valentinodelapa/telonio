@@ -44,7 +44,12 @@ require __DIR__ . '/../commonParts/navAzienda.php';
                             <tr>
                                 <td><a href="/registrazione/show/registrazione/<?= Html::e($partita->registrazioneContabile->id) ?>" class="text-decoration-none"><?= Html::e($partita->getEtichetta()) ?></a>
                                     <?php if ($partita->partitaOrigine !== null): ?><div class="small text-body-secondary"><?= Html::e($riapre) ?> <?= Html::e($partita->partitaOrigine->getEtichetta()) ?></div><?php endif; ?></td>
-                                <td><?= Html::data($partita->dataScadenza ?? $partita->data) ?></td>
+                                <td><?= Html::data($riga['prossimaScadenza']) ?>
+                                    <?php if (count($riga['rate']) > 1 || ((count($riga['rate']) === 1) && ($riga['rate'][0]['scadenza']->modalita !== null))): ?>
+                                        <?php foreach ($riga['rate'] as $rata): ?>
+                                            <div class="small <?= $rata['residuo'] > 0.005 ? '' : 'text-body-secondary text-decoration-line-through' ?>"><?= Html::e($rataNumero) ?> <?= Html::e($rata['scadenza']->numero) ?>: <?= Html::data($rata['scadenza']->dataScadenza) ?> · <?= Html::e($euro($rata['scadenza']->importo)) ?><?= $rata['scadenza']->modalita === null ? '' : ' · ' . Html::e($rata['scadenza']->modalita->getLabelBreve()) ?><?= ($rata['residuo'] > 0.005) && ($rata['residuo'] < $rata['scadenza']->importo - 0.005) ? ' · ' . Html::e($residuo) . ' ' . Html::e($euro($rata['residuo'])) : '' ?></div>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?></td>
                                 <td class="text-end"><?= Html::e($segno . $euro($partita->importo)) ?></td>
                                 <td class="small">
                                     <?php foreach ($riga['abbinamenti'] as $abbinamento): ?>

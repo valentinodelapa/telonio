@@ -30,6 +30,7 @@ enum AmbitoAdempimento: string
     case liquidazioniIva = 'IVO';
     case ivaMensile = 'IVM';
     case ivaTrimestrale = 'IVT';
+    case ivaTrimestraleSpeciale = 'IVS';
     case imprese = 'IMP';
     case artigianiCommercianti = 'ART';
     case sostitutiImposta = 'SOS';
@@ -48,7 +49,8 @@ enum AmbitoAdempimento: string
             self::soggettiIva => 'Titolari di partita IVA',
             self::liquidazioniIva => 'Titolari di partita IVA con liquidazioni IVA (non forfetari)',
             self::ivaMensile => 'Liquidazione IVA mensile',
-            self::ivaTrimestrale => 'Liquidazione IVA trimestrale',
+            self::ivaTrimestrale => 'Liquidazione IVA trimestrale per opzione',
+            self::ivaTrimestraleSpeciale => 'Liquidazione IVA trimestrale per natura (art. 74, c. 4)',
             self::imprese => 'Imprese (registro delle imprese)',
             self::artigianiCommercianti => 'Imprenditori individuali (artigiani e commercianti)',
             self::sostitutiImposta => 'Sostituti d\'imposta',
@@ -81,7 +83,8 @@ enum AmbitoAdempimento: string
             self::soggettiIva => $partitaIva !== null,
             self::liquidazioniIva => ($partitaIva !== null) && ($dati?->regimeFiscale?->isLiquidazioneIva() ?? true),
             self::ivaMensile => ($partitaIva !== null) && ($dati?->periodicitaIva === PeriodicitaIva::mensile),
-            self::ivaTrimestrale => ($partitaIva !== null) && ($dati?->periodicitaIva === PeriodicitaIva::trimestrale),
+            self::ivaTrimestrale => ($partitaIva !== null) && ($dati?->periodicitaIva === PeriodicitaIva::trimestrale) && (($dati?->trimestraleSpeciale ?? false) === false),
+            self::ivaTrimestraleSpeciale => ($partitaIva !== null) && ($dati?->periodicitaIva === PeriodicitaIva::trimestrale) && ($dati?->trimestraleSpeciale ?? false),
             self::imprese => in_array($soggetto->tipoSoggetto, [TipoSoggetto::societaPersone, TipoSoggetto::societaCapitali], true) || $impresaIndividuale,
             self::artigianiCommercianti => $impresaIndividuale,
             self::sostitutiImposta => $dati?->sostitutoImposta ?? false,

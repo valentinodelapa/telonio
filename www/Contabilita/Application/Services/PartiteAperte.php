@@ -6,17 +6,23 @@ use Anagrafica\Application\Entities\Soggetto;
 use Contabilita\Application\Entities\Abbinamento;
 use Contabilita\Application\Entities\Conto;
 use Contabilita\Application\Entities\Controparte;
+use Contabilita\Application\Entities\FatturaElettronica;
 use Contabilita\Application\Entities\Partita;
 use Contabilita\Application\Entities\RegistrazioneContabile;
 use Contabilita\Application\Entities\RigaContabile;
+use Contabilita\Application\Entities\ScadenzaPartita;
 use Contabilita\Application\Enumerations\CausaleContabile;
 use Contabilita\Application\Enumerations\FunzioneConto;
+use Contabilita\Application\Enumerations\ModalitaPagamento;
 use Contabilita\Application\Enumerations\NaturaConto;
 use Contabilita\Application\Enumerations\TipoChiusura;
 use Contabilita\Application\Enumerations\TipoPartita;
 use Contabilita\Application\Models\AbbinamentoModel;
 use Contabilita\Application\Models\PartitaModel;
 use Contabilita\Application\Models\RigaContabileModel;
+use Contabilita\Application\Models\ScadenzaPartitaModel;
+use Contabilita\Application\Services\FatturaPa\LetturaFatturaPa;
+use SismaFramework\Orm\CustomTypes\SismaDate;
 use SismaFramework\Orm\HelperClasses\DataMapper;
 
 /**
@@ -44,7 +50,13 @@ use SismaFramework\Orm\HelperClasses\DataMapper;
  *
  * Struttura delle scelte per gruppo: ['abbinamenti' => [id partita =>
  * [tipo di chiusura => importo]], 'acconto' => bool, 'riapre' => ?id
- * della partita riaperta dall'insoluto].
+ * della partita riaperta dall'insoluto, 'rate' => rate della partita
+ * che il gruppo apre (ScadenzePagamento)].
+ *
+ * Le rate (ScadenzaPartita) sono il piano dei pagamenti del documento:
+ * proposte dai dati di pagamento della fattura elettronica o dai termini
+ * della controparte; gli abbinamenti restano sulla partita e il residuo si
+ * ripartisce sulle rate in ordine di scadenza.
  */
 class PartiteAperte
 {
@@ -53,11 +65,13 @@ class PartiteAperte
 
     private PartitaModel $partitaModel;
     private AbbinamentoModel $abbinamentoModel;
+    private ScadenzaPartitaModel $scadenzaModel;
 
     public function __construct(private DataMapper $dataMapper = new DataMapper())
     {
         $this->partitaModel = new PartitaModel($this->dataMapper);
         $this->abbinamentoModel = new AbbinamentoModel($this->dataMapper);
+        $this->scadenzaModel = new ScadenzaPartitaModel($this->dataMapper);
     }
 
     public static function isPartitario(RigaContabile $riga): bool
@@ -248,7 +262,7 @@ class PartiteAperte
      *
      * @return array<string, array{abbinamenti: array<int, array<string, float>>, acconto: bool, riapre: ?int}>
      */
-    public function proponi(RegistrazioneContabile $registrazione, array $gruppi): array
+    public function proponi(RegistrazioneContabile $registrazione, array $gruppi, ?FatturaElettronica $fattura = null): array
     {
         $scelte = [];
         foreach ($gruppi as $chiave => $gruppo) {
@@ -259,7 +273,7 @@ class PartiteAperte
                 foreach (self::ripartisci($residui, ['X' => $gruppo['importo']]) as $id => $quote) {
                     $abbinamenti[$id] = [self::tipoAbbinamentoApertura($abbinabili[$id]['partita'])->value => $quote['X']];
                 }
-                $scelte[$chiave] = ['abbinamenti' => $abbinamenti, 'acconto' => false, 'riapre' => null];
+                $scelte[$chiave] = ['abbinamenti' => $abbinamenti, 'acconto' => false, 'riapre' => null, 'rate' => $this->proponiRate($registrazione, $gruppo, $fattura)];
                 continue;
             }
             $abbinamenti = self::ripartisci($residui, $gruppo['composizione']);
@@ -267,6 +281,46 @@ class PartiteAperte
             $scelte[$chiave] = ['abbinamenti' => $abbinamenti, 'acconto' => (-$gruppo['importo'] - $abbinato > self::TOLLERANZA) && (self::isNota($registrazione) === false), 'riapre' => null];
         }
         return $scelte;
+    }
+
+    /**
+     * Rate proposte per il documento che il gruppo apre: dati di pagamento
+     * della fattura elettronica, termini della controparte o una rata alla
+     * data del documento.
+     *
+     * @return array<int, array{data: string, importo: float, modalita: ?string}>
+     */
+    public function proponiRate(RegistrazioneContabile $registrazione, array $gruppo, ?FatturaElettronica $fattura = null): array
+    {
+        $data = $registrazione->dataDocumento ?? $registrazione->dataRegistrazione;
+        $rate = [];
+        if ($fattura !== null) {
+            try {
+                $corpo = (new LetturaFatturaPa())->leggi($fattura->contenuto)->getCorpo($fattura->indiceCorpo);
+                $rate = $corpo === null ? [] : ScadenzePagamento::daFattura($corpo->pagamenti, $data, $gruppo['importo']);
+            } catch (\UnexpectedValueException) {
+                $rate = [];
+            }
+        }
+        if (count($rate) === 0) {
+            $rate = ScadenzePagamento::daTermini($gruppo['controparte'], $data, $gruppo['importo']);
+        }
+        return count($rate) > 0 ? $rate : [['data' => $data->format('Y-m-d'), 'importo' => round($gruppo['importo'], 2), 'modalita' => $gruppo['controparte']->modalitaPagamento?->value]];
+    }
+
+    /**
+     * Rate salvate della partita (una rata implicita alla scadenza della
+     * partita se non ne ha).
+     *
+     * @return array<int, array{data: string, importo: float, modalita: ?string}>
+     */
+    public function getRate(Partita $partita): array
+    {
+        $rate = [];
+        foreach ($this->scadenzaModel->getPerPartita($partita) as $scadenza) {
+            $rate[] = ['data' => $scadenza->dataScadenza->format('Y-m-d'), 'importo' => $scadenza->importo, 'modalita' => $scadenza->modalita?->value];
+        }
+        return count($rate) > 0 ? $rate : [['data' => ($partita->dataScadenza ?? $partita->data)->format('Y-m-d'), 'importo' => $partita->importo, 'modalita' => null]];
     }
 
     /**
@@ -296,6 +350,9 @@ class PartiteAperte
                 $scelte[$chiave]['acconto'] = true;
             } elseif (($partita->tipo === TipoPartita::insoluto) && ($partita->partitaOrigine !== null)) {
                 $scelte[$chiave]['riapre'] = $partita->partitaOrigine->id;
+            }
+            if ($partita->tipo->isApertura()) {
+                $scelte[$chiave]['rate'] = $this->getRate($partita);
             }
         }
         return $scelte;
@@ -346,6 +403,12 @@ class PartiteAperte
                 $errori[] = $nome . 'abbinati ' . self::importo($totale) . ' su un importo di ' . self::importo($importo) . '.';
             } elseif (($gruppo['apertura'] === false) && ($importo - $totale > self::TOLLERANZA) && (self::isNota($registrazione) === false) && (($scelta['acconto'] ?? false) === false)) {
                 $errori[] = $nome . 'abbinare l\'intero importo (' . self::importo($importo) . ', abbinati ' . self::importo($totale) . ') o registrare l\'eccedenza come acconto.';
+            }
+            if ($gruppo['apertura']) {
+                $erroreRate = ScadenzePagamento::verifica(ScadenzePagamento::normalizza($scelta['rate'] ?? [], $gruppo['importo']), $gruppo['importo']);
+                if ($erroreRate !== null) {
+                    $errori[] = $nome . 'scadenze: ' . $erroreRate;
+                }
             }
             if (($scelta['riapre'] ?? null) !== null) {
                 $riapribili = array_filter($this->getRiapribili($gruppo['controparte'], $gruppo['conto'], $registrazione), fn(Partita $partita) => $partita->id === (int) $scelta['riapre']);
@@ -441,12 +504,18 @@ class PartiteAperte
             $partita->dataScadenza ??= $registrazione->dataDocumento ?? $registrazione->dataRegistrazione;
             $partita->importo = $nuova['importo'];
             $partita->partitaOrigine = $nuova['origine'] === null ? null : $this->partitaModel->getEntityById($nuova['origine']);
+            $rate = $nuova['tipo']->isApertura() ? ScadenzePagamento::normalizza($scelte[$gruppo['chiave']]['rate'] ?? [], $nuova['importo']) : [];
+            if (count($rate) > 0) {
+                $partita->dataScadenza = new SismaDate($rate[0]['data']);
+            }
             $this->dataMapper->save($partita);
+            $this->scriviRate($partita, $rate);
             if ($nuova['tipo']->isApertura()) {
                 $proprie[$gruppo['chiave']] = $partita;
             }
         }
         foreach ($esistenti as $partita) {
+            $this->scriviRate($partita, []);
             $this->dataMapper->delete($partita);
         }
         foreach ($gruppi as $chiave => $gruppo) {
@@ -496,7 +565,30 @@ class PartiteAperte
             $this->dataMapper->delete($abbinamento);
         }
         foreach ($this->partiteDi($registrazione) as $partita) {
+            $this->scriviRate($partita, []);
             $this->dataMapper->delete($partita);
+        }
+    }
+
+    /**
+     * Sostituisce le rate della partita (nessuna rata: solo cancellazione).
+     *
+     * @param array<int, array{data: string, importo: float, modalita: ?string}> $rate
+     */
+    private function scriviRate(Partita $partita, array $rate): void
+    {
+        foreach ($this->scadenzaModel->getPerPartita($partita) as $scadenza) {
+            $this->dataMapper->delete($scadenza);
+        }
+        foreach (array_values($rate) as $indice => $rata) {
+            $scadenza = new ScadenzaPartita($this->dataMapper);
+            $scadenza->soggetto = $partita->soggetto;
+            $scadenza->partita = $partita;
+            $scadenza->numero = $indice + 1;
+            $scadenza->dataScadenza = new SismaDate($rata['data']);
+            $scadenza->importo = round($rata['importo'], 2);
+            $scadenza->modalita = $rata['modalita'] === null ? null : ModalitaPagamento::tryFrom($rata['modalita']);
+            $this->dataMapper->save($scadenza);
         }
     }
 
@@ -529,6 +621,7 @@ class PartiteAperte
         foreach ($this->abbinamentoModel->getPerSoggetto($soggetto) as $abbinamento) {
             $perPartita[$abbinamento->partita->id][] = $abbinamento;
         }
+        $ratePerPartita = $this->scadenzaModel->getPerSoggetto($soggetto);
         $scadenzario = [];
         foreach ($this->partitaModel->getPerSoggetto($soggetto) as $partita) {
             if (($filtro !== null) && ($partita->controparte->id !== $filtro->id)) {
@@ -542,7 +635,16 @@ class PartiteAperte
             $scadenzario[$chiave]['residuo'] += $partita->tipo->isApertura() ? $residuo : -$residuo;
             $scadenzario[$chiave]['daVerificare'] += $automatici;
             if ($tutte || (abs($residuo) > self::TOLLERANZA)) {
-                $scadenzario[$chiave]['partite'][] = ['partita' => $partita, 'residuo' => $residuo, 'abbinamenti' => $abbinamenti, 'daVerificare' => $automatici > 0];
+                $rate = [];
+                $scadenze = $ratePerPartita[$partita->id] ?? [];
+                $residuiRate = ScadenzePagamento::residui(array_map(fn(ScadenzaPartita $scadenza) => $scadenza->importo, $scadenze), $partita->importo - $residuo);
+                foreach ($scadenze as $indice => $scadenza) {
+                    $rate[] = ['scadenza' => $scadenza, 'residuo' => $residuiRate[$indice]];
+                }
+                $aperte = array_filter($rate, fn(array $rata) => $rata['residuo'] > self::TOLLERANZA);
+                $prossima = count($aperte) > 0 ? reset($aperte)['scadenza']->dataScadenza : ($partita->dataScadenza ?? $partita->data);
+                $scadenzario[$chiave]['partite'][] = ['partita' => $partita, 'residuo' => $residuo, 'abbinamenti' => $abbinamenti, 'daVerificare' => $automatici > 0,
+                    'rate' => $rate, 'prossimaScadenza' => $prossima];
             }
         }
         $righe = new RigaContabileModel($this->dataMapper);
@@ -556,8 +658,8 @@ class PartiteAperte
             $voce['saldo'] = round($voce['cliente'] ? $saldo : -$saldo, 2);
             $voce['residuo'] = round($voce['residuo'], 2);
             $voce['differenza'] = round($voce['saldo'] - $voce['residuo'], 2);
-            usort($voce['partite'], fn(array $prima, array $seconda) => [($prima['partita']->dataScadenza ?? $prima['partita']->data)->format('Y-m-d'), $prima['partita']->id]
-                    <=> [($seconda['partita']->dataScadenza ?? $seconda['partita']->data)->format('Y-m-d'), $seconda['partita']->id]);
+            usort($voce['partite'], fn(array $prima, array $seconda) => [$prima['prossimaScadenza']->format('Y-m-d'), $prima['partita']->id]
+                    <=> [$seconda['prossimaScadenza']->format('Y-m-d'), $seconda['partita']->id]);
         }
         unset($voce);
         uasort($scadenzario, fn(array $prima, array $seconda) => [$prima['cliente'] ? 0 : 1, $prima['controparte']->denominazione] <=> [$seconda['cliente'] ? 0 : 1, $seconda['controparte']->denominazione]);

@@ -2,6 +2,7 @@
 
 namespace Contabilita\Application\Entities;
 
+use Contabilita\Application\Enumerations\ModalitaPagamento;
 use Anagrafica\Application\Entities\Nazione;
 use Anagrafica\Application\Entities\Soggetto;
 use SismaFramework\Orm\ExtendedClasses\ReferencedEntity;
@@ -40,6 +41,10 @@ class Controparte extends ReferencedEntity
     protected ?Conto $contoFornitore = null;
     protected ?Conto $contoContropartita = null;
     protected ?CodiceIva $codiceIva = null;
+    /** Termini di pagamento abituali: giorni dalla data del documento ("30,60,90"), proposti come rate */
+    protected ?string $giorniPagamento = null;
+    protected bool $fineMesePagamento = false;
+    protected ?ModalitaPagamento $modalitaPagamento = null;
     protected ?string $note = null;
 
     #[\Override]

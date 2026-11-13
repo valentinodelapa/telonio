@@ -2,6 +2,49 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.25.0-alpha] - 2026-11-13 - Testo Unico IVA, Rate delle Partite e Trimestrali per Natura
+
+Versioni dei moduli: `Anagrafica` 0.13.0, `Contabilita` 0.9.0, `Dichiarativi` 0.7.0, `GestioneStudio` 0.2.0, `Deleghe` 0.7.2; gli altri invariati.
+
+**Aggiornamento**: `aggiorna.sh` (cioè `sisma aggiorna-database`) esegue `Contabilita/Database/aggiornamento-0.9.sql` (colonne `codice_iva.norma_testo_unico`, `codice_iva.valido_fino` e dei termini di pagamento delle controparti, tabella `scadenza_partita`, colonna `liquidazione_iva.trimestrale_speciale`), `Anagrafica/Database/aggiornamento-0.13.sql` (colonna `dati_fiscali.trimestrale_speciale`) e `GestioneStudio/Database/aggiornamento-0.2.sql` (colonne `adempimento.nuova_fonte` e `adempimento.nuova_fonte_dal`). I rispettivi `dati-riferimento.sql` le valorizzano per i codici IVA della suite e per il calendario fiscale comune. Nessun passo manuale.
+
+### ✨ Nuove Funzionalità
+
+#### `Anagrafica` 0.13.0
+
+- **trimestrali per natura dell'attività** (art. 74, c. 4, D.P.R. 633/1972; dal 2027 art. 139, c. 4, D.Lgs. 10/2026): nuova casella dei dati fiscali per autotrasportatori, distributori di carburante e gli altri soggetti ammessi alle liquidazioni trimestrali senza interessi. Richiede la periodicità trimestrale e la partita IVA; è mostrata nella scheda del soggetto.
+
+#### `Contabilita` 0.9.0 — Testo unico IVA dal 2027, scadenze e rate delle partite, trimestrali per natura
+
+- **norme citate secondo la data**: dal 1° gennaio 2027 il D.P.R. 633/1972 e diverse leggi speciali sono sostituiti dal Testo unico IVA (D.Lgs. 10/2026), e la comunicazione delle liquidazioni periodiche passa all'art. 51 del testo unico adempimenti e accertamento (D.Lgs. 141/2026). Registri IVA, stampe e intestazioni delle stampe definitive, esigibilità della registrazione e causale dell'autofattura per gli agricoltori esonerati citano la norma in vigore alla data del periodo o del documento. Gli aiuti dell'interfaccia citano entrambe. Le corrispondenze sono prese dalle rubriche degli articoli dei testi unici in Gazzetta Ufficiale, e la documentazione del modulo ne riporta la tabella;
+- **scadenze e rate delle partite**: i documenti dei clienti e dei fornitori hanno un piano di rate (data, importo, modalità di pagamento) modificabile nella prima nota. Le rate sono proposte dai dati di pagamento della fattura elettronica, se ci sono (riportati all'importo della partita), altrimenti dai nuovi termini di pagamento abituali della controparte (giorni dalla data del documento, a fine mese, modalità), altrimenti alla data del documento. Gli incassi e i pagamenti chiudono le rate in ordine di scadenza. Lo scadenzario mostra la prossima scadenza e il residuo di ogni rata, la scheda della fattura elettronica i dati di pagamento. Le partite già registrate valgono come rata unica e non vanno migrate;
+- **codici IVA con la norma del Testo unico** (nuova colonna, mostrata dal 2027 nell'elenco e modificabile nei codici dello studio) **e data di fine validità**: l'inversione contabile per cellulari (N6.5), prodotti elettronici (N6.6), quote di emissione, gas ed energia (N6.8) vale per le operazioni fino al 31 dicembre 2026 (art. 17, c. 8, D.P.R. 633/1972; art. 64, c. 8, D.Lgs. 10/2026). Le registrazioni con data successiva rifiutano quei codici. Un'eventuale proroga si recepisce aggiornando la data nella sorgente dei codici ed eseguendo `sisma tabelle-contabilita`.
+
+- **liquidazioni dei trimestrali per natura dell'attività**: senza gli interessi dell'1%; il quarto trimestre si liquida e si versa entro il 16 febbraio dell'anno successivo con il codice 6034 (non con il saldo annuale), si comunica nella LIPE con il trimestre "4" e il rigo VP14 ed è la base dell'acconto storico. Non riguarda le attività separate e la liquidazione IVA di gruppo, che seguono le regole dei trimestrali per opzione. Richiede `Anagrafica` 0.13.0.
+
+#### `Dichiarativi` 0.7.0
+
+- **dichiarazione IVA dei trimestrali per natura dell'attività**: il quarto trimestre è una liquidazione periodica (rigo VL30 e, se la comunicazione non è stata inviata, rigo VH16) e non ci sono gli interessi annuali del rigo VL36. Nuova azienda demo, un autotrasportatore con il 2025 completo. Richiede `Anagrafica` 0.13.0 e `Contabilita` 0.9.0.
+
+#### `GestioneStudio` 0.2.0
+
+- **fonte normativa degli adempimenti che cambia da una data**: nuova fonte e data di decorrenza nel calendario fiscale comune e negli adempimenti dello studio. Le scadenze da quella data citano la nuova fonte. Dal 1° gennaio 2027 le nuove fonti sono queste, compresi i termini 2027 di periodi del 2026 (es. la LIPE del quarto trimestre):
+  - acconto IVA: art. 111 del Testo unico IVA;
+  - comunicazione delle liquidazioni periodiche: art. 51 del testo unico adempimenti e accertamento;
+  - versamento delle ritenute e dei contributi IVS: artt. 8 e 32 del testo unico versamenti e riscossione (D.Lgs. 33/2025);
+  - tassa sui libri sociali: art. 16 della tariffa del testo unico tributi erariali minori (D.Lgs. 174/2024).
+
+  La decorrenza di questi due ultimi testi unici è stata rinviata al 2027 dal D.L. 200/2025. Restano in vigore i regolamenti su liquidazioni, dichiarazioni, saldo e acconti (D.P.R. 100/1998, 542/1999, 322/1998 e 435/2001).
+- **IVA trimestrale per natura dell'attività**: nuovo adempimento del calendario fiscale (16 maggio, 16 agosto, 16 novembre e 16 febbraio dell'anno successivo), proposto ai clienti con la nuova casella dei dati fiscali; quello dei trimestrali per opzione non è più proposto a loro. Richiede `Anagrafica` 0.13.0.
+
+#### `Deleghe` 0.7.2
+
+- **norme dei testi unici dal 2027**: rateazione e ravvedimento non cambiano. Il messaggio di rateazione non ammessa cita la norma della scadenza del versamento: art. 20 D.Lgs. 241/1997, oppure dal 2027 art. 10 D.Lgs. 33/2025. Gli aiuti su rateazione e ravvedimento citano anche le norme dal 2027: art. 10 D.Lgs. 33/2025 e art. 14 D.Lgs. 173/2024, con le lettere del comma 1 rinumerate.
+
+### 🐛 Correzioni
+
+- **norme dei codici IVA troncate**: nella sorgente `codici-iva.csv` le norme con un punto e virgola non erano racchiuse tra virgolette e il resto della norma andava perso (es. N2.2, N3.3, N3.5, N7, VEN). Ora sono tra virgolette e vengono lette per intero.
+
 ## [0.24.0-alpha] - 2026-11-11 - Migrazioni dei Dati nell'Aggiornamento
 
 Versioni dei moduli: `Telonio` 0.8.0, `Contabilita` 0.8.1 (richiede `Telonio` 0.8.0); gli altri invariati.

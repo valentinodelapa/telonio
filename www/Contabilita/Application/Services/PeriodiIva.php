@@ -63,10 +63,11 @@ final class PeriodiIva
     /**
      * Termine di versamento del periodo, con gli slittamenti.
      */
-    public static function getScadenza(PeriodicitaIva $periodicita, int $anno, int $periodo): SismaDate
+    public static function getScadenza(PeriodicitaIva $periodicita, int $anno, int $periodo, bool $trimestraleSpeciale = false): SismaDate
     {
         if ($periodicita === PeriodicitaIva::trimestrale) {
-            $data = $periodo === 4 ? sprintf('%04d-03-16', $anno + 1) : sprintf('%04d-%02d-16', $anno, $periodo * 3 + 2);
+            // quarto trimestre: con il saldo annuale (16 marzo), dei trimestrali per natura il 16 febbraio
+            $data = $periodo === 4 ? sprintf('%04d-%02d-16', $anno + 1, $trimestraleSpeciale ? 2 : 3) : sprintf('%04d-%02d-16', $anno, $periodo * 3 + 2);
         } else {
             $data = $periodo === 12 ? sprintf('%04d-01-16', $anno + 1) : sprintf('%04d-%02d-16', $anno, $periodo + 1);
         }
@@ -76,10 +77,10 @@ final class PeriodiIva
     /**
      * Codice tributo del versamento del periodo.
      */
-    public static function getCodiceTributo(PeriodicitaIva $periodicita, int $periodo): string
+    public static function getCodiceTributo(PeriodicitaIva $periodicita, int $periodo, bool $trimestraleSpeciale = false): string
     {
         if ($periodicita === PeriodicitaIva::trimestrale) {
-            return $periodo === 4 ? '6099' : '603' . $periodo;
+            return $periodo === 4 ? ($trimestraleSpeciale ? '6034' : '6099') : '603' . $periodo;
         }
         return sprintf('60%02d', $periodo);
     }

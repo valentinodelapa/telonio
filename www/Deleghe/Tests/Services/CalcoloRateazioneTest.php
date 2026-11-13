@@ -238,6 +238,9 @@ class CalcoloRateazioneTest extends SuiteTestCase
             [[], 'Scegliere almeno un versamento da rateizzare.'],
             [[$secondoAcconto], 'Il versamento 4034 non è rateizzabile (art. 20 D.Lgs. 241/1997: saldo e primo acconto; secondo acconto solo con una norma straordinaria).'],
             [[$irpef, $altraData], 'I versamenti rateizzati insieme devono avere la stessa scadenza.'],
+            // dal 2027 testo unico versamenti e riscossione
+            [[$this->creaVersamento(SezioneF24::erario, $this->creaCodice('4034', SezioneCodiceTributo::erario, '0000'), 500.00, '2027-11-30')],
+                'Il versamento 4034 non è rateizzabile (art. 10 D.Lgs. 33/2025: saldo e primo acconto; secondo acconto solo con una norma straordinaria).'],
         ];
         foreach ($casi as [$originali, $messaggio]) {
             try {

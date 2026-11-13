@@ -1,40 +1,41 @@
 -- =====================================================
 -- GestioneStudio - calendario fiscale
 -- =====================================================
--- Generato con "sisma calendario-fiscale --sql" il 26/10/2026 09:33: non modificare a mano.
+-- Generato con "sisma calendario-fiscale --sql" il 13/11/2026 09:28: non modificare a mano.
 -- Fonte: GestioneStudio/Database/sorgenti (norma indicata per adempimento).
--- Righe: adempimento 22, termine_adempimento 66, proroga_adempimento 2.
+-- Righe: adempimento 23, termine_adempimento 70, proroga_adempimento 2.
 -- Idempotente: aggiorna il calendario fiscale senza toccare i dati degli studi.
 -- Da eseguire dopo schema.sql.
 
 SET NAMES utf8mb4;
 
-INSERT INTO `adempimento` (`id`, `studio_id`, `codice`, `denominazione`, `categoria`, `ambito`, `fonte`, `slittamento_festivi`, `proroga_agosto`, `attivo`) VALUES
-(1, NULL, 'IVA_MENSILE', 'Liquidazione e versamento IVA mensile', 'VER', 'IVM', 'art. 1, c. 1, D.P.R. 100/1998', 1, 1, 1),
-(2, NULL, 'IVA_TRIMESTRALE', 'Liquidazione e versamento IVA trimestrale', 'VER', 'IVT', 'art. 7, c. 1, D.P.R. 542/1999', 1, 1, 1),
-(3, NULL, 'IVA_ACCONTO', 'Acconto IVA', 'VER', 'IVO', 'art. 6, c. 2, L. 405/1990', 1, 1, 1),
-(4, NULL, 'IVA_SALDO', 'Saldo IVA dell''anno', 'VER', 'IVO', 'art. 6, c. 1, D.P.R. 542/1999', 1, 1, 1),
-(5, NULL, 'DICHIARAZIONE_IVA', 'Dichiarazione IVA annuale', 'DIC', 'IVO', 'art. 8, c. 1, D.P.R. 322/1998', 1, 1, 1),
-(6, NULL, 'LIPE', 'Comunicazione delle liquidazioni periodiche IVA', 'COM', 'IVO', 'art. 21-bis, c. 1, D.L. 78/2010 (2° trimestre: art. 3, c. 1, D.L. 73/2022)', 1, 1, 1),
-(7, NULL, 'RITENUTE', 'Versamento delle ritenute alla fonte', 'VER', 'SOS', 'art. 18, D.Lgs. 241/1997; art. 8, D.P.R. 602/1973', 1, 1, 1),
-(8, NULL, 'CERTIFICAZIONE_UNICA', 'Certificazione Unica: trasmissione e consegna', 'COM', 'SOS', 'art. 4, c. 6-quater e 6-quinquies, D.P.R. 322/1998', 1, 1, 1),
-(9, NULL, 'MODELLO_770', 'Dichiarazione dei sostituti d''imposta (770)', 'DIC', 'SOS', 'art. 4, c. 4-bis, D.P.R. 322/1998', 1, 1, 1),
-(10, NULL, 'REDDITI_PF', 'Dichiarazione dei redditi delle persone fisiche', 'DIC', 'PF', 'art. 2, c. 2, D.P.R. 322/1998', 1, 1, 1),
-(11, NULL, 'REDDITI_SP', 'Dichiarazione dei redditi delle società di persone', 'DIC', 'SP', 'art. 2, c. 2, D.P.R. 322/1998', 1, 1, 1),
-(12, NULL, 'REDDITI_SC', 'Dichiarazione dei redditi delle società di capitali (esercizio solare)', 'DIC', 'SC', 'art. 2, c. 2, D.P.R. 322/1998', 1, 1, 1),
-(13, NULL, 'REDDITI_ENC', 'Dichiarazione dei redditi degli enti non commerciali (esercizio solare)', 'DIC', 'EN', 'art. 2, c. 2, D.P.R. 322/1998', 1, 1, 1),
-(14, NULL, 'IRAP', 'Dichiarazione IRAP', 'DIC', 'SOE', 'art. 19, D.Lgs. 446/1997; art. 2, c. 2, D.P.R. 322/1998', 1, 1, 1),
-(15, NULL, 'SALDO_PRIMO_ACCONTO', 'Saldo e primo acconto delle imposte sui redditi e dell''IRAP', 'VER', 'TUT', 'art. 17, c. 1, D.P.R. 435/2001', 1, 1, 1),
-(16, NULL, 'SECONDO_ACCONTO', 'Secondo acconto delle imposte sui redditi e dell''IRAP', 'VER', 'TUT', 'art. 17, c. 3, D.P.R. 435/2001', 1, 1, 1),
-(17, NULL, 'MODELLO_730', 'Dichiarazione dei redditi con il modello 730', 'DIC', 'PFP', 'art. 13, D.M. 164/1999 (art. 16-bis, D.L. 124/2019)', 1, 1, 1),
-(18, NULL, 'INPS_IVS', 'Contributi IVS artigiani e commercianti: rate fisse', 'VER', 'ART', 'art. 18, D.Lgs. 241/1997; circolare annuale INPS sui contributi IVS', 1, 1, 1),
-(19, NULL, 'BOLLO_FATTURE', 'Imposta di bollo sulle fatture elettroniche', 'VER', 'IVA', 'art. 6, c. 2, D.M. 17 giugno 2014', 1, 1, 1),
-(20, NULL, 'INTRASTAT_MENSILE', 'Elenchi riepilogativi Intrastat mensili', 'COM', 'MAN', 'art. 6, D.M. 22 febbraio 2010', 1, 1, 1),
-(21, NULL, 'LIBRI_SOCIALI', 'Tassa annuale di vidimazione dei libri sociali', 'VER', 'SC', 'art. 23 della Tariffa allegata al D.P.R. 641/1972 (versamento entro il termine del saldo IVA)', 1, 1, 1),
-(22, NULL, 'DIRITTO_CAMERALE', 'Diritto annuale della Camera di commercio', 'VER', 'IMP', 'art. 8, D.M. 359/2001 (termine del primo acconto delle imposte sui redditi)', 1, 1, 1)
-ON DUPLICATE KEY UPDATE `studio_id` = VALUES(`studio_id`), `codice` = VALUES(`codice`), `denominazione` = VALUES(`denominazione`), `categoria` = VALUES(`categoria`), `ambito` = VALUES(`ambito`), `fonte` = VALUES(`fonte`), `slittamento_festivi` = VALUES(`slittamento_festivi`), `proroga_agosto` = VALUES(`proroga_agosto`), `attivo` = VALUES(`attivo`);
+INSERT INTO `adempimento` (`id`, `studio_id`, `codice`, `denominazione`, `categoria`, `ambito`, `fonte`, `nuova_fonte`, `nuova_fonte_dal`, `slittamento_festivi`, `proroga_agosto`, `attivo`) VALUES
+(1, NULL, 'IVA_MENSILE', 'Liquidazione e versamento IVA mensile', 'VER', 'IVM', 'art. 1, c. 1, D.P.R. 100/1998', NULL, NULL, 1, 1, 1),
+(2, NULL, 'IVA_TRIMESTRALE', 'Liquidazione e versamento IVA trimestrale', 'VER', 'IVT', 'art. 7, c. 1, D.P.R. 542/1999', NULL, NULL, 1, 1, 1),
+(3, NULL, 'IVA_ACCONTO', 'Acconto IVA', 'VER', 'IVO', 'art. 6, c. 2, L. 405/1990', 'art. 111, c. 1, D.Lgs. 10/2026', '2027-01-01', 1, 1, 1),
+(4, NULL, 'IVA_SALDO', 'Saldo IVA dell''anno', 'VER', 'IVO', 'art. 6, c. 1, D.P.R. 542/1999', NULL, NULL, 1, 1, 1),
+(5, NULL, 'DICHIARAZIONE_IVA', 'Dichiarazione IVA annuale', 'DIC', 'IVO', 'art. 8, c. 1, D.P.R. 322/1998', NULL, NULL, 1, 1, 1),
+(6, NULL, 'LIPE', 'Comunicazione delle liquidazioni periodiche IVA', 'COM', 'IVO', 'art. 21-bis, c. 1, D.L. 78/2010 (2° trimestre: art. 3, c. 1, D.L. 73/2022)', 'art. 51, c. 1, D.Lgs. 141/2026', '2027-01-01', 1, 1, 1),
+(7, NULL, 'RITENUTE', 'Versamento delle ritenute alla fonte', 'VER', 'SOS', 'art. 18, D.Lgs. 241/1997; art. 8, D.P.R. 602/1973', 'artt. 8 e 32, D.Lgs. 33/2025', '2027-01-01', 1, 1, 1),
+(8, NULL, 'CERTIFICAZIONE_UNICA', 'Certificazione Unica: trasmissione e consegna', 'COM', 'SOS', 'art. 4, c. 6-quater e 6-quinquies, D.P.R. 322/1998', NULL, NULL, 1, 1, 1),
+(9, NULL, 'MODELLO_770', 'Dichiarazione dei sostituti d''imposta (770)', 'DIC', 'SOS', 'art. 4, c. 4-bis, D.P.R. 322/1998', NULL, NULL, 1, 1, 1),
+(10, NULL, 'REDDITI_PF', 'Dichiarazione dei redditi delle persone fisiche', 'DIC', 'PF', 'art. 2, c. 2, D.P.R. 322/1998', NULL, NULL, 1, 1, 1),
+(11, NULL, 'REDDITI_SP', 'Dichiarazione dei redditi delle società di persone', 'DIC', 'SP', 'art. 2, c. 2, D.P.R. 322/1998', NULL, NULL, 1, 1, 1),
+(12, NULL, 'REDDITI_SC', 'Dichiarazione dei redditi delle società di capitali (esercizio solare)', 'DIC', 'SC', 'art. 2, c. 2, D.P.R. 322/1998', NULL, NULL, 1, 1, 1),
+(13, NULL, 'REDDITI_ENC', 'Dichiarazione dei redditi degli enti non commerciali (esercizio solare)', 'DIC', 'EN', 'art. 2, c. 2, D.P.R. 322/1998', NULL, NULL, 1, 1, 1),
+(14, NULL, 'IRAP', 'Dichiarazione IRAP', 'DIC', 'SOE', 'art. 19, D.Lgs. 446/1997; art. 2, c. 2, D.P.R. 322/1998', NULL, NULL, 1, 1, 1),
+(15, NULL, 'SALDO_PRIMO_ACCONTO', 'Saldo e primo acconto delle imposte sui redditi e dell''IRAP', 'VER', 'TUT', 'art. 17, c. 1, D.P.R. 435/2001', NULL, NULL, 1, 1, 1),
+(16, NULL, 'SECONDO_ACCONTO', 'Secondo acconto delle imposte sui redditi e dell''IRAP', 'VER', 'TUT', 'art. 17, c. 3, D.P.R. 435/2001', NULL, NULL, 1, 1, 1),
+(17, NULL, 'MODELLO_730', 'Dichiarazione dei redditi con il modello 730', 'DIC', 'PFP', 'art. 13, D.M. 164/1999 (art. 16-bis, D.L. 124/2019)', NULL, NULL, 1, 1, 1),
+(18, NULL, 'INPS_IVS', 'Contributi IVS artigiani e commercianti: rate fisse', 'VER', 'ART', 'art. 18, D.Lgs. 241/1997; circolare annuale INPS sui contributi IVS', 'art. 8, D.Lgs. 33/2025; circolare annuale INPS sui contributi IVS', '2027-01-01', 1, 1, 1),
+(19, NULL, 'BOLLO_FATTURE', 'Imposta di bollo sulle fatture elettroniche', 'VER', 'IVA', 'art. 6, c. 2, D.M. 17 giugno 2014', NULL, NULL, 1, 1, 1),
+(20, NULL, 'INTRASTAT_MENSILE', 'Elenchi riepilogativi Intrastat mensili', 'COM', 'MAN', 'art. 6, D.M. 22 febbraio 2010', NULL, NULL, 1, 1, 1),
+(21, NULL, 'LIBRI_SOCIALI', 'Tassa annuale di vidimazione dei libri sociali', 'VER', 'SC', 'art. 23 della Tariffa allegata al D.P.R. 641/1972 (versamento entro il termine del saldo IVA)', 'art. 16 della Tariffa (allegato 4) del D.Lgs. 174/2024 (versamento entro il termine del saldo IVA)', '2027-01-01', 1, 1, 1),
+(22, NULL, 'DIRITTO_CAMERALE', 'Diritto annuale della Camera di commercio', 'VER', 'IMP', 'art. 8, D.M. 359/2001 (termine del primo acconto delle imposte sui redditi)', NULL, NULL, 1, 1, 1),
+(23, NULL, 'IVA_TRIMESTRALE_SPECIALE', 'Liquidazione e versamento IVA trimestrale per natura (autotrasportatori, distributori di carburante)', 'VER', 'IVS', 'art. 74, c. 4, D.P.R. 633/1972 (quarto trimestre entro il 16 febbraio, senza interessi)', 'art. 139, c. 4, D.Lgs. 10/2026 (quarto trimestre entro il 16 febbraio, senza interessi)', '2027-01-01', 1, 1, 1)
+ON DUPLICATE KEY UPDATE `studio_id` = VALUES(`studio_id`), `codice` = VALUES(`codice`), `denominazione` = VALUES(`denominazione`), `categoria` = VALUES(`categoria`), `ambito` = VALUES(`ambito`), `fonte` = VALUES(`fonte`), `nuova_fonte` = VALUES(`nuova_fonte`), `nuova_fonte_dal` = VALUES(`nuova_fonte_dal`), `slittamento_festivi` = VALUES(`slittamento_festivi`), `proroga_agosto` = VALUES(`proroga_agosto`), `attivo` = VALUES(`attivo`);
 
-UPDATE `adempimento` SET `attivo` = 0 WHERE `studio_id` IS NULL AND `id` NOT IN (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22);
+UPDATE `adempimento` SET `attivo` = 0 WHERE `studio_id` IS NULL AND `id` NOT IN (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23);
 
 INSERT INTO `termine_adempimento` (`id`, `adempimento_id`, `ordine`, `periodo`, `mese`, `giorno`, `anni_successivi`) VALUES
 (101, 1, 1, 'gennaio', 2, 16, 0),
@@ -102,10 +103,14 @@ INSERT INTO `termine_adempimento` (`id`, `adempimento_id`, `ordine`, `periodo`, 
 (2011, 20, 11, 'novembre', 12, 25, 0),
 (2012, 20, 12, 'dicembre', 1, 25, 1),
 (2101, 21, 1, 'anno', 3, 16, 0),
-(2201, 22, 1, 'anno', 6, 30, 0)
+(2201, 22, 1, 'anno', 6, 30, 0),
+(2301, 23, 1, '1° trimestre', 5, 16, 0),
+(2302, 23, 2, '2° trimestre', 8, 16, 0),
+(2303, 23, 3, '3° trimestre', 11, 16, 0),
+(2304, 23, 4, '4° trimestre', 2, 16, 1)
 ON DUPLICATE KEY UPDATE `adempimento_id` = VALUES(`adempimento_id`), `ordine` = VALUES(`ordine`), `periodo` = VALUES(`periodo`), `mese` = VALUES(`mese`), `giorno` = VALUES(`giorno`), `anni_successivi` = VALUES(`anni_successivi`);
 
-DELETE `termine_adempimento` FROM `termine_adempimento` JOIN `adempimento` ON `adempimento`.`id` = `termine_adempimento`.`adempimento_id` WHERE `adempimento`.`studio_id` IS NULL AND `termine_adempimento`.`id` NOT IN (101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 201, 202, 203, 301, 401, 501, 601, 602, 603, 604, 701, 702, 703, 704, 705, 706, 707, 708, 709, 710, 711, 712, 801, 901, 1001, 1101, 1201, 1301, 1401, 1501, 1601, 1701, 1801, 1802, 1803, 1804, 1901, 1902, 1903, 1904, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2101, 2201);
+DELETE `termine_adempimento` FROM `termine_adempimento` JOIN `adempimento` ON `adempimento`.`id` = `termine_adempimento`.`adempimento_id` WHERE `adempimento`.`studio_id` IS NULL AND `termine_adempimento`.`id` NOT IN (101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 201, 202, 203, 301, 401, 501, 601, 602, 603, 604, 701, 702, 703, 704, 705, 706, 707, 708, 709, 710, 711, 712, 801, 901, 1001, 1101, 1201, 1301, 1401, 1501, 1601, 1701, 1801, 1802, 1803, 1804, 1901, 1902, 1903, 1904, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2101, 2201, 2301, 2302, 2303, 2304);
 
 DELETE FROM `proroga_adempimento` WHERE `studio_id` IS NULL;
 

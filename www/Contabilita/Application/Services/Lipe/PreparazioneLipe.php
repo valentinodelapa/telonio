@@ -141,7 +141,8 @@ class PreparazioneLipe
             $modulo->mese = $periodo;
             $modulo->trimestre = $liquidazione->trimestreAnticipato;
         } else {
-            $modulo->trimestre = $periodo === 4 ? ModuloLipe::QUARTO_TRIMESTRE_TRIMESTRALI : $periodo;
+            // quarto trimestre: "5" per i trimestrali per opzione, "4" per quelli per natura (art. 74, c. 4), che lo versano entro il 16 febbraio
+            $modulo->trimestre = ($periodo === 4) && ($liquidazione->trimestraleSpeciale === false) ? ModuloLipe::QUARTO_TRIMESTRE_TRIMESTRALI : $periodo;
         }
         [$modulo->operazioniAttive, $modulo->operazioniPassive] = $this->getTotaliOperazioni($liquidazione);
         $modulo->ivaEsigibile = $liquidazione->ivaEsigibile;

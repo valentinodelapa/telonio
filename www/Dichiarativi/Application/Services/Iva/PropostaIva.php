@@ -353,7 +353,8 @@ class PropostaIva
             $this->avvisa($etichetta . ($regimeDetrazione === RegimeDetrazioneIva::agricoloEsonerato ? 'agricoltore esonerato tenuto alla dichiarazione: il quadro VH non si compila.'
                                 : $errore->getMessage() . ' Righi delle liquidazioni periodiche (VH, VL) da compilare a mano.'));
         }
-        $this->trimestrali[$quadri->getModuloCorrente()] = $periodicita === PeriodicitaIva::trimestrale;
+        // interessi annuali (VL36) dei trimestrali per opzione, non di quelli per natura (art. 74, c. 4)
+        $this->trimestrali[$quadri->getModuloCorrente()] = ($periodicita === PeriodicitaIva::trimestrale) && ($regime->isTrimestraleSpeciale($soggetto, $anno) === false);
         $liquidazioni = $periodicita === null ? [] : (new LiquidazioneIvaModel($this->dataMapper))->getPerAnno($soggetto, $anno);
         $ultimoPeriodo = null;
         if (($operazione !== null) && ($periodicita !== null)) {
@@ -868,8 +869,10 @@ class PropostaIva
         $preparazione = new PreparazioneLipe($this->dataMapper);
         $comunicazioni = (new ComunicazioneLipeModel($this->dataMapper))->getPerAnno($soggetto, $dichiarazione->anno);
         $mensile = $periodicita === PeriodicitaIva::mensile;
+        // trimestrali per natura (art. 74, c. 4): anche il quarto trimestre (rigo VH16)
+        $trimestri = (new RegimeIva($this->dataMapper))->isTrimestraleSpeciale($soggetto, $dichiarazione->anno) ? 4 : 3;
         $nonInviati = [];
-        foreach ($mensile ? range(1, min(12, $ultimoPeriodo ?? 12)) : range(1, min(3, $ultimoPeriodo ?? 3)) as $periodo) {
+        foreach ($mensile ? range(1, min(12, $ultimoPeriodo ?? 12)) : range(1, min($trimestri, $ultimoPeriodo ?? $trimestri)) as $periodo) {
             $trimestre = $mensile ? intdiv($periodo - 1, 3) + 1 : $periodo;
             if (isset($comunicazioni[$trimestre]) && ($comunicazioni[$trimestre]->stato === StatoComunicazioneLipe::inviata)) {
                 continue;
@@ -959,10 +962,10 @@ class PropostaIva
                 $this->avvisa('Righi VL20 e VL22 dai modelli IVA TR presentati (rimborsi richiesti) e dagli utilizzi in F24 dei crediti 6036-6038 dell\'anno.');
             }
         }
-        $trimestrale = $periodicita === PeriodicitaIva::trimestrale;
         // con le attività separate anche i trimestri liquidati a parte dalle attività trimestrali
         $liquidazioni = array_merge(array_values($liquidazioni), array_values((new LiquidazioneIvaModel($this->dataMapper))->getTrimestriSeparati($soggetto, $dichiarazione->anno)));
-        $periodiche = array_filter($liquidazioni, fn(LiquidazioneIva $liquidazione) => ($trimestrale === false) || ($liquidazione->periodo < 4));
+        // il quarto trimestre dei trimestrali per opzione si versa con il saldo; quello dei trimestrali per natura è periodico
+        $periodiche = array_filter($liquidazioni, fn(LiquidazioneIva $liquidazione) => $liquidazione->isQuartoTrimestreConDichiarazione() === false);
         // interessi dei trimestrali, comprese le attività separate trimestrali liquidate con il mese di fine trimestre
         $quadri->proponi('VL023001', (int) round(array_sum(array_map(fn(LiquidazioneIva $liquidazione) => $liquidazione->interessi, $periodiche))));
         $quadri->proponi('VL027001', (int) round(array_sum(array_map(fn(LiquidazioneIva $liquidazione) => $liquidazione->creditiImposta, $liquidazioni))));

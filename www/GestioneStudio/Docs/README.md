@@ -53,7 +53,7 @@ richiedono il calendario fiscale (punto 2).
 
 | Entità | Contenuto | Storicizzata |
 |---|---|---|
-| `Adempimento` | codice, denominazione, categoria (`CategoriaAdempimento`), soggetti a cui si propone (`AmbitoAdempimento`), fonte normativa, slittamento dei termini festivi, differimento di agosto, attivo sì/no. Senza studio è del calendario fiscale (sola lettura), con lo studio è proprio dello studio | no |
+| `Adempimento` | codice, denominazione, categoria (`CategoriaAdempimento`), soggetti a cui si propone (`AmbitoAdempimento`), fonte normativa (con l'eventuale nuova fonte da una data), slittamento dei termini festivi, differimento di agosto, attivo sì/no. Senza studio è del calendario fiscale (sola lettura), con lo studio è proprio dello studio | no |
 | `TermineAdempimento` | termine per periodo dell'anno di riferimento: periodo (es. gennaio, 1° trimestre, anno), giorno (0 = ultimo del mese), mese, anni dopo l'anno di riferimento | no |
 | `ProrogaAdempimento` | nuovo termine per un anno di riferimento, per tutti o per i soli soggetti con i requisiti (`CondizioneProroga`), con il provvedimento e le note; senza studio del calendario fiscale, con lo studio inserita dallo studio (prevale) | no |
 | `AssegnazioneAdempimento` | adempimento a cui è tenuto il soggetto, con il responsabile (operatore dello studio) e le note | sì |
@@ -129,6 +129,9 @@ La proposta dei clienti (`AmbitoAdempimento::isProponibile`) usa i dati
 dell'Anagrafica: tipo di soggetto e, dai dati fiscali in vigore alla
 decorrenza, partita IVA, attività d'impresa, regime fiscale, periodicità
 IVA e qualifica di sostituto d'imposta (es. IVA mensile solo ai mensili,
+IVA trimestrale per opzione o per natura dell'attività, art. 74, c. 4,
+D.P.R. 633/1972, dalla casella dei dati fiscali, con il quarto trimestre
+al 16 febbraio,
 LIPE e dichiarazione IVA non ai forfetari, ritenute, CU e 770 ai sostituti
 d'imposta, 730 alle persone fisiche senza partita IVA); ai deceduti e ai
 cessati non propone nulla. Gli adempimenti che i dati non permettono di
@@ -194,7 +197,20 @@ legge sono curati nelle sorgenti del modulo (`Database/sorgenti`), con la
 norma che fissa ciascun termine:
 
 - `adempimenti.csv`: id stabile (sotto 1000), codice, denominazione,
-  categoria e ambito (valori degli enum), differimento di agosto, fonte;
+  categoria e ambito (valori degli enum), differimento di agosto, fonte
+  e, se la norma cambia da una data, nuova fonte e data di decorrenza:
+  le scadenze da quel giorno citano la nuova fonte. Dal 1° gennaio 2027
+  l'acconto IVA passa all'art. 111 del Testo unico IVA (D.Lgs. 10/2026) e
+  la comunicazione delle liquidazioni periodiche all'art. 51 del testo
+  unico adempimenti e accertamento (D.Lgs. 141/2026), i versamenti delle
+  ritenute e dei contributi IVS al testo unico versamenti e riscossione
+  (D.Lgs. 33/2025, artt. 8 e 32) e la tassa sui libri sociali alla tariffa
+  del testo unico tributi erariali minori (D.Lgs. 174/2024, allegato 4,
+  art. 16): la decorrenza di questi due testi unici è stata rinviata al
+  2027 dal D.L. 200/2025 (art. 4). I regolamenti sulle liquidazioni
+  (D.P.R. 100/1998, D.P.R. 542/1999), sulle dichiarazioni (D.P.R.
+  322/1998) e sui termini di saldo e acconti (D.P.R. 435/2001) restano in
+  vigore;
 - `termini.csv`: termini per periodo; l'id è adempimento × 100 + ordine;
 - `proroghe.csv`: nuovo termine per adempimento, ordine e anno di
   riferimento, con i soggetti a cui si applica (valore di

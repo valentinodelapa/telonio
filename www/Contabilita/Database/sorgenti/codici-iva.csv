@@ -1,46 +1,46 @@
-id;codice;descrizione;aliquota;natura;detraibilita;inversione_contabile;ventilazione;norma
-1;22;Aliquota ordinaria 22%;22.00;;100;0;0;art. 16, c. 1, D.P.R. 633/1972
-2;10;Aliquota ridotta 10%;10.00;;100;0;0;art. 16, c. 2, e tabella A, parte III, D.P.R. 633/1972
-3;5;Aliquota ridotta 5%;5.00;;100;0;0;art. 16, c. 2, e tabella A, parte II-bis, D.P.R. 633/1972
-4;4;Aliquota minima 4%;4.00;;100;0;0;art. 16, c. 2, e tabella A, parte II, D.P.R. 633/1972
-5;A22;22% detraibile al 40% (veicoli);22.00;;40;0;0;art. 19-bis1, c. 1, lett. c), D.P.R. 633/1972
-6;I22;22% indetraibile;22.00;;0;0;0;art. 19-bis1 D.P.R. 633/1972
-7;I10;10% indetraibile;10.00;;0;0;0;art. 19-bis1 D.P.R. 633/1972
-20;N1;Escluse art. 15;0.00;N1;100;0;0;art. 15 D.P.R. 633/1972
-21;N2.1;Non soggette, artt. 7-7-septies;0.00;N2.1;100;0;0;artt. da 7 a 7-septies D.P.R. 633/1972
-22;N2.2;Non soggette, altri casi (es. forfetari, minimi);0.00;N2.2;100;0;0;art. 1, c. 58, L. 190/2014; artt. 2, 3, 4 D.P.R. 633/1972
-23;N3.1;Non imponibili, esportazioni;0.00;N3.1;100;0;0;art. 8, c. 1, lett. a) e b), D.P.R. 633/1972
-24;N3.2;Non imponibili, cessioni intracomunitarie;0.00;N3.2;100;0;0;art. 41 D.L. 331/1993
-25;N3.3;Non imponibili, cessioni verso San Marino;0.00;N3.3;100;0;0;art. 71 D.P.R. 633/1972; D.M. 21 giugno 2021
-26;N3.4;Non imponibili, operazioni assimilate alle esportazioni e servizi internazionali (concorrono al plafond);0.00;N3.4;100;0;0;artt. 8-bis e 9 D.P.R. 633/1972
-27;N3.5;Non imponibili, a seguito di dichiarazione d'intento;0.00;N3.5;100;0;0;art. 8, c. 1, lett. c), D.P.R. 633/1972; art. 1, c. 1, lett. c), D.L. 746/1983
-28;N3.6;Non imponibili, altre operazioni che non concorrono al plafond;0.00;N3.6;100;0;0;specifiche tecniche della fattura elettronica, natura N3.6 (es. art. 38-quater D.P.R. 633/1972)
-29;N4;Esenti art. 10;0.00;N4;100;0;0;art. 10 D.P.R. 633/1972
-30;N5;Regime del margine;0.00;N5;100;0;0;art. 36 D.L. 41/1995
-31;N6.1;Inversione contabile, rottami;0.00;N6.1;100;0;0;art. 74, c. 7 e 8, D.P.R. 633/1972
-32;N6.2;Inversione contabile, oro e argento;0.00;N6.2;100;0;0;art. 17, c. 5, D.P.R. 633/1972
-33;N6.3;Inversione contabile, subappalto edile;0.00;N6.3;100;0;0;art. 17, c. 6, lett. a), D.P.R. 633/1972
-34;N6.4;Inversione contabile, cessione di fabbricati;0.00;N6.4;100;0;0;art. 17, c. 6, lett. a-bis), D.P.R. 633/1972
-35;N6.5;Inversione contabile, telefoni cellulari;0.00;N6.5;100;0;0;art. 17, c. 6, lett. b), D.P.R. 633/1972
-36;N6.6;Inversione contabile, prodotti elettronici;0.00;N6.6;100;0;0;art. 17, c. 6, lett. c), D.P.R. 633/1972
-37;N6.7;Inversione contabile, comparto edile e connessi;0.00;N6.7;100;0;0;art. 17, c. 6, lett. a-ter), D.P.R. 633/1972
-38;N6.8;Inversione contabile, settore energetico;0.00;N6.8;100;0;0;art. 17, c. 6, lett. d-bis), d-ter) e d-quater), D.P.R. 633/1972
-39;N6.9;Inversione contabile, altri casi;0.00;N6.9;100;0;0;art. 17 D.P.R. 633/1972
-40;N7;IVA assolta in altro Stato UE;0.00;N7;100;0;0;art. 41, c. 1, lett. b), D.L. 331/1993; art. 7-octies e 74-sexies D.P.R. 633/1972
-60;RC22;Acquisto in inversione contabile 22% (integrazione);22.00;;100;1;0;art. 17, c. 5 e 6, D.P.R. 633/1972
-61;RC10;Acquisto in inversione contabile 10% (integrazione);10.00;;100;1;0;art. 17, c. 6, D.P.R. 633/1972
-62;RC4;Acquisto in inversione contabile 4% (integrazione);4.00;;100;1;0;art. 17, c. 6, D.P.R. 633/1972
-63;UE22;Acquisto intracomunitario 22% (integrazione);22.00;;100;1;0;artt. 38, 46 e 47 D.L. 331/1993
-64;UE10;Acquisto intracomunitario 10% (integrazione);10.00;;100;1;0;artt. 38, 46 e 47 D.L. 331/1993
-65;UE4;Acquisto intracomunitario 4% (integrazione);4.00;;100;1;0;artt. 38, 46 e 47 D.L. 331/1993
-66;ES22;Acquisto di servizi o beni dall'estero 22% (integrazione o autofattura);22.00;;100;1;0;art. 17, c. 2, D.P.R. 633/1972
-70;VEN;Corrispettivi da ventilare (ripartiti in proporzione agli acquisti per rivendita);0.00;;100;0;1;art. 24, c. 3, D.P.R. 633/1972; D.M. 24 febbraio 1973
-80;C2;Conferimento agricolo con percentuale di compensazione 2%;2.00;;100;0;0;art. 34, c. 1 e 2, D.P.R. 633/1972
-81;C6.4;Conferimento agricolo con percentuale di compensazione 6,4%;6.40;;100;0;0;art. 34, c. 1 e 2, D.P.R. 633/1972
-82;C7;Conferimento agricolo con percentuale di compensazione 7%;7.00;;100;0;0;art. 34, c. 1 e 2, D.P.R. 633/1972
-83;C7.3;Conferimento agricolo con percentuale di compensazione 7,3%;7.30;;100;0;0;art. 34, c. 1 e 2, D.P.R. 633/1972
-84;C7.5;Conferimento agricolo con percentuale di compensazione 7,5%;7.50;;100;0;0;art. 34, c. 1 e 2, D.P.R. 633/1972
-85;C8.3;Conferimento agricolo con percentuale di compensazione 8,3%;8.30;;100;0;0;art. 34, c. 1 e 2, D.P.R. 633/1972
-86;C8.5;Conferimento agricolo con percentuale di compensazione 8,5%;8.50;;100;0;0;art. 34, c. 1 e 2, D.P.R. 633/1972
-87;C8.8;Conferimento agricolo con percentuale di compensazione 8,8%;8.80;;100;0;0;art. 34, c. 1 e 2, D.P.R. 633/1972
-88;C12.3;Conferimento agricolo con percentuale di compensazione 12,3%;12.30;;100;0;0;art. 34, c. 1 e 2, D.P.R. 633/1972
+id;codice;descrizione;aliquota;natura;detraibilita;inversione_contabile;ventilazione;norma;norma_testo_unico;valido_fino
+1;22;Aliquota ordinaria 22%;22.00;;100;0;0;art. 16, c. 1, D.P.R. 633/1972;art. 34, c. 1, D.Lgs. 10/2026;
+2;10;Aliquota ridotta 10%;10.00;;100;0;0;art. 16, c. 2, e tabella A, parte III, D.P.R. 633/1972;art. 34, c. 2, e tabella A, parte IV, D.Lgs. 10/2026;
+3;5;Aliquota ridotta 5%;5.00;;100;0;0;art. 16, c. 2, e tabella A, parte II-bis, D.P.R. 633/1972;art. 34, c. 2, e tabella A, parte III, D.Lgs. 10/2026;
+4;4;Aliquota minima 4%;4.00;;100;0;0;art. 16, c. 2, e tabella A, parte II, D.P.R. 633/1972;art. 34, c. 2, e tabella A, parte II, D.Lgs. 10/2026;
+5;A22;22% detraibile al 40% (veicoli);22.00;;40;0;0;art. 19-bis1, c. 1, lett. c), D.P.R. 633/1972;art. 58, c. 1, lett. c), D.Lgs. 10/2026;
+6;I22;22% indetraibile;22.00;;0;0;0;art. 19-bis1 D.P.R. 633/1972;art. 58 D.Lgs. 10/2026;
+7;I10;10% indetraibile;10.00;;0;0;0;art. 19-bis1 D.P.R. 633/1972;art. 58 D.Lgs. 10/2026;
+20;N1;Escluse art. 15;0.00;N1;100;0;0;art. 15 D.P.R. 633/1972;art. 29 D.Lgs. 10/2026;
+21;N2.1;Non soggette, artt. 7-7-septies;0.00;N2.1;100;0;0;artt. da 7 a 7-septies D.P.R. 633/1972;artt. da 15 a 23 D.Lgs. 10/2026;
+22;N2.2;Non soggette, altri casi (es. forfetari, minimi);0.00;N2.2;100;0;0;"art. 1, c. 58, L. 190/2014; artt. 2, 3, 4 D.P.R. 633/1972";"art. 1, c. 58, L. 190/2014 e art. 157 D.Lgs. 10/2026; artt. 3, 5 e 10 D.Lgs. 10/2026";
+23;N3.1;Non imponibili, esportazioni;0.00;N3.1;100;0;0;art. 8, c. 1, lett. a) e b), D.P.R. 633/1972;art. 45, c. 1, lett. a), b) e c), D.Lgs. 10/2026;
+24;N3.2;Non imponibili, cessioni intracomunitarie;0.00;N3.2;100;0;0;art. 41 D.L. 331/1993;art. 39 D.Lgs. 10/2026;
+25;N3.3;Non imponibili, cessioni verso San Marino;0.00;N3.3;100;0;0;"art. 71 D.P.R. 633/1972; D.M. 21 giugno 2021";"art. 50 D.Lgs. 10/2026; D.M. 21 giugno 2021";
+26;N3.4;Non imponibili, operazioni assimilate alle esportazioni e servizi internazionali (concorrono al plafond);0.00;N3.4;100;0;0;artt. 8-bis e 9 D.P.R. 633/1972;artt. 48 e 49 D.Lgs. 10/2026;
+27;N3.5;Non imponibili, a seguito di dichiarazione d'intento;0.00;N3.5;100;0;0;"art. 8, c. 1, lett. c), D.P.R. 633/1972; art. 1, c. 1, lett. c), D.L. 746/1983";art. 45, c. 1, lett. d), e art. 46 D.Lgs. 10/2026;
+28;N3.6;Non imponibili, altre operazioni che non concorrono al plafond;0.00;N3.6;100;0;0;specifiche tecniche della fattura elettronica, natura N3.6 (es. art. 38-quater D.P.R. 633/1972);specifiche tecniche della fattura elettronica, natura N3.6 (es. art. 51 D.Lgs. 10/2026);
+29;N4;Esenti art. 10;0.00;N4;100;0;0;art. 10 D.P.R. 633/1972;art. 37 D.Lgs. 10/2026;
+30;N5;Regime del margine;0.00;N5;100;0;0;art. 36 D.L. 41/1995;art. 143 D.Lgs. 10/2026;
+31;N6.1;Inversione contabile, rottami;0.00;N6.1;100;0;0;art. 74, c. 7 e 8, D.P.R. 633/1972;art. 139, c. 7 e 8, D.Lgs. 10/2026;
+32;N6.2;Inversione contabile, oro e argento;0.00;N6.2;100;0;0;art. 17, c. 5, D.P.R. 633/1972;art. 64, c. 5, D.Lgs. 10/2026;
+33;N6.3;Inversione contabile, subappalto edile;0.00;N6.3;100;0;0;art. 17, c. 6, lett. a), D.P.R. 633/1972;art. 64, c. 6, lett. a), D.Lgs. 10/2026;
+34;N6.4;Inversione contabile, cessione di fabbricati;0.00;N6.4;100;0;0;art. 17, c. 6, lett. a-bis), D.P.R. 633/1972;art. 64, c. 6, lett. b), D.Lgs. 10/2026;
+35;N6.5;Inversione contabile, telefoni cellulari;0.00;N6.5;100;0;0;art. 17, c. 6, lett. b), D.P.R. 633/1972;art. 64, c. 6, lett. e), e c. 8, D.Lgs. 10/2026;2026-12-31
+36;N6.6;Inversione contabile, prodotti elettronici;0.00;N6.6;100;0;0;art. 17, c. 6, lett. c), D.P.R. 633/1972;art. 64, c. 6, lett. f), e c. 8, D.Lgs. 10/2026;2026-12-31
+37;N6.7;Inversione contabile, comparto edile e connessi;0.00;N6.7;100;0;0;art. 17, c. 6, lett. a-ter), D.P.R. 633/1972;art. 64, c. 6, lett. c), D.Lgs. 10/2026;
+38;N6.8;Inversione contabile, settore energetico;0.00;N6.8;100;0;0;art. 17, c. 6, lett. d-bis), d-ter) e d-quater), D.P.R. 633/1972;art. 64, c. 6, lett. g), h) e i), e c. 8, D.Lgs. 10/2026;2026-12-31
+39;N6.9;Inversione contabile, altri casi;0.00;N6.9;100;0;0;art. 17 D.P.R. 633/1972;art. 64 D.Lgs. 10/2026;
+40;N7;IVA assolta in altro Stato UE;0.00;N7;100;0;0;"art. 41, c. 1, lett. b), D.L. 331/1993; art. 7-octies e 74-sexies D.P.R. 633/1972";artt. 23, 39 e 150 D.Lgs. 10/2026;
+60;RC22;Acquisto in inversione contabile 22% (integrazione);22.00;;100;1;0;art. 17, c. 5 e 6, D.P.R. 633/1972;art. 64, c. 5 e 6, D.Lgs. 10/2026;
+61;RC10;Acquisto in inversione contabile 10% (integrazione);10.00;;100;1;0;art. 17, c. 6, D.P.R. 633/1972;art. 64, c. 6, D.Lgs. 10/2026;
+62;RC4;Acquisto in inversione contabile 4% (integrazione);4.00;;100;1;0;art. 17, c. 6, D.P.R. 633/1972;art. 64, c. 6, D.Lgs. 10/2026;
+63;UE22;Acquisto intracomunitario 22% (integrazione);22.00;;100;1;0;artt. 38, 46 e 47 D.L. 331/1993;artt. 8, 97 e 98 D.Lgs. 10/2026;
+64;UE10;Acquisto intracomunitario 10% (integrazione);10.00;;100;1;0;artt. 38, 46 e 47 D.L. 331/1993;artt. 8, 97 e 98 D.Lgs. 10/2026;
+65;UE4;Acquisto intracomunitario 4% (integrazione);4.00;;100;1;0;artt. 38, 46 e 47 D.L. 331/1993;artt. 8, 97 e 98 D.Lgs. 10/2026;
+66;ES22;Acquisto di servizi o beni dall'estero 22% (integrazione o autofattura);22.00;;100;1;0;art. 17, c. 2, D.P.R. 633/1972;art. 64, c. 2, D.Lgs. 10/2026;
+70;VEN;Corrispettivi da ventilare (ripartiti in proporzione agli acquisti per rivendita);0.00;;100;0;1;"art. 24, c. 3, D.P.R. 633/1972; D.M. 24 febbraio 1973";"art. 87, c. 3, D.Lgs. 10/2026; D.M. 24 febbraio 1973";
+80;C2;Conferimento agricolo con percentuale di compensazione 2%;2.00;;100;0;0;art. 34, c. 1 e 2, D.P.R. 633/1972;art. 133, c. 1 e 2, D.Lgs. 10/2026;
+81;C6.4;Conferimento agricolo con percentuale di compensazione 6,4%;6.40;;100;0;0;art. 34, c. 1 e 2, D.P.R. 633/1972;art. 133, c. 1 e 2, D.Lgs. 10/2026;
+82;C7;Conferimento agricolo con percentuale di compensazione 7%;7.00;;100;0;0;art. 34, c. 1 e 2, D.P.R. 633/1972;art. 133, c. 1 e 2, D.Lgs. 10/2026;
+83;C7.3;Conferimento agricolo con percentuale di compensazione 7,3%;7.30;;100;0;0;art. 34, c. 1 e 2, D.P.R. 633/1972;art. 133, c. 1 e 2, D.Lgs. 10/2026;
+84;C7.5;Conferimento agricolo con percentuale di compensazione 7,5%;7.50;;100;0;0;art. 34, c. 1 e 2, D.P.R. 633/1972;art. 133, c. 1 e 2, D.Lgs. 10/2026;
+85;C8.3;Conferimento agricolo con percentuale di compensazione 8,3%;8.30;;100;0;0;art. 34, c. 1 e 2, D.P.R. 633/1972;art. 133, c. 1 e 2, D.Lgs. 10/2026;
+86;C8.5;Conferimento agricolo con percentuale di compensazione 8,5%;8.50;;100;0;0;art. 34, c. 1 e 2, D.P.R. 633/1972;art. 133, c. 1 e 2, D.Lgs. 10/2026;
+87;C8.8;Conferimento agricolo con percentuale di compensazione 8,8%;8.80;;100;0;0;art. 34, c. 1 e 2, D.P.R. 633/1972;art. 133, c. 1 e 2, D.Lgs. 10/2026;
+88;C12.3;Conferimento agricolo con percentuale di compensazione 12,3%;12.30;;100;0;0;art. 34, c. 1 e 2, D.P.R. 633/1972;art. 133, c. 1 e 2, D.Lgs. 10/2026;

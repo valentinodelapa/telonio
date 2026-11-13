@@ -67,6 +67,16 @@ require __DIR__ . '/../commonParts/navAzienda.php';
                     </ul>
                 </div>
             <?php endif; ?>
+            <?php if (count($corpo->pagamenti) > 0): ?>
+                <div class="card shadow-sm mt-3">
+                    <div class="card-header bg-white fw-semibold"><?= Html::e($titoloPagamenti) ?></div>
+                    <ul class="list-group list-group-flush small">
+                        <?php foreach ($corpo->pagamenti as $pagamento): ?>
+                            <li class="list-group-item d-flex gap-2"><span class="me-auto"><?= $pagamento['scadenza'] === null ? Html::e($senzaScadenza) : Html::data($pagamento['scadenza']) ?><?= $pagamento['modalita'] === null ? '' : ' · ' . Html::e($pagamento['modalita']->getLabelBreve()) ?><?= $pagamento['iban'] === null ? '' : ' · <span class="font-monospace">' . Html::e($pagamento['iban']) . '</span>' ?></span><span><?= Html::e(number_format($pagamento['importo'], 2, ',', '.')) ?></span></li>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
+            <?php endif; ?>
         <?php endif; ?>
     </div>
 </div>

@@ -144,7 +144,9 @@
                 "interventoCondominiale": "Parti comuni condominiali (casella \"Condominio\")",
                 "acquistoEreditaDonazione": "Acquisto, eredità o donazione",
                 "maggiorazioneSisma": "Maggiorazione sisma",
-                "opzione2023": "Opzione 2023 (10 rate)"
+                "opzione2023": "Opzione 2023 (10 rate)",
+                "trimestraleSpeciale": "Trimestrale per natura (art. 74, c. 4)",
+                "aiutoTrimestraleSpeciale": "Autotrasportatori per conto terzi, distributori di carburante, servizi al pubblico autorizzati: liquidazioni trimestrali senza interessi, quarto trimestre entro il 16 febbraio."
             },
             "azioni": {
                 "salva": "Salva",

@@ -14,7 +14,7 @@ $acquisti = $registro->tipo === TipoRegistroIva::acquisti;
 $conRivendita = $acquisti && (count(array_filter($dati['totali'], fn(array $voce) => $voce['rivendita'] != 0)) > 0);
 require __DIR__ . '/../commonParts/stampaTesta.php';
 ?>
-<div class="tenue"><?= Html::e($registro->tipo->getNorma()) ?></div>
+<div class="tenue"><?= Html::e($registro->tipo->getNorma($dal)) ?></div>
 <table style="margin-top: 3mm">
     <thead>
         <tr><th>Prot.</th><th>Registrazione</th><th>Documento</th><th>Competenza</th><th>Controparte</th><th>Codice IVA</th><th class="num">Imponibile</th><th class="num">Imposta</th><?php if ($acquisti): ?><th class="num">Detraibile</th><?php endif; ?><th class="num">Totale</th></tr>
@@ -27,7 +27,7 @@ require __DIR__ . '/../commonParts/stampaTesta.php';
                         <td rowspan="<?= count($righe) ?>"><?= Html::e($registrazione->protocolloIva) ?></td>
                         <td rowspan="<?= count($righe) ?>"><?= Html::data($registrazione->dataRegistrazione) ?> n. <?= Html::e($registrazione->numero) ?></td>
                         <td rowspan="<?= count($righe) ?>"><?= Html::e($registrazione->causale->getLabel()) ?><?= $registrazione->numeroDocumento === null ? '' : ' n. ' . Html::e($registrazione->numeroDocumento) ?><?= $registrazione->dataDocumento === null ? '' : ' del ' . Html::data($registrazione->dataDocumento) ?></td>
-                        <td rowspan="<?= count($righe) ?>"><?= Html::data($registrazione->dataCompetenzaIva) ?><?= $registrazione->esigibilita->value !== 'I' ? '<div class="tenue">' . Html::e($registrazione->esigibilita->getLabel()) . '</div>' : '' ?></td>
+                        <td rowspan="<?= count($righe) ?>"><?= Html::data($registrazione->dataCompetenzaIva) ?><?= $registrazione->esigibilita->value !== 'I' ? '<div class="tenue">' . Html::e($registrazione->esigibilita->getLabel($registrazione->dataCompetenzaIva)) . '</div>' : '' ?></td>
                         <td rowspan="<?= count($righe) ?>"><?= Html::e($registrazione->controparte?->denominazione ?? '') ?><div class="tenue"><?= Html::e($registrazione->controparte?->partitaIva ?? $registrazione->controparte?->codiceFiscale ?? '') ?></div></td>
                     <?php endif; ?>
                     <td><?= Html::e($riga->codiceIva->getEtichetta()) ?><?= $riga->rivendita ? ' <span class="tenue">(' . ($riga->altriProdotti ? 'rivendita, altri prodotti' : 'rivendita') . ')</span>' : '' ?></td>

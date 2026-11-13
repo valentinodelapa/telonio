@@ -47,6 +47,9 @@ require Layout::percorso('header');
             <?= Campo::spunta('pubblicaAmministrazione', $campi['pubblicaAmministrazione'], $formEntity, $errors, ['colonna' => 'col-md-8']) ?>
             <?= Campo::selezione('contoContropartita', $campi['contoContropartita'], $formEntity, $errors, $sceltaContropartite, ['colonna' => 'col-md-6', 'vuota' => $nessuno]) ?>
             <?= Campo::selezione('codiceIva', $campi['codiceIva'], $formEntity, $errors, $sceltaCodici, ['colonna' => 'col-md-6', 'vuota' => $nessuno]) ?>
+            <?= Campo::testo('giorniPagamento', $campi['giorniPagamento'], $formEntity, $errors, ['colonna' => 'col-md-3', 'attributi' => 'maxlength="100" placeholder="30,60,90"', 'aiuto' => $aiutoGiorniPagamento]) ?>
+            <?= Campo::spunta('fineMesePagamento', $campi['fineMesePagamento'], $formEntity, $errors, ['colonna' => 'col-md-3']) ?>
+            <?= Campo::selezioneEnum('modalitaPagamento', $campi['modalitaPagamento'], $formEntity, $errors, $modalitaPagamento, ['colonna' => 'col-md-6', 'vuota' => $nessuno]) ?>
             <?= Campo::areaTesto('note', $campi['note'], $formEntity, $errors, ['colonna' => 'col-12', 'righe' => 2]) ?>
             <?php if (isset($controparte->id)): ?>
                 <div class="col-12 small">

@@ -45,14 +45,17 @@ class LiquidazioneIvaController extends ContabilitaController
             $periodicita = null;
             $this->vars['erroreIva'] = $errore->getMessage();
         }
+        // trimestrali per natura (art. 74, c. 4): quarto trimestre entro il 16 febbraio
+        $trimestraleSpeciale = ($periodicita !== null) && (new RegimeIva($this->dataMapper))->isTrimestraleSpeciale($soggetto, $anno);
         $periodi = [];
         if ($periodicita !== null) {
             for ($periodo = 1; $periodo <= PeriodiIva::getNumeroPeriodi($periodicita); $periodo++) {
-                $periodi[$periodo] = ['descrizione' => LiquidazioneIva::descriviPeriodo($periodicita, $anno, $periodo), 'scadenza' => PeriodiIva::getScadenza($periodicita, $anno, $periodo),
+                $periodi[$periodo] = ['descrizione' => LiquidazioneIva::descriviPeriodo($periodicita, $anno, $periodo), 'scadenza' => PeriodiIva::getScadenza($periodicita, $anno, $periodo, $trimestraleSpeciale),
                     'fine' => PeriodiIva::getFine($periodicita, $anno, $periodo)];
             }
         }
         $this->vars['periodicita'] = $periodicita;
+        $this->vars['trimestraleSpeciale'] = $trimestraleSpeciale;
         $this->vars['requisitiVentilazione'] = ($periodicita !== null) && (new RegimeIva($this->dataMapper))->isVentilazione($soggetto, $anno)
                 ? (new RequisitiVentilazione($this->dataMapper))->verifica($soggetto, $anno) : null;
         $this->vars['periodi'] = $periodi;

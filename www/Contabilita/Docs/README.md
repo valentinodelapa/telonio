@@ -261,10 +261,35 @@ registrato come acconto. Le registrazioni dirette (fixture, test) usano la
 proposta. Le partite già abbinate da altre registrazioni non si eliminano
 né si riducono sotto quanto abbinato.
 
+Le **scadenze** del documento sono rate della sua partita
+(`ScadenzaPartita`: data, importo, modalità di pagamento), indicate nel
+form della prima nota sotto gli abbinamenti e proposte
+(`Services\ScadenzePagamento`):
+
+- dai dati di pagamento della fattura elettronica (`DettaglioPagamento`):
+  la scadenza indicata o la data di riferimento più i giorni dei termini,
+  con gli importi riportati in proporzione all'importo della partita (la
+  fattura indica di solito il netto da pagare, ad esempio senza la
+  ritenuta o l'IVA in scissione dei pagamenti);
+- altrimenti dai termini abituali della controparte: giorni dalla data del
+  documento ("30,60,90"), a fine mese se indicato (30 giorni fine mese
+  di una fattura del 10 gennaio: 28 febbraio), con la modalità abituale e
+  importi uguali (il resto dell'arrotondamento sull'ultima rata);
+- altrimenti una rata alla data del documento.
+
+Le rate devono sommare l'importo della partita; la rata unica lo prende da
+sola. Gli abbinamenti restano sulla partita e il residuo si ripartisce
+sulle rate in ordine di scadenza, quindi incassi e pagamenti chiudono
+prima le rate più vecchie. La scadenza della partita è quella della prima
+rata. Le partite registrate prima delle rate non ne hanno e valgono come
+rata unica alla loro scadenza.
+
 Lo **scadenzario** dell'azienda elenca per controparte le partite aperte (o
-tutte) con scadenza, abbinamenti e residuo, e confronta il totale con il
-saldo del sottoconto: una differenza indica righe sul sottoconto senza la
-controparte o registrazioni senza partite.
+tutte) con la prossima scadenza, le rate con il residuo, gli abbinamenti e
+il residuo, e confronta il totale con il saldo del sottoconto: una
+differenza indica righe sul sottoconto senza la controparte o
+registrazioni senza partite. La scheda della fattura elettronica mostra i
+dati di pagamento (scadenze, modalità, IBAN).
 
 Per **cassa** (quadri RG ed RE del modello Redditi) ogni fattura concorre
 in proporzione a quanto abbinato nell'anno come incasso o pagamento,
@@ -294,7 +319,8 @@ clienti e fornitori (`Services\Partitario`), aperto al salvataggio o alla
 prima registrazione, con il primo codice libero e la denominazione della
 controparte. La scheda contabile del sottoconto è il partitario della
 controparte. La controparte si elimina, con i suoi sottoconti, solo se non
-ha registrazioni.
+ha registrazioni. I termini di pagamento abituali (giorni, fine mese,
+modalità) propongono le rate dei documenti senza dati di pagamento.
 
 ## Prima nota
 
@@ -617,6 +643,18 @@ regole di `Services\PeriodiIva`:
   con gli interessi dell'1%; il quarto trimestre si versa con il saldo
   della dichiarazione annuale entro il 16 marzo (6099, rateazione 0101),
   con l'1%;
+- trimestrali per natura dell'attività (art. 74, c. 4, D.P.R. 633/1972;
+  dal 2027 art. 139, c. 4, D.Lgs. 10/2026; casella dei dati fiscali
+  dell'Anagrafica): senza gli interessi dell'1%, codici 6031-6033 e quarto
+  trimestre liquidato e versato entro il 16 febbraio dell'anno successivo
+  con il codice 6034; la comunicazione delle liquidazioni del quarto
+  trimestre si compila con il trimestre "4" e il rigo VP14, e il quarto
+  trimestre è la base dell'acconto storico. La liquidazione registra la
+  qualifica (`liquidazione_iva.trimestrale_speciale`) e
+  `LiquidazioneIva::isQuartoTrimestreConDichiarazione()` distingue il
+  quarto trimestre dei trimestrali per opzione. Non si applica alle
+  attività separate né alla liquidazione di gruppo, che restano con le
+  regole dei trimestrali per opzione;
 - debito non superiore a 100 euro (dalle liquidazioni del 2024, D.Lgs.
   1/2024; prima 25,82 euro): rinviato al periodo successivo, al più fino a
   novembre per i mensili (16 dicembre) e al terzo trimestre per i
@@ -638,9 +676,10 @@ il quarto trimestre dell'anno precedente, al lordo dell'acconto: per i
 trimestrali la base vera è il saldo della dichiarazione annuale, qui
 approssimato), previsionale (88% del dovuto presunto) o analitico
 (liquidazione delle operazioni dal 1° dicembre, o dal 1° ottobre per i
-trimestrali, al 20 dicembre); non è dovuto sotto 103,29 euro. Le forme
-speciali di periodicità (trimestrali speciali dell'art. 74, c. 4, D.P.R.
-633/1972) non sono gestite.
+trimestrali, al 20 dicembre); non è dovuto sotto 103,29 euro. Per i
+trimestrali per natura dell'attività la base storica è il quarto trimestre
+liquidato a febbraio (art. 6, c. 2, L. 405/1990; dal 2027 art. 111 D.Lgs.
+10/2026).
 
 Il credito chiesto a rimborso o in compensazione con il modello IVA TR è
 registrato dal modulo Dichiarativi (`CreditoTrimestraleIva`, anche di gruppo)
@@ -811,11 +850,73 @@ controller verificano l'azienda con `SoggettoPermission`, i modelli e i
 codici dello studio con lo studio dell'utente; i piani e i codici della
 suite sono in sola lettura per tutti.
 
+## Testo unico IVA dal 2027
+
+Dal 1° gennaio 2027 le disposizioni del D.P.R. 633/1972 e di molte leggi
+speciali sull'IVA sono sostituite dal Testo unico IVA (D.Lgs. 19 gennaio
+2026, n. 10, art. 171), e la comunicazione delle liquidazioni periodiche
+dal testo unico adempimenti e accertamento (D.Lgs. 5 agosto 2026, n.
+141, art. 51, che si applica dalla stessa data per l'art. 368). Il testo
+unico IVA è compilativo: le regole che il modulo applica non cambiano,
+cambia la numerazione. I regolamenti sulle liquidazioni periodiche
+(D.P.R. 100/1998) e sui trimestrali (D.P.R. 542/1999) restano in vigore e
+sono richiamati dai testi unici.
+
+Le norme si citano secondo la data dell'operazione o del periodo
+(`HelperClasses\RiferimentiIva`): registri e stampe di un periodo del
+2026 riportano il D.P.R. 633/1972, quelli del 2027 il testo unico; gli
+aiuti dell'interfaccia citano entrambe. In particolare:
+
+| Contenuto | Fino al 2026 | Dal 2027 |
+|---|---|---|
+| registri delle fatture, dei corrispettivi e degli acquisti | artt. 23, 24 e 25 D.P.R. 633/1972 | artt. 86, 87 e 88 D.Lgs. 10/2026 |
+| tenuta e numerazione dei registri | art. 39 | art. 95 |
+| esigibilità differita | art. 6, c. 5 | art. 24, c. 5 |
+| scissione dei pagamenti | art. 17-ter | art. 65 |
+| ventilazione dei corrispettivi | art. 24, c. 3 | art. 87, c. 3 |
+| scorporo dei corrispettivi | art. 27, c. 4 | art. 109, c. 2 |
+| attività separate | art. 36 | art. 63 |
+| IVA di gruppo (liquidazione) | art. 73, c. 3 | art. 91, c. 3 |
+| pro-rata di detrazione | art. 19, c. 5, e art. 19-bis | art. 56, c. 5, e art. 57 |
+| regime agricolo, esonerati | art. 34, c. 6 | art. 133, c. 5 |
+| trimestrali speciali | art. 74, c. 4 | art. 139, c. 4 |
+| acconto IVA | art. 6, c. 2, L. 405/1990 | art. 111 D.Lgs. 10/2026 |
+| IVA per cassa | art. 32-bis D.L. 83/2012 | art. 132 D.Lgs. 10/2026 |
+| comunicazione delle liquidazioni periodiche | art. 21-bis D.L. 78/2010 | art. 51 D.Lgs. 141/2026 |
+
+Le corrispondenze sono quelle indicate sotto la rubrica di ciascun
+articolo dei testi unici (G.U. n. 24 del 30 gennaio 2026, S.O. n. 4;
+G.U. n. 181 del 6 agosto 2026, S.O. n. 28). Nel Testo unico le lettere
+dell'inversione contabile interna sono rinumerate (art. 64, c. 6:
+subappalto edile a, fabbricati b, pulizia e completamento c, logistica d,
+cellulari e, prodotti elettronici f, quote di emissione g e h, gas ed
+energia i) e le parti della tabella A scalano di una (4% parte II, 5%
+parte III, 10% parte IV).
+
+I **codici IVA** hanno la norma fino al 2026 e quella del testo unico
+(colonna `norma_testo_unico`); l'elenco mostra quella in vigore. Un
+codice può valere solo per le operazioni fino a una data (`valido_fino`):
+l'inversione contabile per cellulari (N6.5), prodotti elettronici (N6.6),
+quote di emissione, gas ed energia (N6.8) si applica alle operazioni
+effettuate fino al 31 dicembre 2026 (art. 17, c. 8, D.P.R. 633/1972;
+art. 64, c. 8, D.Lgs. 10/2026), e le registrazioni con documento (o
+competenza) successivo la rifiutano. Una proroga si recepisce cambiando
+la data in `Database/sorgenti/codici-iva.csv` ed eseguendo `sisma
+tabelle-contabilita`. La causale dell'autofattura per gli acquisti dagli
+agricoltori esonerati cita la norma della data del documento.
+
+I commenti del codice e le descrizioni delle nature e dei tipi di
+documento della fattura elettronica (testo delle specifiche tecniche)
+riportano ancora il D.P.R. 633/1972.
+
 ## Fonti
 
 - D.M. 24 febbraio 1973 (ventilazione dei corrispettivi, artt. 1, 3-5);
 - D.P.R. 633/1972 (artt. 17, 17-ter, 19-bis1, 21, 23-27), D.P.R. 695/1996
-  (art. 6, c. 4), D.Lgs. 10/2026 (Testo unico IVA, dal 2027), D.L. 331/1993
+  (art. 6, c. 4), D.Lgs. 10/2026 (Testo unico IVA, dal 2027: testo e
+  rubriche con le fonti previgenti nella G.U. n. 24 del 30 gennaio 2026,
+  S.O. n. 4), D.Lgs. 141/2026 (testo unico adempimenti e accertamento,
+  art. 51, dal 2027), D.L. 331/1993
   (artt. 38, 41, 46, 47), D.P.R. 100/1998 (art. 1), D.P.R. 542/1999 (art.
   7), L. 405/1990 (art. 6), D.Lgs. 1/2024 (art. 9), D.L. 16/2012 (art.
   3-quater): testi su Normattiva;
@@ -836,10 +937,6 @@ suite sono in sola lettura per tutti.
 
 ## Da completare
 
-- scadenze di pagamento delle fatture (oggi la scadenza della partita è
-  la data del documento): lettura dei dati di pagamento della fattura
-  elettronica e rate;
-
 - registrazione all'incasso dell'IVA a esigibilità differita e IVA per
   cassa (art. 32-bis D.L. 83/2012); oggi esclusa dalla liquidazione con un
   avviso;
@@ -849,10 +946,12 @@ suite sono in sola lettura per tutti.
 - contabilità dei forfetari, cespiti e ammortamenti, ratei e risconti,
   chiusura e riapertura dei conti con le scritture di assestamento
   (base per il modulo Bilancio);
-- trimestrali speciali (art. 74, c. 4, D.P.R. 633/1972);
+- trimestrali per natura dell'attività nelle attività separate e nella
+  liquidazione IVA di gruppo;
 - stampa definitiva del libro degli inventari e dei registri dei beni
   ammortizzabili (con i cespiti);
 - importazione nella maschera mensile dei corrispettivi telematici
   trasmessi (portale Fatture e corrispettivi) e scarico automatico delle
   fatture;
-- adeguamento dei riferimenti normativi al Testo unico IVA (dal 2027).
+- commenti del codice con le norme del Testo unico IVA (le citazioni
+  visibili sono già adeguate, vedi sopra).

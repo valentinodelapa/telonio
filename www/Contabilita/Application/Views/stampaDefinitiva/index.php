@@ -28,7 +28,7 @@ require __DIR__ . '/../commonParts/navAzienda.php';
             <div class="card shadow-sm h-100">
                 <div class="card-header bg-white d-flex align-items-center">
                     <span class="fw-semibold me-auto"><?= Html::e($libro['titolo']) ?></span>
-                    <span class="small text-body-secondary"><?= Html::e($libro['tipo']->getNorma()) ?></span>
+                    <span class="small text-body-secondary"><?= Html::e($libro['tipo']->getNorma($annoStampe)) ?></span>
                 </div>
                 <?php if (count($libro['stampe']) > 0): ?>
                     <ul class="list-group list-group-flush small">

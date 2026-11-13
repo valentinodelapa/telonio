@@ -37,7 +37,9 @@
                 "validoAl": "Dovuto fino al",
                 "clienti": "Clienti",
                 "adempimenti": "Adempimenti in vigore",
-                "condizione": "Si applica a"
+                "condizione": "Si applica a",
+                "nuovaFonte": "Nuova fonte normativa",
+                "nuovaFonteDal": "Dai termini del"
             },
             "azioni": {
                 "salva": "Salva",

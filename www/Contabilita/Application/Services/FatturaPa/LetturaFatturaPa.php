@@ -2,6 +2,7 @@
 
 namespace Contabilita\Application\Services\FatturaPa;
 
+use Contabilita\Application\Enumerations\ModalitaPagamento;
 use Contabilita\Application\Enumerations\EsigibilitaIva;
 use Contabilita\Application\Enumerations\NaturaIva;
 use Contabilita\Application\Enumerations\TipoDocumentoFattura;
@@ -110,6 +111,14 @@ class LetturaFatturaPa
         if (count($corpo->riepiloghi) === 0) {
             throw new \UnexpectedValueException('Documento ' . $indice . ': nessun riepilogo IVA (DatiRiepilogo).');
         }
+        foreach ($this->nodi($nodo, 'DatiPagamento') as $datiPagamento) {
+            $corpo->condizioniPagamento ??= $this->testo($datiPagamento, 'CondizioniPagamento');
+            foreach ($this->nodi($datiPagamento, 'DettaglioPagamento') as $dettaglio) {
+                $corpo->pagamenti[] = ['modalita' => ModalitaPagamento::tryFrom((string) $this->testo($dettaglio, 'ModalitaPagamento')),
+                    'scadenza' => $this->scadenzaPagamento($dettaglio), 'importo' => round((float) ($this->testo($dettaglio, 'ImportoPagamento') ?? 0), 2),
+                    'iban' => $this->testo($dettaglio, 'IBAN')];
+            }
+        }
         foreach (array_slice(iterator_to_array($this->nodi($nodo, 'DatiBeniServizi/DettaglioLinee')), 0, 3) as $linea) {
             $descrizione = $this->testo($linea, 'Descrizione');
             if ($descrizione !== null) {
@@ -117,6 +126,21 @@ class LetturaFatturaPa
             }
         }
         return $corpo;
+    }
+
+    /**
+     * Scadenza del pagamento: la data indicata o la data di riferimento più
+     * i giorni dei termini; null se manca (vale la data del documento).
+     */
+    private function scadenzaPagamento(\DOMElement $dettaglio): ?\DateTimeImmutable
+    {
+        $scadenza = \DateTimeImmutable::createFromFormat('!Y-m-d', (string) $this->testo($dettaglio, 'DataScadenzaPagamento'));
+        if ($scadenza !== false) {
+            return $scadenza;
+        }
+        $riferimento = \DateTimeImmutable::createFromFormat('!Y-m-d', (string) $this->testo($dettaglio, 'DataRiferimentoTerminiPagamento'));
+        $giorni = $this->testo($dettaglio, 'GiorniTerminiPagamento');
+        return ($riferimento !== false) && ($giorni !== null) && ctype_digit($giorni) ? $riferimento->modify('+' . (int) $giorni . ' days') : null;
     }
 
     /**

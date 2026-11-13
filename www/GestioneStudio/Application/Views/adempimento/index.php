@@ -43,7 +43,7 @@ require __DIR__ . '/../commonParts/nav.php';
                             <a href="/adempimento/show/adempimento/<?= Html::e($adempimento->id) ?>/anno/<?= Html::e($anno) ?>" class="fw-semibold text-decoration-none"><?= Html::e($adempimento->denominazione) ?></a>
                             <span class="badge <?= $adempimento->isDelCalendario() ? 'text-bg-light border' : 'text-bg-info' ?> ms-1"><?= Html::e($adempimento->isDelCalendario() ? $calendarioFiscale : $delloStudio) ?></span>
                             <?php if ($adempimento->attivo === false): ?><span class="badge text-bg-secondary ms-1"><?= Html::e($nonAttivo) ?></span><?php endif; ?>
-                            <?php if ($adempimento->fonte !== null): ?><div class="small text-body-secondary"><?= Html::e($adempimento->fonte) ?></div><?php endif; ?>
+                            <?php if ($adempimento->getFonte() !== null): ?><div class="small text-body-secondary"><?= Html::e($adempimento->getFonte()) ?></div><?php endif; ?>
                         </td>
                         <td class="small"><?= Html::e($adempimento->ambito->getLabel()) ?></td>
                         <td class="small">

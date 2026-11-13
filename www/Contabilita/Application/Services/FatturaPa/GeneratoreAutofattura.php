@@ -2,6 +2,8 @@
 
 namespace Contabilita\Application\Services\FatturaPa;
 
+use Contabilita\Application\HelperClasses\RiferimentiIva;
+
 use Anagrafica\Application\Entities\Indirizzo;
 use Anagrafica\Application\Entities\Soggetto;
 use Anagrafica\Application\Enumerations\TipoIndirizzo;
@@ -34,9 +36,17 @@ class GeneratoreAutofattura
     private const TIPO_DOCUMENTO = 'TD01';
     private const REGIME_CEDENTE = 'RF04';
     private const CODICE_DESTINATARIO_ASSENTE = '0000000';
-    private const CAUSALE = 'Autofattura emessa per acquisti da soggetti esonerati a norma dell\'art. 34, 6 c., DPR 633/72';
 
     private \DOMDocument $documento;
+
+    /**
+     * Causale con la norma in vigore alla data del documento (art. 34, c.
+     * 6, D.P.R. 633/1972; dal 2027 art. 133, c. 5, D.Lgs. 10/2026).
+     */
+    public static function getCausale(\DateTimeInterface $data): string
+    {
+        return 'Autofattura emessa per acquisti da soggetti esonerati a norma dell\'' . RiferimentiIva::cita('esoneroAgricolo', $data);
+    }
 
     public function __construct(private DataMapper $dataMapper = new DataMapper())
     {
@@ -182,7 +192,7 @@ class GeneratoreAutofattura
         $this->figlio($generali, 'Data', $registrazione->dataDocumento->format('Y-m-d'));
         $this->figlio($generali, 'Numero', $registrazione->numeroDocumento);
         $this->figlio($generali, 'ImportoTotaleDocumento', self::importo($totale));
-        $this->figlio($generali, 'Causale', self::CAUSALE);
+        $this->figlio($generali, 'Causale', self::getCausale($registrazione->dataDocumento));
         $beni = $this->figlio($corpo, 'DatiBeniServizi');
         $riepilogo = [];
         foreach ($righe as $indice => $riga) {

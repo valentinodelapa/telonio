@@ -214,7 +214,9 @@ class RateazioneService
                 throw new \InvalidArgumentException('Si rateizzano solo versamenti da versare del contribuente, non già rateizzati.');
             }
             if ($this->isRateizzabile($originale) === false) {
-                throw new \InvalidArgumentException('Il versamento ' . $originale->getCodice() . ' non è rateizzabile (art. 20 D.Lgs. 241/1997: saldo e primo acconto; secondo acconto solo con una norma straordinaria).');
+                // dal 2027 l'art. 20 D.Lgs. 241/1997 è l'art. 10 del testo unico versamenti e riscossione (D.Lgs. 33/2025, art. 243)
+                $norma = $originale->scadenza->format('Y') >= '2027' ? 'art. 10 D.Lgs. 33/2025' : 'art. 20 D.Lgs. 241/1997';
+                throw new \InvalidArgumentException('Il versamento ' . $originale->getCodice() . ' non è rateizzabile (' . $norma . ': saldo e primo acconto; secondo acconto solo con una norma straordinaria).');
             }
             $scadenze[$originale->scadenza->format('Y-m-d')] = true;
         }

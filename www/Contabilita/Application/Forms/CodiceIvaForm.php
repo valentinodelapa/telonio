@@ -47,6 +47,8 @@ class CodiceIvaForm extends BaseForm
                 ->addFilterFieldMode('inversioneContabile', FilterType::isBoolean)
                 ->addFilterFieldMode('ventilazione', FilterType::isBoolean)
                 ->addFilterFieldMode('norma', FilterType::isMaxLimitString, [255], true)
+                ->addFilterFieldMode('normaTestoUnico', FilterType::isMaxLimitString, [255], true)
+                ->addFilterFieldMode('validoFino', FilterType::isDate, [], true)
                 ->addFilterFieldMode('attivo', FilterType::isBoolean);
     }
 

@@ -135,7 +135,12 @@
                 "regimeDatiFiscali": "Come nei dati fiscali",
                 "rigoRedditi": "Rigo della dichiarazione dei redditi",
                 "percentualeDeducibile": "Percentuale deducibile o imponibile (%)",
-                "variazioneRedditi": "Variazione del quadro RF"
+                "variazioneRedditi": "Variazione del quadro RF",
+                "normaTestoUnico": "Norma dal 2027 (Testo unico IVA)",
+                "validoFino": "Operazioni fino al",
+                "giorniPagamento": "Termini di pagamento (giorni)",
+                "fineMesePagamento": "Scadenze a fine mese",
+                "modalitaPagamento": "Modalità di pagamento abituale"
             },
             "azioni": {
                 "salva": "Salva",
@@ -268,10 +273,12 @@
         },
         "codiceIva": {
             "index": {
-                "aiuto": "Codici IVA delle righe dei registri: aliquota o natura dell'operazione (codici della fattura elettronica), detraibilità proposta sugli acquisti, integrazione dell'imposta per gli acquisti in inversione contabile. Quelli della suite si aggiornano con \"sisma tabelle-contabilita\"."
+                "aiuto": "Codici IVA delle righe dei registri: aliquota o natura dell'operazione (codici della fattura elettronica), detraibilità proposta sugli acquisti, integrazione dell'imposta per gli acquisti in inversione contabile. Quelli della suite si aggiornano con \"sisma tabelle-contabilita\".",
+                "operazioniFino": "Operazioni fino al"
             },
             "form": {
-                "aiuto": "Indicare l'aliquota oppure, per le operazioni senza imposta, la natura."
+                "aiuto": "Indicare l'aliquota oppure, per le operazioni senza imposta, la natura.",
+                "aiutoValidoFino": "Ultimo giorno delle operazioni a cui il codice si applica (vuoto: senza limite); dopo quella data le registrazioni lo rifiutano."
             }
         },
         "controparte": {
@@ -280,7 +287,8 @@
                 "segnapostoRicerca": "Cerca per denominazione, partita IVA o codice fiscale"
             },
             "form": {
-                "aiuto": "Al salvataggio si aprono i sottoconti del partitario per i ruoli indicati. La partita IVA si indica senza il prefisso del paese."
+                "aiuto": "Al salvataggio si aprono i sottoconti del partitario per i ruoli indicati. La partita IVA si indica senza il prefisso del paese.",
+                "aiutoGiorniPagamento": "Giorni dalla data del documento, una rata per valore (es. 30,60,90): proposti come scadenze delle fatture senza dati di pagamento."
             }
         },
         "registrazione": {
@@ -324,7 +332,10 @@
                     "eccedenzaAcconto": "Registra l'importo non abbinato come acconto (partita da abbinare ai documenti successivi)",
                     "eccedenzaNota": "L'importo non abbinato resta una nota di credito da abbinare ai documenti successivi.",
                     "insolutoDi": "Insoluto che riapre",
-                    "nuovaPartita": "— nessun documento: nuova partita —"
+                    "nuovaPartita": "— nessun documento: nuova partita —",
+                    "titoloScadenze": "Scadenze",
+                    "aiutoScadenze": "rate del documento: dai dati di pagamento della fattura elettronica o dai termini della controparte; una riga in più per aggiungerne, svuotarla per toglierla",
+                    "modalita": "Modalità di pagamento"
                 }
             },
             "show": {
@@ -351,7 +362,8 @@
                 "importo": "Importo",
                 "colonnaAbbinamenti": "Abbinamenti",
                 "residuo": "Residuo",
-                "riapre": "Riapre"
+                "riapre": "Riapre",
+                "rataNumero": "rata"
             }
         },
         "registroIva": {
@@ -393,16 +405,17 @@
                 "prorataAssente": "Detrazione per intero.",
                 "prorataApplicato": "IVA detraibile ridotta al %d%% nelle liquidazioni.",
                 "prorataDaDichiarazione": "dalla dichiarazione IVA dell'anno precedente",
-                "aiutoProrata": "Per chi effettua anche operazioni esenti (art. 19, c. 5, e 19-bis D.P.R. 633/1972): si applica la percentuale definitiva dell'anno precedente, conguagliata nella dichiarazione annuale. Lasciare vuoto per detrarre per intero.",
+                "aiutoProrata": "Per chi effettua anche operazioni esenti (art. 19, c. 5, e 19-bis D.P.R. 633/1972; dal 2027 artt. 56, c. 5, e 57 D.Lgs. 10/2026): si applica la percentuale definitiva dell'anno precedente, conguagliata nella dichiarazione annuale. Lasciare vuoto per detrarre per intero.",
                 "anticipaTrimestre": "Anticipa il trimestre",
                 "aiutoAnticipa": "Attività trimestrali: liquidare il trimestre con il mese di fine trimestre (compensazione, termine mensile) o a parte (termine dei trimestrali, codici 6031-6033).",
-                "titoloTrimestreSeparato": "liquidazione separata delle attività trimestrali"
+                "titoloTrimestreSeparato": "liquidazione separata delle attività trimestrali",
+                "perNatura": "per natura (art. 74, c. 4: senza interessi, quarto trimestre entro il 16 febbraio)"
             },
             "common": {
                 "titoloVentilazione": "Ventilazione dei corrispettivi",
                 "acquistiRivendita": "Acquisti per rivendita dal 1° gennaio",
                 "corrispettiviVentilati": "Corrispettivi ripartiti",
-                "aiutoVentilazione": "Corrispettivi del periodo ripartiti in proporzione agli acquisti di beni per la rivendita, comprensivi dell'imposta, registrati dall'inizio dell'anno; imposta scorporata per aliquota (art. 24, c. 3, D.P.R. 633/1972; art. 3 D.M. 24 febbraio 1973).",
+                "aiutoVentilazione": "Corrispettivi del periodo ripartiti in proporzione agli acquisti di beni per la rivendita, comprensivi dell'imposta, registrati dall'inizio dell'anno; imposta scorporata per aliquota (art. 24, c. 3, D.P.R. 633/1972, dal 2027 art. 87, c. 3, D.Lgs. 10/2026; art. 3 D.M. 24 febbraio 1973).",
                 "titoloRiepilogo": "Riepilogo per registro e codice IVA",
                 "variata": "I registri del periodo sono cambiati dopo l'elaborazione: rielaborare la liquidazione.",
                 "titoloVersamenti": "Versamenti registrati per le deleghe F24",
@@ -420,7 +433,7 @@
         },
         "accontoIva": {
             "form": {
-                "aiuto": "L'acconto (art. 6, c. 2, L. 405/1990) è dell'88% con i metodi storico e previsionale, del 100% della liquidazione al 20 dicembre con il metodo analitico; non è dovuto se inferiore a 103,29 euro.",
+                "aiuto": "L'acconto (art. 6, c. 2, L. 405/1990; dal 2027 art. 111 D.Lgs. 10/2026) è dell'88% con i metodi storico e previsionale, del 100% della liquidazione al 20 dicembre con il metodo analitico; non è dovuto se inferiore a 103,29 euro.",
                 "proposta": "Base proposta"
             }
         },
@@ -432,7 +445,9 @@
             "show": {
                 "riepiloghi": "Riepiloghi IVA",
                 "descrizioni": "Prime righe del documento",
-                "titoloRegistrazione": "Registrazione"
+                "titoloRegistrazione": "Registrazione",
+                "titoloPagamenti": "Dati di pagamento",
+                "senzaScadenza": "alla data del documento"
             }
         },
         "stampaContabile": {
@@ -454,7 +469,7 @@
         "corrispettivi": {
             "mese": {
                 "titolo": "Corrispettivi di",
-                "aiuto": "Corrispettivi giornalieri comprensivi dell'imposta, per codice IVA. Il mese si registra con un'unica registrazione all'ultimo giorno (art. 6, c. 4, D.P.R. 695/1996: entro il 15 del mese successivo), con l'imposta scorporata dal totale mensile di ciascuna aliquota (art. 27, c. 4, D.P.R. 633/1972); il dettaglio giornaliero compare nella stampa del registro. Salvando di nuovo il mese la registrazione si aggiorna, azzerando tutti gli importi si elimina.",
+                "aiuto": "Corrispettivi giornalieri comprensivi dell'imposta, per codice IVA. Il mese si registra con un'unica registrazione all'ultimo giorno (art. 6, c. 4, D.P.R. 695/1996: entro il 15 del mese successivo), con l'imposta scorporata dal totale mensile di ciascuna aliquota (art. 27, c. 4, D.P.R. 633/1972; dal 2027 art. 109, c. 2, D.Lgs. 10/2026); il dettaglio giornaliero compare nella stampa del registro. Salvando di nuovo il mese la registrazione si aggiorna, azzerando tutti gli importi si elimina.",
                 "registrata": "Mese registrato:",
                 "mesePrecedente": "Mese precedente",
                 "meseSuccessivo": "Mese successivo",
@@ -469,7 +484,7 @@
                 "titoloFrontespizio": "Frontespizio"
             },
             "index": {
-                "aiuto": "Una comunicazione per trimestre (art. 21-bis D.L. 78/2010), preparata dalle liquidazioni elaborate: un modulo per mese per i mensili, uno per i trimestrali. Termine: ultimo giorno del secondo mese successivo al trimestre (30 settembre per il secondo, fine di febbraio per il quarto).",
+                "aiuto": "Una comunicazione per trimestre (art. 21-bis D.L. 78/2010; dal 2027 art. 51 D.Lgs. 141/2026), preparata dalle liquidazioni elaborate: un modulo per mese per i mensili, uno per i trimestrali. Termine: ultimo giorno del secondo mese successivo al trimestre (30 settembre per il secondo, fine di febbraio per il quarto).",
                 "nonPreparata": "Da preparare"
             },
             "show": {
@@ -500,7 +515,7 @@
         },
         "stampaDefinitiva": {
             "index": {
-                "aiuto": "Libro giornale (per esercizio, art. 2215 c.c.) e registri IVA (per anno solare, art. 39 D.P.R. 633/1972) con le pagine numerate per anno: ogni stampa prosegue dal giorno dopo la precedente e dalla pagina successiva; le registrazioni dei periodi stampati non si modificano più. La stampa si rigenera identica per la ristampa; si annulla solo l'ultima.",
+                "aiuto": "Libro giornale (per esercizio, art. 2215 c.c.) e registri IVA (per anno solare, art. 39 D.P.R. 633/1972; dal 2027 art. 95 D.Lgs. 10/2026) con le pagine numerate per anno: ogni stampa prosegue dal giorno dopo la precedente e dalla pagina successiva; le registrazioni dei periodi stampati non si modificano più. La stampa si rigenera identica per la ristampa; si annulla solo l'ultima.",
                 "nessunLibro": "Nessun libro da stampare: aprire l'esercizio dell'anno.",
                 "completo": "Stampato per intero.",
                 "nienteDaStampare": "Prossima stampa dal",
@@ -510,14 +525,14 @@
         },
         "attivitaIva": {
             "form": {
-                "aiuto": "Attività gestita con contabilità separata per obbligo di legge o per opzione (art. 36 D.P.R. 633/1972). Il numero dà l'ordine dei moduli della dichiarazione IVA.",
+                "aiuto": "Attività gestita con contabilità separata per obbligo di legge o per opzione (art. 36 D.P.R. 633/1972; dal 2027 art. 63 D.Lgs. 10/2026). Il numero dà l'ordine dei moduli della dichiarazione IVA.",
                 "aiutoAteco": "Codice del rigo VA2 del modulo dell'attività.",
                 "aiutoPeriodicita": "Solo se la separazione è obbligatoria e il volume d'affari dell'attività ne determina una diversa da quella dell'azienda: le attività trimestrali si liquidano nel mese di fine trimestre (liquidazione anticipata)."
             }
         },
         "gruppoIva": {
             "index": {
-                "aiuto": "Liquidazione IVA di gruppo (art. 73, c. 3, D.P.R. 633/1972; D.M. 13 dicembre 1979): le società partecipanti trasferiscono alla controllante il risultato delle loro liquidazioni, la controllante liquida e versa per il gruppo.",
+                "aiuto": "Liquidazione IVA di gruppo (art. 73, c. 3, D.P.R. 633/1972, dal 2027 art. 91, c. 3, D.Lgs. 10/2026; D.M. 13 dicembre 1979): le società partecipanti trasferiscono alla controllante il risultato delle loro liquidazioni, la controllante liquida e versa per il gruppo.",
                 "nuovoGruppo": "Opzione per l'IVA di gruppo",
                 "partecipaA": "Partecipa alla liquidazione IVA di gruppo della controllante %s dal %d",
                 "uscitaDal": ", uscita dal %d",

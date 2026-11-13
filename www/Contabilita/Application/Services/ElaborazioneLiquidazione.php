@@ -165,6 +165,7 @@ class ElaborazioneLiquidazione
         $liquidazione->periodo = $periodo;
         $liquidazione->periodicita = $periodicita;
         $liquidazione->trimestreSeparato = $separato;
+        $liquidazione->trimestraleSpeciale = ($periodicita === PeriodicitaIva::trimestrale) && ($separato === false) && (new RegimeIva($this->dataMapper))->isTrimestraleSpeciale($soggetto, $anno);
         $liquidazione->dataElaborazione = new SismaDateTime();
         $avvisi = [];
         $dettagli = $this->calcolaAttivita($liquidazione, $ventilazione, $avvisi, $anticipaTrimestre);
@@ -202,7 +203,7 @@ class ElaborazioneLiquidazione
         $liquidazione->versamentiAuto = round($versamentiAuto, 2);
         $liquidazione->creditiImposta = round($creditiImposta, 2);
         if ($creditiImposta > 0) {
-            if (($periodicita === PeriodicitaIva::trimestrale) && ($periodo === 4)) {
+            if ($liquidazione->isQuartoTrimestreConDichiarazione()) {
                 throw new \DomainException('Quarto trimestre: i crediti d\'imposta si scomputano nel saldo della dichiarazione annuale.');
             }
             $massimo = $this->getMassimoCreditiImposta($liquidazione);
@@ -218,7 +219,9 @@ class ElaborazioneLiquidazione
         }
         $interessiAnticipati = array_sum(array_map(fn(LiquidazioneAttivita $dettaglio) => $dettaglio->interessi, $dettagli ?? []));
         $this->determinaImporti($liquidazione, $interessiAnticipati);
-        if (($periodicita === PeriodicitaIva::trimestrale) && ($periodo === 4)) {
+        if ($liquidazione->trimestraleSpeciale) {
+            $avvisi[] = 'Trimestrale per natura dell\'attività (art. 74, c. 4): senza gli interessi dell\'1%' . ($periodo === 4 ? '; il quarto trimestre si versa entro il 16 febbraio con il codice 6034.' : '.');
+        } elseif (($periodicita === PeriodicitaIva::trimestrale) && ($periodo === 4)) {
             $avvisi[] = $liquidazione->gruppoIva === null ? 'Quarto trimestre: si versa con il saldo della dichiarazione annuale entro il 16 marzo (codice 6099, con gli interessi dell\'1%).'
                         : 'Quarto trimestre: il saldo si trasferisce al gruppo con la dichiarazione annuale (rigo VX7 o VX8).';
         }
@@ -226,7 +229,7 @@ class ElaborazioneLiquidazione
             $avvisi[] = sprintf('IVA di gruppo: %s di € %s trasferito alla controllante %s, che lo liquida con il gruppo (nessun versamento della società).',
                     $liquidazione->getSaldoTrasferito() >= 0 ? 'debito' : 'credito', number_format(abs($liquidazione->getSaldoTrasferito()), 2, ',', '.'), $liquidazione->gruppoIva->controllante->nominativo);
         }
-        $liquidazione->scadenza = PeriodiIva::getScadenza($periodicita, $anno, $periodo);
+        $liquidazione->scadenza = PeriodiIva::getScadenza($periodicita, $anno, $periodo, $liquidazione->trimestraleSpeciale);
         $this->dataMapper->save($liquidazione);
         $dettaglioModel = new LiquidazioneAttivitaModel($this->dataMapper);
         foreach ($dettaglioModel->getPerLiquidazione($liquidazione) as $vecchio) {
@@ -397,7 +400,8 @@ class ElaborazioneLiquidazione
             $liquidazione->debitoRinviato = $saldo;
             return;
         }
-        if ($liquidazione->periodicita === PeriodicitaIva::trimestrale) {
+        // gli interessi dell'1% sono dei trimestrali per opzione (art. 7 D.P.R. 542/1999), non di quelli per natura
+        if (($liquidazione->periodicita === PeriodicitaIva::trimestrale) && ($liquidazione->trimestraleSpeciale === false)) {
             $liquidazione->interessi = round($saldo * PeriodiIva::INTERESSI_TRIMESTRALI / 100, 2);
             $saldo += $liquidazione->interessi;
         }
@@ -412,7 +416,7 @@ class ElaborazioneLiquidazione
         if ($liquidazione->importoDovuto <= 0) {
             return [];
         }
-        $codice = PeriodiIva::getCodiceTributo($liquidazione->periodicita, $liquidazione->periodo);
+        $codice = PeriodiIva::getCodiceTributo($liquidazione->periodicita, $liquidazione->periodo, $liquidazione->trimestraleSpeciale);
         $versamento = new Versamento($this->dataMapper);
         $versamento->scadenza = $liquidazione->scadenza;
         $versamento->sezione = SezioneF24::erario;

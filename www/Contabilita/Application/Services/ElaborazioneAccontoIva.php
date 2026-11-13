@@ -69,7 +69,7 @@ class ElaborazioneAccontoIva
                 }
                 $base = round($precedente->importoDovuto - $precedente->interessi + $precedente->acconto + $precedente->debitoRinviato, 2);
                 return [max(0.0, $base), 'Dovuto per ' . $precedente->getDescrizionePeriodo() . ' al lordo dell\'acconto'
-                    . ($precedente->periodicita === PeriodicitaIva::trimestrale ? ' (per i trimestrali verificare con il saldo della dichiarazione annuale)' : '') . '.'];
+                    . ($precedente->isQuartoTrimestreConDichiarazione() ? ' (per i trimestrali verificare con il saldo della dichiarazione annuale)' : '') . '.'];
             case MetodoAccontoIva::analitico:
                 $dal = $periodicita === PeriodicitaIva::trimestrale ? new SismaDate($anno . '-10-01') : new SismaDate($anno . '-12-01');
                 $risultato = (new CalcoloLiquidazioneIva($this->dataMapper))->calcola($soggetto, $dal, new SismaDate($anno . '-12-20'));

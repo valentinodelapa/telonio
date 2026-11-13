@@ -36,6 +36,10 @@ class TabelleEControllersTest extends ContabilitaTestCase
         $this->assertSame('22.00', $codici['22']['aliquota']);
         $this->assertSame(1, $codici['RC22']['inversione_contabile']);
         $this->assertSame('N6.3', $codici['N6.3']['natura']);
+        $this->assertSame('art. 64, c. 6, lett. a), D.Lgs. 10/2026', $codici['N6.3']['norma_testo_unico']);
+        $this->assertSame('2026-12-31', $codici['N6.5']['valido_fino']);
+        $this->assertNull($codici['N6.3']['valido_fino']);
+        $this->assertSame('art. 1, c. 58, L. 190/2014; artt. 2, 3, 4 D.P.R. 633/1972', $codici['N2.2']['norma'], 'norma con il punto e virgola tra virgolette, non troncata');
         $istruzioni = implode("\n", iterator_to_array($tabelle->istruzioni($dati), false));
         $this->assertStringContainsString('INSERT INTO `piano_conti`', $istruzioni);
         $this->assertStringContainsString('UPDATE `codice_iva` SET `attivo` = 0', $istruzioni);
@@ -65,7 +69,14 @@ class TabelleEControllersTest extends ContabilitaTestCase
             }
             file_put_contents($cartella . 'conti.csv', implode(';', TabelleContabilita::COLONNE_CONTI) . "\n1;1;01;Attivo;A;;\n1;2;01.01;Clienti;A;CLI;\n1;3;02;Passivo;P;;\n1;4;02.01;Fornitori;P;FOR;\n");
             file_put_contents($cartella . 'codici-iva.csv', implode(';', TabelleContabilita::COLONNE_CODICI_IVA) . "\n1;N4;Esenti;10.00;N4;100;0;0;art. 10\n");
-            $this->expectExceptionMessage('la natura si indica solo senza aliquota');
+            try {
+                (new TabelleContabilita($cartella))->leggi();
+                $this->fail('Natura con aliquota accettata');
+            } catch (\UnexpectedValueException $errore) {
+                $this->assertStringContainsString('la natura si indica solo senza aliquota', $errore->getMessage());
+            }
+            file_put_contents($cartella . 'codici-iva.csv', implode(';', TabelleContabilita::COLONNE_CODICI_IVA) . "\n1;N6.5;Cellulari;0.00;N6.5;100;0;0;art. 17;art. 64;31/12/2026\n");
+            $this->expectExceptionMessage('data di fine validità non valida');
             (new TabelleContabilita($cartella))->leggi();
         } finally {
             array_map('unlink', glob($cartella . '*'));

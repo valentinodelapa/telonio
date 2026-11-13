@@ -24,7 +24,9 @@ require Layout::percorso('header');
             <?= Campo::spunta('attivo', $campi['attivo'], $formEntity, $errors, ['colonna' => 'col-md-2']) ?>
             <?= Campo::spunta('inversioneContabile', $campi['inversioneContabile'], $formEntity, $errors, ['colonna' => 'col-12']) ?>
             <?= Campo::spunta('ventilazione', $campi['ventilazioneCodice'], $formEntity, $errors, ['colonna' => 'col-12']) ?>
-            <?= Campo::testo('norma', $campi['norma'], $formEntity, $errors, ['colonna' => 'col-12', 'attributi' => 'maxlength="255"']) ?>
+            <?= Campo::testo('norma', $campi['norma'], $formEntity, $errors, ['colonna' => 'col-md-6', 'attributi' => 'maxlength="255"']) ?>
+            <?= Campo::testo('normaTestoUnico', $campi['normaTestoUnico'], $formEntity, $errors, ['colonna' => 'col-md-6', 'attributi' => 'maxlength="255"']) ?>
+            <?= Campo::data('validoFino', $campi['validoFino'], $formEntity, $errors, ['colonna' => 'col-md-3', 'aiuto' => $aiutoValidoFino]) ?>
         </div>
     </div>
     <?php require __DIR__ . '/../commonParts/pulsantiForm.php'; ?>

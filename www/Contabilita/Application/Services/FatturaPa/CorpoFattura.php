@@ -3,6 +3,7 @@
 namespace Contabilita\Application\Services\FatturaPa;
 
 use Contabilita\Application\Enumerations\EsigibilitaIva;
+use Contabilita\Application\Enumerations\ModalitaPagamento;
 use Contabilita\Application\Enumerations\NaturaIva;
 use Contabilita\Application\Enumerations\TipoDocumentoFattura;
 
@@ -26,6 +27,17 @@ class CorpoFattura
 
     /** @var string[] descrizioni delle prime linee di dettaglio */
     public array $descrizioni = [];
+
+    /** @var string|null condizioni di pagamento (TP01 a rate, TP02 completo, TP03 anticipo) */
+    public ?string $condizioniPagamento = null;
+
+    /**
+     * Dettagli di pagamento (2.4.2): scadenza indicata o calcolata dai
+     * termini, importo, modalità e IBAN.
+     *
+     * @var array<int, array{modalita: ?ModalitaPagamento, scadenza: ?\DateTimeImmutable, importo: float, iban: ?string}>
+     */
+    public array $pagamenti = [];
 
     public function getTotale(): float
     {

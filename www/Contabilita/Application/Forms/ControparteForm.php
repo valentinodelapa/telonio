@@ -2,6 +2,7 @@
 
 namespace Contabilita\Application\Forms;
 
+use Contabilita\Application\Services\ScadenzePagamento;
 use Contabilita\Application\Entities\Controparte;
 use Contabilita\Application\Enumerations\LivelloConto;
 use SismaFramework\Core\BaseClasses\BaseForm;
@@ -37,7 +38,10 @@ class ControparteForm extends BaseForm
                 $this->addRequest($campo, strtoupper(preg_replace('/\s+/', '', $this->request->input[$campo])));
             }
         }
-        foreach (['cliente', 'fornitore', 'pubblicaAmministrazione', 'agricoltoreEsonerato'] as $campo) {
+        if (isset($this->request->input['giorniPagamento']) && is_string($this->request->input['giorniPagamento'])) {
+            $this->addRequest('giorniPagamento', preg_replace('/[\s;]+/', ',', trim($this->request->input['giorniPagamento'])));
+        }
+        foreach (['cliente', 'fornitore', 'pubblicaAmministrazione', 'agricoltoreEsonerato', 'fineMesePagamento'] as $campo) {
             $this->addRequest($campo, isset($this->request->input[$campo]) ? '1' : '0');
         }
     }
@@ -63,6 +67,9 @@ class ControparteForm extends BaseForm
                 ->addFilterFieldMode('pubblicaAmministrazione', FilterType::isBoolean)
                 ->addFilterFieldMode('contoContropartita', FilterType::isEntity, [], true)
                 ->addFilterFieldMode('codiceIva', FilterType::isEntity, [], true)
+                ->addFilterFieldMode('giorniPagamento', FilterType::isMaxLimitString, [100], true)
+                ->addFilterFieldMode('fineMesePagamento', FilterType::isBoolean)
+                ->addFilterFieldMode('modalitaPagamento', FilterType::isEnumeration, [], true)
                 ->addFilterFieldMode('note', FilterType::isMaxLimitString, [2000], true);
     }
 
@@ -77,6 +84,10 @@ class ControparteForm extends BaseForm
     {
         $valido = true;
         $dati = $this->entityData;
+        if (ScadenzePagamento::leggiGiorni($dati->giorniPagamento ?? null) === null) {
+            $this->formFilterError->giorniPagamentoCustomMessage = 'Giorni crescenti separati da virgole (es. 30,60,90), al massimo ' . ScadenzePagamento::MASSIMO_RATE . ' rate e ' . ScadenzePagamento::MASSIMO_GIORNI . ' giorni.';
+            $valido = false;
+        }
         $estera = (($dati->nazione ?? null) !== null) && ($dati->nazione->codiceIso !== 'IT');
         if (($dati->cliente === false) && ($dati->fornitore === false)) {
             $this->formFilterError->clienteCustomMessage = 'Indicare se è cliente, fornitore o entrambi.';

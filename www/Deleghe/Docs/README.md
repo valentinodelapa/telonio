@@ -604,6 +604,22 @@ omessi regolarizzati con un ravvedimento. `VersamentoModel::getPerPeriodo`
 legge i versamenti dello studio (o del contribuente) con scadenza nel
 periodo.
 
+## Testi unici dal 2027
+
+Dal 1° gennaio 2027 si applicano il testo unico versamenti e riscossione
+(D.Lgs. 33/2025) e il testo unico delle sanzioni tributarie (D.Lgs.
+173/2024), con la decorrenza rinviata dal D.L. 200/2025 (art. 4). Sono
+compilativi: rateazione e ravvedimento non cambiano, cambia la
+numerazione. L'art. 20 D.Lgs. 241/1997 (pagamenti rateali) diventa l'art.
+10 D.Lgs. 33/2025 e l'art. 18 (termini di versamento) l'art. 8. L'art. 13
+D.Lgs. 472/1997 (ravvedimento) diventa l'art. 14 D.Lgs. 173/2024, con le
+lettere del comma 1 rinumerate (b-ter, b-quater e b-quinquies diventano e,
+f e g). L'art. 13 D.Lgs. 471/1997 (omessi versamenti) diventa l'art. 38.
+Il messaggio di rateazione non ammessa cita la norma della scadenza del
+versamento e gli aiuti citano entrambe. Le corrispondenze sono indicate
+sotto la rubrica di ciascun articolo dei testi unici in Gazzetta Ufficiale.
+I commenti del codice citano le norme previgenti.
+
 ## Multi-studio
 
 Deleghe, versamenti, crediti, intermediari e invii appartengono a uno
