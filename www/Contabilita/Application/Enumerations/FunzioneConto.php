@@ -27,6 +27,22 @@ enum FunzioneConto: string
     case ivaGruppo = 'IVG';
     case ritenuteSubite = 'RTS';
     case ritenuteDaVersare = 'RTV';
+    case rateiAttivi = 'RAA';
+    case riscontiAttivi = 'RIA';
+    case rateiPassivi = 'RAP';
+    case riscontiPassivi = 'RIP';
+    case utileEsercizio = 'UTE';
+    case perditaEsercizio = 'PEE';
+    case aperturaPatrimoniale = 'SPA';
+    case chiusuraPatrimoniale = 'SPC';
+    case contoEconomico = 'CEC';
+    case plusvalenze = 'PLV';
+    case minusvalenze = 'MNV';
+    case capitaleSociale = 'CSO';
+    case capitaleNetto = 'CNE';
+    case riservaLegale = 'RLE';
+    case riservaStraordinaria = 'RST';
+    case utiliANuovo = 'UNU';
 
     public function getLabel(): string
     {
@@ -47,6 +63,22 @@ enum FunzioneConto: string
             self::ivaGruppo => 'IVA di gruppo (debiti e crediti trasferiti alla controllante)',
             self::ritenuteSubite => 'Erario c/ritenute subite (incassi dei compensi)',
             self::ritenuteDaVersare => 'Erario c/ritenute da versare (pagamenti ai professionisti)',
+            self::rateiAttivi => 'Ratei attivi (assestamento)',
+            self::riscontiAttivi => 'Risconti attivi (assestamento)',
+            self::rateiPassivi => 'Ratei passivi (assestamento)',
+            self::riscontiPassivi => 'Risconti passivi (assestamento)',
+            self::utileEsercizio => 'Utile dell\'esercizio (chiusura)',
+            self::perditaEsercizio => 'Perdita dell\'esercizio (chiusura)',
+            self::aperturaPatrimoniale => 'Stato patrimoniale di apertura',
+            self::chiusuraPatrimoniale => 'Stato patrimoniale di chiusura',
+            self::contoEconomico => 'Conto economico (epilogo)',
+            self::plusvalenze => 'Plusvalenze (cessione dei cespiti)',
+            self::minusvalenze => 'Minusvalenze (cessione dei cespiti)',
+            self::capitaleSociale => 'Capitale sociale',
+            self::capitaleNetto => 'Capitale netto (imprese individuali e società di persone)',
+            self::riservaLegale => 'Riserva legale',
+            self::riservaStraordinaria => 'Riserva straordinaria',
+            self::utiliANuovo => 'Utili (perdite) portati a nuovo',
         };
     }
 

@@ -250,6 +250,9 @@ class FormsTest extends SuiteTestCase
             'dettagliante con ventilazione' => ['PF', 'IMP', ['regimeFiscale' => 'SEM', 'periodicitaIva' => 'T', 'ventilazioneCorrispettivi' => '1'], null],
             'trimestrale per natura' => ['PF', 'IMP', ['regimeFiscale' => 'SEM', 'periodicitaIva' => 'T', 'trimestraleSpeciale' => '1'], null],
             'mensile per natura' => ['PF', 'IMP', ['regimeFiscale' => 'SEM', 'periodicitaIva' => 'M', 'trimestraleSpeciale' => '1'], 'trimestraleSpecialeCustomMessage'],
+            'IVA per cassa' => ['SP', null, ['regimeFiscale' => 'SEM', 'periodicitaIva' => 'T', 'ivaPerCassa' => '1'], null],
+            'forfetario per cassa' => ['PF', 'LAV', ['regimeFiscale' => 'FOR', 'ivaPerCassa' => '1'], 'ivaPerCassaCustomMessage'],
+            'per cassa con regime speciale' => ['PF', 'IMP', ['regimeFiscale' => 'SEM', 'periodicitaIva' => 'T', 'ivaPerCassa' => '1', 'regimeDetrazioneIva' => 'AGR'], 'ivaPerCassaCustomMessage'],
         ];
     }
 

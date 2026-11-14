@@ -2,6 +2,8 @@
 
 namespace Contabilita\Application\Services\FatturaPa;
 
+use Contabilita\Application\Enumerations\CausaleContabile;
+use Contabilita\Application\Enumerations\EsigibilitaIva;
 use Contabilita\Application\Entities\CodiceIva;
 use Contabilita\Application\Entities\EsercizioContabile;
 use Contabilita\Application\Entities\FatturaElettronica;
@@ -71,7 +73,7 @@ class PropostaDaFattura
         $registrazione->descrizione = mb_substr($fattura->tipoDocumento->getLabel() . ' ' . $fattura->denominazioneControparte, 0, 255);
         $registrazione->registroIva = (new RegistroIvaModel($this->dataMapper))->getPerTipo($soggetto, $causale->getTipoRegistroIva())[0] ?? null;
         $registrazione->dataCompetenzaIva = $fattura->direzione === DirezioneFattura::emessa ? $fattura->data : $registrazione->dataRegistrazione;
-        $registrazione->esigibilita = $corpo->getEsigibilita();
+        $registrazione->esigibilita = $this->getEsigibilita($fattura, $corpo->getEsigibilita(), $causale);
         // bollo virtuale delle fatture emesse, versato per trimestre (Services\ImpostaBolloFatture)
         $registrazione->impostaBollo = $fattura->direzione === DirezioneFattura::emessa ? $corpo->bollo : null;
         $segno = $causale->getSegno();
@@ -97,6 +99,26 @@ class PropostaDaFattura
         }
         $registrazione->totaleDocumento = round(abs(PropostaRighe::totaleDocumento($righe)), 2);
         return [$registrazione, $righe];
+    }
+
+    /**
+     * Esigibilità della registrazione: per le aziende con l'IVA per cassa le
+     * fatture emesse a esigibilità differita e le fatture ricevute (salvo
+     * le integrazioni in inversione contabile, escluse dal D.M. 11 ottobre
+     * 2012, art. 3) sono per cassa; l'esigibilità differita del fornitore
+     * non sposta la detrazione del cessionario (art. 32-bis, c. 1, D.L.
+     * 83/2012; dal 2027 art. 132 D.Lgs. 10/2026).
+     */
+    private function getEsigibilita(FatturaElettronica $fattura, EsigibilitaIva $documento, CausaleContabile $causale): EsigibilitaIva
+    {
+        $cassa = (new RegimeIva($this->dataMapper))->isIvaPerCassa($fattura->soggetto, (int) $fattura->data->format('Y'));
+        if ($fattura->direzione === DirezioneFattura::emessa) {
+            return $cassa && ($documento === EsigibilitaIva::differita) && ($causale === CausaleContabile::fatturaVendita) ? EsigibilitaIva::perCassa : $documento;
+        }
+        if ($cassa && ($causale === CausaleContabile::fatturaAcquisto) && ($fattura->tipoDocumento->isIntegrazione() === false)) {
+            return EsigibilitaIva::perCassa;
+        }
+        return $documento === EsigibilitaIva::differita ? EsigibilitaIva::immediata : $documento;
     }
 
     /**

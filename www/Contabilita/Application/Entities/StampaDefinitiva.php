@@ -54,7 +54,7 @@ class StampaDefinitiva extends BaseEntity
 
     public function getDescrizione(): string
     {
-        return ($this->tipo === TipoStampaDefinitiva::giornale ? 'Libro giornale' : $this->registroIva->getEtichetta())
+        return ($this->tipo === TipoStampaDefinitiva::registroIva ? $this->registroIva->getEtichetta() : $this->tipo->getLabel())
                 . ' ' . $this->dal->format('d/m/Y') . ' - ' . $this->al->format('d/m/Y');
     }
 

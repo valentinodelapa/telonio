@@ -2,6 +2,10 @@
 
 namespace Contabilita\Application\Controllers;
 
+use Deleghe\Application\Exceptions\DelegaNonModificabileException;
+use Contabilita\Application\Services\RegimeForfetario;
+use Contabilita\Application\Models\EsercizioContabileModel;
+use Contabilita\Application\Services\PlafondEsportatori;
 use Anagrafica\Application\Entities\Soggetto;
 use Contabilita\Application\BaseClasses\ContabilitaController;
 use Contabilita\Application\Entities\LiquidazioneIva;
@@ -75,6 +79,20 @@ class LiquidazioneIvaController extends ContabilitaController
             $this->vars['prorataAttivita'][$numero] = (new ProrataIvaModel($this->dataMapper))->getPerAnno($soggetto, $anno, $attivita);
         }
         $this->vars['scadenzaAcconto'] = PeriodiIva::getScadenzaAcconto($anno);
+        $this->vars['plafond'] = (new PlafondEsportatori($this->dataMapper))->riepiloga($soggetto, $anno);
+        // regime forfetario: soglie dei ricavi e IVA degli acquisti in inversione contabile al posto delle liquidazioni
+        $forfetario = new RegimeForfetario($this->dataMapper);
+        $this->vars['forfetario'] = null;
+        if (($periodicita === null) && $forfetario->isForfetario($soggetto, $anno)) {
+            $percepiti = $forfetario->getPercepiti($soggetto, $anno);
+            $periodi = $forfetario->getIvaDovuta($soggetto, $anno);
+            $versamenti = new VersamentoModel($this->dataMapper);
+            foreach ($periodi as $chiave => &$periodo) {
+                $periodo['registrati'] = iterator_to_array($versamenti->getGenerati($soggetto, RegimeForfetario::ORIGINE, RegimeForfetario::getRiferimento($anno, $chiave)), false);
+            }
+            unset($periodo);
+            $this->vars['forfetario'] = ['percepiti' => $percepiti, 'soglia' => RegimeForfetario::verificaSoglie($percepiti, $anno), 'periodi' => $periodi];
+        }
         $this->vars['anniIva'] = range((int) date('Y') + 1, (int) date('Y') - 5);
         $this->vars['sezioneAzienda'] = 'liquidazioni';
         $this->vars['pageTitle'] = $soggetto->nominativo . ' · Liquidazioni IVA ' . $anno;
@@ -110,6 +128,55 @@ class LiquidazioneIvaController extends ContabilitaController
             $this->aggiungiMessaggio('Liquidazione non elaborata: ' . $errore->getMessage(), 'danger');
             return $this->router->redirect('liquidazione-iva/index/soggetto/' . $soggetto->id . '/anno/' . $anno);
         }
+    }
+
+    /**
+     * Regime forfetario: registra il versamento dell'IVA degli acquisti in
+     * inversione contabile del periodo (mese o trimestre).
+     */
+    public function forfetario(Request $request, Soggetto $soggetto, int $anno, string $periodo): Response
+    {
+        if ($this->caricaAzienda($soggetto) === null) {
+            return $this->contabilitaNonAperta($soggetto);
+        }
+        $this->verificaCsrf($request);
+        try {
+            $esito = (new RegimeForfetario($this->dataMapper))->registra($soggetto, $anno, $periodo);
+            foreach ($esito->versamenti as $versamento) {
+                $this->aggiungiMessaggio('Versamento di € ' . Importo::euro($versamento->importoDebito) . ' (' . $versamento->codiceTributo->codice . ') registrato in Deleghe F24 per il ' . $versamento->scadenza->format('d/m/Y')
+                        . ': verificare il codice tributo, non istituito per i versamenti trimestrali dei forfetari.', 'warning');
+            }
+            if (count($esito->versamenti) === 0) {
+                $this->aggiungiMessaggio('Nessuna imposta da versare per il periodo.');
+            }
+            foreach ($esito->differenze as $differenza) {
+                $this->aggiungiMessaggio($differenza, 'warning');
+            }
+        } catch (\DomainException | \InvalidArgumentException | DelegaNonModificabileException $errore) {
+            $this->aggiungiMessaggio('Versamento non registrato: ' . $errore->getMessage(), 'danger');
+        }
+        return $this->router->redirect('liquidazione-iva/index/soggetto/' . $soggetto->id . '/anno/' . $anno);
+    }
+
+    /**
+     * Metodo del plafond degli esportatori abituali per l'anno (solare o
+     * mensile), sull'esercizio contabile.
+     */
+    public function plafond(Request $request, Soggetto $soggetto, int $anno): Response
+    {
+        if ($this->caricaAzienda($soggetto) === null) {
+            return $this->contabilitaNonAperta($soggetto);
+        }
+        $this->verificaCsrf($request);
+        $esercizio = (new EsercizioContabileModel($this->dataMapper))->getPerAnno($soggetto, $anno);
+        if ($esercizio === null) {
+            $this->aggiungiMessaggio('Nessun esercizio contabile del ' . $anno . '.', 'danger');
+        } else {
+            $esercizio->plafondMensile = ($request->input['metodo'] ?? '') === 'mensile';
+            $this->dataMapper->save($esercizio);
+            $this->aggiungiMessaggio('Plafond ' . $anno . ': metodo ' . ($esercizio->plafondMensile ? 'mensile' : 'solare') . '. Rielaborare le liquidazioni per aggiornare gli avvisi.');
+        }
+        return $this->router->redirect('liquidazione-iva/index/soggetto/' . $soggetto->id . '/anno/' . $anno);
     }
 
     /**
@@ -161,6 +228,7 @@ class LiquidazioneIvaController extends ContabilitaController
                 PeriodiIva::getFine($liquidazione->periodicita, $liquidazione->anno, $liquidazione->periodo));
         $this->vars['liquidazione'] = $liquidazione;
         $this->vars['riepilogo'] = $risultato->riepilogo;
+        $this->vars['sospese'] = $risultato->sospese;
         $this->vars['dettagliAttivita'] = (new LiquidazioneAttivitaModel($this->dataMapper))->getPerLiquidazione($liquidazione);
         try {
             $this->vars['ventilazione'] = (new VentilazioneCorrispettivi($this->dataMapper))->calcola($soggetto, PeriodiIva::getInizio($liquidazione->periodicita, $liquidazione->anno, $liquidazione->periodo),

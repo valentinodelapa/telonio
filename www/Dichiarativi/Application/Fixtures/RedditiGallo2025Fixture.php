@@ -2,6 +2,7 @@
 
 namespace Dichiarativi\Application\Fixtures;
 
+use Contabilita\Application\Services\RegimeForfetario;
 use Anagrafica\Application\Entities\DatiFiscali;
 use Anagrafica\Application\Entities\Indirizzo;
 use Anagrafica\Application\Enumerations\ClassificazioneAteco;
@@ -92,6 +93,13 @@ class RedditiGallo2025Fixture extends BaseFixture
         RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $cliente, CausaleContabile::fatturaVendita, '2025-06-15', '2', ['N2.2' => 6000.0]);
         RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $cliente, CausaleContabile::incasso, '2025-07-30', null, [], ['totale' => 6000.0]);
         RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $cliente, CausaleContabile::fatturaVendita, '2025-11-20', '3', ['N2.2' => 5000.0]);
+        // servizi da un fornitore UE (integrazione): IVA versata dalla forfetaria, mensile fino a settembre 2025, poi trimestrale
+        $fornitoreUe = $demo->controparte($gallo, 'Creative Cloud Services Ltd', 'IE6388047V', false, null, 'IE');
+        RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $fornitoreUe, CausaleContabile::fatturaAcquisto, '2025-05-05', 'IE-5521', ['ES22' => 120.0]);
+        RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $fornitoreUe, CausaleContabile::fatturaAcquisto, '2025-11-05', 'IE-9934', ['ES22' => 120.0]);
+        $forfetario = new RegimeForfetario($this->dataMapper);
+        $forfetario->registra($gallo, 2025, 'M05');
+        $forfetario->registra($gallo, 2025, 'T4');
 
         // contributi della Gestione separata versati a giugno
         $delega = new Delega($this->dataMapper);

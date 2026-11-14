@@ -2,6 +2,7 @@
 
 namespace Contabilita\Application\Services\StampaDefinitiva;
 
+use Contabilita\Application\Services\Ammortamenti;
 use Anagrafica\Application\Entities\Soggetto;
 use Contabilita\Application\Entities\EsercizioContabile;
 use Contabilita\Application\Entities\RegistrazioneContabile;
@@ -47,7 +48,7 @@ class StampeDefinitive
      */
     public function getPeriodoSuccessivo(Soggetto $soggetto, TipoStampaDefinitiva $tipo, ?RegistroIva $registro, int $anno): array
     {
-        if ($tipo === TipoStampaDefinitiva::giornale) {
+        if ($tipo !== TipoStampaDefinitiva::registroIva) {
             $esercizio = $this->getEsercizio($soggetto, $anno);
             [$inizio, $fine] = [$esercizio->dataInizio, $esercizio->dataFine];
         } else {
@@ -67,7 +68,8 @@ class StampeDefinitive
         if (($tipo === TipoStampaDefinitiva::registroIva) && (($registro === null) || ($registro->soggetto->id !== $soggetto->id))) {
             throw new \DomainException('Registro IVA non valido.');
         }
-        [$dal, $fine] = $this->getPeriodoSuccessivo($soggetto, $tipo, $tipo === TipoStampaDefinitiva::giornale ? null : $registro, $anno);
+        $registro = $tipo === TipoStampaDefinitiva::registroIva ? $registro : null;
+        [$dal, $fine] = $this->getPeriodoSuccessivo($soggetto, $tipo, $registro, $anno);
         if ($dal->format('Y-m-d') > $fine->format('Y-m-d')) {
             throw new \DomainException('Il periodo è già stampato per intero.');
         }
@@ -77,15 +79,18 @@ class StampeDefinitive
         if ($al->format('Y-m-d') >= date('Y-m-d')) {
             throw new \DomainException('Si stampano in definitiva solo i periodi già conclusi (fino a ieri).');
         }
+        if (($tipo === TipoStampaDefinitiva::registroBeni) && ($al->format('Y-m-d') !== $fine->format('Y-m-d'))) {
+            throw new \DomainException('Il registro dei beni ammortizzabili si stampa per l\'intero esercizio, fino al ' . $fine->format('d/m/Y') . '.');
+        }
         $model = new StampaDefinitivaModel($this->dataMapper);
-        $ultima = $model->getUltima($soggetto, $tipo, $tipo === TipoStampaDefinitiva::giornale ? null : $registro, $anno);
+        $ultima = $model->getUltima($soggetto, $tipo, $registro, $anno);
         $stampa = new StampaDefinitiva($this->dataMapper);
         $stampa->studio = $soggetto->studio;
         $stampa->soggetto = $soggetto;
         $stampa->tipo = $tipo;
         $stampa->anno = $anno;
-        $stampa->esercizioContabile = $tipo === TipoStampaDefinitiva::giornale ? $this->getEsercizio($soggetto, $anno) : null;
-        $stampa->registroIva = $tipo === TipoStampaDefinitiva::giornale ? null : $registro;
+        $stampa->esercizioContabile = $tipo === TipoStampaDefinitiva::registroIva ? null : $this->getEsercizio($soggetto, $anno);
+        $stampa->registroIva = $registro;
         $stampa->dal = $dal;
         $stampa->al = $al;
         $stampa->primaPagina = $ultima === null ? 1 : $ultima->ultimaPagina + 1;
@@ -113,7 +118,11 @@ class StampeDefinitive
      */
     public function getPagine(StampaDefinitiva $stampa): array
     {
-        $blocchi = $stampa->tipo === TipoStampaDefinitiva::giornale ? $this->bloccoGiornale($stampa) : $this->blocchiRegistro($stampa);
+        $blocchi = match ($stampa->tipo) {
+            TipoStampaDefinitiva::giornale => $this->bloccoGiornale($stampa),
+            TipoStampaDefinitiva::registroIva => $this->blocchiRegistro($stampa),
+            TipoStampaDefinitiva::registroBeni => $this->bloccoBeni($stampa),
+        };
         return Impaginazione::impagina($blocchi, $stampa->righePerPagina, $stampa->primaPagina);
     }
 
@@ -275,6 +284,42 @@ class StampeDefinitive
                     ['etichetta' => 'Imponibile', 'numero' => true, 'larghezza' => 10], ['etichetta' => 'Imposta', 'numero' => true, 'larghezza' => 10]]];
         }
         return $blocchi;
+    }
+
+    /**
+     * Registro dei beni ammortizzabili dell'esercizio: per bene costo,
+     * coefficiente, fondo iniziale, quota, fondo finale, residuo e
+     * dismissione.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function bloccoBeni(StampaDefinitiva $stampa): array
+    {
+        $esercizio = $stampa->esercizioContabile ?? $this->getEsercizio($stampa->soggetto, $stampa->anno);
+        $righe = [];
+        $totali = [4 => 0.0, 6 => 0.0, 7 => 0.0, 8 => 0.0, 9 => 0.0];
+        foreach ((new Ammortamenti($this->dataMapper))->calcola($stampa->soggetto, $esercizio) as $voce) {
+            $cespite = $voce['cespite'];
+            $celle = [$cespite->codice, $cespite->descrizione, $cespite->contoCespite->getEtichetta(), $cespite->dataAcquisto->format('d/m/Y'), $cespite->costo,
+                number_format($cespite->percentuale, 2, ',', '.') . ($voce['primo'] && $cespite->riduzionePrimoEsercizio && ($cespite->deduzioneIntegrale === false) ? ' (1/2)' : ''),
+                $voce['fondoInizio'], $voce['quota'], $voce['fondoFine'], $voce['residuo'],
+                $voce['dismesso'] ? 'Dismesso il ' . $cespite->dataDismissione->format('d/m/Y') . ($voce['plusvalenza'] >= 0 ? ', plusvalenza ' : ', minusvalenza ') . number_format(abs($voce['plusvalenza']), 2, ',', '.') : ''];
+            foreach (array_keys($totali) as $indice) {
+                $totali[$indice] = round($totali[$indice] + (float) $celle[$indice], 2);
+            }
+            $righe[] = ['celle' => $celle];
+        }
+        if (count($righe) === 0) {
+            $righe[] = ['celle' => ['', 'Nessun bene ammortizzabile nell\'esercizio.', '', '', null, '', null, null, null, null, '']];
+        }
+        $righe[] = ['celle' => ['', 'Totale', '', '', $totali[4], '', $totali[6], $totali[7], $totali[8], $totali[9], ''], 'classe' => 'totale'];
+        return [['titolo' => null, 'righe' => $righe, 'colonne' => [
+                    ['etichetta' => 'Codice', 'numero' => false, 'larghezza' => 5], ['etichetta' => 'Descrizione', 'numero' => false, 'larghezza' => 18],
+                    ['etichetta' => 'Conto', 'numero' => false, 'larghezza' => 16], ['etichetta' => 'Acquisto', 'numero' => false, 'larghezza' => 7],
+                    ['etichetta' => 'Costo', 'numero' => true, 'larghezza' => 8], ['etichetta' => 'Coeff.', 'numero' => false, 'larghezza' => 5],
+                    ['etichetta' => 'Fondo iniziale', 'numero' => true, 'larghezza' => 8], ['etichetta' => 'Quota', 'numero' => true, 'larghezza' => 7],
+                    ['etichetta' => 'Fondo finale', 'numero' => true, 'larghezza' => 8], ['etichetta' => 'Residuo', 'numero' => true, 'larghezza' => 8],
+                    ['etichetta' => 'Note', 'numero' => false, 'larghezza' => 10]]]];
     }
 
     private static function giornoDopo(SismaDate $data): SismaDate

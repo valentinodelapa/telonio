@@ -2,6 +2,7 @@
 
 namespace Contabilita\Application\Services;
 
+use Contabilita\Application\Services\PlafondEsportatori;
 use Anagrafica\Application\Entities\Soggetto;
 use Anagrafica\Application\Enumerations\PeriodicitaIva;
 use Contabilita\Application\Entities\AttivitaIva;
@@ -224,6 +225,14 @@ class ElaborazioneLiquidazione
         } elseif (($periodicita === PeriodicitaIva::trimestrale) && ($periodo === 4)) {
             $avvisi[] = $liquidazione->gruppoIva === null ? 'Quarto trimestre: si versa con il saldo della dichiarazione annuale entro il 16 marzo (codice 6099, con gli interessi dell\'1%).'
                         : 'Quarto trimestre: il saldo si trasferisce al gruppo con la dichiarazione annuale (rigo VX7 o VX8).';
+        }
+        // plafond degli esportatori abituali: primo superamento fino alla fine del periodo
+        $plafond = (new PlafondEsportatori($this->dataMapper))->riepiloga($soggetto, $anno);
+        if ($plafond['utilizzi'] && ($separato === false)) {
+            $superamento = PlafondEsportatori::verifica($plafond['mesi'], (int) PeriodiIva::getFine($periodicita, $anno, $periodo)->format('n'));
+            if ($superamento !== null) {
+                $avvisi[] = $superamento;
+            }
         }
         if ($liquidazione->gruppoIva !== null) {
             $avvisi[] = sprintf('IVA di gruppo: %s di € %s trasferito alla controllante %s, che lo liquida con il gruppo (nessun versamento della società).',

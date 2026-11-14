@@ -146,7 +146,9 @@
                 "maggiorazioneSisma": "Maggiorazione sisma",
                 "opzione2023": "Opzione 2023 (10 rate)",
                 "trimestraleSpeciale": "Trimestrale per natura (art. 74, c. 4)",
-                "aiutoTrimestraleSpeciale": "Autotrasportatori per conto terzi, distributori di carburante, servizi al pubblico autorizzati: liquidazioni trimestrali senza interessi, quarto trimestre entro il 16 febbraio."
+                "aiutoTrimestraleSpeciale": "Autotrasportatori per conto terzi, distributori di carburante, servizi al pubblico autorizzati: liquidazioni trimestrali senza interessi, quarto trimestre entro il 16 febbraio.",
+                "ivaPerCassa": "IVA per cassa (art. 32-bis D.L. 83/2012)",
+                "aiutoIvaPerCassa": "Opzione con volume d'affari fino a 2 milioni di euro (dal 2027 art. 132 D.Lgs. 10/2026): l'IVA delle vendite diventa esigibile all'incasso e quella degli acquisti detraibile al pagamento, comunque dopo un anno; escluse le operazioni verso privati e in inversione contabile."
             },
             "azioni": {
                 "salva": "Salva",

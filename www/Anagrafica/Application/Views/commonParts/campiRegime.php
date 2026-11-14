@@ -18,6 +18,7 @@ $regimiAmmessi = RegimeFiscale::perSoggetto($soggetto->tipoSoggetto, TipoAttivit
 <?= Campo::selezioneEnum('regimeFiscale', $campi['regimeFiscale'], $origineRegime, $erroriRegime, $regimiAmmessi, ['vuota' => $nessunRegime, 'colonna' => 'col-md-6', 'aiuto' => $aiutoRegime]) ?>
 <?= Campo::selezioneEnum('periodicitaIva', $campi['periodicitaIva'], $origineRegime, $erroriRegime, PeriodicitaIva::cases(), ['vuota' => $nessunaPeriodicita, 'colonna' => 'col-md-3', 'aiuto' => $aiutoPeriodicita]) ?>
 <?= Campo::spunta('trimestraleSpeciale', $campi['trimestraleSpeciale'], $origineRegime, $erroriRegime, ['colonna' => 'col-md-3', 'aiuto' => $campi['aiutoTrimestraleSpeciale']]) ?>
+<?= Campo::spunta('ivaPerCassa', $campi['ivaPerCassa'], $origineRegime, $erroriRegime, ['colonna' => 'col-md-3', 'aiuto' => $campi['aiutoIvaPerCassa']]) ?>
 <div class="w-100 m-0"></div>
 <?= Campo::spunta('soggettoIsa', $campi['soggettoIsa'], $origineRegime, $erroriRegime, ['colonna' => 'col-md-6']) ?>
 <?= Campo::spunta('sostitutoImposta', $campi['sostitutoImposta'], $origineRegime, $erroriRegime, ['colonna' => 'col-md-6']) ?>

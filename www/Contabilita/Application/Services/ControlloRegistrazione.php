@@ -2,6 +2,8 @@
 
 namespace Contabilita\Application\Services;
 
+use Contabilita\Application\Enumerations\CausaleContabile;
+use Contabilita\Application\Enumerations\EsigibilitaIva;
 use Contabilita\Application\Entities\PianoConti;
 use Contabilita\Application\Entities\RegistrazioneContabile;
 use Contabilita\Application\Entities\RigaContabile;
@@ -80,6 +82,15 @@ class ControlloRegistrazione
                 $errori['impostaBollo'] = 'Il bollo virtuale si indica solo sulle fatture emesse.';
             } elseif ($registrazione->impostaBollo < 0) {
                 $errori['impostaBollo'] = 'L\'imposta di bollo non può essere negativa.';
+            }
+        }
+        if ($registrazione->esigibilita === EsigibilitaIva::perCassa) {
+            if (in_array($registrazione->causale, [CausaleContabile::fatturaVendita, CausaleContabile::fatturaAcquisto], true) === false) {
+                $errori['esigibilita'] = 'L\'IVA per cassa riguarda le fatture: le note di credito e i corrispettivi sono immediati.';
+            } elseif ($registrazione->importazione) {
+                $errori['esigibilita'] = 'Le importazioni sono escluse dall\'IVA per cassa (D.M. 11 ottobre 2012, art. 3).';
+            } elseif (count(array_filter($righeIva, fn(RigaIva $riga) => $riga->codiceIva->inversioneContabile || (($riga->codiceIva->natura !== null) && $riga->codiceIva->natura->isInversioneContabile()))) > 0) {
+                $errori['esigibilita'] = 'Le operazioni in inversione contabile sono escluse dall\'IVA per cassa (D.M. 11 ottobre 2012, artt. 2 e 3).';
             }
         }
         if (count($righeIva) === 0) {

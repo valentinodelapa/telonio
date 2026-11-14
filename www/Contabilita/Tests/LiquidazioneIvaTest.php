@@ -102,8 +102,8 @@ class LiquidazioneIvaTest extends ContabilitaTestCase
         // acquisti: 44 (40% di 110) + 44 (RC) - 11 (nota)
         $this->assertSame(77.0, $risultato->ivaDetraibile);
         $this->assertSame(187.0, $risultato->getIvaPeriodo());
-        $this->assertCount(1, $risultato->avvisi);
-        $this->assertStringContainsString('differita', $risultato->avvisi[0]);
+        // la differita è nel riepilogo del periodo, l'imposta matura con l'incasso (IvaSospesaTest)
+        $this->assertSame(['imponibile' => 100.0, 'imposta' => 10.0, 'esigibile' => 0.0], array_intersect_key(array_values(array_filter($risultato->riepilogo, fn(array $voce) => $voce['imponibile'] === 100.0))[0] ?? [], array_flip(['imponibile', 'imposta', 'esigibile'])));
         $this->assertCount(5, $risultato->riepilogo);
     }
 

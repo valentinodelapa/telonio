@@ -2,6 +2,7 @@
 
 namespace Contabilita\Application\Services;
 
+use Contabilita\Application\Models\EsercizioContabileModel;
 use Anagrafica\Application\Entities\Soggetto;
 use Contabilita\Application\Entities\Abbinamento;
 use Contabilita\Application\Entities\Partita;
@@ -177,7 +178,9 @@ class ComponentiReddito
     {
         $this->avvisi = [];
         $this->totaliCassa = ['ricavi' => 0.0, 'costi' => 0.0];
-        $righe = iterator_to_array((new RigaContabileModel($this->dataMapper))->getMovimenti($soggetto, null, null, null), false);
+        // senza epilogo, chiusura e riapertura dei conti
+        $righe = array_values(array_filter(iterator_to_array((new RigaContabileModel($this->dataMapper))->getMovimenti($soggetto, null, null, null), false),
+                        fn(RigaContabile $riga) => ChiusuraEsercizio::isChiusuraORiapertura($riga->registrazioneContabile) === false));
         $documentiConPartita = [];
         foreach ($righe as $riga) {
             if (($riga->controparte !== null) && $riga->conto->natura->isPatrimoniale()) {
@@ -211,6 +214,19 @@ class ComponentiReddito
             }
             $this->aggiungi($componenti, $riga, $frazione, $professionista);
         }
+        // parte indeducibile degli ammortamenti dei cespiti (limiti fiscali, coefficiente)
+        $esercizio = (new EsercizioContabileModel($this->dataMapper))->getPerAnno($soggetto, $anno);
+        if ($esercizio !== null) {
+            foreach ((new Ammortamenti($this->dataMapper))->getVariazioni($soggetto, $esercizio)['conti'] as ['conto' => $conto, 'importo' => $importo]) {
+                $rigo = $conto->rigoRedditi ?? RighiRedditi::getPredefinito($conto->voceCee, $professionista);
+                if (($rigo !== null) && isset($componenti[$rigo])) {
+                    $componenti[$rigo] -= $importo;
+                    if ($rigo !== RighiRedditi::ESCLUSO) {
+                        $this->totaliCassa['costi'] -= $importo;
+                    }
+                }
+            }
+        }
         return array_map(fn(float $importo) => round($importo, 2), $componenti);
     }
 
@@ -241,6 +257,9 @@ class ComponentiReddito
         $dal = new SismaDate($anno . '-01-01');
         $al = new SismaDate($anno . '-12-31');
         foreach ((new RigaContabileModel($this->dataMapper))->getMovimenti($soggetto, null, $dal, $al) as $riga) {
+            if ($riga->registrazioneContabile->origine === ChiusuraEsercizio::ORIGINE) {
+                continue;
+            }
             if ($riga->conto->natura === NaturaConto::ricavo) {
                 $ricavi += $riga->avere - $riga->dare;
                 if ($riga->conto->percentualeDeducibile !== null) {
@@ -254,6 +273,13 @@ class ComponentiReddito
                     $rigo = $riga->conto->variazioneRedditi ?? 'RF31:99';
                     $variazioni[$rigo] = ($variazioni[$rigo] ?? 0.0) + ($riga->dare - $riga->avere) * (100 - $riga->conto->percentualeDeducibile) / 100;
                 }
+            }
+        }
+        // variazioni fiscali degli ammortamenti dei cespiti (RF18, RF31 codice 99, RF55 codice 99)
+        $esercizio = (new EsercizioContabileModel($this->dataMapper))->getPerAnno($soggetto, $anno);
+        if ($esercizio !== null) {
+            foreach ((new Ammortamenti($this->dataMapper))->getVariazioni($soggetto, $esercizio)['righi'] as $rigo => $importo) {
+                $variazioni[$rigo] = ($variazioni[$rigo] ?? 0.0) + $importo;
             }
         }
         return ['ricavi' => round($ricavi, 2), 'costi' => round($costi, 2), 'utile' => round($ricavi - $costi, 2), 'variazioni' => array_map(fn(float $importo) => round($importo, 2), $variazioni)];

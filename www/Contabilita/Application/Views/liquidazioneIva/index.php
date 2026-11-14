@@ -21,7 +21,42 @@ require __DIR__ . '/../commonParts/navAzienda.php';
 </div>
 <p class="small text-body-secondary"><?= Html::e($aiuto) ?></p>
 
-<?php if ($erroreIva !== null): ?>
+<?php if ($forfetario !== null): ?>
+    <div class="card shadow-sm mb-3">
+        <div class="card-header bg-white"><span class="fw-semibold"><?= Html::e($forfetarioTitolo) ?></span> <span class="small text-body-secondary ms-2"><?= Html::e($annoIva >= 2027 ? $aiutoForfetario2027 : $aiutoForfetario) ?></span></div>
+        <div class="card-body small">
+            <div><?= Html::e($forfetarioPercepiti) ?> € <span class="fw-semibold"><?= Html::e(Importo::euro($forfetario['percepiti'])) ?></span> <span class="text-body-secondary">(<?= Html::e($forfetarioSoglie) ?>)</span></div>
+            <?php if ($forfetario['soglia'] !== null): ?><div class="alert alert-warning small py-2 mt-2 mb-0"><?= Html::e($forfetario['soglia']) ?></div><?php endif; ?>
+        </div>
+    </div>
+    <div class="card shadow-sm mb-3">
+        <div class="card-header bg-white"><span class="fw-semibold"><?= Html::e($forfetarioIvaTitolo) ?></span> <span class="small text-body-secondary ms-2"><?= Html::e($aiutoForfetarioIva) ?></span></div>
+        <?php if (count($forfetario['periodi']) === 0): ?>
+            <div class="card-body small text-body-secondary"><?= Html::e($forfetarioNessunaIva) ?></div>
+        <?php else: ?>
+            <div class="table-responsive">
+                <table class="table table-sm mb-0 align-middle small">
+                    <thead class="table-light"><tr><th><?= Html::e($campi['periodo']) ?></th><th class="text-end"><?= Html::e($forfetarioDocumenti) ?></th><th class="text-end"><?= Html::e($campi['importoDovuto']) ?></th><th><?= Html::e($forfetarioCodice) ?></th><th><?= Html::e($campi['scadenza']) ?></th><th></th></tr></thead>
+                    <tbody>
+                        <?php foreach ($forfetario['periodi'] as $chiave => $periodo): ?>
+                            <tr>
+                                <td><?= Html::e($periodo['descrizione']) ?></td>
+                                <td class="text-end"><?= Html::e($periodo['documenti']) ?></td>
+                                <td class="text-end fw-semibold"><?= Html::e(Importo::euro($periodo['imposta'])) ?></td>
+                                <td class="font-monospace"><?= Html::e($periodo['codice']) ?><?= $periodo['trimestrale'] ? ' <i class="bi bi-exclamation-circle text-warning" title="' . Html::e($forfetarioCodiceDaVerificare) . '"></i>' : '' ?></td>
+                                <td class="text-nowrap"><?= Html::data($periodo['scadenza']) ?></td>
+                                <td class="text-end">
+                                    <?php foreach ($periodo['registrati'] as $versamento): ?><span class="text-body-secondary me-2"><?= Html::e($forfetarioRegistrato) ?> <?= $versamento->delega === null ? '' : '(' . Html::e(mb_strtolower($versamento->delega->stato->getLabel())) . ')' ?></span><?php endforeach; ?>
+                                    <form method="post" action="/liquidazione-iva/forfetario/soggetto/<?= Html::e($soggetto->id) ?>/anno/<?= Html::e($annoIva) ?>/periodo/<?= Html::e($chiave) ?>" class="d-inline"><?= $campoCsrf ?><button type="submit" class="btn btn-sm btn-outline-primary"><?= Html::e(count($periodo['registrati']) > 0 ? $forfetarioAggiorna : $forfetarioRegistra) ?></button></form>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php endif; ?>
+    </div>
+<?php elseif ($erroreIva !== null): ?>
     <div class="alert alert-warning"><?= Html::e($erroreIva) ?> <a href="/soggetto/show/soggetto/<?= Html::e($soggetto->id) ?>">Anagrafica</a></div>
 <?php else: ?>
     <div class="card shadow-sm mb-3">
@@ -142,6 +177,38 @@ require __DIR__ . '/../commonParts/navAzienda.php';
             <button type="submit" class="btn btn-sm btn-outline-primary"><?= Html::e($azioni['salva']) ?></button>
         </form>
     </div>
+    <?php endif; ?>
+
+    <?php if ($plafond['utilizzi'] || ($plafond['iniziale'] > 0)): ?>
+        <?php $nomiMesi = [1 => 'gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre']; ?>
+        <div class="card shadow-sm mt-3">
+            <div class="card-header bg-white d-flex flex-wrap align-items-center gap-2">
+                <span class="fw-semibold me-auto"><?= Html::e($plafondTitolo) ?> <?= Html::e($annoIva) ?></span>
+                <form method="post" action="/liquidazione-iva/plafond/soggetto/<?= Html::e($soggetto->id) ?>/anno/<?= Html::e($annoIva) ?>" class="d-flex gap-2 align-items-center">
+                    <?= $campoCsrf ?>
+                    <select class="form-select form-select-sm" name="metodo" style="width: auto">
+                        <option value="solare" <?= $plafond['mensile'] ? '' : 'selected' ?>><?= Html::e($plafondSolare) ?></option>
+                        <option value="mensile" <?= $plafond['mensile'] ? 'selected' : '' ?>><?= Html::e($plafondMensile) ?></option>
+                    </select>
+                    <button type="submit" class="btn btn-sm btn-outline-primary"><?= Html::e($azioni['salva']) ?></button>
+                </form>
+            </div>
+            <div class="card-body small py-2">
+                <?= Html::e($plafondIniziale) ?> € <?= Html::e(Importo::euro($plafond['iniziale'])) ?>
+                <?php if ($plafond['status'] === false): ?><span class="text-warning-emphasis ms-2"><i class="bi bi-exclamation-triangle me-1"></i><?= Html::e($plafondNoStatus) ?></span><?php endif; ?>
+                <div class="text-body-secondary"><?= Html::e(sprintf($aiutoPlafond, \Contabilita\Application\HelperClasses\RiferimentiIva::cita('plafond', $annoIva))) ?></div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm mb-0 small">
+                    <thead class="table-light"><tr><th><?= Html::e($campi['periodo']) ?></th><th class="text-end"><?= Html::e($plafondDisponibile) ?></th><th class="text-end"><?= Html::e($plafondUtilizzato) ?></th><th class="text-end"><?= Html::e($plafondResiduo) ?></th></tr></thead>
+                    <tbody>
+                        <?php foreach ($plafond['mesi'] as $mese => $voce): ?>
+                            <tr class="<?= $voce['superato'] ? 'table-danger' : '' ?>"><td><?= Html::e($nomiMesi[$mese]) ?></td><td class="text-end"><?= Html::e(Importo::euro($voce['disponibile'])) ?></td><td class="text-end"><?= $voce['utilizzato'] == 0 ? '' : Html::e(Importo::euro($voce['utilizzato'])) ?></td><td class="text-end"><?= Html::e(Importo::euro($voce['residuo'], true)) ?></td></tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     <?php endif; ?>
 
     <div class="card shadow-sm mt-3">

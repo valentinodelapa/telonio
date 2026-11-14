@@ -1,7 +1,7 @@
 -- =====================================================
 -- Contabilita - piani dei conti modello e codici IVA
 -- =====================================================
--- Generato con "sisma tabelle-contabilita --sql" il 11/11/2026 23:59: non modificare a mano.
+-- Generato con "sisma tabelle-contabilita --sql" il 14/11/2026 13:19: non modificare a mano.
 -- Fonte: Contabilita/Database/sorgenti (norma indicata per codice IVA).
 -- Righe: piano_conti 1, conto 194, codice_iva 45.
 -- Idempotente: aggiorna le tabelle della suite senza toccare i dati degli studi.
@@ -90,19 +90,19 @@ INSERT INTO `conto` (`id`, `piano_conti_id`, `parent_conto_id`, `codice`, `descr
 (72, 1, 70, '07.02.0002', 'Valori bollati', 'S', 'A', NULL, 'A.C.IV.3', 1),
 (73, 1, NULL, '08', 'Ratei e risconti attivi', 'M', 'A', NULL, NULL, 1),
 (74, 1, 73, '08.01', 'Ratei e risconti attivi', 'C', 'A', NULL, NULL, 1),
-(75, 1, 74, '08.01.0001', 'Ratei attivi', 'S', 'A', NULL, 'A.D', 1),
-(76, 1, 74, '08.01.0002', 'Risconti attivi', 'S', 'A', NULL, 'A.D', 1),
+(75, 1, 74, '08.01.0001', 'Ratei attivi', 'S', 'A', 'RAA', 'A.D', 1),
+(76, 1, 74, '08.01.0002', 'Risconti attivi', 'S', 'A', 'RIA', 'A.D', 1),
 (77, 1, NULL, '10', 'Patrimonio netto', 'M', 'P', NULL, NULL, 1),
 (78, 1, 77, '10.01', 'Capitale e riserve', 'C', 'P', NULL, NULL, 1),
-(79, 1, 78, '10.01.0001', 'Capitale sociale', 'S', 'P', NULL, 'P.A.I', 1),
-(80, 1, 78, '10.01.0002', 'Riserva legale', 'S', 'P', NULL, 'P.A.IV', 1),
-(81, 1, 78, '10.01.0003', 'Riserva straordinaria', 'S', 'P', NULL, 'P.A.VI', 1),
+(79, 1, 78, '10.01.0001', 'Capitale sociale', 'S', 'P', 'CSO', 'P.A.I', 1),
+(80, 1, 78, '10.01.0002', 'Riserva legale', 'S', 'P', 'RLE', 'P.A.IV', 1),
+(81, 1, 78, '10.01.0003', 'Riserva straordinaria', 'S', 'P', 'RST', 'P.A.VI', 1),
 (82, 1, 78, '10.01.0004', 'Versamenti in conto capitale', 'S', 'P', NULL, 'P.A.VI', 1),
-(83, 1, 78, '10.01.0005', 'Utili (perdite) portati a nuovo', 'S', 'P', NULL, 'P.A.VIII', 1),
-(84, 1, 78, '10.01.0006', 'Capitale netto (imprese individuali e società di persone)', 'S', 'P', NULL, 'P.A.I', 1),
+(83, 1, 78, '10.01.0005', 'Utili (perdite) portati a nuovo', 'S', 'P', 'UNU', 'P.A.VIII', 1),
+(84, 1, 78, '10.01.0006', 'Capitale netto (imprese individuali e società di persone)', 'S', 'P', 'CNE', 'P.A.I', 1),
 (85, 1, 77, '10.02', 'Risultato dell''esercizio', 'C', 'P', NULL, NULL, 1),
-(86, 1, 85, '10.02.0001', 'Utile dell''esercizio', 'S', 'P', NULL, 'P.A.IX', 1),
-(87, 1, 85, '10.02.0002', 'Perdita dell''esercizio', 'S', 'P', NULL, 'P.A.IX', 1),
+(86, 1, 85, '10.02.0001', 'Utile dell''esercizio', 'S', 'P', 'UTE', 'P.A.IX', 1),
+(87, 1, 85, '10.02.0002', 'Perdita dell''esercizio', 'S', 'P', 'PEE', 'P.A.IX', 1),
 (88, 1, 77, '10.03', 'Prelevamenti', 'C', 'P', NULL, NULL, 1),
 (89, 1, 88, '10.03.0001', 'Prelevamenti del titolare o dei soci', 'S', 'P', NULL, 'P.A.I', 1),
 (90, 1, NULL, '11', 'Fondi per rischi e oneri', 'M', 'P', NULL, NULL, 1),
@@ -134,8 +134,8 @@ INSERT INTO `conto` (`id`, `piano_conti_id`, `parent_conto_id`, `codice`, `descr
 (116, 1, 113, '13.06.0003', 'Debiti diversi', 'S', 'P', NULL, 'P.D.14', 1),
 (117, 1, NULL, '14', 'Ratei e risconti passivi', 'M', 'P', NULL, NULL, 1),
 (118, 1, 117, '14.01', 'Ratei e risconti passivi', 'C', 'P', NULL, NULL, 1),
-(119, 1, 118, '14.01.0001', 'Ratei passivi', 'S', 'P', NULL, 'P.E', 1),
-(120, 1, 118, '14.01.0002', 'Risconti passivi', 'S', 'P', NULL, 'P.E', 1),
+(119, 1, 118, '14.01.0001', 'Ratei passivi', 'S', 'P', 'RAP', 'P.E', 1),
+(120, 1, 118, '14.01.0002', 'Risconti passivi', 'S', 'P', 'RIP', 'P.E', 1),
 (121, 1, NULL, '20', 'Valore della produzione', 'M', 'R', NULL, NULL, 1),
 (122, 1, 121, '20.01', 'Ricavi delle vendite e delle prestazioni', 'C', 'R', NULL, NULL, 1),
 (123, 1, 122, '20.01.0001', 'Ricavi per vendite di merci', 'S', 'R', 'RIC', 'E.A.1', 1),
@@ -144,7 +144,7 @@ INSERT INTO `conto` (`id`, `piano_conti_id`, `parent_conto_id`, `codice`, `descr
 (126, 1, 122, '20.01.0004', 'Resi e sconti su vendite', 'S', 'R', NULL, 'E.A.1', 1),
 (127, 1, 121, '20.02', 'Altri ricavi e proventi', 'C', 'R', NULL, NULL, 1),
 (128, 1, 127, '20.02.0001', 'Proventi diversi', 'S', 'R', NULL, 'E.A.5', 1),
-(129, 1, 127, '20.02.0002', 'Plusvalenze ordinarie', 'S', 'R', NULL, 'E.A.5', 1),
+(129, 1, 127, '20.02.0002', 'Plusvalenze ordinarie', 'S', 'R', 'PLV', 'E.A.5', 1),
 (130, 1, 127, '20.02.0003', 'Contributi in conto esercizio', 'S', 'R', NULL, 'E.A.5', 1),
 (131, 1, 127, '20.02.0004', 'Arrotondamenti attivi', 'S', 'R', 'ARA', 'E.A.5', 1),
 (132, 1, NULL, '21', 'Costi per acquisti', 'M', 'C', NULL, NULL, 1),
@@ -189,7 +189,7 @@ INSERT INTO `conto` (`id`, `piano_conti_id`, `parent_conto_id`, `codice`, `descr
 (171, 1, 170, '27.01', 'Oneri diversi di gestione', 'C', 'C', NULL, NULL, 1),
 (172, 1, 171, '27.01.0001', 'Imposte e tasse diverse', 'S', 'C', NULL, 'E.B.14', 1),
 (173, 1, 171, '27.01.0002', 'Sanzioni e multe', 'S', 'C', NULL, 'E.B.14', 1),
-(174, 1, 171, '27.01.0003', 'Minusvalenze ordinarie', 'S', 'C', NULL, 'E.B.14', 1),
+(174, 1, 171, '27.01.0003', 'Minusvalenze ordinarie', 'S', 'C', 'MNV', 'E.B.14', 1),
 (175, 1, 171, '27.01.0004', 'Arrotondamenti passivi', 'S', 'C', 'ARP', 'E.B.14', 1),
 (176, 1, 171, '27.01.0005', 'Oneri diversi', 'S', 'C', NULL, 'E.B.14', 1),
 (177, 1, NULL, '28', 'Proventi finanziari', 'M', 'R', NULL, NULL, 1),
@@ -206,9 +206,9 @@ INSERT INTO `conto` (`id`, `piano_conti_id`, `parent_conto_id`, `codice`, `descr
 (188, 1, 186, '30.01.0002', 'IRAP', 'S', 'C', NULL, 'E.20', 1),
 (189, 1, NULL, '40', 'Conti di sistema', 'M', 'S', NULL, NULL, 1),
 (190, 1, 189, '40.01', 'Aperture e chiusure', 'C', 'S', NULL, NULL, 1),
-(191, 1, 190, '40.01.0001', 'Stato patrimoniale di apertura', 'S', 'S', NULL, NULL, 1),
-(192, 1, 190, '40.01.0002', 'Stato patrimoniale di chiusura', 'S', 'S', NULL, NULL, 1),
-(193, 1, 190, '40.01.0003', 'Conto economico', 'S', 'S', NULL, NULL, 1),
+(191, 1, 190, '40.01.0001', 'Stato patrimoniale di apertura', 'S', 'S', 'SPA', NULL, 1),
+(192, 1, 190, '40.01.0002', 'Stato patrimoniale di chiusura', 'S', 'S', 'SPC', NULL, 1),
+(193, 1, 190, '40.01.0003', 'Conto economico', 'S', 'S', 'CEC', NULL, 1),
 (194, 1, 62, '06.04.0004', 'IVA di gruppo c/liquidazioni', 'S', 'A', 'IVG', NULL, 1)
 ON DUPLICATE KEY UPDATE `piano_conti_id` = VALUES(`piano_conti_id`), `parent_conto_id` = VALUES(`parent_conto_id`), `codice` = VALUES(`codice`), `descrizione` = VALUES(`descrizione`), `livello` = VALUES(`livello`), `natura` = VALUES(`natura`), `funzione` = VALUES(`funzione`), `voce_cee` = VALUES(`voce_cee`), `attivo` = VALUES(`attivo`);
 

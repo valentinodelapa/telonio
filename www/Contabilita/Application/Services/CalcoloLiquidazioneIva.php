@@ -19,13 +19,16 @@ use SismaFramework\Orm\HelperClasses\DataMapper;
  * nel periodo:
  *
  * - vendite e corrispettivi: imposta a debito, salvo la scissione dei
- *   pagamenti (dovuta dal cessionario) e l'esigibilità differita, esclusa
- *   con un avviso perché diventa esigibile all'incasso, che la procedura
- *   non segue ancora;
+ *   pagamenti (dovuta dal cessionario);
  * - acquisti: imposta detraibile (al netto della parte indetraibile) e,
  *   per i codici con inversione contabile, la stessa imposta anche a
  *   debito (integrazione, artt. 17 D.P.R. 633/1972 e 46-47 D.L.
- *   331/1993).
+ *   331/1993);
+ * - fatture a esigibilità differita e per cassa (IvaSospesa): imponibile e
+ *   imposta nel riepilogo del periodo del documento, l'imposta esigibile o
+ *   detraibile nel periodo in cui matura (pagamento o, per cassa, decorso
+ *   di un anno), in proporzione all'importo pagato; il dettaglio è in
+ *   RisultatoLiquidazione::$sospese.
  *
  * Il riepilogo per registro e codice IVA è quello della stampa della
  * liquidazione. Con le attività separate (art. 36) il calcolo è per
@@ -53,57 +56,61 @@ class CalcoloLiquidazioneIva
     public function calcola(Soggetto $soggetto, SismaDate $dal, SismaDate $al, ?AttivitaIva $attivita = null): RisultatoLiquidazione
     {
         $risultato = new RisultatoLiquidazione();
-        $differite = $nonRipartite = [];
+        $nonRipartite = [];
         $anno = (int) $dal->format('Y');
         $separate = new AttivitaSeparate($this->dataMapper);
         $regime = $separate->getRegimeDetrazione($soggetto, $anno, $attivita);
+        $sospesa = new IvaSospesa($this->dataMapper);
+        $quotaAttivita = function (RigaIva $riga) use ($attivita, $separate, $soggetto, $anno, &$nonRipartite): ?float {
+            if ($attivita === null) {
+                return 1.0;
+            }
+            $quote = $separate->getQuote($riga, $soggetto, $anno);
+            if (count($quote) === 0) {
+                $nonRipartite[$riga->registrazioneContabile->id] = $riga->registrazioneContabile->getDescrizioneCompleta();
+                return null;
+            }
+            return $quote[$attivita->numero] ?? null;
+        };
         foreach ((new RigaIvaModel($this->dataMapper))->getPerPeriodo($soggetto, $dal, $al) as $riga) {
-            $quota = 1.0;
-            if ($attivita !== null) {
-                $quote = $separate->getQuote($riga, $soggetto, $anno);
-                if (count($quote) === 0) {
-                    $nonRipartite[$riga->registrazioneContabile->id] = $riga->registrazioneContabile->getDescrizioneCompleta();
-                    continue;
-                }
-                if (isset($quote[$attivita->numero]) === false) {
-                    continue;
-                }
-                $quota = $quote[$attivita->numero];
+            $quota = $quotaAttivita($riga);
+            if ($quota === null) {
+                continue;
             }
-            $registrazione = $riga->registrazioneContabile;
-            $tipo = $riga->registroIva->tipo;
-            $chiave = $riga->registroIva->getEtichetta() . '|' . $riga->codiceIva->codice;
-            $voce = $risultato->riepilogo[$chiave] ??= ['registro' => $riga->registroIva->getEtichetta(), 'tipo' => $tipo, 'codice' => $riga->codiceIva->getEtichetta(),
-                'imponibile' => 0.0, 'imposta' => 0.0, 'esigibile' => 0.0, 'detraibile' => 0.0];
-            $voce['imponibile'] += $riga->imponibile * $quota;
-            $voce['imposta'] += $riga->imposta * $quota;
-            $connessa = $riga->qualifica === QualificaOperazione::connessaOccasionale;
-            if ($regime !== null) {
-                $voce['detraibile'] += self::getDetrazioneRegime($riga, $regime, $risultato) * $quota;
-            } elseif ($connessa && ($tipo !== TipoRegistroIva::acquisti)) {
-                // connesse occasionali (art. 34-bis) anche fuori dal regime speciale, ad esempio con l'opzione per i modi ordinari
-                $voce['detraibile'] += round($riga->imposta * 0.5, 2) * $quota;
+            // l'imposta sospesa matura nel periodo del pagamento (sotto)
+            $this->aggiungi($risultato, $riga, $quota, IvaSospesa::isSospesa($riga->registrazioneContabile) ? 0.0 : 1.0, true, $regime);
+        }
+        $vigilia = (new \DateTimeImmutable($dal->format('Y-m-d')))->modify('-1 day');
+        $senzaPartite = [];
+        foreach ($sospesa->getSospese($soggetto, $al) as $registrazione) {
+            $quotaFine = $sospesa->getQuota($registrazione, $al);
+            $maturata = round($quotaFine - $sospesa->getQuota($registrazione, $vigilia), 6);
+            if (($quotaFine < 1) && ($sospesa->hasPartite($registrazione) === false)) {
+                $senzaPartite[$registrazione->id] = $registrazione->getDescrizioneCompleta();
             }
-            if ($tipo === TipoRegistroIva::acquisti) {
-                if (($regime === null) && ($connessa === false)) {
-                    $voce['detraibile'] += $riga->getImpostaDetraibile() * $quota;
-                }
-                if ($riga->codiceIva->inversioneContabile) {
-                    $voce['esigibile'] += $riga->imposta * $quota;
-                }
-            } elseif ($registrazione->esigibilita === EsigibilitaIva::immediata) {
-                $voce['esigibile'] += $riga->imposta * $quota;
-            } elseif ($registrazione->esigibilita === EsigibilitaIva::differita) {
-                $differite[$registrazione->id] = $registrazione->getDescrizioneCompleta();
+            if ($maturata <= 0) {
+                continue;
             }
-            $risultato->riepilogo[$chiave] = $voce;
+            $esigibile = array_sum(array_column($risultato->riepilogo, 'esigibile'));
+            $detraibile = array_sum(array_column($risultato->riepilogo, 'detraibile'));
+            foreach ((new RigaIvaModel($this->dataMapper))->getRighe($registrazione) as $riga) {
+                $quota = $quotaAttivita($riga);
+                if ($quota !== null) {
+                    $this->aggiungi($risultato, $riga, $quota, $maturata, false, $regime);
+                }
+            }
+            $limite = IvaSospesa::getDataLimite($registrazione);
+            $risultato->sospese[] = ['registrazione' => $registrazione, 'quota' => $maturata,
+                'esigibile' => round(array_sum(array_column($risultato->riepilogo, 'esigibile')) - $esigibile, 2),
+                'detraibile' => round(array_sum(array_column($risultato->riepilogo, 'detraibile')) - $detraibile, 2),
+                'decorsoAnno' => ($limite !== null) && ($limite->format('Y-m-d') >= $dal->format('Y-m-d')) && ($limite->format('Y-m-d') <= $al->format('Y-m-d'))];
         }
         foreach ($risultato->riepilogo as $chiave => $voce) {
             foreach (['imponibile', 'imposta', 'esigibile', 'detraibile'] as $campo) {
                 $risultato->riepilogo[$chiave][$campo] = round($voce[$campo], 2);
             }
-            $risultato->ivaEsigibile += $voce['esigibile'];
-            $risultato->ivaDetraibile += $voce['detraibile'];
+            $risultato->ivaEsigibile += $risultato->riepilogo[$chiave]['esigibile'];
+            $risultato->ivaDetraibile += $risultato->riepilogo[$chiave]['detraibile'];
         }
         ksort($risultato->riepilogo);
         $risultato->ivaEsigibile = round($risultato->ivaEsigibile, 2);
@@ -119,10 +126,47 @@ class CalcoloLiquidazioneIva
         if ((count($nonRipartite) > 0) && ($attivita !== null) && ($attivita->numero === array_key_first($separate->getAttivita($soggetto, $anno)))) {
             $risultato->avvisi[] = 'Acquisti promiscui senza ripartizione tra le attività separate, esclusi dalla liquidazione: ' . implode('; ', $nonRipartite) . '.';
         }
-        if (count($differite) > 0) {
-            $risultato->avvisi[] = 'IVA a esigibilità differita esclusa (diventa esigibile all\'incasso, da liquidare a parte): ' . implode('; ', $differite) . '.';
+        if (count($senzaPartite) > 0) {
+            $risultato->avvisi[] = 'Fatture a esigibilità differita o per cassa senza partite aperte (l\'imposta matura con i pagamenti abbinati nello scadenzario): ' . implode('; ', $senzaPartite) . '.';
         }
         return $risultato;
+    }
+
+    /**
+     * Imponibile e imposta della riga nel riepilogo (solo per i documenti
+     * del periodo, $documento) e la parte $maturata dell'imposta esigibile
+     * e detraibile ($quota: parte della riga dell'attività separata).
+     */
+    private function aggiungi(RisultatoLiquidazione $risultato, RigaIva $riga, float $quota, float $maturata, bool $documento, ?RegimeDetrazioneIva $regime): void
+    {
+        $registrazione = $riga->registrazioneContabile;
+        $tipo = $riga->registroIva->tipo;
+        $chiave = $riga->registroIva->getEtichetta() . '|' . $riga->codiceIva->codice;
+        $voce = $risultato->riepilogo[$chiave] ?? ['registro' => $riga->registroIva->getEtichetta(), 'tipo' => $tipo, 'codice' => $riga->codiceIva->getEtichetta(),
+            'imponibile' => 0.0, 'imposta' => 0.0, 'esigibile' => 0.0, 'detraibile' => 0.0];
+        if ($documento) {
+            $voce['imponibile'] += $riga->imponibile * $quota;
+            $voce['imposta'] += $riga->imposta * $quota;
+        }
+        $fattore = $quota * $maturata;
+        $connessa = $riga->qualifica === QualificaOperazione::connessaOccasionale;
+        if ($regime !== null) {
+            $voce['detraibile'] += self::getDetrazioneRegime($riga, $regime, $risultato) * $fattore;
+        } elseif ($connessa && ($tipo !== TipoRegistroIva::acquisti)) {
+            // connesse occasionali (art. 34-bis) anche fuori dal regime speciale, ad esempio con l'opzione per i modi ordinari
+            $voce['detraibile'] += round($riga->imposta * 0.5, 2) * $fattore;
+        }
+        if ($tipo === TipoRegistroIva::acquisti) {
+            if (($regime === null) && ($connessa === false)) {
+                $voce['detraibile'] += $riga->getImpostaDetraibile() * $fattore;
+            }
+            if ($documento && $riga->codiceIva->inversioneContabile) {
+                $voce['esigibile'] += $riga->imposta * $quota;
+            }
+        } elseif ($registrazione->esigibilita !== EsigibilitaIva::scissionePagamenti) {
+            $voce['esigibile'] += $riga->imposta * $fattore;
+        }
+        $risultato->riepilogo[$chiave] = $voce;
     }
 
     /**

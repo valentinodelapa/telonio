@@ -92,6 +92,10 @@ class SaldiContabili
     {
         $totali = [];
         foreach ((new RigaContabileModel($this->dataMapper))->getMovimenti($soggetto, null, $dal, $al) as $riga) {
+            // saldi prima dell'epilogo e della chiusura dei conti
+            if ($riga->registrazioneContabile->origine === ChiusuraEsercizio::ORIGINE) {
+                continue;
+            }
             $codice = $riga->conto->codice;
             do {
                 $totali[$codice] ??= ['dare' => 0.0, 'avere' => 0.0];

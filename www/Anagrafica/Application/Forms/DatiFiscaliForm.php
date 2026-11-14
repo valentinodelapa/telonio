@@ -55,6 +55,7 @@ class DatiFiscaliForm extends BaseForm
                 ->addFilterFieldMode('soggettoIsa', FilterType::isBoolean)
                 ->addFilterFieldMode('ventilazioneCorrispettivi', FilterType::isBoolean)
                 ->addFilterFieldMode('trimestraleSpeciale', FilterType::isBoolean)
+                ->addFilterFieldMode('ivaPerCassa', FilterType::isBoolean)
                 ->addFilterFieldMode('regimeDetrazioneIva', FilterType::isEnumeration, [], true)
                 ->addFilterFieldMode('opzioniOrdinarie', FilterType::isMaxLimitString, [23], true)
                 ->addFilterFieldMode('rinunciaEsonero', FilterType::isBoolean)
@@ -125,7 +126,7 @@ class DatiFiscaliForm extends BaseForm
         if ($dati->partitaIva === null) {
             $valido = true;
             foreach (['regimeFiscale' => $regime !== null, 'periodicitaIva' => $dati->periodicitaIva !== null, 'soggettoIsa' => (bool) $dati->soggettoIsa, 'trasparenzaFiscale' => (bool) ($dati->trasparenzaFiscale ?? false),
-                'ventilazioneCorrispettivi' => (bool) ($dati->ventilazioneCorrispettivi ?? false), 'trimestraleSpeciale' => (bool) ($dati->trimestraleSpeciale ?? false)] as $campo => $indicato) {
+                'ventilazioneCorrispettivi' => (bool) ($dati->ventilazioneCorrispettivi ?? false), 'trimestraleSpeciale' => (bool) ($dati->trimestraleSpeciale ?? false), 'ivaPerCassa' => (bool) ($dati->ivaPerCassa ?? false)] as $campo => $indicato) {
                 if ($indicato) {
                     $this->formFilterError->{$campo . 'CustomMessage'} = 'Previsto solo con la partita IVA.';
                     $valido = false;
@@ -160,6 +161,10 @@ class DatiFiscaliForm extends BaseForm
                 $this->formFilterError->ventilazioneCorrispettiviCustomMessage = 'La ventilazione riguarda la liquidazione dell\'IVA, non prevista nel regime.';
                 $valido = false;
             }
+            if ($dati->ivaPerCassa ?? false) {
+                $this->formFilterError->ivaPerCassaCustomMessage = 'L\'IVA per cassa riguarda la liquidazione dell\'IVA, non prevista nel regime.';
+                $valido = false;
+            }
         } elseif ($dati->periodicitaIva === null) {
             $this->formFilterError->periodicitaIvaCustomMessage = 'Indicare la periodicità delle liquidazioni IVA.';
             $valido = false;
@@ -169,6 +174,11 @@ class DatiFiscaliForm extends BaseForm
         }
         if (($dati->trimestraleSpeciale ?? false) && ($dati->periodicitaIva !== PeriodicitaIva::trimestrale)) {
             $this->formFilterError->trimestraleSpecialeCustomMessage = 'I trimestrali per natura dell\'attività hanno la periodicità trimestrale.';
+            $valido = false;
+        }
+        // esclusa con i regimi speciali di applicazione dell'imposta (art. 32-bis, c. 1, D.L. 83/2012; art. 2, lett. a, D.M. 11 ottobre 2012)
+        if (($dati->ivaPerCassa ?? false) && (($dati->regimeDetrazioneIva ?? null) !== null)) {
+            $this->formFilterError->ivaPerCassaCustomMessage = 'L\'IVA per cassa non si applica con un regime speciale IVA.';
             $valido = false;
         }
         return $valido;

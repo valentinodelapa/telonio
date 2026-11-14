@@ -21,6 +21,15 @@ class RisultatoLiquidazione
     /** @var array<string, array{registro: string, tipo: \Contabilita\Application\Enumerations\TipoRegistroIva, codice: string, imponibile: float, imposta: float, esigibile: float, detraibile: float}> */
     public array $riepilogo = [];
 
+    /**
+     * Fatture a esigibilità differita e per cassa con l'imposta maturata nel
+     * periodo: quota del documento, imposta esigibile o detraibile, decorso
+     * dell'anno dell'IVA per cassa.
+     *
+     * @var array<int, array{registrazione: \Contabilita\Application\Entities\RegistrazioneContabile, quota: float, esigibile: float, detraibile: float, decorsoAnno: bool}>
+     */
+    public array $sospese = [];
+
     /** @var string[] */
     public array $avvisi = [];
 

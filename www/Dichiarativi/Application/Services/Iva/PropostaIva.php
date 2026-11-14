@@ -2,6 +2,8 @@
 
 namespace Dichiarativi\Application\Services\Iva;
 
+use Contabilita\Application\Services\PlafondEsportatori;
+use Contabilita\Application\Services\IvaSospesa;
 use Anagrafica\Application\Entities\Soggetto;
 use Anagrafica\Application\Enumerations\PeriodicitaIva;
 use Anagrafica\Application\Enumerations\RegimeDetrazioneIva;
@@ -61,11 +63,15 @@ use SismaFramework\Orm\HelperClasses\DataMapper;
  *   l'imposta dei registri nel VE25; corrispettivi da ventilare ripartiti
  *   con la ventilazione annuale; operazioni non imponibili, esenti, non
  *   soggette e in inversione contabile per natura (VE30-VE35); scissione
- *   dei pagamenti nel VE38 ed esigibilità differita nel VE37 (fuori dalle
- *   sezioni 1 e 2); volume d'affari VE50;
+ *   dei pagamenti nel VE38; esigibilità differita e IVA per cassa
+ *   (Contabilita IvaSospesa): nelle sezioni 1 e 2 la quota divenuta
+ *   esigibile nell'anno, anche dei documenti degli anni precedenti (VE39),
+ *   il resto nel VE37 (campo 2 per l'IVA per cassa); volume d'affari VE50;
  * - VF: acquisti per aliquota con la sola quota detraibile (VF1-VF13; la
  *   quota di imponibile corrispondente all'imposta indetraibile nel VF21),
- *   acquisti senza imposta per natura (VF17-VF19), acquisti
+ *   acquisti per cassa con la sola quota detraibile nell'anno, il resto
+ *   nel VF23 (campi 1 e 2) e quelli degli anni precedenti divenuti
+ *   detraibili nel VF24; acquisti senza imposta per natura (VF17-VF19), acquisti
  *   intracomunitari (VF28), ripartizione VF29 (beni ammortizzabili dai
  *   conti delle immobilizzazioni, beni per la rivendita); con operazioni
  *   esenti, pro-rata di detrazione (VF30 casella 3, VF34, VF37) o sole
@@ -130,7 +136,7 @@ class PropostaIva
     public const RIGHI_VJ = ['N6.1' => 6, 'N6.2' => 7, 'N6.3' => 12, 'N6.4' => 13, 'N6.5' => 14, 'N6.6' => 15, 'N6.7' => 16, 'N6.8' => 17];
 
     /** Operazioni che concorrono al plafond e al volume d'affari degli esportatori (VC, colonne 4 e 6) */
-    public const NATURE_PLAFOND = ['N3.1', 'N3.2', 'N3.3', 'N3.4'];
+    public const NATURE_PLAFOND = PlafondEsportatori::NATURE_PLAFOND;
 
     /** Codici tributo dei versamenti periodici e dell'acconto (rigo VL30, campo 3) */
     public const CODICI_VERSAMENTI_PERIODICI = ['6001', '6002', '6003', '6004', '6005', '6006', '6007', '6008', '6009', '6010', '6011', '6012', '6031', '6032', '6033', '6013', '6035'];
@@ -333,8 +339,16 @@ class PropostaIva
             $this->avvisa($etichetta . 'nessuna registrazione IVA del ' . $anno . ' in Contabilità: quadri VE e VF da compilare a mano.');
         }
         $regimeDetrazione = (new AttivitaSeparate($this->dataMapper))->getRegimeDetrazione($soggetto, $anno, $attivita);
-        $this->proponiOperazioniAttive($quadri, $soggetto, $anno, $righe, $regime->isVentilazione($soggetto, $anno), $etichetta, $regimeDetrazione);
-        $this->proponiOperazioniPassive($quadri, $righe, $etichetta, $regimeDetrazione);
+        [$maturate, $precedenti] = $this->getSospese($soggetto, $anno, $fine, $righe, $attivita, $etichetta);
+        $this->proponiOperazioniAttive($quadri, $soggetto, $anno, $righe, $regime->isVentilazione($soggetto, $anno), $etichetta, $regimeDetrazione, $maturate, $precedenti);
+        $this->proponiOperazioniPassive($quadri, $righe, $etichetta, $regimeDetrazione, $maturate, $precedenti);
+        if ($tipo === TipoModulo::principale) {
+            // opzione e revoca dell'IVA per cassa (rigo VO15)
+            $perCassa = $regime->isIvaPerCassa($soggetto, $anno);
+            $precedente = $regime->isIvaPerCassa($soggetto, $anno - 1);
+            $quadri->proponi('VO015001', $perCassa && ($precedente === false) ? true : null);
+            $quadri->proponi('VO015002', ($perCassa === false) && $precedente ? true : null);
+        }
         if ($regimeDetrazione === null) {
             $this->proponiProrata($quadri, $etichetta);
             $this->proponiConnesseOrdinarie($quadri, $righe, $etichetta);
@@ -373,7 +387,49 @@ class PropostaIva
     /**
      * @param RigaIva[] $righe
      */
-    private function proponiOperazioniAttive(QuadriDichiarazione $quadri, Soggetto $soggetto, int $anno, array $righe, bool $ventilazione, string $etichetta, ?RegimeDetrazioneIva $regimeDetrazione = null): void
+    /**
+     * Quote dell'imposta sospesa divenuta esigibile o detraibile entro la
+     * fine del periodo per i documenti dell'anno, e righe dei documenti
+     * degli anni precedenti con la quota maturata nell'anno.
+     *
+     * @param RigaIva[] $righe
+     * @return array{0: array<int, float>, 1: array<int, array{riga: RigaIva, quota: float}>}
+     */
+    private function getSospese(Soggetto $soggetto, int $anno, SismaDate $fine, array $righe, ?AttivitaIva $attivita, string $etichetta): array
+    {
+        $sospesa = new IvaSospesa($this->dataMapper);
+        $maturate = [];
+        foreach ($righe as $riga) {
+            $registrazione = $riga->registrazioneContabile;
+            if (IvaSospesa::isSospesa($registrazione)) {
+                $maturate[$registrazione->id] ??= $sospesa->getQuota($registrazione, $fine);
+            }
+        }
+        $vigilia = new \DateTimeImmutable(($anno - 1) . '-12-31');
+        $precedenti = [];
+        foreach ($sospesa->getSospese($soggetto, $vigilia) as $registrazione) {
+            $quota = round($sospesa->getQuota($registrazione, $fine) - $sospesa->getQuota($registrazione, $vigilia), 6);
+            if ($quota <= 0) {
+                continue;
+            }
+            $righeDocumento = iterator_to_array((new RigaIvaModel($this->dataMapper))->getRighe($registrazione), false);
+            if ($attivita !== null) {
+                $righeDocumento = $this->getRigheAttivita($righeDocumento, $soggetto, $anno, $attivita, false, $etichetta);
+            }
+            foreach ($righeDocumento as $riga) {
+                $precedenti[] = ['riga' => $riga, 'quota' => $quota];
+            }
+        }
+        return [$maturate, $precedenti];
+    }
+
+    /**
+     * @param RigaIva[] $righe
+     * @param array<int, float> $maturate quota esigibile dei documenti sospesi dell'anno
+     * @param array<int, array{riga: RigaIva, quota: float}> $precedenti
+     */
+    private function proponiOperazioniAttive(QuadriDichiarazione $quadri, Soggetto $soggetto, int $anno, array $righe, bool $ventilazione, string $etichetta, ?RegimeDetrazioneIva $regimeDetrazione = null,
+            array $maturate = [], array $precedenti = []): void
     {
         $sezione1 = $sezione2 = $altre = [];
         $impostaRegistri = 0.0;
@@ -421,9 +477,20 @@ class PropostaIva
                 $altre['VE038001'] = ($altre['VE038001'] ?? 0) + $riga->imponibile;
                 continue;
             }
-            if ($esigibilita === EsigibilitaIva::differita) {
-                $altre['VE037001'] = ($altre['VE037001'] ?? 0) + $riga->imponibile;
-                continue;
+            if (IvaSospesa::isSospesa($riga->registrazioneContabile)) {
+                // quota non ancora esigibile nel VE37 (campo 2 per l'IVA per cassa), il resto nelle sezioni 1 e 2
+                $quota = $maturate[$riga->registrazioneContabile->id] ?? 0.0;
+                $sospeso = $riga->imponibile * (1 - $quota);
+                $altre['VE037001'] = ($altre['VE037001'] ?? 0) + $sospeso;
+                if ($esigibilita === EsigibilitaIva::perCassa) {
+                    $altre['VE037002'] = ($altre['VE037002'] ?? 0) + $sospeso;
+                }
+                if ($quota <= 0) {
+                    continue;
+                }
+                $riga = clone $riga;
+                $riga->imponibile = round($riga->imponibile * $quota, 2);
+                $riga->imposta = round($riga->imposta * $quota, 2);
             }
             // sezione 1: conferimenti alle cooperative e cessioni degli esonerati, con la percentuale di compensazione come aliquota
             $compensazione = $qualifica === QualificaOperazione::conferimentoAgricolo ? $codice->aliquota : ($regimeDetrazione === RegimeDetrazioneIva::agricoloEsonerato ? $riga->percentualeCompensazione : null);
@@ -442,6 +509,18 @@ class PropostaIva
                 $this->vt['consumatoriImposta'] += $riga->imposta;
                 $this->accumulaRegione($riga->registroIva->unitaLocale?->comune?->siglaProvincia, $riga->imponibile, $riga->imposta);
             }
+        }
+        // documenti degli anni precedenti con l'imposta divenuta esigibile nell'anno: sezione 2 e VE39
+        foreach ($precedenti as ['riga' => $riga, 'quota' => $quota]) {
+            if (($riga->registroIva->tipo === TipoRegistroIva::acquisti) || ($riga->codiceIva->natura !== null)) {
+                continue;
+            }
+            $imponibile = round($riga->imponibile * $quota, 2);
+            $this->accumula($sezione2, $riga->codiceIva->aliquota, $imponibile);
+            $impostaRegistri += round($riga->imposta * $quota, 2);
+            $altre['VE039001'] = ($altre['VE039001'] ?? 0) + $imponibile;
+            $this->vt['imponibile'] += $imponibile;
+            $this->vt['imposta'] += round($riga->imposta * $quota, 2);
         }
         if ($ventilare && $ventilazione) {
             try {
@@ -511,7 +590,12 @@ class PropostaIva
     /**
      * @param RigaIva[] $righe
      */
-    private function proponiOperazioniPassive(QuadriDichiarazione $quadri, array $righe, string $etichetta, ?RegimeDetrazioneIva $regimeDetrazione = null): void
+    /**
+     * @param RigaIva[] $righe
+     * @param array<int, float> $maturate quota detraibile dei documenti per cassa dell'anno
+     * @param array<int, array{riga: RigaIva, quota: float}> $precedenti
+     */
+    private function proponiOperazioniPassive(QuadriDichiarazione $quadri, array $righe, string $etichetta, ?RegimeDetrazioneIva $regimeDetrazione = null, array $maturate = [], array $precedenti = []): void
     {
         $imponibili = $vj = $altre = [];
         $impostaRegistri = 0.0;
@@ -550,6 +634,12 @@ class PropostaIva
                 }
             } else {
                 $detraibile = $riga->imponibile * $riga->detraibilita / 100;
+                // acquisti per cassa: nei righi VF1-VF13 la quota detraibile nell'anno, il resto nel VF23
+                $quota = IvaSospesa::isSospesa($riga->registrazioneContabile) ? ($maturate[$riga->registrazioneContabile->id] ?? 0.0) : 1.0;
+                if ($quota < 1) {
+                    $altre['VF023001'] = ($altre['VF023001'] ?? 0) + $detraibile * (1 - $quota);
+                    $altre['VF023002'] = ($altre['VF023002'] ?? 0) + $detraibile * (1 - $quota);
+                }
                 if ($riga->registrazioneContabile->importazione) {
                     $altre['VF028003'] = ($altre['VF028003'] ?? 0) + $riga->imponibile;
                     $altre['VF028004'] = ($altre['VF028004'] ?? 0) + $riga->imposta;
@@ -557,9 +647,9 @@ class PropostaIva
                 if ($connessa) {
                     $altre['VF018001'] = ($altre['VF018001'] ?? 0) + $riga->imponibile;
                 } else {
-                    if ($riga->detraibilita > 0) {
-                        $this->accumula($imponibili, $codice->aliquota, $detraibile);
-                        $impostaRegistri += $riga->getImpostaDetraibile();
+                    if (($riga->detraibilita > 0) && ($quota > 0)) {
+                        $this->accumula($imponibili, $codice->aliquota, $detraibile * $quota);
+                        $impostaRegistri += $riga->getImpostaDetraibile() * $quota;
                     }
                     if ($riga->detraibilita < 100) {
                         $altre['VF021001'] = ($altre['VF021001'] ?? 0) + $riga->imponibile - $detraibile;
@@ -584,6 +674,16 @@ class PropostaIva
                 $rivendita += $riga->imponibile;
             }
             $registrazioni[$riga->registrazioneContabile->id] = $riga->registrazioneContabile;
+        }
+        // acquisti per cassa degli anni precedenti divenuti detraibili nell'anno: righi VF1-VF13 e VF24
+        foreach ($precedenti as ['riga' => $riga, 'quota' => $quota]) {
+            if (($riga->registroIva->tipo !== TipoRegistroIva::acquisti) || ($riga->codiceIva->natura !== null) || ($riga->detraibilita <= 0)) {
+                continue;
+            }
+            $detraibile = round($riga->imponibile * $riga->detraibilita / 100 * $quota, 2);
+            $this->accumula($imponibili, $riga->codiceIva->aliquota, $detraibile);
+            $impostaRegistri += $riga->getImpostaDetraibile() * $quota;
+            $altre['VF024001'] = ($altre['VF024001'] ?? 0) + $detraibile;
         }
         // beni ammortizzabili: importi in dare sui conti delle immobilizzazioni immateriali e materiali
         $righeContabili = new RigaContabileModel($this->dataMapper);
@@ -1155,9 +1255,14 @@ class PropostaIva
         }
         $soggetto = $dichiarazione->soggetto;
         $anno = $dichiarazione->anno;
+        $plafond = new PlafondEsportatori($this->dataMapper);
+        // metodo mensile: casella 3 del VC14 indicata o scelto sull'esercizio contabile
+        if ($plafond->isMensile($soggetto, $anno)) {
+            $quadri->proponi('VC014003', true);
+        }
         $mensile = $quadri->get('VC014003') !== null;
-        $corrente = $this->getDatiPlafond($soggetto, $anno);
-        $precedente = $this->getDatiPlafond($soggetto, $anno - 1);
+        $corrente = $plafond->getDati($soggetto, $anno);
+        $precedente = $plafond->getDati($soggetto, $anno - 1);
         $totali = array_fill(1, 6, 0);
         for ($mese = 1; $mese <= 12; $mese++) {
             $valori = [1 => $corrente['acquisti'][$mese], 2 => $corrente['importazioni'][$mese], 3 => $corrente['volume'][$mese], 4 => $corrente['esportazioni'][$mese],
@@ -1172,8 +1277,8 @@ class PropostaIva
         }
         $esportazioniPrecedenti = array_sum($precedente['esportazioni']);
         // solare: operazioni dell'anno precedente; mensile: dodici mesi precedenti al netto degli acquisti con plafond degli stessi mesi (valido per gennaio)
-        $plafond = (int) round($mensile ? $esportazioniPrecedenti - array_sum($precedente['acquisti']) - array_sum($precedente['importazioni']) : $esportazioniPrecedenti);
-        $quadri->proponi('VC014001', max(0, $plafond));
+        $plafond = (int) round(PlafondEsportatori::getPlafondIniziale($precedente, $mensile));
+        $quadri->proponi('VC014001', $plafond);
         if ($mensile === false) {
             $quadri->proponi('VC014002', true);
         }
@@ -1200,57 +1305,8 @@ class PropostaIva
      */
     public static function verificaPlafond(array $corrente, array $precedente, bool $mensile, int $plafondAnnuale): array
     {
-        $mesi = ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'];
-        $utilizzato = 0.0;
-        for ($mese = 1; $mese <= 12; $mese++) {
-            $utilizzoMese = $corrente['acquisti'][$mese] + $corrente['importazioni'][$mese];
-            if ($mensile) {
-                $disponibile = 0.0;
-                for ($indietro = 1; $indietro <= 12; $indietro++) {
-                    $riferimento = $mese - $indietro;
-                    $dati = $riferimento >= 1 ? $corrente : $precedente;
-                    $indice = $riferimento >= 1 ? $riferimento : $riferimento + 12;
-                    $disponibile += $dati['esportazioni'][$indice] - $dati['acquisti'][$indice] - $dati['importazioni'][$indice];
-                }
-            } else {
-                $disponibile = $plafondAnnuale - $utilizzato;
-            }
-            if (($utilizzoMese > 0) && ($utilizzoMese > $disponibile + 0.005)) {
-                return [sprintf('Quadro VC: plafond superato a %s (utilizzati € %s, disponibili € %s): regolarizzare gli acquisti oltre il limite (circolare n. 50/E del 2002, risoluzione n. 16/E del 2017).',
-                            $mesi[$mese - 1], number_format($utilizzoMese, 0, ',', '.'), number_format(max(0, $disponibile), 0, ',', '.'))];
-            }
-            $utilizzato += $utilizzoMese;
-        }
-        return [];
-    }
-
-    /**
-     * @return array{acquisti: array<int, float>, importazioni: array<int, float>, volume: array<int, float>, esportazioni: array<int, float>}
-     */
-    private function getDatiPlafond(Soggetto $soggetto, int $anno): array
-    {
-        $dati = ['acquisti' => array_fill(1, 12, 0.0), 'importazioni' => array_fill(1, 12, 0.0), 'volume' => array_fill(1, 12, 0.0), 'esportazioni' => array_fill(1, 12, 0.0)];
-        foreach ((new RigaIvaModel($this->dataMapper))->getPerPeriodo($soggetto, new SismaDate($anno . '-01-01'), new SismaDate($anno . '-12-31')) as $riga) {
-            $natura = $riga->codiceIva->natura?->value;
-            if ($riga->registroIva->tipo === TipoRegistroIva::acquisti) {
-                if ($natura === 'N3.5') {
-                    $data = $riga->registrazioneContabile->dataDocumento ?? $riga->dataCompetenzaIva;
-                    if ((int) $data->format('Y') === $anno) {
-                        $dati[$riga->registrazioneContabile->importazione ? 'importazioni' : 'acquisti'][(int) $data->format('n')] += $riga->imponibile;
-                    }
-                }
-                continue;
-            }
-            $mese = (int) $riga->dataCompetenzaIva->format('n');
-            // volume d'affari senza le operazioni dell'art. 21, c. 6-bis (non soggette), le escluse e le cessioni di beni ammortizzabili
-            if ((($natura === null) || (in_array($natura, ['N1', 'N2.1', 'N2.2', 'N7'], true) === false)) && ($riga->qualifica !== QualificaOperazione::beneAmmortizzabile)) {
-                $dati['volume'][$mese] += $riga->imponibile;
-            }
-            if (in_array($natura, self::NATURE_PLAFOND, true)) {
-                $dati['esportazioni'][$mese] += $riga->imponibile;
-            }
-        }
-        return $dati;
+        $superamento = PlafondEsportatori::verifica(PlafondEsportatori::prospetto($corrente, $precedente, $mensile, (float) $plafondAnnuale));
+        return $superamento === null ? [] : ['Quadro VC: p' . substr($superamento, 1)];
     }
 
     /**

@@ -68,6 +68,28 @@ require __DIR__ . '/../commonParts/navAzienda.php';
         <?php endif; ?>
     </div>
     <div class="col-lg-7">
+        <?php if (count($sospese) > 0): ?>
+            <div class="card shadow-sm mb-3">
+                <div class="card-header bg-white"><span class="fw-semibold"><?= Html::e($titoloSospese) ?></span> <span class="small text-body-secondary ms-2"><?= Html::e($aiutoSospese) ?></span></div>
+                <div class="table-responsive">
+                    <table class="table table-sm mb-0 align-middle small">
+                        <thead class="table-light"><tr><th><?= Html::e($campi['documento']) ?></th><th><?= Html::e($campi['esigibilita']) ?></th><th class="text-end"><?= Html::e($quotaMaturata) ?></th><th class="text-end"><?= Html::e($campi['ivaEsigibile']) ?></th><th class="text-end"><?= Html::e($campi['ivaDetraibile']) ?></th></tr></thead>
+                        <tbody>
+                            <?php foreach ($sospese as $voce): ?>
+                                <?php $registrazione = $voce['registrazione']; ?>
+                                <tr>
+                                    <td><a href="/registrazione/show/registrazione/<?= Html::e($registrazione->id) ?>"><?= Html::e($registrazione->getDescrizioneCompleta()) ?></a></td>
+                                    <td><?= Html::e($registrazione->esigibilita->getLabel($registrazione->dataCompetenzaIva)) ?><?= $voce['decorsoAnno'] ? '<div class="text-body-secondary">' . Html::e($decorsoAnno) . '</div>' : '' ?></td>
+                                    <td class="text-end"><?= Html::e(number_format($voce['quota'] * 100, 2, ',', '.')) ?>%</td>
+                                    <td class="text-end"><?= $voce['esigibile'] == 0 ? '' : Html::e(Importo::euro($voce['esigibile'])) ?></td>
+                                    <td class="text-end"><?= $voce['detraibile'] == 0 ? '' : Html::e(Importo::euro($voce['detraibile'])) ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        <?php endif; ?>
         <?php if (($ventilazione !== null) && ($ventilazione->corrispettivi != 0)): ?>
             <div class="card shadow-sm mb-3">
                 <div class="card-header bg-white fw-semibold"><?= Html::e($titoloVentilazione) ?></div>

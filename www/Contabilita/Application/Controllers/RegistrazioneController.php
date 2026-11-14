@@ -112,6 +112,11 @@ class RegistrazioneController extends ContabilitaController
         if ($tipo->isIva()) {
             $registrazione->registroIva = (new RegistroIvaModel($this->dataMapper))->getPerTipo($soggetto, $tipo->getTipoRegistroIva())[0] ?? null;
             $registrazione->dataCompetenzaIva = $registrazione->dataRegistrazione;
+            // IVA per cassa: fatture emesse e ricevute, salvo le esclusioni da indicare a mano (privati, inversione contabile)
+            if (in_array($tipo, [CausaleContabile::fatturaVendita, CausaleContabile::fatturaAcquisto], true)
+                    && (new RegimeIva($this->dataMapper))->isIvaPerCassa($soggetto, (int) $registrazione->dataRegistrazione->format('Y'))) {
+                $registrazione->esigibilita = EsigibilitaIva::perCassa;
+            }
         }
         return $this->gestisci($request, $registrazione, [], [], 'Nuova registrazione: ' . mb_strtolower($tipo->getLabel()));
     }
@@ -340,7 +345,11 @@ class RegistrazioneController extends ContabilitaController
         $this->vars['attivitaSeparate'] = (new AttivitaSeparate($this->dataMapper))->getAttivita($soggetto, (int) $registrazione->dataRegistrazione->format('Y'));
         $this->vars['prodottiAgricoli'] = $this->vars['regimeAgricolo'] ? (new ProdottoAgricoloModel($this->dataMapper))->getPerAnno((int) $registrazione->dataRegistrazione->format('Y')) : [];
         $this->vars['natureInversione'] = array_values(array_filter(NaturaIva::cases(), fn(NaturaIva $natura) => $natura->isInversioneContabile()));
-        $this->vars['esigibilita'] = EsigibilitaIva::cases();
+        // per cassa solo per le aziende che hanno optato nell'anno (o se già indicata)
+        $perCassa = (new RegimeIva($this->dataMapper))->isIvaPerCassa($soggetto, (int) ($registrazione->dataCompetenzaIva ?? $registrazione->dataRegistrazione)->format('Y'))
+                || ($registrazione->esigibilita === EsigibilitaIva::perCassa);
+        $this->vars['esigibilita'] = array_values(array_filter(EsigibilitaIva::cases(), fn(EsigibilitaIva $esigibilita) => $perCassa || ($esigibilita !== EsigibilitaIva::perCassa)));
+        $this->vars['esigibilitaAcquisti'] = $perCassa ? [EsigibilitaIva::immediata, EsigibilitaIva::perCassa] : [];
         $this->vars['ventilazione'] = (new RegimeIva($this->dataMapper))->isVentilazione($soggetto, (int) $registrazione->dataRegistrazione->format('Y'))
                 || (count(array_filter($this->vars['datiIva'], fn(array $riga) => in_array($riga['rivendita'] ?? '', ['1', '2'], true))) > 0);
         $controparte = $registrazione->controparte;

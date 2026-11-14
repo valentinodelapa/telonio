@@ -156,6 +156,8 @@ Le fixture (`sisma fixtures`) coprono tutte le funzioni del modulo:
 | `ComunicazioneLipe` | comunicazione delle liquidazioni periodiche del trimestre: progressivo (identificativo), dichiarante e codice carica, intermediario e impegno, stato, data e protocollo dell'invio; con il gruppo la comunicazione della liquidazione del gruppo |
 | `ModuloLipe` | modulo del quadro VP (mese, trimestre o mese con il trimestre anticipato) con i righi da VP2 a VP14 fissati alla preparazione e la liquidazione di origine (dell'azienda o del gruppo) |
 | `ProrataIva` | pro-rata di detrazione provvisorio dell'anno, dell'azienda o dell'attività separata |
+| `Cespite` | bene ammortizzabile: conti dell'immobilizzazione, del fondo e dell'ammortamento, acquisto ed entrata in funzione, costo, coefficiente, riduzione del primo esercizio, deduzione integrale dei beni minori, coefficiente fiscale, parte deducibile e costo fiscale massimo, fondo pregresso, dismissione con il prezzo, fattura di acquisto |
+| `RateoRisconto` | costo o ricavo a cavallo dell'esercizio: conto economico, importo, periodo di competenza, già registrato nell'esercizio (risconto) o nel successivo (rateo) |
 | `CreditoTrimestraleIva` | credito del trimestre chiesto con il modello IVA TR, della società o del gruppo, escluso dal riporto delle liquidazioni |
 | `StampaDefinitiva` | stampa definitiva di un periodo del libro giornale (esercizio) o di un registro IVA (anno solare) con prima e ultima pagina e righe per pagina |
 
@@ -475,10 +477,98 @@ La ventilazione non è stata abolita: lo schema di decreto del 22 luglio
 competenza nel periodo:
 
 - vendite e corrispettivi: imposta a debito, salvo la scissione dei
-  pagamenti (dovuta dalla pubblica amministrazione) e l'esigibilità
-  differita, esclusa con un avviso;
+  pagamenti (dovuta dalla pubblica amministrazione);
 - acquisti: imposta detraibile e, per i codici di integrazione, la stessa
-  imposta anche a debito.
+  imposta anche a debito;
+- fatture a esigibilità differita e per cassa: imponibile e imposta nel
+  riepilogo del periodo del documento, l'imposta esigibile o detraibile
+  nel periodo in cui matura (vedi sotto).
+
+### Esigibilità differita e IVA per cassa
+
+L'esigibilità della registrazione (`EsigibilitaIva`) può essere
+**differita** (art. 6, c. 5, D.P.R. 633/1972; dal 2027 art. 24, c. 5,
+D.Lgs. 10/2026: cessioni allo Stato e agli enti pubblici non in scissione
+dei pagamenti, farmaci dei farmacisti, cessioni ai soci delle cooperative)
+o **per cassa** (art. 32-bis D.L. 83/2012; dal 2027 art. 132 D.Lgs.
+10/2026; D.M. 11 ottobre 2012), per le aziende con l'opzione nei dati
+fiscali dell'Anagrafica. Nel file della fattura elettronica entrambe sono
+"D" (`EsigibilitaIva::getValoreFattura`).
+
+Per le aziende con l'IVA per cassa le nuove fatture emesse e ricevute sono
+proposte "per cassa" (anche dalla fattura elettronica: le emesse con
+esigibilità differita, le ricevute salvo le integrazioni); si indicano
+immediate a mano le operazioni escluse verso privati (D.M., art. 2). I
+controlli rifiutano l'IVA per cassa sulle note di credito e i
+corrispettivi, sulle importazioni e sulle operazioni in inversione
+contabile (D.M., artt. 2 e 3). L'esigibilità differita del fornitore non
+sposta la detrazione del cessionario (art. 32-bis, c. 1): le fatture
+ricevute "D" si propongono immediate.
+
+`Services\IvaSospesa` calcola la quota del documento divenuta esigibile
+(vendite) o detraibile (acquisti per cassa) fino a una data: importo
+pagato sul totale della partita, dagli abbinamenti dello scadenzario di
+ogni modo salvo abbuoni e perdite (D.M., art. 4, c. 4, e art. 5, c. 2:
+incasso parziale in proporzione); per l'IVA per cassa l'imposta matura
+comunque decorso un anno dalla data del documento (art. 32-bis, c. 1; la
+procedura concorsuale del cliente, che toglie il limite, non è
+verificata). La quota non scende con gli insoluti e non matura prima della
+data di competenza; le note di credito restano immediate. La liquidazione
+somma l'imposta maturata nel periodo e la elenca nel prospetto ("Fatture a
+esigibilità differita e per cassa"), con un avviso per le fatture sospese
+senza partite. La comunicazione delle liquidazioni riporta nel VP4 e nel
+VP5 l'imposta della liquidazione. Il giroconto della liquidazione sposta
+l'imposta maturata: la parte sospesa resta sui conti dell'IVA su vendite e
+acquisti.
+
+### Plafond degli esportatori abituali
+
+`Services\PlafondEsportatori` verifica mese per mese il plafond degli
+acquisti e delle importazioni senza IVA con la dichiarazione d'intento
+(art. 8, c. 1, lett. c, e c. 2, D.P.R. 633/1972, art. 1 D.L. 746/1983 e
+art. 2, c. 2, L. 28/1997; dal 2027 artt. 45, c. 1, lett. d, 46 e 47
+D.Lgs. 10/2026). Gli utilizzi sono le righe degli acquisti con natura N3.5
+per data del documento (momento di effettuazione), distinte le
+importazioni; il plafond si forma con le operazioni N3.1-N3.4 registrate
+nell'anno precedente (metodo solare) o nei dodici mesi precedenti al netto
+degli utilizzi degli stessi mesi (metodo mensile), scelto per anno
+nell'esercizio contabile dalla pagina delle liquidazioni
+(`esercizio_contabile.plafond_mensile`). La pagina mostra il plafond
+disponibile al 1° gennaio, il disponibile, l'utilizzato e il residuo di
+ogni mese, e segnala lo status di esportatore abituale (operazioni
+dell'anno precedente oltre il 10% del volume d'affari); la liquidazione
+avvisa del primo superamento fino alla fine del periodo. Gli stessi dati
+compongono il quadro VC della dichiarazione IVA, che propone la casella 3
+del VC14 per il metodo mensile. Le dichiarazioni d'intento (protocolli,
+fornitori e importi) non sono archiviate.
+
+### Regime forfetario
+
+Per le aziende nel regime forfetario (art. 1, cc. 54-89, L. 190/2014; dal
+2027 artt. 232-239 D.Lgs. 117/2026), che non liquidano l'IVA, la pagina
+delle liquidazioni mostra (`Services\RegimeForfetario`):
+
+- i ricavi e compensi percepiti nell'anno, per cassa come nel quadro LM
+  (`ComponentiReddito::perCassa`), con l'avviso oltre 85.000 euro (il
+  regime cessa dall'anno successivo: c. 54, lett. a, e c. 71; dal 2027
+  artt. 232 e 238) e oltre 100.000 euro (cessa nell'anno stesso e l'IVA è
+  dovuta dalle operazioni che superano il limite); gli altri requisiti
+  (spese per lavoro, redditi di lavoro dipendente, cause di esclusione)
+  non sono verificati;
+- l'IVA degli acquisti di cui sono debitori, cioè delle righe con i codici
+  di integrazione (inversione contabile interna, acquisti intracomunitari,
+  servizi dall'estero), con il versamento da registrare in Deleghe F24:
+  entro il 16 del secondo mese successivo al trimestre per le operazioni
+  dal 1° ottobre 2025 (c. 58, lett. e-bis, inserita dall'art. 6 del
+  D.Lgs. 81/2025; dal 2027 art. 234, c. 1, lett. f; la decorrenza è quella
+  della relazione illustrativa, alcuni commenti indicano il 13 giugno
+  2025), prima entro il 16 del mese successivo (c. 60; dal 2027 art. 234,
+  c. 3). Per il versamento trimestrale non risultano codici tributo
+  dedicati: si propone quello dell'ultimo mese del trimestre (6003, 6006,
+  6009, 6012), segnalato da verificare.
+
+Le fatture emesse senza IVA hanno la natura N2.2; il bollo virtuale si
+indica come per le altre aziende (pagina "Ritenute e bollo").
 
 Con il **pro-rata di detrazione provvisorio** dell'anno (`ProrataIva`, art.
 19, c. 5, e art. 19-bis D.P.R. 633/1972), per chi effettua anche
@@ -891,6 +981,94 @@ sorgenti in `Database/sorgenti`:
 
 I piani delle aziende e i modelli e codici degli studi non sono toccati.
 
+## Cespiti e fine dell'esercizio
+
+**Cespiti** (registro dei beni ammortizzabili, art. 16 D.P.R. 600/1973):
+la pagina elenca i beni con il piano dell'esercizio (fondo iniziale,
+quota, fondo finale, residuo), segnala le fatture di acquisto
+dell'esercizio con righe sulle immobilizzazioni (voci B.I e B.II
+dell'attivo) senza cespite e ne propone la creazione, con il fondo e il
+conto dell'ammortamento ricavati dal conto dell'immobilizzazione; ha la
+stampa del registro. `Services\Ammortamenti` calcola le quote
+dall'esercizio dell'entrata in funzione (o dell'acquisto) con il
+coefficiente annuo del D.M. 31 dicembre 1988 indicato sul bene, ridotto
+alla metà nel primo esercizio (art. 102, c. 2, TUIR; dal 2027 art. 111, c.
+8, D.Lgs. 117/2026), i beni fino a 516,46 euro per intero nel primo
+esercizio (art. 102, c. 5; art. 111, c. 10), fino al costo dopo il fondo
+pregresso indicato alla fine di un esercizio (beni già in uso prima della
+contabilità), senza quota nell'esercizio della dismissione e con la
+plusvalenza o minusvalenza sul costo residuo. Il bene resta nel registro
+anche ammortizzato per intero. La scrittura degli ammortamenti
+(origine `Ammortamenti`, ultimo giorno dell'esercizio) addebita le quote
+ai conti di ammortamento e le accredita ai fondi.
+
+**Dismissione**: rielaborando l'esercizio della dismissione si registra
+anche l'eliminazione del bene alla sua data (`dismissione-<id>`): il fondo
+stornato dal conto del bene e il saldo residuo alla plusvalenza o alla
+minusvalenza (conti con le funzioni "Plusvalenze" e "Minusvalenze").
+La fattura di vendita si registra in prima nota con il conto del bene
+come contropartita del prezzo (qualifica "bene ammortizzabile" della riga
+IVA, VE40).
+
+**Parte fiscale**: la quota deducibile non supera il coefficiente fiscale
+del bene, se diverso da quello civilistico, né gli ammortamenti stanziati;
+le quote eccedenti si recuperano negli esercizi successivi, entro il
+coefficiente. Sul deducibile si applicano il costo fiscale massimo e la
+parte deducibile: per le autovetture 18.075,99 euro e 20% (art. 164 TUIR;
+dal 2027 art. 168 D.Lgs. 117/2026), proposti dal conto "Autovetture"; per
+la telefonia 80% (art. 102, c. 9; dal 2027 art. 111, c. 14). Le differenze
+sono variazioni del quadro RF (RF18 per i beni con il costo massimo, RF31
+codice 99 in aumento, RF55 codice 99 per il recupero) e riducono i costi
+per cassa dei quadri RG ed RE (`ComponentiReddito`); non vanno indicate
+anche sul conto dell'ammortamento.
+
+**Stampa definitiva** del registro dei beni ammortizzabili tra le stampe
+definitive dell'esercizio (art. 16 D.P.R. 600/1973, compilato entro il
+termine della dichiarazione; dal 2027 art. 22 D.Lgs. 141/2026), per
+l'intero esercizio e con le pagine numerate: dopo la stampa gli
+ammortamenti dell'esercizio non si rielaborano.
+
+**Chiusura dell'esercizio** (`ChiusuraController`), nell'ordine:
+
+1. ammortamenti (pagina dei cespiti);
+2. ratei e risconti (`Services\RateiRisconti`, art. 2424-bis, c. 6, c.c.):
+   per ogni costo o ricavo a cavallo della fine dell'esercizio si indica
+   l'importo dell'intero periodo; se è già registrato nell'esercizio la
+   parte successiva a giorni è un risconto (attivo per i costi, passivo
+   per i ricavi), se si registra nell'esercizio successivo la parte
+   maturata è un rateo (passivo per i costi, attivo per i ricavi). La
+   scrittura di assestamento è all'ultimo giorno, lo storno al primo
+   giorno dell'esercizio successivo (origine `Assestamento`);
+3. epilogo, chiusura e riapertura (`Services\ChiusuraEsercizio`): i saldi
+   dei conti economici al "Conto economico" e il risultato all'utile o
+   alla perdita dell'esercizio, i saldi dei patrimoniali allo "Stato
+   patrimoniale di chiusura" (origine `Chiusura`) e la riapertura dallo
+   "Stato patrimoniale di apertura" al primo giorno dell'esercizio
+   successivo (origine `Riapertura`), con il risultato da destinare;
+4. destinazione del risultato (`Services\DestinazioneRisultato`), nell'esercizio
+   successivo alla data della delibera (proposta a quattro mesi dalla
+   chiusura, art. 2364, c. 2, c.c.): per le società di capitali il 5%
+   dell'utile alla riserva legale finché non raggiunge un quinto del
+   capitale sociale (art. 2430 c.c.; senza capitale in contabilità il 5%) e
+   il resto alla riserva straordinaria, conti e importi modificabili (es.
+   utili a nuovo o ai soci su un conto di debito); per le imprese
+   individuali e le società di persone al capitale netto; la perdita a
+   nuovo o al capitale netto (origine `Destinazione`).
+
+I conti si trovano per funzione (ratei e risconti attivi e passivi, utile
+e perdita, stato patrimoniale di apertura e di chiusura, conto economico),
+assegnata nel piano standard e, per le aziende esistenti, da
+`aggiornamento-0.11.sql`. Le scritture si rigenerano finché l'esercizio è
+aperto e il giornale non è stampato in definitiva alle loro date: i
+controlli precedono la scrittura, così non si registra solo una parte.
+Bilancio di verifica e componenti del reddito (quadri RF, RG, RE e LM)
+escludono epilogo e chiusura; il saldo dei clienti e fornitori dello
+scadenzario esclude anche la riapertura. Le righe sui sottoconti dei
+clienti e fornitori non hanno la controparte: le partite aperte restano
+quelle dello scadenzario. L'IVA sospesa per cassa resta sui conti
+dell'IVA su vendite e acquisti e si riapre con loro. L'esercizio si chiude
+poi dal riepilogo dell'azienda.
+
 ## Scadenzario dello studio
 
 Il modulo non espone scadenze proprie: i versamenti delle liquidazioni,
@@ -1002,19 +1180,19 @@ riportano ancora il D.P.R. 633/1972.
 
 ## Da completare
 
-- registrazione all'incasso dell'IVA a esigibilità differita e IVA per
-  cassa (art. 32-bis D.L. 83/2012); oggi esclusa dalla liquidazione con un
-  avviso;
-- plafond degli esportatori abituali nelle liquidazioni (verifica del
-  plafond disponibile mese per mese; il quadro VC è nella dichiarazione
-  annuale del modulo Dichiarativi);
-- contabilità dei forfetari, cespiti e ammortamenti, ratei e risconti,
-  chiusura e riapertura dei conti con le scritture di assestamento
-  (base per il modulo Bilancio);
+- conti dell'IVA in sospensione per le fatture a esigibilità differita e
+  per cassa (oggi l'imposta sospesa resta sui conti dell'IVA su vendite e
+  acquisti fino al giroconto della liquidazione); verifica del volume
+  d'affari per l'IVA per cassa;
+- archivio delle dichiarazioni d'intento emesse (protocollo, fornitore,
+  importo) e verifica degli acquisti per fornitore;
+- forfetari: individuazione dell'operazione che supera i 100.000 euro e
+  verifica degli altri requisiti di accesso;
+- modulo Bilancio (schemi degli artt. 2424 e 2425 c.c. dai saldi con le
+  voci CEE dei conti, nota integrativa, deposito);
 - trimestrali per natura dell'attività nelle attività separate e nella
   liquidazione IVA di gruppo;
-- stampa definitiva del libro degli inventari e dei registri dei beni
-  ammortizzabili (con i cespiti);
+- libro degli inventari (con il bilancio);
 - importazione nella maschera mensile dei corrispettivi telematici
   trasmessi (portale Fatture e corrispettivi) e scarico automatico delle
   fatture;

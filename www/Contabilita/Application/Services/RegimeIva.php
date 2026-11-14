@@ -49,6 +49,16 @@ class RegimeIva
     }
 
     /**
+     * L'azienda ha optato per l'IVA per cassa nell'anno (art. 32-bis D.L.
+     * 83/2012; dal 2027 art. 132 D.Lgs. 10/2026): l'opzione decorre dal 1°
+     * gennaio (art. 6 D.M. 11 ottobre 2012).
+     */
+    public function isIvaPerCassa(Soggetto $soggetto, int $anno): bool
+    {
+        return $this->getDatiFiscali($soggetto, $anno)?->ivaPerCassa ?? false;
+    }
+
+    /**
      * @throws \DomainException se nell'anno l'azienda non liquida l'IVA
      */
     public function getPeriodicita(Soggetto $soggetto, int $anno): PeriodicitaIva

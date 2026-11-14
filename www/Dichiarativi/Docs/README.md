@@ -195,10 +195,19 @@ nell'anno:
   con la ventilazione annuale; operazioni non imponibili, esenti, non
   soggette e in inversione contabile per natura (VE30-VE35, con il VE30
   campo 1 come totale che concorre al plafond); scissione dei pagamenti nel
-  VE38 ed esigibilità differita nel VE37, fuori dalle sezioni 1 e 2;
+  VE38; esigibilità differita e IVA per cassa (Contabilità,
+  `IvaSospesa`): nelle sezioni 1 e 2 la quota divenuta esigibile entro la
+  fine dell'anno, il resto nel VE37 (campo 2 per l'IVA per cassa), e la
+  quota divenuta esigibile nell'anno dei documenti degli anni precedenti
+  nella sezione 2 e nel VE39;
   cessioni di beni ammortizzabili (qualifica della riga, o conto delle
   immobilizzazioni) nel VE40; volume d'affari VE50;
 - **VF**: acquisti per aliquota (VF1-VF13) con la sola quota detraibile;
+  per gli acquisti per cassa la quota divenuta detraibile entro la fine
+  dell'anno, il resto nel VF23 (campi 1 e 2), e quella dei documenti
+  degli anni precedenti divenuta detraibile nell'anno nei VF1-VF13 e nel
+  VF24; opzione e revoca dell'IVA per cassa nel rigo VO15 (dai dati
+  fiscali dell'anno e del precedente);
   per la detrazione parziale la quota di imponibile corrispondente
   all'imposta indetraibile va nel VF21, al netto dell'IVA (istruzioni del
   rigo VF21); acquisti senza imposta per natura (VF17 con dichiarazione
@@ -262,7 +271,8 @@ nell'anno:
   precedente, totali, importazioni con dichiarazione d'intento in colonna
   2; metodo solare (casella 2 del VC14) di default, con il plafond
   disponibile al 1° gennaio dalle operazioni dell'anno precedente; metodo
-  mensile barrando la casella 3 del VC14 e riproponendo: colonne 5 e 6
+  mensile scelto sull'esercizio contabile (proposta la casella 3 del VC14)
+  o barrando la casella e riproponendo: colonne 5 e 6
   dell'anno precedente e plafond di gennaio dai dodici mesi precedenti al
   netto degli acquisti con plafond; in entrambi i casi la verifica mese per
   mese avvisa del primo superamento del plafond disponibile e dello status
@@ -842,7 +852,9 @@ visto, e i record C dei quadri.
   all'80 per cento, versamenti) e Sara Gallo
   (grafica web forfetaria dal 2022: compensi incassati, coefficiente del
   78 per cento, contributi della Gestione separata da Deleghe, imposta al
-  5 per cento, saldo e primo acconto in tre rate);
+  5 per cento, saldo e primo acconto in tre rate; servizi da un fornitore
+  UE con l'IVA versata dalla forfetaria, a maggio con il codice del mese e
+  nel quarto trimestre con il versamento trimestrale);
 - **Alimentari Ferri** (trimestrale, ventilazione, sede operativa a Roma):
   liquidazioni trimestrali 2025 e dichiarazione IVA 2026 in bozza con la
   ventilazione annuale, il quadro VH dei primi tre trimestri, il VT dei
@@ -859,6 +871,15 @@ visto, e i record C dei quadri.
   fatture esenti ai pazienti, versato in Deleghe con i differimenti sotto i
   5.000 euro (primo e secondo trimestre al 1° dicembre 2025), e una fattura
   esente all'assicurazione senza bollo, tra quelle da verificare;
+- **Lumen Grafica S.r.l.** (trimestrale, Firenze, IVA per cassa dal
+  2025): fatture emesse incassate in parte e in ritardo, acquisti pagati in
+  parte, liquidazioni 2025 con l'imposta nei trimestri degli incassi e dei
+  pagamenti, dichiarazione IVA 2025 con il VE37 e il VF23 (campi 2) e
+  l'opzione nel VO15; fine dell'esercizio 2025 in Contabilità: computer e
+  autovettura tra i cespiti (VF29 campo 1) con gli ammortamenti e la parte
+  indeducibile dell'autovettura, risconto della polizza annuale esente,
+  epilogo e chiusura dei conti, riapertura nel 2026 e destinazione
+  dell'utile alla riserva legale e straordinaria;
 - **Autotrasporti Emiliani S.r.l.** (trimestrale per natura
   dell'attività, Bologna): trasporti e acquisti di gasolio del 2025,
   quattro liquidazioni senza interessi (quarto trimestre al 16 febbraio

@@ -18,6 +18,8 @@ $voci = [
     'liquidazioni' => ['/liquidazione-iva/index/soggetto/' . $soggetto->id . ($annoEsercizio === null ? '' : '/anno/' . $annoEsercizio), 'bi-calculator'],
     'gruppoIva' => ['/gruppo-iva/index/soggetto/' . $soggetto->id . ($annoEsercizio === null ? '' : '/anno/' . $annoEsercizio), 'bi-diagram-2'],
     'ritenuteBollo' => ['/ritenute-bollo/index/soggetto/' . $soggetto->id . ($annoEsercizio === null ? '' : '/anno/' . $annoEsercizio), 'bi-receipt'],
+    'cespiti' => ['/cespite/index/soggetto/' . $soggetto->id . $suffissoAnno, 'bi-building-gear'],
+    'chiusura' => ['/chiusura/index/soggetto/' . $soggetto->id . $suffissoAnno, 'bi-door-closed'],
     'giornale' => ['/stampa-contabile/giornale/soggetto/' . $soggetto->id . $suffissoAnno, 'bi-list-ol'],
     'stampeDefinitive' => ['/stampa-definitiva/index/soggetto/' . $soggetto->id . $suffissoAnno, 'bi-printer'],
     'bilancio' => ['/stampa-contabile/bilancio/soggetto/' . $soggetto->id . $suffissoAnno, 'bi-bar-chart'],

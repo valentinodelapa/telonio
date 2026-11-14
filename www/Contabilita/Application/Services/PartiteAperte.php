@@ -651,6 +651,10 @@ class PartiteAperte
         foreach ($scadenzario as $chiave => &$voce) {
             $saldo = 0.0;
             foreach ($righe->getMovimenti($soggetto, $voce['conto'], null, null) as $riga) {
+                // saldo di tutti gli esercizi: chiusure e riaperture dei conti si compensano
+                if (ChiusuraEsercizio::isChiusuraORiapertura($riga->registrazioneContabile)) {
+                    continue;
+                }
                 if (($riga->controparte === null) || ($riga->controparte->id === $voce['controparte']->id)) {
                     $saldo += $riga->dare - $riga->avere;
                 }

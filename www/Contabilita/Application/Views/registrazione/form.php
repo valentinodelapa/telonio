@@ -65,7 +65,11 @@ require Layout::percorso('header');
                     <?= Campo::selezioneEnum('esigibilita', $campi['esigibilita'], $formEntity, $errors, $esigibilita, ['richiesto' => true, 'colonna' => 'col-md-3']) ?>
                     <?= Campo::testo('impostaBollo', $campi['impostaBollo'], $formEntity, $errors, ['colonna' => 'col-md-3', 'attributi' => 'inputmode="decimal" placeholder="0,00"', 'aiuto' => $aiutoBollo]) ?>
                 <?php else: ?>
-                    <input type="hidden" name="esigibilita" value="<?= Html::valore($formEntity, 'esigibilita') ?: 'I' ?>">
+                    <?php if (($causale->getTipoRegistroIva() === TipoRegistroIva::acquisti) && (count($esigibilitaAcquisti) > 0)): ?>
+                        <?= Campo::selezioneEnum('esigibilita', $campi['detrazione'], $formEntity, $errors, $esigibilitaAcquisti, ['richiesto' => true, 'colonna' => 'col-md-3', 'aiuto' => $aiutoDetrazioneCassa]) ?>
+                    <?php else: ?>
+                        <input type="hidden" name="esigibilita" value="<?= Html::valore($formEntity, 'esigibilita') ?: 'I' ?>">
+                    <?php endif; ?>
                     <?php if ($causale->getTipoRegistroIva() === TipoRegistroIva::acquisti): ?>
                         <?= Campo::spunta('importazione', $campi['importazione'], $formEntity, $errors, ['colonna' => 'col-md-6', 'aiuto' => $aiutoImportazione]) ?>
                     <?php endif; ?>

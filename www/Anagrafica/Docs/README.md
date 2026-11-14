@@ -201,6 +201,13 @@ di regime è una nuova variazione (di norma dal 1° gennaio).
   trimestrale e la partita IVA. La Contabilità liquida senza gli interessi
   dell'1% e il quarto trimestre entro il 16 febbraio; i requisiti
   dell'attività non sono verificati;
+- **IVA per cassa** (art. 32-bis D.L. 83/2012; dal 2027 art. 132 D.Lgs.
+  10/2026; D.M. 11 ottobre 2012): opzione con volume d'affari fino a 2
+  milioni di euro, dal 1° gennaio dell'anno; solo con un regime che prevede
+  le liquidazioni e senza un regime speciale IVA. La Contabilità propone
+  le fatture emesse e ricevute "per cassa": l'imposta diventa esigibile e
+  detraibile al pagamento, comunque dopo un anno. Il limite del volume
+  d'affari e il vincolo triennale dell'opzione non sono verificati;
 - **applica gli ISA**, anche con cause di esclusione e con ricavi o
   compensi entro il limite del decreto di approvazione: esclusa per i
   regimi forfetario e di vantaggio; serve, ad esempio, alle proroghe dei

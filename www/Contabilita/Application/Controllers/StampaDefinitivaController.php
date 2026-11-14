@@ -2,6 +2,7 @@
 
 namespace Contabilita\Application\Controllers;
 
+use Contabilita\Application\Models\CespiteModel;
 use Anagrafica\Application\Entities\Soggetto;
 use Contabilita\Application\BaseClasses\ContabilitaController;
 use Contabilita\Application\Entities\RegistroIva;
@@ -37,6 +38,11 @@ class StampaDefinitivaController extends ContabilitaController
         $libri = [];
         if (($esercizio !== null) && ($esercizio->anno === $anno)) {
             $libri['giornale'] = $this->libro($servizio, $model, $soggetto, TipoStampaDefinitiva::giornale, null, $anno, 'Libro giornale');
+            if (count((new CespiteModel($this->dataMapper))->getElenco($soggetto)) > 0) {
+                $libri['beni'] = $this->libro($servizio, $model, $soggetto, TipoStampaDefinitiva::registroBeni, null, $anno, TipoStampaDefinitiva::registroBeni->getLabel());
+                // il registro si stampa per l'intero esercizio
+                $libri['beni']['proposta'] = $libri['beni']['fine']->format('Y-m-d');
+            }
         }
         foreach ((new RegistroIvaModel($this->dataMapper))->getElenco($soggetto) as $registro) {
             $libri[(string) $registro->id] = $this->libro($servizio, $model, $soggetto, TipoStampaDefinitiva::registroIva, $registro, $anno, $registro->getEtichetta());
@@ -139,6 +145,9 @@ class StampaDefinitivaController extends ContabilitaController
         if ($libro === 'giornale') {
             return [TipoStampaDefinitiva::giornale, null];
         }
+        if ($libro === 'beni') {
+            return [TipoStampaDefinitiva::registroBeni, null];
+        }
         foreach ((new RegistroIvaModel($this->dataMapper))->getElenco($soggetto) as $registro) {
             if ((string) $registro->id === $libro) {
                 return [TipoStampaDefinitiva::registroIva, $registro];
@@ -152,7 +161,7 @@ class StampaDefinitivaController extends ContabilitaController
         $this->vars['stampa'] = $stampa;
         $this->vars['pagine'] = (new StampeDefinitive($this->dataMapper))->getPagine($stampa);
         $this->vars['anteprima'] = $anteprima;
-        $this->vars['titoloStampa'] = $stampa->tipo === TipoStampaDefinitiva::giornale ? 'Libro giornale' : $stampa->registroIva->getEtichetta();
+        $this->vars['titoloStampa'] = $stampa->tipo === TipoStampaDefinitiva::registroIva ? $stampa->registroIva->getEtichetta() : $stampa->tipo->getLabel();
         $this->vars['pageTitle'] = $stampa->soggetto->nominativo . ' · ' . $stampa->getDescrizione();
         return $this->render->generateView('stampaDefinitiva/pagine', $this->vars);
     }

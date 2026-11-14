@@ -223,6 +223,7 @@ class PartiteAperteTest extends ContabilitaTestCase
         $this->testAdapter->impostaSelectCallback(fn(string $cmd) => new TestResultSet(match (true) {
             preg_match('/FROM\W+partita\W/', $cmd) === 1 => $this->partite,
             preg_match('/FROM\W+abbinamento\W/', $cmd) === 1 => $this->abbinamenti,
+            preg_match('/FROM\W+esercizio_contabile\W/', $cmd) === 1 => [],
             default => $righe,
         }));
         $servizio = new ComponentiReddito($this->dataMapper);

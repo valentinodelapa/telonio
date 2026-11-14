@@ -40,6 +40,7 @@ final class RiferimentiIva
         'trimestraliSpeciali' => ['art. 74, c. 4, ' . self::DPR, 'art. 139, c. 4, ' . self::TU_IVA],
         'noteVariazione' => ['art. 26 ' . self::DPR, 'art. 92 ' . self::TU_IVA],
         'acconto' => ['art. 6, c. 2, L. 405/1990', 'art. 111 ' . self::TU_IVA],
+        'plafond' => ['art. 8, c. 1, lett. c), ' . self::DPR . ', art. 1 D.L. 746/1983 e art. 2, c. 2, L. 28/1997', 'artt. 45, c. 1, lett. d), 46 e 47 ' . self::TU_IVA],
         'ivaPerCassa' => ['art. 32-bis D.L. 83/2012', 'art. 132 ' . self::TU_IVA],
         'lipe' => ['art. 21-bis D.L. 78/2010', 'art. 51 D.Lgs. 141/2026'],
     ];

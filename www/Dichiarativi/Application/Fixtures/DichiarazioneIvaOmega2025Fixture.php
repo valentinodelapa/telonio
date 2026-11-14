@@ -80,6 +80,9 @@ class DichiarazioneIvaOmega2025Fixture extends BaseFixture
             RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio2024, $atlas, $vendita, $data, 'E' . substr($data, 5, 2), ['N3.1' => $importo]);
         }
         $esercizio = $demo->apriEsercizio($omega, 2025);
+        // plafond con il metodo mensile, scelto sull'esercizio (liquidazioni e casella 3 del VC14)
+        $esercizio->plafondMensile = true;
+        $this->dataMapper->save($esercizio);
         foreach (['2025-02-20' => 30000.0, '2025-06-18' => 25000.0, '2025-10-22' => 25000.0] as $data => $importo) {
             RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $atlas, $vendita, $data, 'E' . substr($data, 5, 2), ['N3.1' => $importo]);
         }
@@ -136,9 +139,7 @@ class DichiarazioneIvaOmega2025Fixture extends BaseFixture
             $sottoscrizione->soggetto = $componente;
             $this->dataMapper->save($sottoscrizione);
         }
-        // plafond con il metodo mensile (casella 3 del VC14), scelto dal contribuente
         $quadri = new QuadriDichiarazione($dichiarazione, $this->dataMapper);
-        $quadri->imposta('VC014003', true);
         $quadri->imposta('VX004001', 4000);
         (new PropostaIva($this->dataMapper))->proponi($dichiarazione, $quadri);
         $this->addEntity($dichiarazione);

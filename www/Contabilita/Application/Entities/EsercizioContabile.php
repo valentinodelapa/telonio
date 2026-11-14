@@ -22,6 +22,8 @@ class EsercizioContabile extends ReferencedEntity
     protected SismaDate $dataInizio;
     protected SismaDate $dataFine;
     protected bool $chiuso = false;
+    /** plafond degli esportatori abituali con il metodo mensile (dodici mesi precedenti) invece del solare */
+    protected bool $plafondMensile = false;
 
     #[\Override]
     protected function setEncryptedProperties(): void

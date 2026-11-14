@@ -2,6 +2,41 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.27.0-alpha] - 2026-11-14 - IVA per Cassa, Plafond, Forfetari e Chiusura dell'Esercizio
+
+Versioni dei moduli: `Anagrafica` 0.14.0, `Contabilita` 0.11.0 (richiede `Anagrafica` 0.14.0), `Dichiarativi` 0.8.0 (richiede `Anagrafica` 0.14.0 e `Contabilita` 0.11.0); gli altri invariati.
+
+**Aggiornamento**: `aggiorna.sh` (cioè `sisma aggiorna-database`) esegue `Anagrafica/Database/aggiornamento-0.14.sql` (colonna `dati_fiscali.iva_per_cassa`) e `Contabilita/Database/aggiornamento-0.11.sql` (colonna `esercizio_contabile.plafond_mensile`, tabelle `cespite` e `rateo_risconto`, funzioni dei conti di ratei, risconti, risultato d'esercizio, stato patrimoniale di apertura e chiusura, conto economico, plusvalenze e minusvalenze, capitale e riserve nei piani delle aziende copiati dal piano standard; `Contabilita/Database/dati-riferimento.sql` le assegna nel piano standard). Le registrazioni esistenti a esigibilità differita, finora escluse dalle liquidazioni, entrano nelle liquidazioni elaborate da qui in avanti con l'imposta maturata negli incassi abbinati: rielaborare le liquidazioni dei periodi interessati. Nessun passo manuale.
+
+### ✨ Nuove Funzionalità
+
+#### `Anagrafica` 0.14.0
+
+- **opzione per l'IVA per cassa** (art. 32-bis D.L. 83/2012; dal 2027 art. 132 D.Lgs. 10/2026) nei dati fiscali: solo con un regime che prevede le liquidazioni IVA e senza regimi speciali; è mostrata nella scheda del soggetto.
+
+#### `Contabilita` 0.11.0 — esigibilità differita, IVA per cassa, plafond, forfetari, cespiti e chiusura dell'esercizio
+
+- **IVA a esigibilità differita nelle liquidazioni**: l'imposta delle fatture emesse "differite" diventa esigibile nel periodo dell'incasso, in proporzione a quanto incassato, leggendo gli abbinamenti dello scadenzario. Prima queste fatture erano escluse dalla liquidazione con un avviso.
+- **IVA per cassa**: nuova esigibilità "per cassa" delle registrazioni, proposta per le fatture emesse e ricevute delle aziende che hanno optato (anche da quelle elettroniche importate). L'imposta delle vendite diventa esigibile e quella degli acquisti detraibile al pagamento e comunque decorso un anno dall'operazione (D.M. 11 ottobre 2012). I controlli escludono note di credito, corrispettivi, importazioni e operazioni in inversione contabile. Il prospetto della liquidazione elenca le fatture con l'imposta maturata nel periodo.
+- **plafond degli esportatori abituali**: nella pagina delle liquidazioni c'è il prospetto mese per mese del plafond (disponibile, utilizzato, residuo), con il metodo solare o mensile scelto per anno sull'esercizio contabile e l'avviso sullo status di esportatore abituale. Le liquidazioni avvisano del primo superamento del plafond.
+- **regime forfetario**: per i forfetari la pagina delle liquidazioni mostra i ricavi e compensi percepiti nell'anno, con l'avviso oltre 85.000 e 100.000 euro. Mostra anche l'IVA degli acquisti in inversione contabile e intracomunitari, da registrare in Deleghe F24: trimestrale per le operazioni dal 1° ottobre 2025 (art. 1, c. 58, lett. e-bis, L. 190/2014), mensile prima. Il codice tributo trimestrale proposto, quello dell'ultimo mese del trimestre, è segnalato da verificare.
+- **cespiti e ammortamenti**: nuova pagina "Cespiti" con il registro dei beni ammortizzabili e la sua stampa, anche definitiva con le pagine numerate tra le stampe definitive dell'esercizio. Gli acquisti di immobilizzazioni senza cespite sono segnalati e si trasformano in cespiti con i conti proposti. Il piano di ammortamento usa il coefficiente del bene, la metà nel primo esercizio, la deduzione integrale dei beni fino a 516,46 euro, il fondo pregresso e la dismissione. La scrittura degli ammortamenti è registrata a fine esercizio, con l'eliminazione dei beni dismessi (storno del fondo e plusvalenza o minusvalenza).
+- **parte fiscale degli ammortamenti**: coefficiente fiscale diverso da quello civilistico (eccedenze riprese e poi recuperate), parte deducibile e costo fiscale massimo (autovetture al 20% fino a 18.075,99 euro, telefonia all'80%). Le differenze vanno nelle variazioni del quadro RF (RF18, RF31 e RF55 codice 99) e riducono i costi per cassa dei quadri RG ed RE.
+- **chiusura dell'esercizio**: nuova pagina "Chiusura" con ratei e risconti (quote a giorni, scrittura di assestamento e storno nell'esercizio successivo), epilogo dei conti economici con l'utile o la perdita, chiusura dei conti patrimoniali e riapertura nell'esercizio successivo. Bilancio di verifica e componenti del reddito escludono le scritture di chiusura. Le scritture si rigenerano finché l'esercizio è aperto e il giornale non è stampato in definitiva.
+- **destinazione del risultato**: scrittura nell'esercizio successivo alla data della delibera, con la proposta del 5% alla riserva legale fino a un quinto del capitale e del resto alla riserva straordinaria per le società di capitali, del capitale netto per le altre imprese; conti e importi modificabili.
+
+#### `Dichiarativi` 0.8.0
+
+- dati demo: fine dell'esercizio 2025 dell'azienda con l'IVA per cassa (computer e autovettura tra i cespiti, risconto di una polizza, chiusura e riapertura dei conti, destinazione dell'utile).
+- **metodo mensile del plafond** proposto nella casella 3 del VC14 dalla scelta fatta sull'esercizio contabile; il calcolo del quadro VC usa il servizio della Contabilità.
+- **dichiarazione IVA con esigibilità differita e IVA per cassa**: nelle sezioni del VE e nei righi VF1-VF13 la quota divenuta esigibile o detraibile nell'anno, il resto nei righi VE37 e VF23 (campo 2 per l'IVA per cassa), i documenti degli anni precedenti nei righi VE39 e VF24; opzione e revoca dell'IVA per cassa nel rigo VO15. Nuova azienda demo con l'IVA per cassa.
+
+### 🐛 Correzioni
+
+#### `Dichiarativi` 0.8.0
+
+- **esigibilità differita nel VE37**: l'imponibile delle fatture a esigibilità differita finiva per intero nel rigo VE37, anche per la parte incassata nell'anno, che va nella sezione 2 del quadro VE.
+
 ## [0.26.0-alpha] - 2026-11-13 - Ritenute d'Acconto e Imposta di Bollo
 
 Versioni dei moduli: `Contabilita` 0.10.0, `Dichiarativi` 0.7.1 (richiede `Contabilita` 0.10.0), `GestioneStudio` 0.2.1; gli altri invariati.

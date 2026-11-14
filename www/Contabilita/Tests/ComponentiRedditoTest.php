@@ -48,7 +48,7 @@ class ComponentiRedditoTest extends ContabilitaTestCase
      */
     private function rispondiSenzaPartite(array $righe): void
     {
-        $this->testAdapter->impostaSelectCallback(fn(string $cmd) => new TestResultSet(preg_match('/FROM\W+(partita|abbinamento)\W/', $cmd) === 1 ? [] : $righe));
+        $this->testAdapter->impostaSelectCallback(fn(string $cmd) => new TestResultSet(preg_match('/FROM\W+(partita|abbinamento|esercizio_contabile)\W/', $cmd) === 1 ? [] : $righe));
     }
 
     public function testIncassiSulleFattureDallaPiuVecchia(): void
@@ -84,7 +84,7 @@ class ComponentiRedditoTest extends ContabilitaTestCase
 
         // per competenza: ricavi e costi registrati nell'anno
         $nel2025 = array_values(array_filter($righe, fn(RigaContabile $riga) => $riga->dataRegistrazione->format('Y') === '2025'));
-        $this->testAdapter->impostaSelectCallback(fn() => new TestResultSet($nel2025));
+        $this->testAdapter->impostaSelectCallback(fn(string $cmd) => new TestResultSet(preg_match('/FROM\W+esercizio_contabile\W/', $cmd) === 1 ? [] : $nel2025));
         $this->assertSame(['ricavi' => 2000.0, 'costi' => 300.0, 'utile' => 1700.0, 'variazioni' => []], $servizio->perCompetenza($this->azienda, 2025));
 
         // costo deducibile all'80 per cento (es. telefonia): nel quadro RG la parte deducibile, nel quadro RF la variazione del 20 per cento
@@ -98,7 +98,7 @@ class ComponentiRedditoTest extends ContabilitaTestCase
         // ricavi imponibili al 90 per cento: nel quadro RG la parte imponibile, nel quadro RF la variazione in diminuzione del 10 per cento
         $ricavi->percentualeDeducibile = 90.0;
         $this->assertSame(1800.0, $servizio->perCassa($this->azienda, 2025, false)['RG2']);
-        $this->testAdapter->impostaSelectCallback(fn() => new TestResultSet($nel2025));
+        $this->testAdapter->impostaSelectCallback(fn(string $cmd) => new TestResultSet(preg_match('/FROM\W+esercizio_contabile\W/', $cmd) === 1 ? [] : $nel2025));
         $this->assertEquals(['RF18' => 60.0, 'RF55:99' => 200.0], $servizio->perCompetenza($this->azienda, 2025)['variazioni']);
     }
 

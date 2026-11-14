@@ -73,19 +73,19 @@ piano_conti_id;id;codice;descrizione;natura;funzione;voce_cee
 1;72;07.02.0002;Valori bollati;A;;A.C.IV.3
 1;73;08;Ratei e risconti attivi;A;;
 1;74;08.01;Ratei e risconti attivi;A;;
-1;75;08.01.0001;Ratei attivi;A;;A.D
-1;76;08.01.0002;Risconti attivi;A;;A.D
+1;75;08.01.0001;Ratei attivi;A;RAA;A.D
+1;76;08.01.0002;Risconti attivi;A;RIA;A.D
 1;77;10;Patrimonio netto;P;;
 1;78;10.01;Capitale e riserve;P;;
-1;79;10.01.0001;Capitale sociale;P;;P.A.I
-1;80;10.01.0002;Riserva legale;P;;P.A.IV
-1;81;10.01.0003;Riserva straordinaria;P;;P.A.VI
+1;79;10.01.0001;Capitale sociale;P;CSO;P.A.I
+1;80;10.01.0002;Riserva legale;P;RLE;P.A.IV
+1;81;10.01.0003;Riserva straordinaria;P;RST;P.A.VI
 1;82;10.01.0004;Versamenti in conto capitale;P;;P.A.VI
-1;83;10.01.0005;Utili (perdite) portati a nuovo;P;;P.A.VIII
-1;84;10.01.0006;Capitale netto (imprese individuali e società di persone);P;;P.A.I
+1;83;10.01.0005;Utili (perdite) portati a nuovo;P;UNU;P.A.VIII
+1;84;10.01.0006;Capitale netto (imprese individuali e società di persone);P;CNE;P.A.I
 1;85;10.02;Risultato dell'esercizio;P;;
-1;86;10.02.0001;Utile dell'esercizio;P;;P.A.IX
-1;87;10.02.0002;Perdita dell'esercizio;P;;P.A.IX
+1;86;10.02.0001;Utile dell'esercizio;P;UTE;P.A.IX
+1;87;10.02.0002;Perdita dell'esercizio;P;PEE;P.A.IX
 1;88;10.03;Prelevamenti;P;;
 1;89;10.03.0001;Prelevamenti del titolare o dei soci;P;;P.A.I
 1;90;11;Fondi per rischi e oneri;P;;
@@ -117,8 +117,8 @@ piano_conti_id;id;codice;descrizione;natura;funzione;voce_cee
 1;116;13.06.0003;Debiti diversi;P;;P.D.14
 1;117;14;Ratei e risconti passivi;P;;
 1;118;14.01;Ratei e risconti passivi;P;;
-1;119;14.01.0001;Ratei passivi;P;;P.E
-1;120;14.01.0002;Risconti passivi;P;;P.E
+1;119;14.01.0001;Ratei passivi;P;RAP;P.E
+1;120;14.01.0002;Risconti passivi;P;RIP;P.E
 1;121;20;Valore della produzione;R;;
 1;122;20.01;Ricavi delle vendite e delle prestazioni;R;;
 1;123;20.01.0001;Ricavi per vendite di merci;R;RIC;E.A.1
@@ -127,7 +127,7 @@ piano_conti_id;id;codice;descrizione;natura;funzione;voce_cee
 1;126;20.01.0004;Resi e sconti su vendite;R;;E.A.1
 1;127;20.02;Altri ricavi e proventi;R;;
 1;128;20.02.0001;Proventi diversi;R;;E.A.5
-1;129;20.02.0002;Plusvalenze ordinarie;R;;E.A.5
+1;129;20.02.0002;Plusvalenze ordinarie;R;PLV;E.A.5
 1;130;20.02.0003;Contributi in conto esercizio;R;;E.A.5
 1;131;20.02.0004;Arrotondamenti attivi;R;ARA;E.A.5
 1;132;21;Costi per acquisti;C;;
@@ -172,7 +172,7 @@ piano_conti_id;id;codice;descrizione;natura;funzione;voce_cee
 1;171;27.01;Oneri diversi di gestione;C;;
 1;172;27.01.0001;Imposte e tasse diverse;C;;E.B.14
 1;173;27.01.0002;Sanzioni e multe;C;;E.B.14
-1;174;27.01.0003;Minusvalenze ordinarie;C;;E.B.14
+1;174;27.01.0003;Minusvalenze ordinarie;C;MNV;E.B.14
 1;175;27.01.0004;Arrotondamenti passivi;C;ARP;E.B.14
 1;176;27.01.0005;Oneri diversi;C;;E.B.14
 1;177;28;Proventi finanziari;R;;
@@ -189,7 +189,7 @@ piano_conti_id;id;codice;descrizione;natura;funzione;voce_cee
 1;188;30.01.0002;IRAP;C;;E.20
 1;189;40;Conti di sistema;S;;
 1;190;40.01;Aperture e chiusure;S;;
-1;191;40.01.0001;Stato patrimoniale di apertura;S;;
-1;192;40.01.0002;Stato patrimoniale di chiusura;S;;
-1;193;40.01.0003;Conto economico;S;;
+1;191;40.01.0001;Stato patrimoniale di apertura;S;SPA;
+1;192;40.01.0002;Stato patrimoniale di chiusura;S;SPC;
+1;193;40.01.0003;Conto economico;S;CEC;
 1;194;06.04.0004;IVA di gruppo c/liquidazioni;A;IVG;

@@ -54,6 +54,8 @@ class DatiFiscali extends BaseEntity implements Storicizzabile
     protected bool $ventilazioneCorrispettivi = false;
     /** Trimestrale per natura dell'attività (art. 74, c. 4, D.P.R. 633/1972; dal 2027 art. 139, c. 4, D.Lgs. 10/2026): senza interessi, quarto trimestre entro il 16 febbraio */
     protected bool $trimestraleSpeciale = false;
+    /** Opzione per l'IVA per cassa (art. 32-bis D.L. 83/2012; dal 2027 art. 132 D.Lgs. 10/2026): esigibilità e detrazione al pagamento, comunque dopo un anno */
+    protected bool $ivaPerCassa = false;
     protected ?RegimeDetrazioneIva $regimeDetrazioneIva = null;
     protected ?string $opzioniOrdinarie = null;
     protected bool $rinunciaEsonero = false;

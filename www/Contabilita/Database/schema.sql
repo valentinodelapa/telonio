@@ -96,6 +96,7 @@ CREATE TABLE IF NOT EXISTS `esercizio_contabile` (
   `data_inizio` DATE NOT NULL,
   `data_fine` DATE NOT NULL,
   `chiuso` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Chiuso: registrazioni non più modificabili',
+  `plafond_mensile` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Plafond degli esportatori abituali con il metodo mensile',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_esercizio_contabile` (`soggetto_id`, `anno`),
   KEY `idx_esercizio_contabile_studio` (`studio_id`),
@@ -747,3 +748,59 @@ CREATE TABLE IF NOT EXISTS `prodotto_agricolo` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Prodotti agricoli con la percentuale di compensazione';
+
+CREATE TABLE IF NOT EXISTS `cespite` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `studio_id` INT UNSIGNED NOT NULL,
+  `soggetto_id` INT UNSIGNED NOT NULL,
+  `codice` VARCHAR(20) NOT NULL,
+  `descrizione` VARCHAR(255) NOT NULL,
+  `conto_cespite_id` INT UNSIGNED NOT NULL COMMENT 'Immobilizzazione',
+  `conto_fondo_id` INT UNSIGNED NOT NULL COMMENT 'Fondo ammortamento',
+  `conto_ammortamento_id` INT UNSIGNED NOT NULL COMMENT 'Quota di ammortamento (costo)',
+  `data_acquisto` DATE NOT NULL,
+  `data_entrata_funzione` DATE NULL COMMENT 'Se diversa dall''acquisto: l''ammortamento parte dal suo esercizio',
+  `costo` DECIMAL(15,2) NOT NULL DEFAULT 0,
+  `percentuale` DECIMAL(5,2) NOT NULL DEFAULT 0 COMMENT 'Coefficiente annuo (D.M. 31 dicembre 1988)',
+  `riduzione_primo_esercizio` TINYINT(1) NOT NULL DEFAULT 1 COMMENT 'Coefficiente ridotto alla metà nel primo esercizio',
+  `deduzione_integrale` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Beni fino a 516,46 euro dedotti per intero nel primo esercizio',
+  `percentuale_fiscale` DECIMAL(5,2) NULL COMMENT 'Coefficiente fiscale massimo, se diverso da quello civilistico',
+  `percentuale_deducibile` DECIMAL(5,2) NOT NULL DEFAULT 100 COMMENT 'Parte deducibile delle quote (autovetture, telefonia)',
+  `limite_costo_fiscale` DECIMAL(15,2) NULL COMMENT 'Costo fiscalmente rilevante massimo (autovetture)',
+  `fondo_iniziale` DECIMAL(15,2) NOT NULL DEFAULT 0 COMMENT 'Ammortamenti effettuati alla fine dell''esercizio indicato',
+  `esercizio_fondo_iniziale` SMALLINT UNSIGNED NULL,
+  `registrazione_acquisto_id` INT UNSIGNED NULL,
+  `data_dismissione` DATE NULL,
+  `prezzo_dismissione` DECIMAL(15,2) NULL,
+  `note` VARCHAR(255) NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_cespite_codice` (`soggetto_id`, `codice`),
+  KEY `idx_cespite_studio` (`studio_id`),
+  CONSTRAINT `fk_cespite_studio` FOREIGN KEY (`studio_id`) REFERENCES `studio` (`id`),
+  CONSTRAINT `fk_cespite_soggetto` FOREIGN KEY (`soggetto_id`) REFERENCES `soggetto` (`id`),
+  CONSTRAINT `fk_cespite_conto_cespite` FOREIGN KEY (`conto_cespite_id`) REFERENCES `conto` (`id`),
+  CONSTRAINT `fk_cespite_conto_fondo` FOREIGN KEY (`conto_fondo_id`) REFERENCES `conto` (`id`),
+  CONSTRAINT `fk_cespite_conto_ammortamento` FOREIGN KEY (`conto_ammortamento_id`) REFERENCES `conto` (`id`),
+  CONSTRAINT `fk_cespite_registrazione` FOREIGN KEY (`registrazione_acquisto_id`) REFERENCES `registrazione_contabile` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Registro dei beni ammortizzabili (art. 16 D.P.R. 600/1973)';
+
+CREATE TABLE IF NOT EXISTS `rateo_risconto` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `studio_id` INT UNSIGNED NOT NULL,
+  `soggetto_id` INT UNSIGNED NOT NULL,
+  `anno` SMALLINT UNSIGNED NOT NULL COMMENT 'Esercizio (anno di chiusura) dell''assestamento',
+  `conto_id` INT UNSIGNED NOT NULL COMMENT 'Conto economico del costo o ricavo',
+  `descrizione` VARCHAR(255) NOT NULL,
+  `importo` DECIMAL(15,2) NOT NULL DEFAULT 0 COMMENT 'Importo dell''intero periodo di competenza',
+  `competenza_dal` DATE NOT NULL,
+  `competenza_al` DATE NOT NULL,
+  `registrato_nell_esercizio` TINYINT(1) NOT NULL DEFAULT 1 COMMENT '1 risconto (registrato nell''esercizio), 0 rateo (registrato nel successivo)',
+  PRIMARY KEY (`id`),
+  KEY `idx_rateo_risconto_soggetto` (`soggetto_id`, `anno`),
+  KEY `idx_rateo_risconto_studio` (`studio_id`),
+  CONSTRAINT `fk_rateo_risconto_studio` FOREIGN KEY (`studio_id`) REFERENCES `studio` (`id`),
+  CONSTRAINT `fk_rateo_risconto_soggetto` FOREIGN KEY (`soggetto_id`) REFERENCES `soggetto` (`id`),
+  CONSTRAINT `fk_rateo_risconto_conto` FOREIGN KEY (`conto_id`) REFERENCES `conto` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Ratei e risconti dell''esercizio per le scritture di assestamento';

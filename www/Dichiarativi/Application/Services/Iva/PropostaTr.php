@@ -165,7 +165,7 @@ class PropostaTr
                     $impostaScissione += $riga->imposta;
                     continue;
                 }
-                if ($esigibilita === EsigibilitaIva::differita) {
+                if ($esigibilita->isSospesa()) {
                     $this->avvisi[] = $etichetta . 'operazioni a esigibilità differita escluse dal quadro TA (esigibili all\'incasso): verificare.';
                     continue;
                 }
