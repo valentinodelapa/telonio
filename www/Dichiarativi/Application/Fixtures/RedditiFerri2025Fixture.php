@@ -34,7 +34,8 @@ use SismaFramework\Orm\CustomTypes\SismaDate;
  * è un'impresa familiare con il figlio Paolo collaboratore al 30 per cento
  * (legame dell'Anagrafica): prospetto di imputazione del quadro RS e quote
  * del rigo RG33. Il conto delle spese telefoniche è deducibile all'80 per
- * cento.
+ * cento. Soggetto ISA senza il modello ISA, che la suite non compila:
+ * omessa presentazione scelta nel frontespizio (campo 180 del record B).
  */
 class RedditiFerri2025Fixture extends BaseFixture
 {
@@ -83,6 +84,7 @@ class RedditiFerri2025Fixture extends BaseFixture
         $dichiarazione->modello = ModelloDichiarativo::redditiPf;
         $dichiarazione->anno = 2025;
         (new Frontespizio($this->dataMapper))->proponi($dichiarazione);
+        $dichiarazione->omessoIsa = true;
         $this->dataMapper->save($dichiarazione);
         $quadri = new QuadriDichiarazione($dichiarazione, $this->dataMapper);
         (new PropostaRedditi($this->dataMapper))->proponi($dichiarazione, $quadri);

@@ -50,6 +50,9 @@ class CalcoloIrpefTest extends TestCase
         $this->assertSame(713.0, CalcoloIrpef::detrazionePensione(5000, 100)['detrazione']);
         $this->assertEqualsWithDelta(500 + 765 * 0.3555, CalcoloIrpef::detrazioneAltriRedditi(20000), 0.001);
         $this->assertSame(1265.0, CalcoloIrpef::detrazioneAltriRedditi(5000));
+        // 50 euro in più oltre 11.000 e fino a 17.000 euro (par. 21.4.2)
+        $this->assertEqualsWithDelta(500 + 765 * 0.5777 + 50, CalcoloIrpef::detrazioneAltriRedditi(15000), 0.001);
+        $this->assertEqualsWithDelta(500 + 765 * 0.4888, CalcoloIrpef::detrazioneAltriRedditi(17001), 0.001);
 
         // lavoro e pensione con la minima: la più favorevole tra la minima e la somma delle rapportate
         $colonne = CalcoloIrpef::detrazioniLavoro(8000, 60, false, 60, false, true, true);

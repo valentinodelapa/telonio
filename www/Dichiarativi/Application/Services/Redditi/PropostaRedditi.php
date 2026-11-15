@@ -3,8 +3,10 @@
 namespace Dichiarativi\Application\Services\Redditi;
 
 use Anagrafica\Application\Entities\Soggetto;
+use Anagrafica\Application\Models\DatiFiscaliModel;
 use Dichiarativi\Application\Entities\Dichiarazione;
 use Dichiarativi\Application\Services\QuadriDichiarazione;
+use SismaFramework\Orm\CustomTypes\SismaDate;
 use SismaFramework\Orm\CustomTypes\SismaDateTime;
 use SismaFramework\Orm\HelperClasses\DataMapper;
 
@@ -76,17 +78,20 @@ class PropostaRedditi
         $this->proponiTerreni($quadri, $righiRa);
         $cedolare = $this->proponiFabbricati($quadri, $righiRb);
         $quadri->usaModulo(1);
+        // altri redditi (quadro RL) prima della cedolare: la cedolare dei redditi diversi del rigo RL10 va nel rigo LC1, col. 2
+        $altri = new PropostaAltriRedditi($this->dataMapper);
+        $altri->proponi($quadri, $soggetto, $anno);
+        array_push($this->avvisi, ...$altri->getAvvisi());
         $this->proponiCedolare($quadri, $cedolare);
         array_push($this->avvisi, ...(new PropostaImpresa($this->dataMapper))->proponi($soggetto, $anno, $quadri));
         $esteri->proponi($quadri, $soggetto, $anno);
+        // quadro RM: colonne calcolate dei righi proposti o inseriti a mano e righi da RX7 a RX19
+        CalcoloQuadroRm::proponi($quadri, (new DatiFiscaliModel($this->dataMapper))->getVigenteAl($soggetto, new SismaDate($anno . '-12-31'))?->soggettoIsa ?? false);
         $plusvalenze->proponi($quadri);
         $partecipazioni->proponi($quadri);
         $crediti = new PropostaCrediti($this->dataMapper);
         $crediti->proponiCrediti($quadri, $soggetto, $anno);
         array_push($this->avvisi, ...$crediti->getAvvisi());
-        $altri = new PropostaAltriRedditi($this->dataMapper);
-        $altri->proponi($quadri, $soggetto, $anno);
-        array_push($this->avvisi, ...$altri->getAvvisi());
         array_push($this->avvisi, ...(new PropostaIrpef($this->dataMapper))->proponi($dichiarazione, $quadri, $bonus));
         $quadri->usaModulo(1);
 
@@ -245,16 +250,20 @@ class PropostaRedditi
     }
 
     /**
-     * Rigo LC1 e acconto della cedolare secca (LC2): dovuto per il 100
-     * per cento se la differenza è almeno 52 euro, in due rate (40 e 60
-     * per cento) se la prima supera 103 euro.
+     * Rigo LC1 e acconto della cedolare secca (LC2): col. 1 dai fabbricati
+     * del quadro RB, col. 2 dai redditi diversi del rigo RL10 (21 e 26 per
+     * cento delle col. 7 e 8); acconto dovuto per il 100 per cento se la
+     * differenza è almeno 52 euro, in due rate (40 e 60 per cento) se la
+     * prima supera 103 euro.
      */
     private function proponiCedolare(QuadriDichiarazione $quadri, int $imposta): void
     {
-        if ($imposta === 0) {
+        $redditiDiversi = (int) round($quadri->getImporto('RL010007') * 0.21 + $quadri->getImporto('RL010008') * 0.26);
+        $quadri->proponi('LC001002', $redditiDiversi ?: null);
+        if (($imposta === 0) && ($quadri->getImporto('LC001002') === 0)) {
             return;
         }
-        $quadri->proponi('LC001001', $imposta);
+        $quadri->proponi('LC001001', $imposta ?: null);
         $totale = $imposta + $quadri->getImporto('LC001002');
         $quadri->proponi('LC001003', $totale);
         $differenza = $totale - $quadri->getImporto('LC001004');

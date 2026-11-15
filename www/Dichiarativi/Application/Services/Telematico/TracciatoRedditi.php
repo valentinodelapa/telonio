@@ -11,8 +11,23 @@ namespace Dichiarativi\Application\Services\Telematico;
 class TracciatoRedditi
 {
 
-    public const RECORD_A = TracciatoTr::RECORD_A;
-    public const RECORD_Z = TracciatoTr::RECORD_Z;
+    public const RECORD_A = [
+        'tipoRecord' => [1, 1, 'AN'],
+        'codiceFornitura' => [16, 5, 'AN'],
+        'tipoFornitore' => [21, 2, 'NU'],
+        'codiceFiscaleFornitore' => [23, 16, 'AN'],
+        // dichiarazione su più invii: zeri per la dichiarazione in un solo invio
+        'progressivoInvio' => [522, 4, 'NU'],
+        'totaleInvii' => [526, 4, 'NU'],
+    ];
+    public const RECORD_Z = [
+        'tipoRecord' => [1, 1, 'AN'],
+        'numeroRecordB' => [16, 9, 'NU'],
+        'numeroRecordC' => [25, 9, 'NU'],
+        'numeroRecordP' => [34, 9, 'NU'],
+        'numeroRecordQ' => [43, 9, 'NU'],
+        'numeroRecordR' => [52, 9, 'NU'],
+    ];
     public const RECORD_B = [
         'tipoRecord' => [1, 1, 'AN'],
         'codiceFiscale' => [2, 16, 'AN'],
@@ -25,7 +40,7 @@ class TracciatoRedditi
         'correttiva' => [103, 1, 'NU'],
         'cognome' => [107, 24, 'AN'],
         'nome' => [131, 20, 'AN'],
-        'partitaIva' => [211, 11, 'AN'],
+        'partitaIva' => [211, 11, 'NU'],
         'telefono' => [222, 12, 'AN'],
         'cellulare' => [234, 12, 'AN'],
         'email' => [246, 50, 'AN'],
@@ -66,23 +81,26 @@ class TracciatoRedditi
         'ottoCI' => [701, 1, 'NU'],
         'otto' => [702, 1, 'NU'],
         'cinqueTS' => [704, 1, 'NU'],
-        'beneficiarioTS' => [705, 11, 'AN'],
+        'beneficiarioTS' => [705, 11, 'NU'],
         'cinqueRS' => [716, 1, 'NU'],
-        'beneficiarioRS' => [717, 11, 'AN'],
+        'beneficiarioRS' => [717, 11, 'NU'],
         'cinqueRN' => [728, 1, 'NU'],
-        'beneficiarioRN' => [729, 11, 'AN'],
+        'beneficiarioRN' => [729, 11, 'NU'],
         'cinqueBC' => [740, 1, 'NU'],
-        'beneficiarioBC' => [741, 11, 'AN'],
+        'beneficiarioBC' => [741, 11, 'NU'],
         'cinqueCO' => [752, 1, 'NU'],
         'cinqueSD' => [753, 1, 'NU'],
-        'beneficiarioSD' => [754, 11, 'AN'],
+        'beneficiarioSD' => [754, 11, 'NU'],
         'cinqueAP' => [765, 1, 'NU'],
-        'beneficiarioAP' => [766, 11, 'AN'],
+        'beneficiarioAP' => [766, 11, 'NU'],
         'cinque' => [778, 1, 'NU'],
         'codicePartito' => [780, 3, 'AN'],
         'firmaPartito' => [783, 1, 'NU'],
         'due' => [784, 1, 'NU'],
         'firmaDichiarante' => [1038, 1, 'NU'],
+        // omessa presentazione del modello ISA con i quadri RE (campo 179) e RF o RG (campo 180)
+        'assenzaIsaQuadroH' => [1428, 1, 'NU'],
+        'assenzaIsaQuadroF' => [1429, 1, 'NU'],
         'codiceFiscaleRappresentante' => [1430, 16, 'AN'],
         'codiceCaricaRappresentante' => [1446, 2, 'NU'],
         'codiceFiscaleIncaricato' => [1674, 16, 'AN'],
@@ -94,6 +112,29 @@ class TracciatoRedditi
         'codiceFiscaleProfessionista' => [1730, 16, 'AN'],
         'firmaVisto' => [1746, 1, 'NU'],
     ];
+
+    /**
+     * Campi numerici del record B (formati NU, CB, DT, PI e CN delle
+     * specifiche, posizione => lunghezza): quelli non compilati valgono
+     * zero, non spazi (paragrafo 2.4, campi posizionali).
+     */
+    public const NUMERICI_B = [
+        18 => 8, 90 => 1, 91 => 1, 93 => 1, 94 => 1, 95 => 1, 96 => 1, 97 => 1, 98 => 1, 99 => 1, 103 => 1, 104 => 1,
+        105 => 1, 106 => 1, 211 => 11, 338 => 8, 347 => 1, 390 => 5, 499 => 8, 507 => 1, 508 => 1, 615 => 8, 623 => 8, 631 => 1,
+        632 => 1, 633 => 1, 634 => 1, 635 => 1, 636 => 1, 687 => 1, 688 => 1, 689 => 1, 690 => 1, 691 => 1, 692 => 1, 693 => 1,
+        694 => 1, 695 => 1, 696 => 1, 697 => 1, 698 => 1, 699 => 1, 700 => 1, 701 => 1, 702 => 1, 703 => 1, 704 => 1, 705 => 11,
+        716 => 1, 717 => 11, 728 => 1, 729 => 11, 740 => 1, 741 => 11, 752 => 1, 753 => 1, 754 => 11, 765 => 1, 766 => 11, 777 => 1,
+        778 => 1, 779 => 1, 783 => 1, 784 => 1, 785 => 1, 786 => 1, 787 => 8, 987 => 1, 988 => 1, 989 => 1, 990 => 1, 991 => 1, 992 => 1, 993 => 1, 994 => 1,
+        997 => 1, 998 => 1, 999 => 1, 1001 => 1, 1002 => 1, 1003 => 1, 1004 => 1, 1005 => 1, 1006 => 1, 1007 => 1, 1008 => 1, 1011 => 1,
+        1012 => 1, 1013 => 1, 1014 => 1, 1015 => 1, 1016 => 1, 1021 => 1, 1023 => 1, 1024 => 1, 1025 => 1, 1036 => 1, 1037 => 1, 1038 => 1,
+        1095 => 3, 1181 => 1, 1182 => 1, 1183 => 1, 1184 => 3, 1187 => 2, 1209 => 2, 1213 => 1, 1428 => 1, 1429 => 1, 1446 => 2, 1448 => 8,
+        1456 => 11, 1512 => 8, 1604 => 5, 1656 => 8, 1664 => 1, 1665 => 8, 1673 => 1, 1690 => 1, 1691 => 1, 1692 => 1, 1693 => 8, 1701 => 1,
+        1719 => 11, 1746 => 1, 1779 => 1, 1864 => 7, 1871 => 3, 1874 => 5, 1880 => 1, 1881 => 1, 1882 => 1, 1883 => 1, 1884 => 1,
+    ];
+
+    /** Campi con il codice attività ATECO, da scrivere senza i punti */
+    public const CODICI_ATTIVITA = ['LM001001', 'LM021004', 'LM022001', 'LM023001', 'LM024001', 'LM025001', 'LM026001', 'LM027001',
+        'RD001001', 'RE001001', 'RF001001', 'RG001001', 'RS401014'];
 
     /** Caselle dei quadri compilati del record B (posizione) */
     public const CASELLE_QUADRI = [

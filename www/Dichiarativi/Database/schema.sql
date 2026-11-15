@@ -64,6 +64,7 @@ CREATE TABLE IF NOT EXISTS `dichiarazione` (
   `attestazione_patrimoniale` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Dichiarazione sostitutiva dell''art. 38-bis, c. 3 (rimborsi senza garanzia)',
   `adempimento_collaborativo` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Regime di adempimento collaborativo (D.Lgs. 128/2015)',
   `concordato_biennale` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Adesione al concordato preventivo biennale (D.Lgs. 13/2024) prima dell''anno',
+  `omesso_isa` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Redditi: omessa presentazione del modello ISA nella dichiarazione (campi 179 e 180 del record B)',
   `modalita_saldo` CHAR(1) NOT NULL DEFAULT 'U' COMMENT 'U unica soluzione, R rate, D differito al termine dei redditi',
   `numero_rate` TINYINT UNSIGNED NULL,
   `data_differimento` DATE NULL COMMENT 'Data del versamento differito',

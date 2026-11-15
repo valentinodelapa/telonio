@@ -746,8 +746,10 @@ tabella del modello, `Services\Redditi\PartitiDuePerMille`).
   conti; semplificata e professionisti: ricavi meno costi per cassa) e
   ritenute subite dagli abbinamenti delle partite, imputati per la quota;
   tipo 2 per gli studi associati, 3 o 4 per le società semplici, 1 per le
-  altre. Totali da RH7 a RH22 anche con i righi a mano (senza concordato
-  preventivo biennale) e redditi e ritenute nel quadro RN. Le
+  altre. Totali da RH7 a RH22 anche con i righi a mano e con il concordato
+  preventivo biennale (quota di reddito, di perdita e soglia minima delle
+  colonne del concordato, righi RH9, RH14, RH15 e RH18 non sotto la
+  soglia) e redditi e ritenute nel quadro RN. Le
   partecipazioni in società fuori dalla suite si inseriscono a mano con
   il prospetto della società;
 - **RM**, rigo RM31, dai proventi delle attività estere incassati senza
@@ -755,7 +757,16 @@ tabella del modello, `Services\Redditi\PartitiDuePerMille`).
   conti, A interessi dei titoli, B OICR, H dividendi, I altri), Stato,
   reddito al lordo delle imposte estere e imposta sostitutiva del 26 per
   cento (art. 18 Tuir), un modulo per attività; totale nel rigo RX7 e
-  versamento 1242. Gli altri righi del quadro RM a mano;
+  versamento 1242. Sugli altri righi inseriti a mano
+  (`CalcoloQuadroRm`) la proposta calcola le imposte: tassazione
+  separata (RM21: aliquota media del biennio, reddito ridotto al 75 o 85
+  per cento per i codici 8 e 9 del rigo RM5, imposta di successione;
+  acconto del 20 per cento nel rigo RX12, versamento 4200) o ordinaria
+  (RM22, nel quadro RN), imposte sostitutive dei righi RM32-RM36, RM38,
+  RM39, RM61, RM62 e RM82, lezioni private (RM37, 15 per cento con
+  saldo e acconti, versamenti 1854 e 1855) e righi da RX7 a RX19 con i
+  versamenti dei codici tributo noti (avviso per gli altri). Righi RM51-
+  RM54 e RM91 a mano;
 - **CE**, sezione I (`CalcoloCreditoEstero`), sui righi da CE1 a CE3
   proposti dalle attività estere con l'opzione per la tassazione
   ordinaria dei proventi (rigo RM31, col. 7: i proventi entrano nel rigo
@@ -764,7 +775,9 @@ tabella del modello, `Services\Redditi\PartitiDuePerMille`).
   righi CE4 e CE5 per anno con la capienza nell'imposta netta, righi
   CE23 e CE26 e credito del rigo RN29 (art. 165 Tuir; avviso per
   l'imposta estera oltre il 43 per cento del reddito estero); sezione II
-  (imprese) a mano;
+  (imprese) sui righi CE9-CE11, CE16 e CE17 inseriti a mano, con le
+  eccedenze dei righi CE14 e CE15 dell'anno prima riportate nei righi
+  CE12 e CE13 e consumate dalla più vecchia, righi CE24 e CE25;
 - **CR** (`PropostaCrediti`): residui della dichiarazione dell'anno prima
   dalle colonne del rigo RN47 nei righi CR7, CR9, CR10, CR12, CR13, CR14,
   CR15, CR17 e CR31 (un modulo per codice), come indicato dalle
@@ -772,10 +785,18 @@ tabella del modello, `Services\Redditi\PartitiDuePerMille`).
   contratti con la convalida di sfratto nell'anno (cedolare secca
   sull'aliquota del contratto, altrimenti riliquidazione dell'IRPEF lorda
   della dichiarazione di quell'anno nella suite con gli scaglioni
-  dell'anno, entro l'imposta netta; avviso di verifica); righi RN24, RN25
-  e residui del rigo RN47 (colonne 11, 44, 12, 13, 14 e 15) nell'ordine
-  di utilizzo del paragrafo 31 delle specifiche. Imposta netta RN26 =
-  RN5 - RN22 - RN25;
+  dell'anno e il reddito non inferiore alla rendita catastale
+  rivalutata, entro l'imposta netta; avviso di verifica); righi RN24,
+  RN25 e residui del rigo RN47 (colonne 11, 44, 12, 13, 14 e 15)
+  nell'ordine di utilizzo del paragrafo 31 delle specifiche. Imposta
+  netta RN26 = RN5 - RN22 - RN25. Crediti dell'anno inseriti a mano,
+  utilizzati nell'ordine delle specifiche entro l'imposta che resta:
+  rate del sisma Abruzzo (CR10 abitazione principale in venti rate, RN28;
+  CR11 altri immobili, RN27), contributo unificato (CR31, RN24),
+  cultura (CR14: 65 per cento entro il 15 per cento del reddito, in tre
+  quote), scuola e videosorveglianza (RN30), altri crediti del rigo CR31
+  (RN32), con i residui nelle colonne del rigo RN47. Rigo CR16 (zone
+  montane) a mano, con un avviso;
 - **RL** dalle Certificazioni Uniche del lavoro autonomo
   (`CalcoloQuadroRl`, `PropostaAltriRedditi`) secondo la tabella di
   raccordo delle istruzioni: righi RL14 (V1), RL15 (M, M2, O) e RL16 (M1,
@@ -784,7 +805,9 @@ tabella del modello, `Services\Redditi\PartitiDuePerMille`).
   d'acconto al netto del 23 per cento), RL25 (B), RL26 (E, F) e RL27 (C,
   D) con le deduzioni forfetarie del rigo RL31 (25 o, per i nati dopo il
   1990, 40 per cento; 15 per cento della levata dei protesti); totali
-  RL18, RL19 e RL30-RL32 anche con i righi a mano; redditi nel rigo RN1,
+  RL3, RL18, RL19 e RL30-RL32 anche con i righi a mano, totali delle
+  colonne 7 e 8 del rigo RL10 (cedolare del 21 e 26 per cento sui
+  redditi dei contratti di locazione breve, nel rigo LC1); redditi nel rigo RN1,
   ritenute nel rigo RN33 e detrazione per gli altri redditi. Causali L e
   L1, Campione d'Italia e addizionali dovute dei dilettanti a mano;
 - **RT**, sezioni II e V, dalle cessioni (`CalcoloQuadroRt`,
@@ -796,7 +819,10 @@ tabella del modello, `Services\Redditi\PartitiDuePerMille`).
   dell'anno prima (scalate di un anno, dalla più vecchia), eccedenze
   d'imposta dalla colonna 5 dei righi RX20 e RX21, imposta del 26 per
   cento, residui della sezione VII e righi RX20 e RX21. Sezioni I, III e
-  IV e minusvalenze certificate dagli intermediari a mano;
+  IV e minusvalenze certificate dagli intermediari inserite a mano, con
+  i totali proposti: righi RT51-RT57, RT61-RT64 e RT71-RT74, quote
+  imponibili dei righi RT81 e RT82 (40, 49,72 o 58,14 per cento secondo
+  la data, nel rigo RN1), righi RT86-RT90, RT101-RT105 e RT113;
 - **RX**: debiti e crediti di IRPEF, addizionali, cedolare, IVIE, IVAFE,
   imposte sulle cripto-attività e sostitutive delle plusvalenze, crediti
   proposti in compensazione.
@@ -809,7 +835,8 @@ quadri RA e RB. "Registra versamenti" scrive in Deleghe saldi e acconti
 acconti 4044-4045, IVAFE 4043 e acconti 4047-4048, cripto-attività 1727 e
 acconti 1728-1729, con gli acconti calcolati come per l'IRPEF;
 plusvalenze 1100 e cripto-attività 1715; redditi di capitale esteri del
-rigo RM31 1242) alle
+rigo RM31 1242; quadro RM: 4200, 1245, 1863, 1684, 4040, 1856, 1854,
+1855, 1899, con un avviso per i righi senza codice tributo) alle
 scadenze del 30 giugno e del 30 novembre, senza gli importi fino a 12
 euro; saldo e primo acconto si possono differire al 30 luglio
 con la maggiorazione dello 0,40 per cento e versare a rate mensili fino a
@@ -817,7 +844,16 @@ dicembre (piano di rateazione di Deleghe con gli interessi), e i crediti da comp
 presentazione). Il file "RPF26" ha il record B con i dati anagrafici, la
 residenza se variata nell'anno, il domicilio fiscale, le caselle dei
 quadri, le scelte dell'otto, cinque e due per mille, l'impegno e il
-visto, e i record C dei quadri.
+visto, e i record C dei quadri. I campi numerici non compilati dei
+record A, B e Z valgono zero e i codici attività ATECO sono scritti senza
+i punti. La suite non compila il modello ISA: per i soggetti ISA senza
+causa di esclusione la proposta lo segnala e la spunta "Modello ISA non
+presentato con la dichiarazione" del frontespizio barra nel file la
+casella di omessa presentazione (campi 179 e 180 del record B), che va
+usata solo nei casi ammessi dalle specifiche. I file delle tre
+dichiarazioni demo superano la procedura di controllo dell'Agenzia
+(versione 1.7.0 del 22 ottobre 2026); quello di Lucia Ferri con la sola
+segnalazione, non bloccante, del modello ISA non allegato.
 
 ## Fixture
 
@@ -845,11 +881,17 @@ visto, e i record C dei quadri.
   l'opzione per la tassazione ordinaria e il credito del quadro CE);
   canoni del 2024 non percepiti con lo sfratto convalidato nel 2025
   (credito del rigo CR8); cessione di azioni in plusvalenza e di bitcoin nel quadro
-  RT; scelte dell'otto per mille allo Stato
+  RT; righi inseriti a mano: emolumenti arretrati nel rigo RM6 con la
+  tassazione separata e l'acconto del 20 per cento (RX12, versamento
+  4200), ultima rata della cessione nel 2017 di una partecipazione
+  qualificata (rigo RT24, quota imponibile del 49,72 per cento nel rigo
+  RT82) e residuo del credito per le erogazioni alla scuola (rigo CR15,
+  utilizzato nel rigo RN30); scelte dell'otto per mille allo Stato
   e del cinque per mille alla ricerca sanitaria), Lucia Ferri (negozio in
   contabilità semplificata, quadro RG per cassa, impresa familiare con il
   figlio Paolo collaboratore al 30 per cento, spese telefoniche deducibili
-  all'80 per cento, versamenti) e Sara Gallo
+  all'80 per cento, soggetto ISA trasmesso senza il modello ISA,
+  versamenti) e Sara Gallo
   (grafica web forfetaria dal 2022: compensi incassati, coefficiente del
   78 per cento, contributi della Gestione separata da Deleghe, imposta al
   5 per cento, saldo e primo acconto in tre rate; servizi da un fornitore
@@ -1016,12 +1058,10 @@ dei moduli devono essere dello stesso studio.
 
 ## Da completare
 
-- **Redditi PF**: quadro CE sezione II (imprese); quadro CR, righi dei
-  crediti dell'anno (sisma Abruzzo, cultura, scuola e altri) oltre ai
-  residui; quadro RM tranne il rigo RM31; concordato preventivo biennale nel quadro RH; quadro RL, righi RL1-RL13
-  e RL17 (a mano); quadro RT, sezioni
-  I, III e IV; verifica del file RPF26 con il software di
-  controllo dell'Agenzia;
+- **modelli ISA** (quadri dalla Contabilità, modelli delle attività dei
+  clienti, punteggio di affidabilità, allegato nel file RPF26);
+- **Redditi PF**: righi da inserire a mano senza proposta dagli archivi
+  (RM51-RM54, RM91, RL17, CR16);
 - calcolo automatico di rimanenze e servizi non utilizzati nella rettifica per
   il cambio di regime;
 - verifica dei file con il software di controllo dell'Agenzia delle

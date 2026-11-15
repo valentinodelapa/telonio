@@ -49,6 +49,9 @@ require Layout::percorso('header');
             <div class="w-100 m-0"></div>
             <?= Campo::spunta('adempimentoCollaborativo', $campi['adempimentoCollaborativo'], $formEntity, $errors, ['colonna' => 'col-md-3']) ?>
             <?= Campo::spunta('concordatoBiennale', $campi['concordatoBiennale'], $formEntity, $errors, ['colonna' => 'col-md-3']) ?>
+            <?php if ($dichiarazione->modello->isRedditi()): ?>
+                <?= Campo::spunta('omessoIsa', $campi['omessoIsa'], $formEntity, $errors, ['colonna' => 'col-12', 'aiuto' => $aiutoOmessoIsa]) ?>
+            <?php endif; ?>
             <?= Campo::autocompleta('vistoCaf', $campi['vistoCaf'], $formEntity, $errors, '/soggetto/cerca', $cafCorrente, ['colonna' => 'col-md-6', 'aiuto' => $aiutoVistoCaf]) ?>
             <?= Campo::autocompleta('vistoResponsabileCaf', $campi['vistoResponsabileCaf'], $formEntity, $errors, '/soggetto/cerca', $responsabileCorrente, ['colonna' => 'col-md-6']) ?>
             <?= Campo::spunta('flagConferma', $campi['flagConferma'], $formEntity, $errors, ['colonna' => 'col-12', 'aiuto' => $aiutoConferma]) ?>

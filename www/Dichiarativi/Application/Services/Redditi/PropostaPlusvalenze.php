@@ -61,28 +61,29 @@ class PropostaPlusvalenze
 
     public function proponi(QuadriDichiarazione $quadri): void
     {
-        if ($this->calcolo === null) {
-            return;
-        }
-        foreach (['righe12' => 'RT012', 'righe42' => 'RT042'] as $chiave => $rigo) {
-            foreach ($this->calcolo[$chiave] as $indice => $colonne) {
-                $quadri->usaModulo($indice + 1);
-                foreach ($colonne as $colonna => $valore) {
-                    $quadri->proponi(sprintf('%s%03d', $rigo, $colonna), $valore ?: null);
+        if ($this->calcolo !== null) {
+            foreach (['righe12' => 'RT012', 'righe42' => 'RT042'] as $chiave => $rigo) {
+                foreach ($this->calcolo[$chiave] as $indice => $colonne) {
+                    $quadri->usaModulo($indice + 1);
+                    foreach ($colonne as $colonna => $valore) {
+                        $quadri->proponi(sprintf('%s%03d', $rigo, $colonna), $valore ?: null);
+                    }
                 }
             }
+            $quadri->usaModulo(1);
+            foreach ($this->calcolo['campi'] as $codice => $valore) {
+                $quadri->proponi($codice, $valore);
+            }
+            [$eccedenzaTitoli, $eccedenzaCripto] = $this->calcolo['eccedenze'];
+            $quadri->proponi('RT111001', $eccedenzaTitoli ?: null);
+            $quadri->proponi('RT112001', $eccedenzaCripto ?: null);
         }
-        $quadri->usaModulo(1);
-        foreach ($this->calcolo['campi'] as $codice => $valore) {
-            $quadri->proponi($codice, $valore);
-        }
-        [$eccedenzaTitoli, $eccedenzaCripto] = $this->calcolo['eccedenze'];
+        // righi calcolati su tutti i righi del quadro, anche delle sezioni I, III e IV inserite a mano
+        CalcoloQuadroRt::proponiTotali($quadri);
         $q = fn(string $codice) => $quadri->getImporto($codice, 1);
         // riepilogo dei crediti e quadro RX
-        $quadri->proponi('RT111001', $eccedenzaTitoli ?: null);
         $residuo = $q('RT111001') - $q('RT111002') - $q('RT005001') - $q('RT015001');
         $quadri->proponi('RT111003', $residuo > 0 ? $residuo : null);
-        $quadri->proponi('RT112001', $eccedenzaCripto ?: null);
         $residuoCripto = $q('RT112001') - $q('RT045001');
         $quadri->proponi('RT112003', $residuoCripto > 0 ? $residuoCripto : null);
         foreach ([20 => $q('RT064001') + $q('RT074001') - $q('RT111003'), 21 => $q('RT090001') - $q('RT112003')] as $rigo => $imposta) {

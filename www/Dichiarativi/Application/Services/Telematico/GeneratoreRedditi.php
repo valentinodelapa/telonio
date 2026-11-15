@@ -53,7 +53,8 @@ class GeneratoreRedditi
         $valori = [];
         foreach ($quadri->getValori() as $modulo => $campi) {
             foreach ($campi as $codice => $dati) {
-                $valori[$modulo][$codice] = $dati['valore'];
+                // codici attività ATECO senza i punti (come nelle tabelle delle specifiche, es. "282920")
+                $valori[$modulo][$codice] = in_array($codice, TracciatoRedditi::CODICI_ATTIVITA, true) ? str_replace('.', '', (string) $dati['valore']) : $dati['valore'];
             }
         }
         $recordC = RecordQuadri::genera('C', $dichiarazione->soggetto->codiceFiscale, $valori, $quadri->getCatalogo());
@@ -80,7 +81,12 @@ class GeneratoreRedditi
         $anno = $dichiarazione->anno;
         [$comuneNascita, $provinciaNascita] = DatiContribuente::getLuogoNascita($soggetto);
         $recapiti = (new Frontespizio($this->dataMapper))->getRecapiti($soggetto);
-        $record = (new RecordF24(TracciatoRedditi::RECORD_B))
+        $datiFiscali = (new DatiFiscaliModel($this->dataMapper))->getVigenteAl($soggetto, new SismaDate($anno . '-12-31'));
+        $campi = TracciatoRedditi::RECORD_B;
+        foreach (TracciatoRedditi::NUMERICI_B as $posizione => $lunghezza) {
+            $campi['numerico' . $posizione] = [$posizione, $lunghezza, 'NU'];
+        }
+        $record = (new RecordF24($campi))
                 ->imposta('tipoRecord', 'B')
                 ->imposta('codiceFiscale', $soggetto->codiceFiscale)
                 ->imposta('progressivoModulo', 1)
@@ -89,7 +95,7 @@ class GeneratoreRedditi
                 ->imposta('correttiva', (int) ($dichiarazione->tipologia === TipologiaDichiarazione::correttiva))
                 ->impostaTroncato('cognome', $soggetto->cognome)
                 ->impostaTroncato('nome', $soggetto->nome)
-                ->imposta('partitaIva', (new DatiFiscaliModel($this->dataMapper))->getVigenteAl($soggetto, new SismaDate($anno . '-12-31'))?->partitaIva)
+                ->imposta('partitaIva', $datiFiscali?->partitaIva)
                 ->imposta('telefono', $recapiti['telefono'])
                 ->impostaTroncato('email', $recapiti['email'])
                 ->impostaTroncato('comuneNascita', $comuneNascita)
@@ -98,6 +104,15 @@ class GeneratoreRedditi
                 ->imposta('sesso', $soggetto->sesso?->value)
                 ->imposta('firmaDichiarante', 1);
         $this->impostaScelte($record, $dichiarazione);
+        // omessa presentazione del modello ISA scelta nel frontespizio (la suite non compila il modello): casella del quadro RE (campo
+        // 179) o dei quadri RF e RG (campo 180) senza causa di esclusione (controlli dei campi RE001002, RF001002 e RG001002)
+        if ($dichiarazione->omessoIsa) {
+            foreach (['RE' => 'assenzaIsaQuadroH', 'RF' => 'assenzaIsaQuadroF', 'RG' => 'assenzaIsaQuadroF'] as $quadro => $campo) {
+                if (($quadri->get($quadro . '001001', 1) !== null) && in_array($quadri->getImporto($quadro . '001002', 1), [0, 7, 14], true)) {
+                    $record->imposta($campo, 1);
+                }
+            }
+        }
         $this->impostaResidenza($record, $dichiarazione);
         foreach ([[$anno, 'comuneDomicilio', 'provinciaDomicilio', 'codiceComuneDomicilio'], [$anno + 1, 'comuneDomicilioSuccessivo', 'provinciaDomicilioSuccessivo', 'codiceComuneDomicilioSuccessivo']] as [$annoDomicilio, $campoComune, $campoProvincia, $campoCodice]) {
             $comune = VersamentiRedditi::getDomicilio($this->dataMapper, $soggetto, new \DateTimeImmutable($annoDomicilio . '-01-01'));

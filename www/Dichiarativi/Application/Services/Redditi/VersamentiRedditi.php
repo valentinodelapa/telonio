@@ -41,7 +41,11 @@ use Telonio\Application\HelperClasses\Calendario;
  *   imposta sulle cripto-attività 1727, acconti 1728 e 1729 (istruzioni
  *   del quadro RW, fascicolo 2: modalità e termini dell'IRPEF);
  * - imposta sostitutiva sui redditi di capitale di fonte estera (RM31)
- *   1242;
+ *   1242; depositi a garanzia 1245, acconto della tassazione separata
+ *   4200, frontalieri svizzeri 1863, addizionale su bonus e stock option
+ *   1684, pignoramento presso terzi e beni sequestrati 4040, lezioni
+ *   private 1856 e acconti 1854 e 1855, pensionati esteri 1899; le altre
+ *   imposte del quadro RM (RM32, RM35, RM39, RM62, RM91) con un avviso;
  * - imposte sostitutive del quadro RT: plusvalenze 1100, cripto-attività
  *   in regime dichiarativo 1715 (senza acconti).
  *
@@ -117,11 +121,29 @@ class VersamentiRedditi
             [SezioneF24::erario, '1791', $accontoForfetario - $primaRataForfetario, $anno + 1, $novembre, null, 'Secondo o unico acconto imposta sostitutiva forfetari'],
             ...$esteri,
             [SezioneF24::erario, '1242', $q('RX007001'), $anno, $giugno, null, 'Imposta sostitutiva sui redditi di capitale di fonte estera'],
+            // altre imposte del quadro RM (codici dell'archivio dei codici tributo dell'Agenzia)
+            [SezioneF24::erario, '1245', $q('RX009001'), $anno, $giugno, null, 'Prelievo sui proventi da depositi a garanzia'],
+            [SezioneF24::erario, '4200', $q('RX012001'), $anno, $giugno, null, 'Acconto delle imposte sui redditi a tassazione separata'],
+            [SezioneF24::erario, '1863', $q('RX011001'), $anno, $giugno, null, 'Imposta sostitutiva dei frontalieri svizzeri'],
+            [SezioneF24::erario, '1684', $q('RX014001'), $anno, $giugno, null, 'Addizionale su bonus e stock option'],
+            [SezioneF24::erario, '4040', $q('RX016001'), $anno, $giugno, null, 'Imposta sui redditi da pignoramento presso terzi e beni sequestrati'],
+            [SezioneF24::erario, '1856', $q('RX018001'), $anno, $giugno, null, 'Saldo imposta sostitutiva sulle lezioni private'],
+            [SezioneF24::erario, '1854', $q('RM037010'), $anno + 1, $giugno, null, 'Primo acconto imposta sostitutiva sulle lezioni private'],
+            [SezioneF24::erario, '1855', $q('RM037011'), $anno + 1, $novembre, null, 'Secondo o unico acconto imposta sostitutiva sulle lezioni private'],
+            [SezioneF24::erario, '1899', $q('RX019001'), $anno, $giugno, null, 'Imposta sostitutiva dei pensionati esteri (art. 24-ter Tuir)'],
             [SezioneF24::erario, '1100', $q('RX020001'), $anno, $giugno, null, 'Imposta sostitutiva sulle plusvalenze'],
             [SezioneF24::erario, '1715', $q('RX021001'), $anno, $giugno, null, 'Imposta sostitutiva sulle plusvalenze delle cripto-attività'],
         ];
         $versamenti = [];
         $messaggi = [];
+        // imposte del quadro RM senza un codice tributo certo nell'archivio: versamento da inserire a mano
+        foreach (['RX008001' => 'imposta sostitutiva sui proventi delle obbligazioni (RM32)', 'RX010001' => 'imposta sostitutiva sulla rivalutazione del TFR (RM91)',
+            'RX013001' => 'imposta sostitutiva del riallineamento dei valori fiscali (RM39)', 'RX015001' => 'imposta sui redditi delle imprese estere partecipate (RM62)',
+            'RX017001' => 'imposta sui proventi del noleggio occasionale di imbarcazioni (RM35)'] as $codice => $descrizione) {
+            if ($q($codice) > 0) {
+                $messaggi[] = ucfirst($descrizione) . ': ' . number_format($q($codice), 0, ',', '.') . ' euro da versare, delega da compilare a mano in Deleghe.';
+            }
+        }
         $rateazione = new RateazioneService($this->dataMapper);
         foreach ((new VersamentoModel($this->dataMapper))->getGenerati($soggetto, Dichiarazione::ORIGINE, $dichiarazione->getRiferimento()) as $precedente) {
             if ($precedente->pianoRateazione !== null) {
@@ -193,6 +215,9 @@ class VersamentiRedditi
             [SezioneF24::erario, '4043', 'RX026005', null, 'Credito IVAFE'],
             [SezioneF24::erario, '1727', 'RX027005', null, 'Credito imposta sulle cripto-attività'],
             [SezioneF24::erario, '1100', 'RX020005', null, 'Credito imposta sostitutiva sulle plusvalenze'],
+            [SezioneF24::erario, '1792', 'RX031005', null, 'Credito imposta sostitutiva forfetari'],
+            [SezioneF24::erario, '4040', 'RX016005', null, 'Credito imposta sui redditi da pignoramento presso terzi'],
+            [SezioneF24::erario, '1856', 'RX018005', null, 'Credito imposta sostitutiva sulle lezioni private'],
             [SezioneF24::erario, '1715', 'RX021005', null, 'Credito imposta sostitutiva sulle plusvalenze delle cripto-attività'],
         ];
         $messaggi = [];

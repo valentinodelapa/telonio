@@ -5,9 +5,11 @@ namespace Dichiarativi\Application\Services\Redditi;
 use Anagrafica\Application\Entities\Soggetto;
 use Anagrafica\Application\Models\DatiFiscaliModel;
 use Dichiarativi\Application\Entities\Dichiarazione;
+use Dichiarativi\Application\Enumerations\ModelloDichiarativo;
 use Dichiarativi\Application\Models\AddizionaleComunaleModel;
 use Dichiarativi\Application\Models\AddizionaleRegionaleModel;
 use Dichiarativi\Application\Models\CertificazioneUnicaModel;
+use Dichiarativi\Application\Models\DichiarazioneModel;
 use Dichiarativi\Application\Models\ValoreCertificazioneUnicaModel;
 use Dichiarativi\Application\Services\Iva\RegioniVt;
 use Dichiarativi\Application\Services\QuadriDichiarazione;
@@ -158,6 +160,10 @@ class PropostaIrpef
                 $impresa += $quadri->getImporto('RM031003', $modulo);
             }
         }
+        // compensi per lezioni private con l'opzione per la tassazione ordinaria (RM37, col. 6)
+        if ($quadri->get('RM037006', 1) !== null) {
+            $impresa += $q('RM037001');
+        }
         // perdite di lavoro autonomo (RE25 negativo) in diminuzione degli altri redditi, reddito complessivo non negativo (specifiche 16.2.1)
         $complessivo = max(0, $fondiari + $q('RC005006') + $q('RC009002') + $impresa);
         if ($fondiari + $q('RC005006') + $q('RC009002') + $impresa < 0) {
@@ -166,7 +172,7 @@ class PropostaIrpef
         if (($complessivo === 0) && ($q('RB010014') + $q('RB010015') + $q('RB010016') + $q('LM038001') === 0)) {
             return;
         }
-        $riferimento = $complessivo + $q('RB010014') + $q('RB010015') + $q('RB010016') + $q('LM038001');
+        $riferimento = $complessivo + $q('RB010014') + $q('RB010015') + $q('RB010016') + $q('RL010007') + $q('RL010008') + $q('LM038001');
         $quadri->proponi('RN001001', $riferimento);
         $quadri->proponi('RN001005', $complessivo);
         $quadri->proponi('RN002001', $q('RB010019') ?: null);
@@ -232,16 +238,23 @@ class PropostaIrpef
                 + $q('RN018002') + $q('RN019002') + $q('RN020002') + $q('RN021002') + $q('RN021003');
         $quadri->proponi('RN022001', $totaleDetrazioni ?: null);
         // crediti d'imposta del quadro CR (RN24) e totale con le spese sanitarie per patologie (RN25); imposta netta (specifiche, rigo RN26)
+        PropostaCrediti::proponiRate($quadri);
         PropostaCrediti::proponiUtilizzo($quadri);
         $netta = max(0, $q('RN005001') - $q('RN022001') - $q('RN025001'));
         $quadri->proponi('RN026001', $netta ?: null);
         // credito per le imposte pagate all'estero (quadro CE, rigo RN29)
-        array_push($this->avvisi, ...CalcoloCreditoEstero::proponi($quadri, $anno));
+        $precedente = (new DichiarazioneModel($this->dataMapper))->getPerModello($soggetto, ModelloDichiarativo::redditiPf, $anno - 1);
+        array_push($this->avvisi, ...CalcoloCreditoEstero::proponi($quadri, $anno, $precedente === null ? null : new QuadriDichiarazione($precedente, $this->dataMapper)));
+        // crediti d'imposta dell'anno del quadro CR (righi RN27, RN28, RN30 e RN32) e residui del rigo RN47
+        array_push($this->avvisi, ...PropostaCrediti::proponiCreditiAnno($quadri));
 
         // ritenute: lavoro dipendente (RC10, RC11), lavoro autonomo e impresa, altri redditi (RL) e cedolare a credito per le ritenute sulle locazioni brevi (LC1, col. 5)
         $cedolareNegativa = max(0, $q('LC001004') - $q('LC001003'));
         $ritenute = $q('RC010001') + $q('RC010006') + $q('RC011001') + $q('RE026001') + $q('RG037006') + $q('RF102006') + $cedolareNegativa
-                + $q('RL003003') + $q('RL004005') + $q('RL020001') + $q('RL023002') + $q('RL033001') + $q('RH019001') + $q('RT113001');
+                + $q('RL003003') + $q('RL004005') + $q('RL020001') + $q('RL023002') + $q('RL033001') + $q('RH019001') + $q('RT113001') + $q('RM022002');
+        foreach ($quadri->getModuli() as $modulo) {
+            $ritenute += $quadri->getImporto('RM081003', $modulo);
+        }
         $quadri->proponi('RN033004', $ritenute ?: null);
         // altri crediti d'imposta (specifiche 27.1): canoni non percepiti (CR8), crediti delle partecipazioni (RH20) e dei trust (RL4), codice 2 del rigo CR31
         $altriCrediti = $q('CR008001') + $q('RH020002') + $q('RL004007') - $q('LM040040');

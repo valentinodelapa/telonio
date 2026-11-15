@@ -26,8 +26,8 @@ use SismaFramework\Orm\HelperClasses\DataMapper;
  * interessi delle obbligazioni e dei titoli, B proventi degli OICR esteri,
  * H dividendi, I altri redditi di capitale), il reddito al lordo delle
  * ritenute estere e l'imposta sostitutiva del 26 per cento (art. 18 Tuir);
- * il totale nel rigo RX7. L'opzione per la tassazione ordinaria (col. 7)
- * resta a mano.
+ * il totale nel rigo RX7 (CalcoloQuadroRm). Con l'opzione per la
+ * tassazione ordinaria (col. 7) i proventi vanno nel rigo RN1.
  */
 class PropostaEsteri
 {
@@ -115,7 +115,6 @@ class PropostaEsteri
                 $quadri->proponi(sprintf('RW%03d%03d', $numero, $colonna), $valore === 0 ? null : $valore);
             }
         }
-        $imposteRm = 0;
         foreach ($this->getProventi() as $indice => $attivita) {
             $quadri->usaModulo($indice + 1);
             $reddito = (int) round($attivita->proventi);
@@ -126,12 +125,8 @@ class PropostaEsteri
             $quadri->proponi('RM031004', 26.0);
             $quadri->proponi('RM031007', $attivita->tassazioneOrdinaria ? true : null);
             $quadri->proponi('RM031008', $attivita->tassazioneOrdinaria ? null : ($imposta ?: null));
-            if ($quadri->get('RM031007', $indice + 1) === null) {
-                $imposteRm += $quadri->getImporto('RM031008', $indice + 1);
-            }
         }
         $quadri->usaModulo(1);
-        $quadri->proponi('RX007001', $imposteRm ?: null);
         $this->proponiCreditoEstero($quadri, $anno);
         $precedente = (new DichiarazioneModel($this->dataMapper))->getPerModello($soggetto, ModelloDichiarativo::redditiPf, $anno - 1);
         $quadriPrecedenti = $precedente === null ? null : new QuadriDichiarazione($precedente, $this->dataMapper);

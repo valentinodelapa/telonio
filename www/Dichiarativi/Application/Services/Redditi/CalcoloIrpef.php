@@ -158,13 +158,14 @@ class CalcoloIrpef
 
     /**
      * Redditi assimilati, lavoro autonomo, impresa minore e alcuni redditi
-     * diversi (par. 21.4), non rapportata al periodo.
+     * diversi (par. 21.4), non rapportata al periodo; 50 euro in più oltre
+     * 11.000 e fino a 17.000 euro (art. 13, comma 5-bis, Tuir).
      */
-    public static function detrazioneAltriRedditi(float $reddito, bool $maggiorazione = false): float
+    public static function detrazioneAltriRedditi(float $reddito): float
     {
         return match (true) {
             $reddito <= 5500 => 1265.0,
-            $reddito <= 28000 => 500 + 765 * self::quoziente((28000 - $reddito) / 22500) + ($maggiorazione && ($reddito > 11000) && ($reddito <= 17000) ? 50 : 0),
+            $reddito <= 28000 => 500 + 765 * self::quoziente((28000 - $reddito) / 22500) + (($reddito > 11000) && ($reddito <= 17000) ? 50 : 0),
             $reddito <= 50000 => 500 * self::quoziente((50000 - $reddito) / 22000),
             default => 0.0,
         };

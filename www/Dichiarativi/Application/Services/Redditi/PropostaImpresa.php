@@ -116,6 +116,16 @@ class PropostaImpresa
             $dati->regimeFiscale === RegimeFiscale::ordinario => $this->proponiOrdinaria($quadri, $dati, $componenti->perCompetenza($soggetto, $anno)),
             default => $this->avvisi[] = 'Regime ' . $dati->regimeFiscale->getLabel() . ': quadro del reddito d\'impresa da compilare a mano.',
         };
+        if (($dati->soggettoIsa === true) && ($dati->regimeFiscale !== RegimeFiscale::forfetario)) {
+            $this->avvisi[] = 'Soggetto ISA: la suite non compila il modello ISA. Senza una causa di esclusione (colonna 2 del rigo RE1, RF1 o RG1) il modello va allegato alla dichiarazione; per trasmetterla senza, spunta nel frontespizio "Modello ISA non presentato con la dichiarazione".';
+        }
+        // rigo RS140, obbligatorio per i titolari di partita IVA: 1 se nell'anno è stato conservato in modalità elettronica almeno un
+        // documento rilevante ai fini tributari (fatture elettroniche), 2 altrimenti (istruzioni, fascicolo 3)
+        $quadri->usaModulo(1);
+        $quadri->proponi('RS140001', 1);
+        if ($quadri->getImporto('RS140001') === 1) {
+            $this->avvisi[] = 'Quadro RS, rigo RS140: proposto il codice 1 (documenti rilevanti conservati in modalità elettronica, ad esempio le fatture elettroniche); indica 2 se nell\'anno non è stato conservato elettronicamente alcun documento.';
+        }
         array_push($this->avvisi, ...array_values($componenti->getAvvisi()));
         return $this->avvisi;
     }
@@ -147,7 +157,10 @@ class PropostaImpresa
         $quadri->proponi('RG028002', $lordo ?: null);
         $reddito = $lordo - $quadri->getImporto('RG029001') - $quadri->getImporto('RG030001');
         $quadri->proponi('RG031001', $reddito ?: null);
-        $quadri->proponi('RG033004', $this->imputaCollaboratori($quadri, $this->collaboratori, $reddito) ?: null);
+        // casella di insussistenza delle rimanenze finali: obbligatoria senza le colonne 2-4 del rigo RG38
+        $rimanenze = $quadri->getImporto('RG038002') + $quadri->getImporto('RG038003') + $quadri->getImporto('RG038004');
+        $quadri->proponi('RG038001', $rimanenze > 0 ? null : 1);
+        $quadri->proponi('RG033004', $this->imputaCollaboratori($quadri, $this->collaboratori, $reddito, 'RG') ?: null);
         $spettanza = $reddito - $quadri->getImporto('RG033004');
         $quadri->proponi('RG034003', $spettanza ?: null);
         $netto = $this->proponiPerdite($quadri, $spettanza, 'RG035');
@@ -280,7 +293,7 @@ class PropostaImpresa
         $quadri->proponi('RF060002', $lordo ?: null);
         $reddito = $lordo - $quadri->getImporto('RF061001') - $quadri->getImporto('RF062001');
         $quadri->proponi('RF063001', $reddito ?: null);
-        $quadri->proponi('RF098004', $this->imputaCollaboratori($quadri, $this->collaboratori, $reddito) ?: null);
+        $quadri->proponi('RF098004', $this->imputaCollaboratori($quadri, $this->collaboratori, $reddito, 'RF') ?: null);
         $spettanza = $reddito - $quadri->getImporto('RF098004');
         $quadri->proponi('RF099003', $spettanza ?: null);
         $netto = $this->proponiPerdite($quadri, $spettanza, 'RF100');
@@ -294,6 +307,12 @@ class PropostaImpresa
     private function proponiForfetario(QuadriDichiarazione $quadri, Soggetto $soggetto, int $anno, DatiFiscali $dati, array $componenti, bool $professionista): void
     {
         $ricavi = (int) round(($componenti['RG2'] ?? 0.0) + ($componenti['RG3'] ?? 0.0) + ($componenti['RE2'] ?? 0.0) + ($componenti['RE3'] ?? 0.0));
+        // caselle alternative del rigo LM20: impresa, lavoro autonomo o impresa familiare
+        $quadri->proponi(match (true) {
+            $dati->tipoAttivita === TipoAttivita::impresaFamiliare => 'LM020003',
+            $professionista => 'LM020002',
+            default => 'LM020001',
+        }, 1);
         $quadri->proponi('LM021004', $dati->codiceAteco?->codice);
         $codice2007 = $this->getCodice2007($soggetto, $dati, $anno);
         $coefficiente = $codice2007 === null ? null : CoefficientiForfetari::getCoefficiente($codice2007);
@@ -325,7 +344,7 @@ class PropostaImpresa
         if (count($this->collaboratori) > 0) {
             // quote dei collaboratori sul reddito netto dei contributi prima delle perdite (rigo LM36), come per i righi RG33 e RF98:
             // non riducono il reddito del titolare, che paga l'imposta sostitutiva sul reddito al lordo delle quote (comma 64; circ. 10/E del 2016, par. 4.4)
-            $this->imputaCollaboratori($quadri, $this->collaboratori, $netto);
+            $this->imputaCollaboratori($quadri, $this->collaboratori, $netto, 'LM');
         }
         $imposta = (int) round($imponibile * ($quadri->get('LM021003') !== null ? 0.05 : 0.15));
         $quadri->proponi('LM039001', $imposta ?: null);
@@ -335,6 +354,18 @@ class PropostaImpresa
         $saldo = $differenza - $quadri->getImporto('LM043001') + $quadri->getImporto('LM044001') - $quadri->getImporto('LM045002');
         $quadri->proponi('LM046001', $saldo > 0 ? $saldo : null);
         $quadri->proponi('LM047001', $saldo < 0 ? -$saldo : null);
+        // elementi informativi dei forfetari (righi RS375-RS381, comma 73): obbligatori con la sezione II del quadro LM, altrimenti
+        // la casella di assenza di dati del rigo RS382
+        $informativi = array_sum(array_map(fn(string $codice) => $quadri->getImporto($codice), ['RS375001', 'RS376001', 'RS377001', 'RS378001', 'RS381001']));
+        $quadri->proponi('RS382000', $informativi > 0 ? null : 1);
+        if ($informativi === 0) {
+            $this->avvisi[] = 'Quadro RS, righi RS375-RS381 (forfetari): indica a mano veicoli, acquisti di merci, godimento di beni di terzi e carburante (impresa) o consumi (lavoro autonomo); senza dati resta barrata la casella del rigo RS382.';
+        }
+        // rigo RX31: debito o credito dell'imposta sostitutiva (LM46 - LM47) e credito da compensare
+        $imposta = $quadri->getImporto('LM046001') - $quadri->getImporto('LM047001');
+        $quadri->proponi('RX031001', $imposta > 0 ? $imposta : null);
+        $quadri->proponi('RX031002', $imposta < 0 ? -$imposta : null);
+        $quadri->proponi('RX031005', max(0, max(0, -$imposta) + $quadri->getImporto('RX031003') - $quadri->getImporto('RX031004')) ?: null);
     }
 
     /**
@@ -412,7 +443,7 @@ class PropostaImpresa
      * @param list<array{codiceFiscale: string, quota: float, nominativo: string}> $collaboratori
      * @return int totale delle quote dei collaboratori
      */
-    public function imputaCollaboratori(QuadriDichiarazione $quadri, array $collaboratori, ?int $reddito): int
+    public function imputaCollaboratori(QuadriDichiarazione $quadri, array $collaboratori, ?int $reddito, string $quadro): int
     {
         if (count($collaboratori) === 0) {
             return 0;
@@ -435,6 +466,8 @@ class PropostaImpresa
                 $quadri->avviaProposta('RS');
             }
             $rigo = 6 + $indice % 2;
+            // quadro di riferimento del prospetto, obbligatorio con i righi da RS2 a RS7 in ogni modulo
+            $quadri->proponi('RS001001', $quadro);
             $quotaReddito = ($reddito !== null) && ($reddito > 0) ? (int) round($reddito * $collaboratore['quota'] / 100) : null;
             $quadri->proponi(sprintf('RS%03d001', $rigo), $collaboratore['codiceFiscale']);
             $quadri->proponi(sprintf('RS%03d002', $rigo), $collaboratore['quota']);

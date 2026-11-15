@@ -55,6 +55,7 @@ class Dichiarazione extends ReferencedEntity
     protected bool $verificaAccertamenti = false;
     protected bool $adempimentoCollaborativo = false;
     protected bool $concordatoBiennale = false;
+    protected bool $omessoIsa = false;
     protected ModalitaSaldo $modalitaSaldo = ModalitaSaldo::unicaSoluzione;
     protected ?int $numeroRate = null;
     protected ?SismaDate $dataDifferimento = null;

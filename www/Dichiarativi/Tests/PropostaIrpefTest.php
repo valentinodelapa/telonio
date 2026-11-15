@@ -14,9 +14,12 @@ use Dichiarativi\Application\Entities\Dichiarazione;
 use Dichiarativi\Application\Enumerations\FormatoCampo;
 use Dichiarativi\Application\Enumerations\ModelloDichiarativo;
 use Dichiarativi\Application\Services\QuadriDichiarazione;
+use Dichiarativi\Application\Services\Redditi\PropostaAltriRedditi;
 use Dichiarativi\Application\Services\Redditi\PropostaBonusEdilizi;
 use Dichiarativi\Application\Services\Redditi\CalcoloCreditoEstero;
 use Dichiarativi\Application\Services\Redditi\CalcoloIrpef;
+use Dichiarativi\Application\Services\Redditi\CalcoloQuadroRm;
+use Dichiarativi\Application\Services\Redditi\CalcoloQuadroRt;
 use Dichiarativi\Application\Services\Redditi\PropostaCrediti;
 use Dichiarativi\Application\Services\Redditi\PropostaImpresa;
 use Dichiarativi\Application\Services\Redditi\PropostaIrpef;
@@ -115,6 +118,139 @@ class PropostaIrpefTest extends SuiteTestCase
         $this->assertSame(500, $q('RN024004'));
         $this->assertSame(500, $q('RN047014'));
         $this->assertSame(3500, $q('RN025001'));
+    }
+
+    public function testCreditiDellAnnoInSequenza(): void
+    {
+        // imposta netta 1.000: cultura (65% di 3.000 = 1.950, entro il 15% di 30.000, in tre rate da 650), scuola 500, sport bonus 200
+        $quadri = $this->creaQuadri(['RN004001' => 30000, 'RN026001' => 1000, 'CR014001' => 3000, 'CR015001' => 500,
+            'CR031001' => 3, 'CR031003' => 200]);
+        $this->assertSame([], PropostaCrediti::proponiCreditiAnno($quadri));
+        $q = fn(string $codice) => $quadri->getImporto($codice, 1);
+        $this->assertSame(650, $q('RN030001'));
+        $this->assertSame(650, $q('RN030003'));
+        $this->assertNull($quadri->get('RN047026', 1));
+        $this->assertSame(500, $q('RN030005'));
+        $this->assertSame(350, $q('RN030006'));
+        $this->assertSame(150, $q('RN047027'));
+        $this->assertSame(200, $q('RN032004'));
+        $this->assertNull($quadri->get('RN032005', 1));
+        $this->assertSame(200, $q('RN047039'));
+
+        // sisma Abruzzo, abitazione principale: rata di un ventesimo del credito, prima degli altri crediti
+        $quadri = $this->creaQuadri(['RN004001' => 30000, 'RN026001' => 1000, 'CR010002' => 3, 'CR010003' => 30000, 'CR014001' => 3000]);
+        PropostaCrediti::proponiRate($quadri);
+        PropostaCrediti::proponiCreditiAnno($quadri);
+        $this->assertSame(1500, $quadri->getImporto('CR010004', 1));
+        $this->assertSame(1000, $quadri->getImporto('RN028001', 1));
+        $this->assertSame(500, $quadri->getImporto('RN047021', 1));
+        $this->assertNull($quadri->get('RN030003', 1));
+        $this->assertSame(650, $quadri->getImporto('RN047026', 1));
+    }
+
+    public function testQuadroRm(): void
+    {
+        $quadri = $this->creaQuadri([
+            // tassazione separata: indennità (RM1) ed eredità di diritti d'autore (RM5 codice 8, deduzione del 25 per cento e imposta di successione)
+            'RM001001' => 'A', 'RM001002' => 2020, 'RM001003' => 5000, 'RM001004' => 5000,
+            'RM005001' => 8, 'RM005002' => 2024, 'RM005003' => 10000, 'RM005004' => 500,
+            // opzione per la tassazione ordinaria
+            'RM002001' => 1, 'RM002002' => 2023, 'RM002003' => 3000, 'RM002004' => 300, 'RM002005' => true,
+            'RM033001' => 1000, 'RM037001' => 10000,
+            // pignoramento: ritenute oltre l'imposta, a credito
+            'RM082001' => 1, 'RM082002' => 2000, 'RM082003' => 1, 'RM082004' => 23, 'RM082006' => 500]);
+        CalcoloQuadroRm::proponi($quadri, false);
+        $q = fn(string $codice) => $quadri->getImporto($codice, 1);
+        $this->assertSame(12000, $q('RM021001'));
+        $this->assertSame(2400, $q('RM021003'));
+        $this->assertSame(3000, $q('RM022001'));
+        $this->assertSame(300, $q('RM022002'));
+        $this->assertSame(200, $q('RM033002'));
+        $this->assertSame(1500, $q('RM037007'));
+        $this->assertSame(600, $q('RM037010'));
+        $this->assertSame(900, $q('RM037011'));
+        $this->assertSame(460, $q('RM082005'));
+        $this->assertSame(40, $q('RM082008'));
+        $this->assertSame(200, $q('RX009001'));
+        $this->assertSame(2400, $q('RX012001'));
+        $this->assertSame(1500, $q('RX018001'));
+        $this->assertSame(40, $q('RX016002'));
+        $this->assertSame(40, $q('RX016005'));
+    }
+
+    public function testTotaliRedditiDiCapitaleECedolareDelRigoRl10(): void
+    {
+        $quadri = $this->creaQuadri(['RL001001' => 1, 'RL001002' => 1000, 'RL001003' => 260, 'RL002001' => 2, 'RL002002' => 500,
+            'RL010003' => 1, 'RL010004' => 2000, 'RL010006' => 'IT058091C2X2Y4Z6W8']);
+        $this->testAdapter->impostaSelectCallback(fn() => new TestResultSet([]));
+        (new PropostaAltriRedditi($this->dataMapper))->proponi($quadri, $quadri->getDichiarazione()->soggetto, 2025);
+        $q = fn(string $codice) => $quadri->getImporto($codice, 1);
+        $this->assertSame(1500, $q('RL003002'));
+        $this->assertSame(260, $q('RL003003'));
+        $this->assertSame(2000, $q('RL010007'));
+        // i redditi con la cedolare non vanno nel totale del rigo RL18
+        $this->assertNull($quadri->get('RL018001', 1));
+    }
+
+    public function testQuadroRtSezioniInseriteAMano(): void
+    {
+        $quadri = $this->creaQuadri(['RT001001' => 1000, 'RT001002' => 3000, 'RT011001' => 10000, 'RT011002' => 4000,
+            'RT024001' => 5000, 'RT024002' => 1000, 'RT031001' => 3000, 'RT031002' => 1000]);
+        CalcoloQuadroRt::proponiTotali($quadri);
+        $q = fn(string $codice) => $quadri->getImporto($codice, 1);
+        $this->assertSame(2000, $q('RT051001'));
+        $this->assertSame(6000, $q('RT052002'));
+        // minusvalenza della sezione I (20 per cento) compensata per 0,7692 con la plusvalenza al 26 per cento
+        $this->assertSame(1538, $q('RT071001'));
+        $this->assertSame(4462, $q('RT072001'));
+        $this->assertSame(1160, $q('RT073001'));
+        $this->assertSame(1, $q('RT101005'));
+        // partecipazioni qualificate 2009-2017: imponibile al 49,72 per cento; sezione IV per intero
+        $this->assertSame(4000, $q('RT054002'));
+        $this->assertSame(1989, $q('RT082002'));
+        $this->assertSame(2000, $q('RT086001'));
+    }
+
+    public function testQuadroCeSezioneIIEsempioDelleIstruzioni(): void
+    {
+        // esempio delle istruzioni del quadro CE (fascicolo 3, sezione II-C)
+        $quadri = $this->creaQuadri(['CE011001' => '071', 'CE012001' => 100, 'CE012002' => 90, 'CE012004' => -80, 'CE012005' => 10,
+            'CE012006' => 30, 'CE012007' => 10, 'CE012008' => 10, 'CE013009' => 70]);
+        CalcoloCreditoEstero::proponiSezioneII($quadri);
+        $q = fn(string $codice) => $quadri->getImporto($codice, 1);
+        $this->assertSame([170, 70, 70, 150], [$q('CE016001'), $q('CE016002'), $q('CE016003'), $q('CE016004')]);
+        $this->assertSame([40, 0, 0, 10, 30, 10, 10], [$q('CE014002'), $q('CE014003'), $q('CE014004'), $q('CE014005'), $q('CE014006'), $q('CE014007'), $q('CE014008')]);
+        $this->assertNull($quadri->get('CE015009', 1));
+        $this->assertSame(70, $q('CE024001'));
+
+        // sezione II-A: quota di imposta lorda 250 (1.000 / 4.000 x 1.000) contro 300 di imposta estera, eccedenza estera di 50
+        $this->assertSame([0, 50], CalcoloCreditoEstero::eccedenze(1000, 300, 4000, 0, 1000));
+        $this->assertSame([150, 0], CalcoloCreditoEstero::eccedenze(1000, 100, 4000, 0, 1000));
+    }
+
+    public function testPartecipazioniConIlConcordatoPreventivo(): void
+    {
+        // società in concordato: conta il reddito concordato (12.000) e la soglia minima (3.000); associazione sotto la soglia
+        $quadri = $this->creaQuadri(['RH001001' => '09990012008', 'RH001002' => 1, 'RH001003' => 50, 'RH001004' => 9000,
+            'RH00113A' => true, 'RH001014' => 12000, 'RH001016' => 3000,
+            'RH002001' => '01234560785', 'RH002002' => 1, 'RH002003' => 20, 'RH002004' => -2000,
+            'RH003001' => '01234980587', 'RH003002' => 2, 'RH003003' => 30, 'RH003004' => 400, 'RH003014' => 500, 'RH003016' => 1500]);
+        (new PropostaPartecipazioni($this->dataMapper))->proponi($quadri);
+        $q = fn(string $codice) => $quadri->getImporto($codice, 1);
+        $this->assertSame(12000, $q('RH007002'));
+        $this->assertSame(2000, $q('RH008001'));
+        $this->assertSame(10000, $q('RH009002'));
+        $this->assertSame(10000, $q('RH014001'));
+        $this->assertSame(1500, $q('RH015001'));
+    }
+
+    public function testRedditoEsclusoPerICanoniNonPercepiti(): void
+    {
+        // canone 6.000, non percepiti 1.500: reddito da 5.700 (95 per cento) a 4.275
+        $this->assertEqualsWithDelta(1425.0, PropostaCrediti::differenzaReddito(6000, 1500, 1000), 0.001);
+        // rendita rivalutata 5.250: il reddito non scende sotto la rendita
+        $this->assertEqualsWithDelta(450.0, PropostaCrediti::differenzaReddito(6000, 1500, 5000), 0.001);
+        $this->assertEqualsWithDelta(0.0, PropostaCrediti::differenzaReddito(5000, 1500, 5000), 0.001);
     }
 
     public function testScaglioniPerAnno(): void
@@ -258,18 +394,21 @@ class PropostaIrpefTest extends SuiteTestCase
         $collaboratori = [['codiceFiscale' => 'NRESRA70A41H501X', 'quota' => 20.0, 'nominativo' => 'NERI SARA'],
             ['codiceFiscale' => 'VRDLCU95A01H501X', 'quota' => 15.0, 'nominativo' => 'VERDI LUCA'],
             ['codiceFiscale' => 'VRDNNA98A41H501X', 'quota' => 10.0, 'nominativo' => 'VERDI ANNA']];
-        $this->assertSame(8000 + 6000 + 4000, $impresa->imputaCollaboratori($quadri, $collaboratori, 40000));
+        $this->assertSame(8000 + 6000 + 4000, $impresa->imputaCollaboratori($quadri, $collaboratori, 40000, 'RG'));
         $this->assertSame('NRESRA70A41H501X', $quadri->get('RS006001', 1));
         $this->assertSame(6000, $quadri->getImporto('RS007003', 1));
         $this->assertSame('VRDNNA98A41H501X', $quadri->get('RS006001', 2));
         $this->assertSame(4000, $quadri->getImporto('RS006003', 2));
+        // quadro di riferimento del prospetto in ogni modulo
+        $this->assertSame('RG', $quadri->get('RS001001', 1));
+        $this->assertSame('RG', $quadri->get('RS001001', 2));
         $this->assertSame([], $impresa->getAvvisi());
 
         // perdita: nessuna quota ai collaboratori; quote oltre il 49 per cento segnalate
         $quadri = $this->creaQuadri([]);
         $impresa = new PropostaImpresa($this->dataMapper);
         $collaboratori[0]['quota'] = 30.0;
-        $this->assertSame(0, $impresa->imputaCollaboratori($quadri, $collaboratori, -5000));
+        $this->assertSame(0, $impresa->imputaCollaboratori($quadri, $collaboratori, -5000, 'RG'));
         $this->assertNull($quadri->get('RS006003', 1));
         $this->assertSame(30.0, $quadri->getDecimale('RS006002', 1));
         $this->assertCount(2, $impresa->getAvvisi());

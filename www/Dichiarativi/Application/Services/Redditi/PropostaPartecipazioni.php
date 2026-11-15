@@ -31,8 +31,10 @@ use SismaFramework\Orm\HelperClasses\DataMapper;
  * Le partecipazioni in società che non sono nella suite si inseriscono a
  * mano con il prospetto rilasciato dalla società; i totali dei righi da
  * RH7 a RH22 comprendono i righi inseriti a mano di tutti i moduli
- * (specifiche tecniche, sezioni II-IV del quadro RH), senza il concordato
- * preventivo biennale.
+ * (specifiche tecniche, sezioni II-IV del quadro RH), anche con il
+ * concordato preventivo biennale: per le partecipazioni con le colonne
+ * del concordato contano la quota di reddito, di perdita e la soglia
+ * minima indicate dalla società.
  */
 class PropostaPartecipazioni
 {
@@ -128,30 +130,41 @@ class PropostaPartecipazioni
             }
         }
         $quadri->usaModulo(1);
-        // totali di tutti i moduli, anche dei righi inseriti a mano
-        $impresa = $perdite = $associazioni = $societaSemplici = $ritenute = $crediti = $oneri = 0;
-        $presenti = false;
+        // totali di tutti i moduli, anche dei righi inseriti a mano; con il concordato preventivo biennale (colonne 13A-16 dei righi
+        // RH1-RH4, 14A-17 dei righi RH5 e RH6) contano la quota di reddito, di perdita e la soglia del concordato
+        $impresa = $perdite = $sogliaImpresa = $associazioni = $sogliaAssociazioni = $societaSemplici = $sogliaSemplici = 0;
+        $ritenute = $crediti = $oneri = $nonImponibili = 0;
+        $presenti = $concordato = false;
         foreach ($quadri->getModuli() as $modulo) {
             for ($numero = 1; $numero <= 6; $numero++) {
                 $codice = fn(string $colonna) => sprintf('RH%03d%s', $numero, $colonna);
+                $v = fn(string $colonna) => $quadri->getImporto($codice($colonna), $modulo);
                 if ($quadri->get($codice('001'), $modulo) === null) {
                     continue;
                 }
                 $presenti = true;
-                $tipo = $quadri->getImporto($codice('002'), $modulo);
-                $reddito = $quadri->getImporto($codice('004'), $modulo);
-                $nonCompensate = $quadri->getImporto($codice('0A4'), $modulo);
+                $tipo = $v('002');
+                $reddito = $v('004');
+                $nonCompensate = $v('0A4');
+                // colonne del concordato: righi RH1-RH4 13A, 14, 15, 16; righi RH5 e RH6 14A, 15, 16, 17
+                [$casella, $redditoCpb, $perditaCpb, $sogliaCpb] = $numero >= 5 ? ['14A', '015', '016', '017'] : ['13A', '014', '015', '016'];
+                $cpb = ($quadri->get($codice($casella), $modulo) !== null) || ($v($redditoCpb) + $v($perditaCpb) + $v($sogliaCpb) > 0);
+                $concordato = $concordato || $cpb;
                 if (($numero >= 5) || in_array($tipo, [1, 5], true)) {
-                    $impresa += max(0, $reddito);
-                    $perdite += max(0, -$reddito) + $nonCompensate;
+                    $impresa += $cpb ? $v($redditoCpb) : max(0, $reddito);
+                    $perdite += $cpb ? $v($perditaCpb) : max(0, -$reddito) + $nonCompensate;
+                    $sogliaImpresa += $cpb ? $v($sogliaCpb) : 0;
                 } elseif (in_array($tipo, [2, 7], true)) {
-                    $associazioni += $reddito - $nonCompensate;
+                    $associazioni += $cpb ? $v($redditoCpb) - $v($perditaCpb) : $reddito - $nonCompensate;
+                    $sogliaAssociazioni += $cpb ? $v($sogliaCpb) : 0;
                 } else {
-                    $societaSemplici += max(0, $reddito);
+                    $societaSemplici += $cpb ? $v($redditoCpb) : max(0, $reddito);
+                    $sogliaSemplici += $cpb ? $v($sogliaCpb) : 0;
                 }
-                $ritenute += $quadri->getImporto($codice('009'), $modulo);
-                $crediti += $quadri->getImporto($codice('010'), $modulo);
-                $oneri += $quadri->getImporto($codice('012'), $modulo);
+                $ritenute += $v('009');
+                $crediti += $v('010');
+                $oneri += $v('012');
+                $nonImponibili += $numero <= 4 ? $v('013') : 0;
             }
         }
         if ($presenti === false) {
@@ -160,13 +173,15 @@ class PropostaPartecipazioni
         $q = fn(string $codice) => $quadri->getImporto($codice, 1);
         $quadri->proponi('RH007002', $impresa ?: null);
         $quadri->proponi('RH008001', $perdite ?: null);
-        $quadri->proponi('RH009001', max(0, $perdite - ($impresa - $q('RH007001'))) ?: null);
-        $quadri->proponi('RH009002', max($q('RH007001'), $impresa - $perdite) ?: null);
+        $minimo = $q('RH007001') + $sogliaImpresa;
+        $quadri->proponi('RH009001', max(0, $perdite - ($impresa - $minimo)) ?: null);
+        $quadri->proponi('RH009002', max($minimo, $impresa - $perdite) ?: null);
         $quadri->proponi('RH011001', max(0, $q('RH009002') - $q('RH010001')) ?: null);
-        $quadri->proponi('RH014001', max($q('RH011001') - $q('RH012001') - $q('RH012002'), $q('RH007001')) ?: null);
-        $quadri->proponi('RH015001', $associazioni ?: null);
+        $quadri->proponi('RH014001', max($q('RH011001') - $q('RH012001') - $q('RH012002'), $minimo) ?: null);
+        $quadri->proponi('RH015001', ($concordato ? max($sogliaAssociazioni, $associazioni) : $associazioni) ?: null);
         $quadri->proponi('RH017001', ($q('RH015001') - $q('RH016001')) ?: null);
-        $quadri->proponi('RH018001', $societaSemplici ?: null);
+        $quadri->proponi('RH018001', ($concordato ? max($sogliaSemplici, $societaSemplici) : $societaSemplici) ?: null);
+        $quadri->proponi('RH018002', $nonImponibili ?: null);
         $quadri->proponi('RH019001', $ritenute ?: null);
         $quadri->proponi('RH020002', $crediti ?: null);
         $quadri->proponi('RH022001', $oneri ?: null);

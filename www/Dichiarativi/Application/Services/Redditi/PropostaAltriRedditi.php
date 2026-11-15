@@ -10,8 +10,9 @@ use SismaFramework\Orm\HelperClasses\DataMapper;
 /**
  * Quadro RL dalle Certificazioni Uniche del lavoro autonomo e dei redditi
  * diversi (Services\Redditi\CalcoloQuadroRl), nel primo modulo; i totali
- * RL18 e RL19 e RL30-RL32 comprendono anche i righi inseriti a mano di
- * tutti i moduli (specifiche tecniche, righi RL18 e RL30).
+ * RL3, RL10 (col. 7 e 8, cedolare secca), RL18 e RL19 e RL30-RL32
+ * comprendono anche i righi inseriti a mano di tutti i moduli (specifiche
+ * tecniche, righi RL3, RL10, RL18 e RL30).
  */
 class PropostaAltriRedditi
 {
@@ -60,6 +61,19 @@ class PropostaAltriRedditi
             }
             return $totale;
         };
+        // sezione I: totali dei redditi di capitale e delle ritenute (righi RL1 e RL2 di tutti i moduli)
+        $quadri->proponi('RL003002', $somma(['RL001002', 'RL002002']) ?: null);
+        $quadri->proponi('RL003003', $somma(['RL001003', 'RL002003']) ?: null);
+        // rigo RL10: redditi diversi con la cedolare secca al 21 e al 26 per cento (col. 3 = 1 o 2)
+        $cedolare = [1 => 0, 2 => 0];
+        foreach ($quadri->getModuli() as $modulo) {
+            $aliquota = $quadri->getImporto('RL010003', $modulo);
+            if (isset($cedolare[$aliquota])) {
+                $cedolare[$aliquota] += $quadri->getImporto('RL010004', $modulo);
+            }
+        }
+        $quadri->proponi('RL010007', $cedolare[1] ?: null);
+        $quadri->proponi('RL010008', $cedolare[2] ?: null);
         $redditi = $somma(self::REDDITI_RL18);
         $spese = $somma(self::SPESE_RL18);
         $quadri->proponi('RL018001', $redditi ?: null);

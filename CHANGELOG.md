@@ -2,6 +2,63 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.28.0-alpha] - 2026-11-15 - Righi del Modello Redditi Inseriti a Mano
+
+Versioni dei moduli: `Dichiarativi` 0.9.0 (richiede `Anagrafica` 0.14.0 e `Contabilita` 0.11.0); gli altri invariati.
+
+**Aggiornamento**: `aggiorna.sh` (cioè `sisma aggiorna-database`) esegue `Dichiarativi/Database/aggiornamento-0.9.sql` (colonna `dichiarazione.omesso_isa`). Le dichiarazioni Redditi PF già elaborate ricevono i nuovi calcoli alla prossima proposta dei quadri. I valori inseriti a mano restano invariati. Nessun passo manuale.
+
+### ✨ Nuove Funzionalità
+
+#### `Dichiarativi` 0.9.0 — righi del modello Redditi PF inseriti a mano
+
+- **quadro RM**: sui righi inseriti a mano la proposta calcola:
+  - tassazione separata (rigo RM21) e ordinaria (RM22) dei redditi delle sezioni I e II;
+  - acconto del 20 per cento nel rigo RX12;
+  - imposte sostitutive dei righi RM32-RM39, RM61, RM62 e RM82;
+  - lezioni private (RM37) con saldo e acconti;
+  - righi RX7-RX19 e versamenti in Deleghe (4200, 1245, 1863, 1684, 4040, 1856, 1854, 1855, 1899), con un avviso per i righi senza codice tributo.
+- **quadro CR, crediti dell'anno**: utilizzo entro l'imposta netta nell'ordine delle specifiche, con i residui nel rigo RN47:
+  - rate del sisma Abruzzo (CR10, CR11);
+  - erogazioni per la cultura (65 per cento in tre quote, entro il 15 per cento del reddito);
+  - erogazioni alla scuola e videosorveglianza (RN30);
+  - altri crediti del rigo CR31 (RN32).
+
+  Il rigo CR16 resta a mano, con un avviso.
+- **quadro CE, sezione II** (imprese):
+  - eccedenze dei righi CE14 e CE15 dell'anno prima riportate nei righi CE12 e CE13;
+  - utilizzo dalla più vecchia sui righi CE9-CE11 e CE16;
+  - righi CE24 e CE25.
+- **quadro RT, sezioni I, III e IV inserite a mano**:
+  - totali dei righi RT51-RT57, RT61-RT64 e RT71-RT74;
+  - quote imponibili delle partecipazioni qualificate (RT81, RT82: 40, 49,72 o 58,14 per cento) nel reddito complessivo;
+  - righi RT86-RT90, RT101-RT105 e RT113.
+- **concordato preventivo biennale nel quadro RH**: i totali usano la quota di reddito, la quota di perdita e la soglia minima delle colonne del concordato.
+- **modello ISA non presentato con la dichiarazione**: nuova spunta nel frontespizio del modello Redditi. La suite non compila il modello ISA: per trasmettere la dichiarazione di un soggetto ISA senza causa di esclusione, la spunta barra nel file la casella di omessa presentazione (campo 179 con il quadro RE, 180 con i quadri RF e RG). Per i soggetti ISA la proposta lo ricorda con un avviso. Nei dati demo la usa Lucia Ferri.
+- **quadro RL**: totali del rigo RL3 e delle colonne 7 e 8 del rigo RL10, con la cedolare secca delle locazioni brevi nel rigo LC1.
+- dati demo: a Mario Rossi sono aggiunti emolumenti arretrati (RM6), l'ultima rata della cessione di una partecipazione qualificata (RT24) e il residuo del credito scuola (CR15).
+
+### 🐛 Correzioni
+
+#### `Dichiarativi` 0.9.0
+
+- **credito per canoni non percepiti (CR8)**: la riliquidazione toglieva il canone non percepito senza tener conto della rendita catastale. Ora il reddito del fabbricato non scende sotto la rendita rivalutata del 5 per cento.
+- **cedolare secca del rigo LC1**: non considerava i redditi delle locazioni brevi del quadro RL.
+- **file telematico RPF26 scartato dalla procedura di controllo**: il record A aveva a spazi i campi numerici "Progressivo dell'invio telematico" e "Numero totale degli invii telematici", e la procedura scartava l'intera fornitura. Ora i campi numerici non compilati valgono zero (paragrafo 2.4 delle specifiche):
+  - nel record A;
+  - in tutti i campi numerici, caselle e date del record B;
+  - nei conteggi dei record P, Q e R del record Z.
+- **errori segnalati dalla procedura di controllo del modello Redditi PF 2026** sulle dichiarazioni demo:
+  - caselle 102-104 del record B ("Anomalia", liquidazione art. 18 D.Lgs. 192/2024 e data di chiusura) a spazi invece che a zero;
+  - codici attività ATECO (righi RG1, RE1, RF1, LM1, LM21, LM22-LM27, RD1, RS401) scritti con i punti: il controllo non li riconosceva ("codice attività non in vigore") e calcolava gli acconti del rigo RN62 al 40 e 60 per cento invece che al 50 per cento degli ISA;
+  - righi RX11 e RX12 invertiti: l'acconto del 20 per cento sui redditi a tassazione separata va nel rigo RX12 (versamento 4200), l'imposta sostitutiva dei frontalieri svizzeri nel rigo RX11 (versamento 1863);
+  - detrazione per gli altri redditi (rigo RN7, col. 4) senza i 50 euro in più per un reddito oltre 11.000 e fino a 17.000 euro (art. 13, comma 5-bis, Tuir);
+  - rigo RX31 dei forfetari (LM46 meno LM47, credito da compensare con il codice 1792) non proposto;
+  - quadro di riferimento del rigo RS1 assente con il prospetto dei collaboratori dell'impresa familiare;
+  - casella di insussistenza delle rimanenze del rigo RG38 non barrata;
+  - caselle Impresa, Autonomo o Impresa familiare del rigo LM20 e casella di assenza di dati del rigo RS382 dei forfetari non proposte (avviso per i righi RS375-RS381);
+  - rigo RS140 (conservazione elettronica dei documenti), obbligatorio per i titolari di partita IVA, ora proposto con il codice 1 e un avviso.
+
 ## [0.27.0-alpha] - 2026-11-14 - IVA per Cassa, Plafond, Forfetari e Chiusura dell'Esercizio
 
 Versioni dei moduli: `Anagrafica` 0.14.0, `Contabilita` 0.11.0 (richiede `Anagrafica` 0.14.0), `Dichiarativi` 0.8.0 (richiede `Anagrafica` 0.14.0 e `Contabilita` 0.11.0); gli altri invariati.

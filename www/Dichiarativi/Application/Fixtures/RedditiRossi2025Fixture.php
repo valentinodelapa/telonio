@@ -85,6 +85,14 @@ use SismaFramework\Orm\CustomTypes\SismaDate;
  * - cessioni (quadro RT): azioni statunitensi in plusvalenza (sezione II)
  *   e bitcoin detenuti dal 2023 (sezione V, franchigia di 2.000 euro),
  *   con l'imposta sostitutiva del 26 per cento;
+ * - righi inseriti a mano sui quali la proposta fa i calcoli: emolumenti
+ *   arretrati di lavoro dipendente (rigo RM6, acconto del 20 per cento
+ *   della tassazione separata nel rigo RX12 e versamento 4200), ultima
+ *   rata incassata nel 2025 della cessione nel 2017 di una partecipazione
+ *   qualificata (quadro RT, sezione III, rigo RT24: quota imponibile del
+ *   49,72 per cento nel rigo RT82) e residuo del
+ *   credito d'imposta per le erogazioni alla scuola (rigo CR15, utilizzato
+ *   nel rigo RN30);
  * - scelte dell'otto per mille (Stato, edilizia scolastica) e del cinque
  *   per mille (ricerca sanitaria);
  * - saldi e acconti registrati in Deleghe F24.
@@ -244,6 +252,11 @@ class RedditiRossi2025Fixture extends BaseFixture
         $dichiarazione->cinquePerMille = CinquePerMille::ricercaSanitaria;
         $this->dataMapper->save($dichiarazione);
         $quadri = new QuadriDichiarazione($dichiarazione, $this->dataMapper);
+        // righi inseriti a mano: arretrati, rata della cessione di una partecipazione qualificata del 2017, residuo del credito scuola
+        $quadri->imposta('RM006001', 3000);
+        $quadri->imposta('RT024001', 20000);
+        $quadri->imposta('RT024002', 12000);
+        $quadri->imposta('CR015001', 300);
         (new PropostaRedditi($this->dataMapper))->proponi($dichiarazione, $quadri);
         $quadri = new QuadriDichiarazione($dichiarazione, $this->dataMapper);
         $versamenti = new VersamentiRedditi($this->dataMapper);
