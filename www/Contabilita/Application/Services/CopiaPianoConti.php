@@ -45,6 +45,7 @@ class CopiaPianoConti
             $copia->funzione = $conto->funzione;
             $copia->voceCee = $conto->voceCee;
             $copia->rigoRedditi = $conto->rigoRedditi;
+            $copia->rigoIsa = $conto->rigoIsa;
             $copia->percentualeDeducibile = $conto->percentualeDeducibile;
             $copia->variazioneRedditi = $conto->variazioneRedditi;
             $copia->attivo = $conto->attivo;

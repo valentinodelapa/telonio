@@ -11,6 +11,8 @@ use Deleghe\Application\Services\Telematico\RecordF24;
 use Dichiarativi\Application\Entities\Dichiarazione;
 use Dichiarativi\Application\Enumerations\TipologiaDichiarazione;
 use Dichiarativi\Application\Services\Frontespizio;
+use Dichiarativi\Application\Services\Isa\CalcoloIsa;
+use Dichiarativi\Application\Services\Isa\ConcordatoIsa;
 use Dichiarativi\Application\Services\Isa\ModelliIsa;
 use Dichiarativi\Application\Services\QuadriDichiarazione;
 use Dichiarativi\Application\Services\Redditi\ControlliRedditi;
@@ -27,9 +29,25 @@ use SismaFramework\Orm\HelperClasses\DataMapper;
  *
  * Le scelte per la destinazione dell'otto, del cinque e del due per mille
  * non sono gestite: risultano "non effettuate".
+ *
+ * Comunicazione del concordato preventivo biennale 2026-2027 (casella
+ * "Comunicazione CPB", campo 11 del record B; provvedimento del 27
+ * febbraio 2026, punti 4 e 5; specifiche Redditi PF, par. 43): con la
+ * dichiarazione la revoca delle adesioni già comunicate (codice 3, con
+ * l'eventuale nuova adesione nel modello ISA allegato); con invio autonomo
+ * il solo frontespizio, senza le sezioni escluse (domicilio fiscale,
+ * scelte, caselle dei quadri, visto), e il modello CPB nei record del
+ * modello ISA: per l'adesione (codice 1) esclusivamente il quadro P, con la
+ * proposta del calcolo aggiornato e l'accettazione, per la revoca (codice
+ * 2) i soli campi chiave del quadro P. L'invio autonomo non è una dichiarazione.
  */
 class GeneratoreRedditi
 {
+
+    /** Valori della casella "Comunicazione CPB" */
+    public const CPB_ADESIONE = 1;
+    public const CPB_REVOCA = 2;
+    public const CPB_REVOCA_CON_DICHIARAZIONE = 3;
 
     public function __construct(private DataMapper $dataMapper = new DataMapper())
     {
@@ -60,14 +78,72 @@ class GeneratoreRedditi
             }
         }
         $recordC = RecordQuadri::genera('C', $dichiarazione->soggetto->codiceFiscale, $valori, $quadri->getCatalogo());
-        $recordIsa = $this->getRecordIsa($dichiarazione);
+        $recordIsa = $this->getRecordIsa(array_map(fn(Dichiarazione $isa) => (string) $isa->calcoloIsa, (new ModelliIsa($this->dataMapper))->getDichiarazioni($dichiarazione)));
+        $recordB = $this->recordB($dichiarazione, $quadri, count($recordIsa['P']) > 0, count($segnalazioniIsa) > 0, count($segnalazioni) > count($segnalazioniIsa),
+                $dichiarazione->revocaCpb ? self::CPB_REVOCA_CON_DICHIARAZIONE : null);
+        return $this->fornitura($dichiarazione, $recordB, $recordC, $recordIsa);
+    }
+
+    /**
+     * Comunicazione del concordato preventivo biennale con invio autonomo
+     * (codice 1 adesione o 2 revoca): frontespizio della dichiarazione
+     * Redditi collegata al modello ISA e modello CPB.
+     *
+     * @throws \InvalidArgumentException se il modello non consente la comunicazione
+     */
+    public function generaComunicazioneCpb(Dichiarazione $isa, bool $revoca = false): string
+    {
+        $redditi = $isa->dichiarazioneRedditi ?? throw new \InvalidArgumentException('Modello ISA senza la dichiarazione Redditi collegata.');
+        $quadri = new QuadriDichiarazione($isa, $this->dataMapper);
+        if ($revoca) {
+            $chiavi = ConcordatoIsa::getChiavi($isa, $quadri);
+            if ($chiavi['P0000002'] === '') {
+                throw new \InvalidArgumentException('Codice attività del frontespizio del modello ISA (Y01) non indicato.');
+            }
+            $recordIsa = $this->getRecordIsa([(new GeneratoreIsa($this->dataMapper))->genera($isa, $quadri, null, $chiavi)]);
+            $anomalie = false;
+        } else {
+            if (ConcordatoIsa::isAccettata($quadri) === false) {
+                throw new \InvalidArgumentException('Proposta di concordato non accettata nel quadro P del modello ISA: aderire prima di comunicare l\'adesione.');
+            }
+            if ((new CalcoloIsa($this->dataMapper))->isAggiornato($isa, $quadri) === false) {
+                throw new \InvalidArgumentException('Modello ISA da ricalcolare: la proposta accettata deve essere quella del calcolo aggiornato.');
+            }
+            // con il codice 1 il modello contiene esclusivamente il quadro P (controllo del software dell'Agenzia): chiavi, requisiti,
+            // redditi rilevanti e proposti, accettazione
+            $quadroP = ConcordatoIsa::getChiavi($isa, $quadri);
+            foreach ($quadri->getValori()[1] ?? [] as $codice => $dati) {
+                if (str_starts_with($codice, 'P') && ($dati['valore'] !== null) && ($dati['valore'] !== '')) {
+                    $quadroP[$codice] = $dati['valore'];
+                }
+            }
+            $recordIsa = $this->getRecordIsa([(new GeneratoreIsa($this->dataMapper))->genera($isa, $quadri, null, $quadroP)]);
+            $anomalie = false;
+        }
+        $recordB = $this->recordB($redditi, new QuadriDichiarazione($redditi, $this->dataMapper), false, $anomalie, false, $revoca ? self::CPB_REVOCA : self::CPB_ADESIONE);
+        return $this->fornitura($redditi, $recordB, [], $recordIsa);
+    }
+
+    public static function getNomeFileComunicazioneCpb(Dichiarazione $isa, bool $revoca = false): string
+    {
+        return substr(self::getNomeFile($isa->dichiarazioneRedditi), 0, -4) . '_CPB_' . ($revoca ? 'revoca' : 'adesione') . '.txt';
+    }
+
+    /**
+     * Fornitura: record A, B, C, P, Q, R e Z.
+     *
+     * @param string[] $recordC
+     * @param array{P: string[], Q: string[], R: string[]} $recordIsa
+     */
+    private function fornitura(Dichiarazione $dichiarazione, string $recordB, array $recordC, array $recordIsa): string
+    {
         return implode('', [
             (string) (new RecordF24(TracciatoRedditi::RECORD_A))
                     ->imposta('tipoRecord', 'A')
                     ->imposta('codiceFornitura', $dichiarazione->modello->getCodiceFornitura($dichiarazione->anno))
                     ->imposta('tipoFornitore', $dichiarazione->intermediario === null ? 1 : 10)
                     ->imposta('codiceFiscaleFornitore', $dichiarazione->intermediario?->soggetto->codiceFiscale ?? $dichiarazione->soggetto->codiceFiscale),
-            (string) $this->recordB($dichiarazione, $quadri, count($recordIsa['P']) > 0, count($segnalazioniIsa) > 0, count($segnalazioni) > count($segnalazioniIsa)),
+            $recordB,
             ...$recordC,
             ...$recordIsa['P'],
             ...$recordIsa['Q'],
@@ -78,21 +154,23 @@ class GeneratoreRedditi
     }
 
     /**
-     * Record P, Q ed R dei modelli ISA allegati, come restituiti dal
-     * software di calcolo (CalcoloIsa), per tipo di record: dopo i record C,
-     * ordinati per tipo record (specifiche Redditi PF, par. 2.2).
+     * Record P, Q ed R dei modelli ISA, come restituiti dal software di
+     * calcolo (CalcoloIsa) o generati (GeneratoreIsa), per tipo di record:
+     * dopo i record C, ordinati per tipo record (specifiche Redditi PF, par.
+     * 2.2).
      *
+     * @param string[] $modelli record di ciascun modello ISA
      * @return array{P: string[], Q: string[], R: string[]}
      */
-    private function getRecordIsa(Dichiarazione $dichiarazione): array
+    private function getRecordIsa(array $modelli): array
     {
         $record = ['P' => [], 'Q' => [], 'R' => []];
-        foreach ((new ModelliIsa($this->dataMapper))->getDichiarazioni($dichiarazione) as $isa) {
-            foreach (explode("\r\n", (string) $isa->calcoloIsa) as $riga) {
+        foreach ($modelli as $testo) {
+            foreach (explode("\r\n", $testo) as $riga) {
                 $tipo = substr($riga, 0, 1);
                 if (isset($record[$tipo])) {
                     if (strlen($riga) !== GeneratoreIsa::LUNGHEZZA_RECORD - 2) {
-                        throw new \LengthException(sprintf('Modello ISA %s: record %s di %d caratteri invece di %d.', $isa->isa, $tipo, strlen($riga) + 2, GeneratoreIsa::LUNGHEZZA_RECORD));
+                        throw new \LengthException(sprintf('Modello ISA %s: record %s di %d caratteri invece di %d.', trim(substr($riga, 103, 5)), $tipo, strlen($riga) + 2, GeneratoreIsa::LUNGHEZZA_RECORD));
                     }
                     $record[$tipo][] = $riga . "\r\n";
                 }
@@ -109,9 +187,11 @@ class GeneratoreRedditi
     /**
      * @param bool $anomalieIsa segnalazioni confermabili dei modelli ISA allegati
      * @param bool $anomalieRedditi segnalazioni confermabili della dichiarazione
+     * @param int|null $comunicazioneCpb casella "Comunicazione CPB": con 1 o 2 (invio autonomo) solo le sezioni ammesse del frontespizio
      */
-    private function recordB(Dichiarazione $dichiarazione, QuadriDichiarazione $quadri, bool $isa = false, bool $anomalieIsa = false, bool $anomalieRedditi = false): string
+    private function recordB(Dichiarazione $dichiarazione, QuadriDichiarazione $quadri, bool $isa = false, bool $anomalieIsa = false, bool $anomalieRedditi = false, ?int $comunicazioneCpb = null): string
     {
+        $autonoma = in_array($comunicazioneCpb, [self::CPB_ADESIONE, self::CPB_REVOCA], true);
         $soggetto = $dichiarazione->soggetto;
         $anno = $dichiarazione->anno;
         [$comuneNascita, $provinciaNascita] = DatiContribuente::getLuogoNascita($soggetto);
@@ -128,9 +208,9 @@ class GeneratoreRedditi
                 ->imposta('identificativoProduttore', 'TELONIO')
                 // conferma delle anomalie (campo 8, anche per quelle dei modelli ISA allegati, che sono anomalie della dichiarazione) e,
                 // per i modelli ISA, anche il campo 9 "Flag conferma Studi di settore/parametri"
-                ->imposta('flagConferma', (int) $dichiarazione->flagConferma)
+                ->imposta('flagConferma', (int) ($dichiarazione->flagConferma && (($autonoma === false) || $anomalieIsa)))
                 ->imposta('flagConfermaIsa', (int) ($dichiarazione->flagConferma && $anomalieIsa))
-                ->imposta('correttiva', (int) ($dichiarazione->tipologia === TipologiaDichiarazione::correttiva))
+                ->imposta('comunicazioneCpb', $comunicazioneCpb)
                 ->impostaTroncato('cognome', $soggetto->cognome)
                 ->impostaTroncato('nome', $soggetto->nome)
                 ->imposta('partitaIva', $datiFiscali?->partitaIva)
@@ -141,6 +221,22 @@ class GeneratoreRedditi
                 ->imposta('dataNascita', $soggetto->dataNascita?->format('dmY'))
                 ->imposta('sesso', $soggetto->sesso?->value)
                 ->imposta('firmaDichiarante', 1);
+        $this->impostaResidenza($record, $dichiarazione);
+        if ($dichiarazione->dichiarante !== null) {
+            $record->imposta('codiceFiscaleRappresentante', $dichiarazione->dichiarante->codiceFiscale)
+                    ->imposta('codiceCaricaRappresentante', $dichiarazione->codiceCarica?->value);
+        }
+        if ($dichiarazione->intermediario !== null) {
+            $record->imposta('codiceFiscaleIncaricato', $dichiarazione->intermediario->soggetto->codiceFiscale)
+                    ->imposta('impegno', $dichiarazione->impegno?->value)
+                    ->imposta('dataImpegno', $dichiarazione->dataImpegno?->format('dmY'))
+                    ->imposta('firmaIncaricato', 1);
+        }
+        if ($autonoma) {
+            // invio autonomo della comunicazione: solo frontespizio, senza le sezioni escluse (specifiche, par. 43.1)
+            return (string) $record;
+        }
+        $record->imposta('correttiva', (int) ($dichiarazione->tipologia === TipologiaDichiarazione::correttiva));
         $this->impostaScelte($record, $dichiarazione);
         if ($isa) {
             $record->imposta('isa', 1);
@@ -154,7 +250,6 @@ class GeneratoreRedditi
                 }
             }
         }
-        $this->impostaResidenza($record, $dichiarazione);
         foreach ([[$anno, 'comuneDomicilio', 'provinciaDomicilio', 'codiceComuneDomicilio'], [$anno + 1, 'comuneDomicilioSuccessivo', 'provinciaDomicilioSuccessivo', 'codiceComuneDomicilioSuccessivo']] as [$annoDomicilio, $campoComune, $campoProvincia, $campoCodice]) {
             $comune = VersamentiRedditi::getDomicilio($this->dataMapper, $soggetto, new \DateTimeImmutable($annoDomicilio . '-01-01'));
             if ($comune === null) {
@@ -166,16 +261,6 @@ class GeneratoreRedditi
             $record->impostaTroncato($campoComune, $comune->denominazione)
                     ->imposta($campoProvincia, $comune->siglaProvincia)
                     ->imposta($campoCodice, $comune->codiceCatastale);
-        }
-        if ($dichiarazione->dichiarante !== null) {
-            $record->imposta('codiceFiscaleRappresentante', $dichiarazione->dichiarante->codiceFiscale)
-                    ->imposta('codiceCaricaRappresentante', $dichiarazione->codiceCarica?->value);
-        }
-        if ($dichiarazione->intermediario !== null) {
-            $record->imposta('codiceFiscaleIncaricato', $dichiarazione->intermediario->soggetto->codiceFiscale)
-                    ->imposta('impegno', $dichiarazione->impegno?->value)
-                    ->imposta('dataImpegno', $dichiarazione->dataImpegno?->format('dmY'))
-                    ->imposta('firmaIncaricato', 1);
         }
         if ($dichiarazione->vistoProfessionista !== null) {
             $record->imposta('codiceFiscaleProfessionista', $dichiarazione->vistoProfessionista->codiceFiscale)->imposta('firmaVisto', 1);

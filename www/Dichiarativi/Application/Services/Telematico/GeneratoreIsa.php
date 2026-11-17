@@ -39,9 +39,11 @@ class GeneratoreIsa
     }
 
     /**
+     * @param array<string, string|int>|null $soloValori solo questi campi (codice => valore) e nessuna nota, invece dei valori
+     *        del modello: la comunicazione della revoca del concordato con i soli campi chiave del quadro P
      * @throws \InvalidArgumentException se manca il quadro contabile o un valore non rispetta il formato
      */
-    public function genera(Dichiarazione $dichiarazione, ?QuadriDichiarazione $quadri = null, ?QuadriDichiarazione $redditi = null): string
+    public function genera(Dichiarazione $dichiarazione, ?QuadriDichiarazione $quadri = null, ?QuadriDichiarazione $redditi = null, ?array $soloValori = null): string
     {
         $quadri ??= new QuadriDichiarazione($dichiarazione, $this->dataMapper);
         $redditi ??= $dichiarazione->dichiarazioneRedditi === null ? null : new QuadriDichiarazione($dichiarazione->dichiarazioneRedditi, $this->dataMapper);
@@ -60,7 +62,7 @@ class GeneratoreIsa
                 . str_pad(self::testo($persona ? '' : $soggetto->nominativo, 60), 60) . str_pad('TELONIO', 16));
 
         $coppie = [];
-        $valori = $quadri->getValori()[1] ?? [];
+        $valori = $soloValori === null ? ($quadri->getValori()[1] ?? []) : array_map(fn(string|int $valore) => ['valore' => $valore], $soloValori);
         ksort($valori);
         foreach ($valori as $codice => $dati) {
             if (($dati['valore'] === null) || ($dati['valore'] === '')) {
@@ -78,7 +80,7 @@ class GeneratoreIsa
         foreach (array_chunk($coppie, self::COPPIE_Q) as $gruppo) {
             $q .= $record('Q', implode('', $gruppo));
         }
-        $note = self::testo((string) $dichiarazione->annotazioni, 1768);
+        $note = $soloValori === null ? self::testo((string) $dichiarazione->annotazioni, 1768) : '';
         return $p . $q . ($note === '' ? '' : $record('R', $note));
     }
 

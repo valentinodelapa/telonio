@@ -32,7 +32,9 @@ use SismaFramework\Orm\CustomTypes\SismaDate;
  * (per cassa) i costi entrano nel quadro RG e nel quadro F del modello ISA.
  * Nel registro dei cespiti il banco frigo comprato nel 2023 (6.000 euro,
  * 15 per cento, ammortizzato nel 2023 e nel 2024), con la quota del 2025:
- * valore dei beni strumentali e ammortamenti del modello ISA.
+ * valore dei beni strumentali e ammortamenti del modello ISA. Il diritto
+ * annuale della Camera di commercio, pagato con F24, va nel campo "di cui"
+ * delle imposte e tasse del quadro F (rigo ISA del conto).
  */
 class StoricoFerri2025Fixture extends BaseFixture
 {
@@ -79,6 +81,23 @@ class StoricoFerri2025Fixture extends BaseFixture
         // registro dei cespiti: banco frigo del 2023 con il fondo dei due esercizi precedenti, quota del 2025 registrata
         $piano = (new PianoContiModel($this->dataMapper))->getPerAzienda($ferri);
         $conti = new ContoModel($this->dataMapper);
+        // diritto annuale 2025 della Camera di commercio pagato con F24: imposte e tasse diverse, nel modello ISA F17 campo 8 (rigo ISA del conto)
+        $diritto = new RegistrazioneContabile($this->dataMapper);
+        $diritto->studio = $ferri->studio;
+        $diritto->soggetto = $ferri;
+        $diritto->esercizioContabile = $esercizio;
+        $diritto->causale = CausaleContabile::giroconto;
+        $diritto->dataRegistrazione = new SismaDate('2025-06-30');
+        $diritto->descrizione = 'Diritto annuale 2025 della Camera di commercio (F24)';
+        $righe = [];
+        foreach ([[$conti->getPerCodice($piano, '27.01.0001'), 53.0, 0.0], [$banca, 0.0, 53.0]] as [$contoRiga, $dare, $avere]) {
+            $riga = new RigaContabile($this->dataMapper);
+            $riga->conto = $contoRiga;
+            $riga->dare = $dare;
+            $riga->avere = $avere;
+            $righe[] = $riga;
+        }
+        (new SalvataggioRegistrazione($this->dataMapper))->salva($diritto, [], $righe);
         $banco = new Cespite($this->dataMapper);
         $banco->studio = $ferri->studio;
         $banco->soggetto = $ferri;

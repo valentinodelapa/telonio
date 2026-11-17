@@ -59,6 +59,49 @@ class ConcordatoIsa
         return ((float) ($proposta['P0100601'] ?? 0) + (float) ($proposta['P0100701'] ?? 0)) > 0 ? $proposta : null;
     }
 
+    /**
+     * Maggiorazione dell'acconto delle imposte sui redditi per il primo
+     * periodo di adesione al concordato (art. 20, comma 2, lettera a), del
+     * D.Lgs. 13/2024, nel testo in vigore per il 2026): con l'acconto
+     * determinato con il metodo storico (quello della suite), il 10 per
+     * cento della differenza, se positiva, tra il reddito concordato per il
+     * primo periodo (P06) e il reddito d'impresa o di lavoro autonomo
+     * dichiarato per il periodo precedente, rettificato secondo gli
+     * articoli 15 e 16 (il reddito rilevante ai fini del concordato, P04,
+     * o, se il software non lo indica, il reddito del quadro F, F20, o del
+     * quadro H, compensi H06 meno spese H20). Non è
+     * dovuta per il rinnovo del concordato (comma 3-bis: quadro CP compilato
+     * nella dichiarazione Redditi). Si versa con il codice tributo 4068
+     * entro il termine della seconda o unica rata di acconto (comma 3).
+     *
+     * @return array{importo: int, concordato: int, precedente: int, stimato: bool}|null
+     */
+    public function getMaggiorazioneAcconto(Dichiarazione $redditi, QuadriDichiarazione $quadriRedditi): ?array
+    {
+        if (isset($redditi->id) === false) {
+            return null;
+        }
+        if (in_array('CP', $quadriRedditi->getQuadriCompilati(1), true)) {
+            return null;
+        }
+        $risultato = null;
+        foreach ((new ModelliIsa($this->dataMapper))->getDichiarazioni($redditi) as $isa) {
+            $quadri = new QuadriDichiarazione($isa, $this->dataMapper);
+            if (self::isAccettata($quadri) === false) {
+                continue;
+            }
+            $concordato = (int) round((float) $quadri->get('P0100601', 1));
+            $rilevante = $quadri->get('P0100401', 1);
+            // reddito del periodo precedente: quello rilevante ai fini del concordato o, senza, il reddito d'impresa (F20) o di lavoro
+            // autonomo (compensi H06 meno spese H20) del modello
+            $precedente = (int) round((float) ($rilevante ?? $quadri->get('F0102001', 1) ?? ((float) $quadri->get('H0100601', 1) - (float) $quadri->get('H0102001', 1))));
+            $importo = (int) round(max(0, $concordato - $precedente) * 0.10);
+            $risultato = ['importo' => ($risultato['importo'] ?? 0) + $importo, 'concordato' => ($risultato['concordato'] ?? 0) + $concordato,
+                'precedente' => ($risultato['precedente'] ?? 0) + $precedente, 'stimato' => ($risultato['stimato'] ?? false) || ($rilevante === null)];
+        }
+        return $risultato;
+    }
+
     public static function isAccettata(QuadriDichiarazione $quadri): bool
     {
         return $quadri->get(self::ACCETTAZIONE, 1) !== null;
@@ -96,8 +139,7 @@ class ConcordatoIsa
             }
         }
         $quadri->imposta(self::ACCETTAZIONE, true, 1, false);
-        $chiavi = ['P0000001' => $dichiarazione->isa, 'P0000002' => $quadri->get('Y0100101', 1), 'P0000003' => $quadri->haCampo('F0100101') ? 1 : 2];
-        foreach ($chiavi as $codice => $valore) {
+        foreach (self::getChiavi($dichiarazione, $quadri) as $codice => $valore) {
             if ($quadri->haCampo($codice)) {
                 $quadri->imposta($codice, $valore, 1, false);
             }
@@ -105,6 +147,18 @@ class ConcordatoIsa
         if ($salva) {
             $quadri->salva();
         }
+    }
+
+    /**
+     * Campi chiave del quadro P: codice dell'ISA, codice attività del
+     * frontespizio e tipologia di reddito (1 impresa, con il quadro F; 2
+     * lavoro autonomo).
+     *
+     * @return array<string, string|int>
+     */
+    public static function getChiavi(Dichiarazione $dichiarazione, QuadriDichiarazione $quadri): array
+    {
+        return ['P0000001' => (string) $dichiarazione->isa, 'P0000002' => (string) $quadri->get('Y0100101', 1), 'P0000003' => $quadri->haCampo('F0100101') ? 1 : 2];
     }
 
     /**

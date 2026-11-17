@@ -182,13 +182,18 @@ modello non si presenta, salvo i casi delle istruzioni). La proposta
   col. 2 (RF60 col. 2), F29 il regime contabile; e i righi con lo stesso
   contenuto del quadro RG (F02, F10, F13 campo 4, F14, F15); dalla
   contabilità, con lo stesso criterio di cassa (RG) o di competenza (RF) e
-  la parte deducibile (`ComponentiReddito::getPerVoceCee`), i righi dei
-  costi per natura per voce del conto economico CEE: altri proventi (F05,
-  A5), servizi (F12, B7), godimento di beni di terzi (F13, B8),
-  accantonamenti (F16, B12 e B13), oneri diversi (F17, B14 più le
-  maggiorazioni), gestione finanziaria (F18, C15 e C16; F19, C17); con la
+  la parte deducibile (`ComponentiReddito::getPerRigoIsa`), i righi dei
+  costi per natura secondo il rigo ISA dei conti o, senza, la voce del
+  conto economico CEE: altri proventi (F05, A5), servizi (F12, B7),
+  godimento di beni di terzi (F13, B8), accantonamenti (F16, B12 e B13),
+  oneri diversi (F17, B14 più le maggiorazioni), gestione finanziaria
+  (F18, C15 e C16; F19, C17), e i campi "di cui" indicati sui conti (F12
+  campo 2, F13 campi 2-4, F14 campi 2-4, F17 campi 2 e 8); con la
   contabilità ordinaria anche ricavi (F01, A1), acquisti (F10, B6),
-  personale (F14, B9) e ammortamenti (F15, B10); volume d'affari (F23 =
+  personale (F14, B9) e ammortamenti (F15, B10); con la semplificata
+  questi righi vengono dal quadro RG, più o meno i componenti dei conti
+  che il rigo ISA sposta rispetto alla voce (es. consulenze da F12 a F14);
+  volume d'affari (F23 =
   VE50) e IVA sulle operazioni imponibili (F25 = VE26) dalla dichiarazione
   IVA dello stesso anno, se è nella suite;
 - il quadro H dal quadro RE, rigo per rigo come nei controlli di coerenza
@@ -219,11 +224,41 @@ ricalcola il modello (il software in modalità batch toglie l'accettazione
 dal file restituito, `rimuoviAccettazioneProposta`: `CalcoloIsa` la
 riaggiunge ai record Q, dopo gli altri campi del quadro P), "Non aderire" o "Revoca l'adesione" svuota il
 quadro. Il quadro P compilato senza l'accettazione è un errore (allegato
-2 al provvedimento del 27 febbraio 2026, controllo 4.1.1); con l'adesione
-la dichiarazione Redditi ricorda che gli acconti 2026 seguono le regole del
-concordato (art. 20 del D.Lgs. 13/2024). La comunicazione del concordato
-con invio autonomo (casella "Comunicazione CPB" del frontespizio) non è
-gestita.
+2 al provvedimento del 27 febbraio 2026, controllo 4.1.1). Con l'adesione,
+per il primo periodo (`ConcordatoIsa::getMaggiorazioneAcconto`, art. 20,
+commi 2 e 3, del D.Lgs. 13/2024 nel testo in vigore per il 2026) è dovuta
+la maggiorazione dell'acconto delle imposte sui redditi determinato con il
+metodo storico: il 10 per cento della differenza, se positiva, tra il
+reddito concordato del 2026 (P06) e il reddito del periodo precedente
+rettificato (il reddito rilevante ai fini del concordato, P04, o, se il
+software non lo indica, il reddito del quadro F o H, con un avviso sulle
+rettifiche degli artt. 15 e 16); "Registra versamenti" la scrive in Deleghe
+con il codice tributo 4068 alla scadenza del secondo acconto. Non è dovuta
+per il rinnovo del concordato (comma 3-bis: quadro CP compilato nella
+dichiarazione Redditi); l'IRAP non riguarda le persone fisiche.
+
+La comunicazione del concordato (provvedimento del 27 febbraio 2026, punti
+4 e 5; specifiche Redditi PF, par. 43) usa la casella "Comunicazione CPB"
+del frontespizio Redditi (campo 11 del record B):
+
+- con la dichiarazione, l'adesione è il quadro P del modello ISA allegato;
+  la spunta "Revoca delle adesioni al concordato preventivo biennale con
+  la dichiarazione" del frontespizio dà il codice 3, che revoca le adesioni
+  già comunicate (con l'eventuale nuova adesione nel modello allegato);
+- con invio autonomo, entro gli stessi termini, la scheda del modello ISA
+  dà due file (`GeneratoreRedditi::generaComunicazioneCpb`) con il solo
+  frontespizio della dichiarazione Redditi collegata: dati anagrafici,
+  residenza, rappresentante, impegno dell'intermediario e firme, senza le
+  sezioni escluse dalle specifiche (domicilio fiscale, scelte dell'otto,
+  cinque e due per mille, caselle dei quadri, visto), e il modello CPB nei
+  record del modello ISA. Il "file dell'adesione" (codice 1, nome
+  `..._CPB_adesione.txt`) contiene esclusivamente il quadro P (lo richiede
+  il controllo del software dell'Agenzia): campi chiave, requisiti, redditi
+  rilevanti e proposti e accettazione, con il calcolo aggiornato; gli altri
+  quadri e le note non si inviano. Il "file della revoca"
+  (codice 2, `..._CPB_revoca.txt`) contiene solo i campi chiave del quadro
+  P: codice dell'ISA, codice attività e tipologia di reddito
+  (`ConcordatoIsa::getChiavi`). L'invio autonomo non è una dichiarazione.
 
 Le note aggiuntive per l'Agenzia (record R, fino a 1.768 caratteri) si
 scrivono nella scheda del modello ISA (`annotazioni` della dichiarazione
@@ -1289,14 +1324,9 @@ dei moduli devono essere dello stesso studio.
   finale (righi con strutture particolari, come i righi RF31 e RG10 dei
   codici, il quadro FC e il prospetto VD), da aggiungere alle correzioni;
 
-- **modelli ISA**: il motore di calcolo ufficiale e il catalogo dei campi
-  ci sono già, come la creazione del modello dalla dichiarazione Redditi e
-  la proposta dei quadri F e H (vedi "Modelli ISA"); mancano i righi del
-  quadro F i dettagli "di cui" che la contabilità non distingue, gli acconti
-  2026 con il concordato preventivo biennale, la comunicazione del
-  concordato con invio autonomo, e la verifica
-  del file RPF26 con il modello allegato con il software di controllo
-  dell'Agenzia;
+- **modelli ISA**: l'importazione delle variabili precalcolate è provata
+  sullo schema XSD dell'Agenzia, non ancora con un file reale del Cassetto
+  fiscale;
 - **Redditi PF**: righi da inserire a mano senza proposta dagli archivi
   (RM51-RM54, RM91, RL17, CR16);
 - calcolo automatico di rimanenze e servizi non utilizzati nella rettifica per

@@ -2,6 +2,7 @@
 
 namespace Contabilita\Application\Forms;
 
+use Contabilita\Application\Services\RighiIsa;
 use Contabilita\Application\Services\RighiRedditi;
 use Contabilita\Application\Entities\Conto;
 use Contabilita\Application\Enumerations\LivelloConto;
@@ -51,6 +52,7 @@ class ContoForm extends BaseForm
                 ->addFilterFieldMode('funzione', FilterType::isEnumeration, [], true)
                 ->addFilterFieldMode('voceCee', FilterType::isEnumeration, [], true)
                 ->addFilterFieldMode('rigoRedditi', FilterType::isMaxLimitString, [10], true)
+                ->addFilterFieldMode('rigoIsa', FilterType::isMaxLimitString, [8], true)
                 ->addFilterFieldMode('percentualeDeducibile', FilterType::isNumeric, [], true)
                 ->addFilterFieldMode('variazioneRedditi', FilterType::isMaxLimitString, [10], true)
                 ->addFilterFieldMode('attivo', FilterType::isBoolean);
@@ -68,6 +70,10 @@ class ContoForm extends BaseForm
         $valido = true;
         if (RighiRedditi::isValido($this->entityData->rigoRedditi ?? null) === false) {
             $this->formFilterError->rigoRedditiCustomMessage = 'Rigo della dichiarazione non previsto.';
+            $valido = false;
+        }
+        if (RighiIsa::isValido($this->entityData->rigoIsa ?? null) === false) {
+            $this->formFilterError->rigoIsaCustomMessage = 'Rigo dei modelli ISA non previsto.';
             $valido = false;
         }
         $percentuale = $this->entityData->percentualeDeducibile ?? null;

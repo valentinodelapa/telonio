@@ -59,6 +59,9 @@ class ComponentiReddito
     /** @var array<string, float> */
     private array $perVoce = [];
 
+    /** @var array<string, float> */
+    private array $perRigoIsa = [];
+
     public function __construct(private DataMapper $dataMapper = new DataMapper())
     {
 
@@ -79,6 +82,19 @@ class ComponentiReddito
     public function getPerVoceCee(): array
     {
         return array_map(fn(float $importo) => round($importo, 2), $this->perVoce);
+    }
+
+    /**
+     * Componenti dell'ultimo calcolo per rigo del quadro F dei modelli ISA
+     * (RighiIsa: dal rigo del conto o dalla voce di bilancio), con lo
+     * stesso criterio e la parte deducibile; i campi "di cui" hanno la loro
+     * chiave (es. "F14:2") e sono compresi anche nel rigo ("F14").
+     *
+     * @return array<string, float> rigo => importo
+     */
+    public function getPerRigoIsa(): array
+    {
+        return array_map(fn(float $importo) => round($importo, 2), $this->perRigoIsa);
     }
 
     public function getAvvisi(): array
@@ -195,6 +211,7 @@ class ComponentiReddito
     {
         $this->avvisi = [];
         $this->perVoce = [];
+        $this->perRigoIsa = [];
         $this->totaliCassa = ['ricavi' => 0.0, 'costi' => 0.0];
         // senza epilogo, chiusura e riapertura dei conti
         $righe = array_values(array_filter(iterator_to_array((new RigaContabileModel($this->dataMapper))->getMovimenti($soggetto, null, null, null), false),
@@ -273,6 +290,7 @@ class ComponentiReddito
         $ricavi = $costi = 0.0;
         $variazioni = [];
         $this->perVoce = [];
+        $this->perRigoIsa = [];
         $dal = new SismaDate($anno . '-01-01');
         $al = new SismaDate($anno . '-12-31');
         foreach ((new RigaContabileModel($this->dataMapper))->getMovimenti($soggetto, null, $dal, $al) as $riga) {
@@ -283,6 +301,12 @@ class ComponentiReddito
                 $importo = $riga->conto->natura === NaturaConto::ricavo ? $riga->avere - $riga->dare : $riga->dare - $riga->avere;
                 $voce = $riga->conto->voceCee->value;
                 $this->perVoce[$voce] = ($this->perVoce[$voce] ?? 0.0) + $importo * ($riga->conto->percentualeDeducibile ?? 100.0) / 100;
+            }
+            if (in_array($riga->conto->natura, [NaturaConto::ricavo, NaturaConto::costo], true)) {
+                $importo = $riga->conto->natura === NaturaConto::ricavo ? $riga->avere - $riga->dare : $riga->dare - $riga->avere;
+                foreach (RighiIsa::getChiavi($riga->conto) as $chiave) {
+                    $this->perRigoIsa[$chiave] = ($this->perRigoIsa[$chiave] ?? 0.0) + $importo * ($riga->conto->percentualeDeducibile ?? 100.0) / 100;
+                }
             }
             if ($riga->conto->natura === NaturaConto::ricavo) {
                 $ricavi += $riga->avere - $riga->dare;
@@ -325,6 +349,11 @@ class ComponentiReddito
         $componenti[$rigo] = ($componenti[$rigo] ?? 0.0) + $importo;
         if (($conto->voceCee !== null) && ($rigo !== RighiRedditi::ESCLUSO)) {
             $this->perVoce[$conto->voceCee->value] = ($this->perVoce[$conto->voceCee->value] ?? 0.0) + $importo;
+        }
+        if ($rigo !== RighiRedditi::ESCLUSO) {
+            foreach (RighiIsa::getChiavi($conto) as $chiave) {
+                $this->perRigoIsa[$chiave] = ($this->perRigoIsa[$chiave] ?? 0.0) + $importo;
+            }
         }
         if ($rigo !== RighiRedditi::ESCLUSO) {
             $this->totaliCassa[$conto->natura === NaturaConto::ricavo ? 'ricavi' : 'costi'] += $importo;

@@ -21,6 +21,7 @@ use Deleghe\Application\Services\RateazioneService;
 use Dichiarativi\Application\Entities\Dichiarazione;
 use Dichiarativi\Application\Enumerations\ModalitaSaldo;
 use Dichiarativi\Application\Services\Iva\RegioniVt;
+use Dichiarativi\Application\Services\Isa\ConcordatoIsa;
 use Dichiarativi\Application\Services\QuadriDichiarazione;
 use SismaFramework\Orm\CustomTypes\SismaDate;
 use SismaFramework\Orm\HelperClasses\DataMapper;
@@ -31,7 +32,9 @@ use Telonio\Application\HelperClasses\Calendario;
  * entro il 30 giugno, secondo o unico acconto entro il 30 novembre
  * dell'anno successivo, art. 17 D.P.R. 435/2001; termini delle istruzioni,
  * fascicolo 1, righi RN62 e LC2):
- * - IRPEF 4001, acconti 4033 e 4034;
+ * - IRPEF 4001, acconti 4033 e 4034; maggiorazione dell'acconto per il
+ *   primo periodo di adesione al concordato preventivo biennale 4068
+ *   (ConcordatoIsa);
  * - addizionale regionale 3801 (sezione Regioni, codice della regione del
  *   domicilio al 1° gennaio); comunale 3844 e acconto 3843 (sezione IMU e
  *   altri tributi locali, codice catastale del comune);
@@ -98,6 +101,7 @@ class VersamentiRedditi
         $primaRataForfetario = round($accontoForfetario * 0.4) > 103 ? round($accontoForfetario * 0.4) : 0.0;
         // IVIE, IVAFE e imposta sulle cripto-attività: con le modalità e i termini dell'IRPEF, anche per gli acconti (istruzioni del quadro RW)
         $isa = (new DatiFiscaliModel($this->dataMapper))->getVigenteAl($soggetto, new SismaDate($anno . '-12-31'))?->soggettoIsa ?? false;
+        $maggiorazioneCpb = (new ConcordatoIsa($this->dataMapper))->getMaggiorazioneAcconto($dichiarazione, $quadri);
         $esteri = [];
         foreach (['ivie' => ['4041', '4044', '4045', 'RX025001', 'IVIE'], 'ivafe' => ['4043', '4047', '4048', 'RX026001', 'IVAFE'], 'cripto' => ['1727', '1728', '1729', 'RX027001', 'imposta sulle cripto-attività']]
                 as $tipo => [$saldo, $primo, $secondo, $rigo, $nome]) {
@@ -110,6 +114,8 @@ class VersamentiRedditi
             [SezioneF24::erario, '4001', $q('RX001001'), $anno, $giugno, null, 'Saldo IRPEF'],
             [SezioneF24::erario, '4033', $q('RN062001'), $anno + 1, $giugno, null, 'Primo acconto IRPEF'],
             [SezioneF24::erario, '4034', $q('RN062002'), $anno + 1, $novembre, null, 'Secondo o unico acconto IRPEF'],
+            // maggiorazione dell'acconto per il primo periodo di adesione al concordato preventivo biennale (art. 20, c. 2-3, D.Lgs. 13/2024)
+            [SezioneF24::erario, '4068', (float) ($maggiorazioneCpb['importo'] ?? 0), $anno + 1, $novembre, null, 'Maggiorazione acconto concordato preventivo biennale'],
             [SezioneF24::regioni, '3801', $q('RX002001'), $anno, $giugno, $regione, 'Saldo addizionale regionale'],
             [SezioneF24::tributiLocali, '3844', $q('RX003001'), $anno, $giugno, $comune?->codiceCatastale, 'Saldo addizionale comunale'],
             [SezioneF24::tributiLocali, '3843', $q('RV017008'), $anno + 1, $giugno, $comuneAcconto?->codiceCatastale, 'Acconto addizionale comunale'],

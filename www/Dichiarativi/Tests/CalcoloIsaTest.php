@@ -93,6 +93,33 @@ class CalcoloIsaTest extends SuiteTestCase
         $this->assertSame("ATTIVITA' RIDOTTA PER LAVORI NEL NEGOZIO", rtrim(substr($record[2], 108, 1768)));
     }
 
+    public function testModelloCpbDellaRevoca(): void
+    {
+        [$isa, $quadri, $redditi] = $this->modello();
+        $catalogo = [];
+        foreach (['P0000001' => 'CM', 'P0000002' => 'CA', 'P0000003' => 'NU1'] as $codice => $formato) {
+            $campo = new CampoModello($this->dataMapper);
+            $campo->modello = ModelloDichiarativo::isa;
+            $campo->codice = $codice;
+            $campo->quadro = 'P';
+            $campo->formato = FormatoCampo::from($formato);
+            $catalogo[$codice] = $campo;
+        }
+        $quadri = new QuadriDichiarazione($isa, $this->dataMapper, array_merge($quadri->getCatalogo(), $catalogo));
+        foreach (['Y0100101' => '471102', 'F0100101' => 182000] as $codice => $valore) {
+            $quadri->imposta($codice, $valore);
+        }
+        $isa->annotazioni = 'Nota che non va nella revoca';
+        // campi chiave del quadro P: codice ISA, codice attività, tipologia di reddito (impresa con il quadro F)
+        $chiavi = \Dichiarativi\Application\Services\Isa\ConcordatoIsa::getChiavi($isa, $quadri);
+        $this->assertSame(['P0000001' => 'EM01A', 'P0000002' => '471102', 'P0000003' => 1], $chiavi);
+        // modello CPB della revoca con invio autonomo: record P e un record Q con i soli campi chiave, senza note
+        $record = explode("\r\n", rtrim((new GeneratoreIsa($this->dataMapper))->genera($isa, $quadri, $redditi, $chiavi), "\r\n"));
+        $this->assertSame(['P', 'Q'], array_map(fn(string $riga) => $riga[0], $record));
+        $this->assertSame('P0000001' . str_pad('EM01A', 18) . 'P0000002' . str_pad('471102', 18) . 'P0000003' . str_pad('1', 18, ' ', STR_PAD_LEFT),
+                rtrim(substr($record[1], 108, 1768)));
+    }
+
     public function testImportazioneDellePrecalcolate(): void
     {
         [$isa, $quadri] = $this->modello();

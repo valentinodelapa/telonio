@@ -7,6 +7,7 @@ use Dichiarativi\Application\Services\Isa\ConcordatoIsa;
 use Dichiarativi\Application\Services\Isa\ModelliIsa;
 use Dichiarativi\Application\Services\Isa\MotoreIsa;
 use Dichiarativi\Application\Services\QuadriDichiarazione;
+use Dichiarativi\Application\Services\Redditi\VersamentiRedditi;
 use SismaFramework\Core\BaseClasses\BaseFixture;
 
 /**
@@ -66,6 +67,8 @@ class IsaFerri2025Fixture extends BaseFixture
         // senza le variabili precalcolate la dichiarazione Redditi si trasmette confermando la segnalazione (controllo telematico ***C)
         $redditi->flagConferma = true;
         $this->dataMapper->save($redditi);
+        // versamenti della dichiarazione Redditi di nuovo, con la maggiorazione dell'acconto per l'adesione al concordato (codice 4068)
+        (new VersamentiRedditi($this->dataMapper))->registraVersamenti($redditi, new QuadriDichiarazione($redditi, $this->dataMapper));
         $this->addEntity($isa);
     }
 }

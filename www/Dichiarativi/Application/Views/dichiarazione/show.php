@@ -129,6 +129,15 @@ require Layout::percorso('header');
                     <form method="post" action="/dichiarazione/concordato-isa/dichiarazione/<?= Html::e($id) ?>/scelta/rinuncia"><?= $campoCsrf ?><button type="submit" class="btn btn-sm btn-outline-secondary"><?= Html::e($cpbAccettato ? $azioni['revocaCpb'] : $azioni['rinunciaCpb']) ?></button></form>
                 </div>
             <?php endif; ?>
+            <?php if ($dichiarazione->dichiarazioneRedditi !== null): ?>
+                <div class="card-body d-flex flex-wrap gap-2 align-items-center border-top">
+                    <span class="small text-body-secondary me-auto"><?= Html::e($comunicazioneCpbAutonoma) ?></span>
+                    <?php if ($cpbAccettato): ?>
+                        <a class="btn btn-sm btn-outline-primary" href="/dichiarazione/comunicazione-cpb/dichiarazione/<?= Html::e($id) ?>/tipo/adesione"><i class="bi bi-download me-1"></i><?= Html::e($azioni['fileAdesioneCpb']) ?></a>
+                    <?php endif; ?>
+                    <a class="btn btn-sm btn-outline-secondary" href="/dichiarazione/comunicazione-cpb/dichiarazione/<?= Html::e($id) ?>/tipo/revoca"><i class="bi bi-download me-1"></i><?= Html::e($azioni['fileRevocaCpb']) ?></a>
+                </div>
+            <?php endif; ?>
             <div class="card-footer bg-white small text-body-secondary"><?= Html::e($aiutoCpb) ?></div>
         </div>
         <div class="card shadow-sm mt-3">

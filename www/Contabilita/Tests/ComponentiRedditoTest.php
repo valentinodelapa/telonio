@@ -8,6 +8,7 @@ use Contabilita\Application\Enumerations\CausaleContabile;
 use Contabilita\Application\Enumerations\FunzioneConto;
 use Contabilita\Application\Enumerations\VoceCee;
 use Contabilita\Application\Services\ComponentiReddito;
+use Contabilita\Application\Services\RighiIsa;
 use Contabilita\Application\Services\RighiRedditi;
 use Telonio\Tests\TestResultSet;
 
@@ -80,6 +81,19 @@ class ComponentiRedditoTest extends ContabilitaTestCase
         $this->assertSame(300.0, $componenti['RG22:99']);
         // gli stessi componenti per voce CEE (righi del quadro F del modello ISA)
         $this->assertSame(['E.A.1' => 2000.0, 'E.B.7' => 300.0], $servizio->getPerVoceCee());
+        // per rigo ISA: dalla voce CEE (servizi in F12) o, con il rigo sul conto, nel rigo e nel campo "di cui" (consulenze in F14 campo 2)
+        $this->assertSame(['F01' => 2000.0, 'F12' => 300.0], $servizio->getPerRigoIsa());
+        $consulenze->rigoIsa = 'F14:2';
+        $this->rispondiSenzaPartite($righe);
+        $servizio->perCassa($this->azienda, 2025, false);
+        $this->assertSame(['F01' => 2000.0, 'F14' => 300.0, 'F14:2' => 300.0], $servizio->getPerRigoIsa());
+        $consulenze->rigoIsa = RighiIsa::ESCLUSO;
+        $this->rispondiSenzaPartite($righe);
+        $servizio->perCassa($this->azienda, 2025, false);
+        $this->assertSame(['F01' => 2000.0], $servizio->getPerRigoIsa());
+        $consulenze->rigoIsa = null;
+        $this->rispondiSenzaPartite($righe);
+        $servizio->perCassa($this->azienda, 2025, false);
         $this->assertArrayHasKey('partite', $servizio->getAvvisi());
         // professionista: compensi nel quadro RE
         $this->assertSame(2000.0, $servizio->perCassa($this->azienda, 2025, true)['RE2']);
@@ -94,6 +108,7 @@ class ComponentiRedditoTest extends ContabilitaTestCase
         $this->assertSame(['ricavi' => 2000.0, 'costi' => 300.0, 'utile' => 1700.0, 'variazioni' => ['RF31:99' => 60.0]], $servizio->perCompetenza($this->azienda, 2025));
         // per voce CEE la sola parte deducibile
         $this->assertSame(['E.A.1' => 2000.0, 'E.B.7' => 240.0], $servizio->getPerVoceCee());
+        $this->assertSame(['F01' => 2000.0, 'F12' => 240.0], $servizio->getPerRigoIsa());
         $consulenze->variazioneRedditi = 'RF18';
         $this->assertSame(['RF18' => 60.0], $servizio->perCompetenza($this->azienda, 2025)['variazioni']);
         $this->rispondiSenzaPartite($righe);
@@ -129,5 +144,24 @@ class ComponentiRedditoTest extends ContabilitaTestCase
         $this->assertTrue(RighiRedditi::isValido('RG22:13'));
         $this->assertFalse(RighiRedditi::isValido('RG99'));
         $this->assertSame(['RG22', 3], RighiRedditi::scomponi('RG22:3'));
+    }
+
+    public function testRighiIsa(): void
+    {
+        $this->assertSame('F12', RighiIsa::getPredefinito(VoceCee::economicoB7));
+        $this->assertSame('F15', RighiIsa::getPredefinito(VoceCee::economicoB10B));
+        $this->assertNull(RighiIsa::getPredefinito(VoceCee::economicoB10C));
+        $this->assertSame('F19', RighiIsa::getPredefinito(VoceCee::economicoC17Bis));
+        $this->assertNull(RighiIsa::getPredefinito(VoceCee::attivoA));
+        $this->assertTrue(RighiIsa::isValido('F13:4'));
+        $this->assertTrue(RighiIsa::isValido(null));
+        $this->assertFalse(RighiIsa::isValido('F14:9'));
+        $conto = $this->conti['22.01.0001'];
+        $conto->voceCee = VoceCee::economicoB7;
+        $this->assertSame(['F12'], RighiIsa::getChiavi($conto));
+        $conto->rigoIsa = 'F14:2';
+        $this->assertSame(['F14', 'F14:2'], RighiIsa::getChiavi($conto));
+        $conto->rigoIsa = RighiIsa::ESCLUSO;
+        $this->assertSame([], RighiIsa::getChiavi($conto));
     }
 }

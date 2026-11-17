@@ -42,6 +42,7 @@ require Layout::percorso('header');
                 <?= Html::messaggioErrore($errors, 'voceCee', Campo::$messaggioErrore) ?>
             </div>
             <?= Campo::selezione('rigoRedditi', $campi['rigoRedditi'], $formEntity, $errors, $righiRedditi, ['colonna' => 'col-md-8', 'vuota' => $rigoDallaVoce, 'aiuto' => $aiutoRigoRedditi]) ?>
+            <?= Campo::selezione('rigoIsa', $campi['rigoIsa'], $formEntity, $errors, $righiIsa, ['colonna' => 'col-md-8', 'vuota' => $rigoDallaVoce, 'aiuto' => $aiutoRigoIsa]) ?>
             <?= Campo::testo('percentualeDeducibile', $campi['percentualeDeducibile'], $formEntity, $errors, ['colonna' => 'col-md-4', 'attributi' => 'inputmode="decimal"', 'aiuto' => $aiutoPercentualeDeducibile]) ?>
             <?= Campo::selezione('variazioneRedditi', $campi['variazioneRedditi'], $formEntity, $errors, $variazioniRedditi, ['colonna' => 'col-md-8', 'vuota' => $variazioneAltre, 'aiuto' => $aiutoVariazione]) ?>
         </div>

@@ -114,7 +114,8 @@
                 "costoRideterminato": "Costo rideterminato (rivalutazione, righi RT12 e RT42)",
                 "paesePrivilegiato": "Partecipazione in un Paese a regime fiscale privilegiato (RT16)",
                 "anteriore2025": "Cripto-attività detenute dal 2024 o prima (franchigia di 2.000 euro)",
-                "note": "Note"
+                "note": "Note",
+                "revocaCpb": "Revoca delle adesioni al concordato preventivo biennale con la dichiarazione"
             },
             "azioni": {
                 "cerca": "Cerca",
@@ -143,7 +144,9 @@
                 "salvaNote": "Salva le note",
                 "aderisciCpb": "Aderisci",
                 "rinunciaCpb": "Non aderire",
-                "revocaCpb": "Revoca l'adesione"
+                "revocaCpb": "Revoca l'adesione",
+                "fileAdesioneCpb": "File dell'adesione",
+                "fileRevocaCpb": "File della revoca"
             },
             "confermaElimina": "Eliminare la dichiarazione? Sono eliminati anche i valori dei quadri e il saldo registrato in Deleghe (se non già in una delega confermata).",
             "daVersare": "da versare",
@@ -264,8 +267,9 @@
                 "irapProposta2026": "Valore della produzione IRAP proposto 2026",
                 "irapProposta2027": "Valore della produzione IRAP proposto 2027",
                 "testoCpbAccettato": "Proposta accettata (P10)",
-                "aiutoCpb": "Per avere la proposta dell'Agenzia indica nel quadro P i requisiti (P01) e l'assenza di cause di esclusione (P02) e calcola il modello; poi aderisci o rinuncia: senza l'accettazione il quadro P non si può compilare. L'adesione vale per il 2026 e il 2027.",
-                "nessunaPropostaCpb": "Nessuna proposta calcolata."
+                "aiutoCpb": "Per avere la proposta dell'Agenzia indica nel quadro P i requisiti (P01) e l'assenza di cause di esclusione (P02) e calcola il modello; poi aderisci o rinuncia: senza l'accettazione il quadro P non si può compilare. L'adesione vale per il 2026 e il 2027. L'adesione si comunica con la dichiarazione Redditi, allegando il modello, o prima, con invio autonomo (file dell'adesione: frontespizio e modello calcolato, casella \"Comunicazione CPB\" 1). La revoca si comunica entro gli stessi termini con invio autonomo (file della revoca: codice ISA, codice attività e tipologia di reddito, casella 2) o con la dichiarazione (casella 3 nel frontespizio della dichiarazione Redditi). L'invio autonomo non è una dichiarazione.",
+                "nessunaPropostaCpb": "Nessuna proposta calcolata.",
+                "comunicazioneCpbAutonoma": "Comunicazione con invio autonomo (solo frontespizio Redditi e modello CPB):"
             },
             "quadro": {
                 "aiutoQuadro": "I valori modificati diventano manuali e la proposta non li sovrascrive; spuntare \"Ripristina\" per tornare al valore proposto. Dopo il salvataggio i totali sono ricalcolati. Importi in unità di euro.",
@@ -283,7 +287,8 @@
                 "aiutoVistoCaf": "In alternativa al professionista: il CAF imprese (codice fiscale numerico) e il suo responsabile dell'assistenza fiscale, dall'Anagrafica.",
                 "aiutoAttestazione": "Con il visto o la sottoscrizione dell'organo di controllo esonera dalla garanzia i rimborsi oltre 30.000 euro (patrimonio netto, cessioni di quote, contributi versati).",
                 "aiutoVerificaAccertamenti": "Da spuntare dopo aver controllato gli atti del contribuente: senza la spunta i rimborsi oltre 30.000 euro restano con l'avviso, anche se l'archivio è vuoto.",
-                "aiutoOmessoIsa": "Soggetti ISA senza causa di esclusione che non allegano il modello ISA (si crea dalla sezione \"Modelli ISA\" della scheda). La spunta barra nel file la casella di omessa presentazione (campi 179 e 180 del record B), che consente la trasmissione senza il modello; se la casella è barrata senza che ricorrano questi casi, la dichiarazione è scartata."
+                "aiutoOmessoIsa": "Soggetti ISA senza causa di esclusione che non allegano il modello ISA (si crea dalla sezione \"Modelli ISA\" della scheda). La spunta barra nel file la casella di omessa presentazione (campi 179 e 180 del record B), che consente la trasmissione senza il modello; se la casella è barrata senza che ricorrano questi casi, la dichiarazione è scartata.",
+                "aiutoRevocaCpb": "Casella \"Comunicazione CPB\" con il codice 3: la dichiarazione revoca le adesioni al concordato 2026-2027 già comunicate (entro i termini dell'adesione). Una nuova adesione si comunica con il quadro P del modello ISA allegato. Per la revoca senza la dichiarazione c'è il file con invio autonomo nella scheda del modello ISA."
             }
         },
         "attoAccertamento": {

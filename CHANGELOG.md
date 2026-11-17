@@ -2,6 +2,59 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.30.0-alpha] - 2026-11-17 - Concordato Preventivo Biennale e Righi ISA dei Conti
+
+Versioni dei moduli: `Dichiarativi` 0.11.0 (richiede `Anagrafica` 0.14.0 e `Contabilita` 0.13.0), `Contabilita` 0.13.0; gli altri invariati.
+
+**Aggiornamento**: `aggiorna.sh` (cioè `sisma aggiorna-database`) esegue, idempotenti:
+- `Contabilita/Database/aggiornamento-0.13.sql`:
+  - nuova colonna `rigo_isa` in `conto`;
+  - righi ISA dei conti del piano modello anche nei piani delle aziende copiati da esso (stesso codice e descrizione, se non già indicati);
+- `Dichiarativi/Database/aggiornamento-0.11.sql`: nuova colonna `revoca_cpb` in `dichiarazione`.
+
+Il piano modello li riceve da `Contabilita/Database/dati-riferimento.sql`. Nessun passo manuale.
+
+### ✨ Nuove Funzionalità
+
+#### `Dichiarativi` 0.11.0 — maggiorazione dell'acconto per il concordato preventivo biennale
+
+- **Maggiorazione dell'acconto del primo periodo di adesione** (art. 20, commi 2 e 3, del D.Lgs. 13/2024): con l'adesione al concordato preventivo biennale 2026-2027 nel modello ISA, "Registra versamenti" della dichiarazione Redditi PF scrive in Deleghe la maggiorazione con il codice tributo 4068, alla scadenza del secondo acconto.
+  - L'importo è il 10 per cento della differenza, se positiva, tra il reddito concordato per il 2026 e il reddito del periodo precedente rettificato.
+  - Il reddito di confronto è quello rilevante ai fini del concordato indicato dal software o, in mancanza, il reddito d'impresa o di lavoro autonomo del modello ISA. In questo caso un avviso ricorda le rettifiche degli artt. 15 e 16.
+  - Non è dovuta per il rinnovo del concordato, cioè con il quadro CP compilato nella dichiarazione Redditi (comma 3-bis), né con l'acconto determinato con il metodo previsionale (lo ricorda l'avviso).
+  - La scheda della dichiarazione Redditi mostra il calcolo tra le avvertenze. Prima diceva solo di verificare gli acconti.
+- **Dati demo**: Lucia Ferri aderisce al concordato con un reddito proposto di 10.284 euro per il 2026, contro i 2.143 euro del 2025. La maggiorazione è di 814 euro (codice tributo 4068, scadenza 30 novembre 2026).
+
+#### `Dichiarativi` 0.11.0 — comunicazione del concordato preventivo biennale
+
+Gestisce la casella "Comunicazione CPB" del frontespizio Redditi (campo 11 del record B; provvedimento del 27 febbraio 2026, punti 4 e 5; specifiche Redditi PF, par. 43).
+
+- **Invio autonomo**: entro i termini dell'adesione, la scheda del modello ISA dà due file con il solo frontespizio della dichiarazione Redditi collegata e il modello CPB.
+  - Il frontespizio non contiene le sezioni escluse dalle specifiche: domicilio fiscale, scelte dell'otto, cinque e due per mille, caselle dei quadri, visto.
+  - **File dell'adesione** (codice 1): esclusivamente il quadro P del modello ISA (campi chiave, requisiti, redditi rilevanti e proposti, accettazione), come richiede il controllo dell'Agenzia. Richiede il calcolo aggiornato.
+  - **File della revoca** (codice 2): solo codice dell'ISA, codice attività e tipologia di reddito.
+  - L'invio autonomo non è una dichiarazione.
+- **Revoca con la dichiarazione** (codice 3): nuova spunta nel frontespizio della dichiarazione Redditi. Revoca le adesioni già comunicate; un'eventuale nuova adesione va nel quadro P del modello ISA allegato.
+
+#### `Contabilita` 0.13.0 — rigo dei modelli ISA sul conto
+
+- **Rigo del quadro F dei modelli ISA** sul conto, accanto al rigo della dichiarazione Redditi: un rigo o un campo "di cui" del quadro F (dati contabili d'impresa).
+  - Vuoto, vale il rigo della voce di bilancio CEE (per esempio B.7 servizi in F12, B.8 godimento di beni di terzi in F13).
+  - Serve dove gli ISA classificano diversamente dallo schema di bilancio. Per esempio le consulenze, che in bilancio sono servizi, per gli ISA sono prestazioni di professionisti esterni (F14, campo 2).
+  - "Non concorre" esclude il conto dal quadro F.
+  - Si copia con il piano dei conti e dal conto superiore come il rigo Redditi.
+- **Piano dei conti modello**:
+  - consulenze in F14 campo 2;
+  - fitti passivi, noleggi e canoni di leasing nei campi "di cui" di F13 (immobili, locazione non finanziaria e noleggio, locazione finanziaria);
+  - imposte e tasse diverse in F17 campo 8.
+  - I compensi agli amministratori restano senza rigo: il campo dipende dalla forma della società (F12 campo 2 per le società soggette all'IRES, F14 campo 4 per le società di persone).
+
+#### `Dichiarativi` 0.11.0 — quadro F dei modelli ISA per rigo dei conti
+
+- **Quadro F proposto per rigo ISA dei conti**: righi e campi "di cui" (F12 campo 2, F13 campi 2-4, F14 campi 2-4, F17 campi 2 e 8) dalla contabilità, non più solo per voce di bilancio.
+  - In contabilità semplificata i righi presi dal quadro RG (ricavi, acquisti, lavoro, ammortamenti) aggiungono o tolgono i componenti dei conti spostati dal rigo ISA. Per esempio le consulenze passano da F12 a F14.
+  - L'avviso sul quadro F elenca solo i campi che restano a mano.
+
 ## [0.29.0-alpha] - 2026-11-16 - Modelli ISA e Stampa sul Modello Ufficiale
 
 Versioni dei moduli: `Dichiarativi` 0.10.0 (richiede `Anagrafica` 0.14.0 e `Contabilita` 0.12.0), `Contabilita` 0.12.0; gli altri invariati.

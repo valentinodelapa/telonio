@@ -36,6 +36,8 @@ class TracciatoRedditi
         'flagConferma' => [90, 1, 'NU'],
         // campo 9 "Flag conferma Studi di settore/parametri": conferma delle anomalie dei modelli ISA allegati
         'flagConfermaIsa' => [91, 1, 'NU'],
+        // campo 11 "Comunicazione CPB": 1 adesione e 2 revoca con invio autonomo (solo frontespizio e modello CPB), 3 revoca con la dichiarazione
+        'comunicazioneCpb' => [93, 1, 'NU'],
         'moduloRw' => [94, 1, 'NU'],
         'quadroVo' => [95, 1, 'NU'],
         'quadroAc' => [96, 1, 'NU'],

@@ -220,6 +220,28 @@ class DichiarazioneController extends DichiarativiController
     }
 
     /**
+     * File della comunicazione del concordato preventivo biennale con invio
+     * autonomo, dal modello ISA: adesione ("adesione") o revoca ("revoca"),
+     * con il frontespizio della dichiarazione Redditi collegata.
+     */
+    public function comunicazioneCpb(Dichiarazione $dichiarazione, string $tipo): Response
+    {
+        $this->autorizza($dichiarazione);
+        if ($dichiarazione->modello !== ModelloDichiarativo::isa) {
+            return $this->vaiAllaDichiarazione($dichiarazione);
+        }
+        $revoca = $tipo === 'revoca';
+        try {
+            $this->vars['contenuto'] = (new GeneratoreRedditi($this->dataMapper))->generaComunicazioneCpb($dichiarazione, $revoca);
+        } catch (\InvalidArgumentException | \LengthException $errore) {
+            $this->aggiungiMessaggio('File non generato: ' . $errore->getMessage(), 'danger');
+            return $this->vaiAllaDichiarazione($dichiarazione);
+        }
+        $this->vars['nomeFile'] = GeneratoreRedditi::getNomeFileComunicazioneCpb($dichiarazione, $revoca);
+        return $this->render->generateData('dichiarazione/scarica', $this->vars);
+    }
+
+    /**
      * Note aggiuntive del modello ISA per l'Agenzia delle Entrate (record
      * R): cambiandole il calcolo va rifatto.
      */

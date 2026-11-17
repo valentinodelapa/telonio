@@ -493,6 +493,25 @@ competenza nel periodo:
   riepilogo del periodo del documento, l'imposta esigibile o detraibile
   nel periodo in cui matura (vedi sotto).
 
+### Righi dei modelli ISA
+
+Ogni conto economico può indicare anche il rigo del quadro F dei modelli
+ISA (dati contabili d'impresa) o un suo campo "di cui" (servizio
+`RighiIsa`, es. "F14:2" prestazioni di professionisti esterni, "F13:2"
+canoni di beni immobili, "F17:8" oneri per imposte e tasse); "NO" lo
+esclude dal quadro F. Se il rigo non è indicato vale quello della voce del
+conto economico CEE (A1 in F01, A5 in F05, B6 in F10, B7 in F12, B8 in
+F13, B9 in F14, B10 a e b in F15, B12 e B13 in F16, B14 in F17, C15 e C16
+in F18, C17 in F19). Serve dove gli ISA classificano diversamente dallo
+schema di bilancio: le consulenze, servizi in bilancio, per gli ISA sono
+prestazioni di lavoro (F14 campo 2). Nel piano modello hanno il rigo le
+consulenze, i fitti passivi, i noleggi, i canoni di leasing e le imposte e
+tasse diverse; i compensi agli amministratori no, perché il campo dipende
+dalla forma della società (F12 campo 2 per le società soggette all'IRES,
+F14 campo 4 per le società di persone). `ComponentiReddito::getPerRigoIsa`
+dà i componenti per rigo con lo stesso criterio e la parte deducibile; i
+campi "di cui" sono compresi anche nel rigo.
+
 ### Esigibilità differita e IVA per cassa
 
 L'esigibilità della registrazione (`EsigibilitaIva`) può essere

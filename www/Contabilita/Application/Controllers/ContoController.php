@@ -2,6 +2,7 @@
 
 namespace Contabilita\Application\Controllers;
 
+use Contabilita\Application\Services\RighiIsa;
 use Contabilita\Application\Services\RighiRedditi;
 use Anagrafica\Application\Entities\Soggetto;
 use Contabilita\Application\BaseClasses\ContabilitaController;
@@ -41,6 +42,7 @@ class ContoController extends ContabilitaController
             $conto->natura = $superiore->natura;
             $conto->voceCee = $superiore->voceCee;
             $conto->rigoRedditi = $superiore->rigoRedditi;
+            $conto->rigoIsa = $superiore->rigoIsa;
             $conto->percentualeDeducibile = $superiore->percentualeDeducibile;
             $conto->variazioneRedditi = $superiore->variazioneRedditi;
         }
@@ -109,6 +111,7 @@ class ContoController extends ContabilitaController
         $this->vars['nature'] = NaturaConto::cases();
         $this->vars['funzioni'] = FunzioneConto::cases();
         $this->vars['righiRedditi'] = RighiRedditi::getRighi();
+        $this->vars['righiIsa'] = RighiIsa::getRighi();
         $this->vars['variazioniRedditi'] = RighiRedditi::VARIAZIONI;
         $this->vars['vociCee'] = VoceCee::perSezione();
         $this->vars['pageTitle'] = $titolo;

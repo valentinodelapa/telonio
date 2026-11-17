@@ -218,29 +218,38 @@ class PropostaIsa
             }
             return (int) round($totale) ?: null;
         };
+        // componenti per rigo del quadro F (rigo ISA del conto o, senza, dalla voce CEE), con i campi "di cui"
+        $perRigo = $componenti->getPerRigoIsa();
+        $righi = fn(string $chiave): ?int => (int) round($perRigo[$chiave] ?? 0.0) ?: null;
         $maggiorazioni = $quadro === 'RG' ? self::sommaCodici($redditi, 'RG022', 32, self::MAGGIORAZIONI_RG) : self::sommaCodici($redditi, 'RF055', 38, self::MAGGIORAZIONI_RF);
-        if ($quadro === 'RF') {
-            $this->proponi1($quadri, self::codice('F', 1, 1), $voci('E.A.1'));
-            $this->proponi1($quadri, self::codice('F', 10, 1), $voci('E.B.6'));
-            $this->proponi1($quadri, self::codice('F', 14, 1), $voci('E.B.9'));
-            $this->proponi1($quadri, self::codice('F', 15, 1), $voci('E.B.10.a', 'E.B.10.b'));
+        foreach (['F01', 'F02', 'F10', 'F14', 'F15'] as $chiave) {
+            $this->proponi1($quadri, self::codice('F', (int) substr($chiave, 1), 1), $righi($chiave));
         }
-        $this->proponi1($quadri, self::codice('F', 5, 1), $voci('E.A.5'));
-        $this->proponi1($quadri, self::codice('F', 12, 1), $voci('E.B.7'));
-        $this->proponi1($quadri, self::codice('F', 13, 1), $voci('E.B.8'));
-        $this->proponi1($quadri, self::codice('F', 16, 1), $voci('E.B.12', 'E.B.13'));
-        $this->proponi1($quadri, self::codice('F', 17, 1), ((int) $voci('E.B.14') + $maggiorazioni) ?: null);
-        $this->proponi1($quadri, self::codice('F', 18, 1), $voci('E.C.15', 'E.C.16'));
-        $this->proponi1($quadri, self::codice('F', 19, 1), $voci('E.C.17', 'E.C.17-bis'));
+        foreach (['F05', 'F12', 'F13', 'F16', 'F18', 'F19'] as $chiave) {
+            $this->proponi1($quadri, self::codice('F', (int) substr($chiave, 1), 1), $righi($chiave));
+        }
+        $this->proponi1($quadri, self::codice('F', 17, 1), ((int) $righi('F17') + $maggiorazioni) ?: null);
+        foreach (['F12:2', 'F13:2', 'F13:3', 'F13:4', 'F14:2', 'F14:3', 'F14:4', 'F17:2', 'F17:8'] as $chiave) {
+            [$rigo, $campo] = explode(':', substr($chiave, 1));
+            $this->proponi1($quadri, self::codice('F', (int) $rigo, (int) $campo), $righi($chiave));
+        }
         $this->proponiIva($quadri, $dichiarazione);
         // beni strumentali dal registro dei cespiti: valore (F21) e quote dei beni mobili (F15 campo 2)
         $beni = new BeniStrumentali($this->dataMapper);
         $this->proponi1($quadri, self::codice('F', 21, 1), (int) round($beni->getValore($dichiarazione->soggetto, $dichiarazione->anno)) ?: null);
         $this->proponi1($quadri, self::codice('F', 15, 2), (int) round($beni->getQuoteBeniMobili($dichiarazione->soggetto, $dichiarazione->anno)) ?: null);
         if ($quadro === 'RG') {
+            // dal quadro RG, come nella dichiarazione; ai righi dei ricavi, degli acquisti, del lavoro e degli ammortamenti si
+            // aggiungono (o tolgono) i componenti dei conti che il rigo ISA sposta rispetto alla voce CEE (es. consulenze in F14)
+            $spostati = ['1-1' => ['F01', ['E.A.1']], '10-1' => ['F10', ['E.B.6']], '14-1' => ['F14', ['E.B.9']], '15-1' => ['F15', ['E.B.10.a', 'E.B.10.b']]];
             foreach (self::DA_RG as $rigoCampo => $codici) {
                 [$rigo, $campo] = array_map('intval', explode('-', $rigoCampo));
-                $this->proponi1($quadri, self::codice('F', $rigo, $campo), $redditi->somma(...$codici) ?: null);
+                $valore = $redditi->somma(...$codici);
+                if (isset($spostati[$rigoCampo])) {
+                    [$chiave, $prefissi] = $spostati[$rigoCampo];
+                    $valore += (int) $righi($chiave) - (int) $voci(...$prefissi);
+                }
+                $this->proponi1($quadri, self::codice('F', $rigo, $campo), $valore ?: null);
             }
             $this->proponi1($quadri, self::codice('F', 17, 4), $maggiorazioni ?: null);
             $this->proponi1($quadri, self::codice('F', 29, 2), true);
@@ -251,7 +260,7 @@ class PropostaIsa
             $this->proponi1($quadri, self::codice('F', 29, 1), true);
             $this->avvisi[] = 'Quadro F, contabilità ordinaria: indicare a mano esistenze iniziali e rimanenze finali (F06-F09).';
         }
-        $this->avvisi[] = 'Quadro F proposto dal quadro ' . $quadro . ' e dalla contabilità: verificare i righi per natura dei costi e completare a mano quelli che la contabilità non distingue (F04, F11, F12 campo 2, F13 campi 2 e 3, F14 campi 2-4, F17 campi 2, 3 e 5-8, F21 beni in locazione finanziaria o in comodato, F24, F26-F28).';
+        $this->avvisi[] = 'Quadro F proposto dal quadro ' . $quadro . ' e dalla contabilità: i righi seguono il rigo ISA dei conti (o, senza, la voce di bilancio): verificarli e completare a mano quelli che la contabilità non distingue (F04, F11, F17 campi 3 e 5-7, F21 beni in locazione finanziaria o in comodato, F24, F26-F28).';
         array_push($this->avvisi, ...array_values($componenti->getAvvisi()));
     }
 

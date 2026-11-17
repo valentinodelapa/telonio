@@ -203,12 +203,17 @@ class ControlliRedditi
     public function getAvvertenze(QuadriDichiarazione $quadri, ?Dichiarazione $dichiarazione = null): array
     {
         $avvertenze = array_values(array_filter([ControlliIva::getAvvisoVisto($dichiarazione)]));
-        // adesione al concordato preventivo biennale nei modelli ISA allegati
+        // adesione al concordato preventivo biennale nei modelli ISA allegati: maggiorazione dell'acconto del primo periodo
         $dichiarazione ??= $quadri->getDichiarazione();
-        if (isset($dichiarazione->id)) {
+        $maggiorazione = (new ConcordatoIsa($this->dataMapper))->getMaggiorazioneAcconto($dichiarazione, $quadri);
+        if ($maggiorazione !== null) {
+            $avvertenze[] = sprintf('Concordato preventivo biennale 2026-2027: maggiorazione dell\'acconto del primo periodo di adesione di %s euro (10%% della differenza tra il reddito concordato, %s, e il reddito del periodo precedente, %s; art. 20, comma 2, lett. a), D.Lgs. 13/2024), da versare con il codice tributo 4068 entro il termine del secondo acconto: è tra i versamenti registrati in Deleghe.%s Non è dovuta se l\'acconto si determina con il metodo previsionale.',
+                    number_format($maggiorazione['importo'], 0, ',', '.'), number_format($maggiorazione['concordato'], 0, ',', '.'), number_format($maggiorazione['precedente'], 0, ',', '.'),
+                    $maggiorazione['stimato'] ? ' Il reddito del periodo precedente è quello dichiarato nel modello ISA: verificare le rettifiche degli artt. 15 e 16 del D.Lgs. 13/2024.' : '');
+        } elseif (isset($dichiarazione->id) && in_array('CP', $quadri->getQuadriCompilati(1), true)) {
             foreach ((new ModelliIsa($this->dataMapper))->getDichiarazioni($dichiarazione) as $isa) {
                 if (ConcordatoIsa::isAccettata(new QuadriDichiarazione($isa, $this->dataMapper))) {
-                    $avvertenze[] = 'Adesione al concordato preventivo biennale 2026-2027 nel modello ISA ' . $isa->isa . ': gli acconti 2026 seguono le regole del concordato (art. 20 del D.Lgs. 13/2024), da verificare negli acconti proposti.';
+                    $avvertenze[] = 'Rinnovo del concordato preventivo biennale (quadro CP compilato): nessuna maggiorazione dell\'acconto (art. 20, comma 3-bis, D.Lgs. 13/2024).';
                 }
             }
         }

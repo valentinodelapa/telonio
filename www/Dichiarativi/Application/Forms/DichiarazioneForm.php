@@ -53,6 +53,7 @@ class DichiarazioneForm extends BaseForm
                 ->addFilterFieldMode('adempimentoCollaborativo', FilterType::isBoolean)
                 ->addFilterFieldMode('concordatoBiennale', FilterType::isBoolean)
                 ->addFilterFieldMode('omessoIsa', FilterType::isBoolean)
+                ->addFilterFieldMode('revocaCpb', FilterType::isBoolean)
                 ->addFilterFieldMode('annotazioni', FilterType::isMaxLimitString, [500], true)
                 ->addFilterFieldMode('ottoPerMille', FilterType::isEnumeration, [], true)
                 ->addFilterFieldMode('finalitaStato', FilterType::isInteger, [], true)
