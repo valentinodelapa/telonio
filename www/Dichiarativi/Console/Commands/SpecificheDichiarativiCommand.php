@@ -26,17 +26,20 @@ class SpecificheDichiarativiCommand extends BaseCommand
     protected function help(): string
     {
         return <<<OUTPUT
-Usage: sisma specifiche-dichiarativi [--modello=IVA|RPF] [--anno=AAAA]
+Usage: sisma specifiche-dichiarativi [--modello=IVA|RPF|TR|ISA] [--anno=AAAA]
 
 Scarica i PDF delle specifiche tecniche elencati in
 Dichiarativi/Database/sorgenti/specifiche.csv, ne legge l'elenco dei campi
 non posizionali (codice, formato, descrizione) e le denominazioni dei
 quadri e riscrive campi-<modello>-<anno>.csv e quadri-<modello>-<anno>.csv.
-Richiede pdftotext (poppler-utils). Per importare il catalogo nel database
-eseguire poi "sisma tabelle-dichiarativi".
+Per gli ISA legge l'archivio delle specifiche (un file Excel per ISA) e
+la tabella 1 delle istruzioni "Parte generale" e riscrive
+campi-ISA-<anno>.csv e isa-<anno>.csv. Richiede pdftotext (poppler-utils),
+bsdtar (libarchive-tools) e xls2csv (catdoc). Per importare il catalogo
+nel database eseguire poi "sisma tabelle-dichiarativi".
 
 Options:
-  --modello=SIGLA   solo il modello indicato (IVA, RPF)
+  --modello=SIGLA   solo il modello indicato (IVA, RPF, TR, ISA)
   --anno=AAAA       solo l'anno del modello indicato
 OUTPUT;
     }
@@ -47,7 +50,7 @@ OUTPUT;
         try {
             $anno = $this->getOption('anno');
             foreach ((new SpecificheDichiarativi())->aggiorna($this->getOption('modello'), $anno === null ? null : (int) $anno) as $specifica => $esito) {
-                $this->output(sprintf('  %s: %d campi, %d quadri', $specifica, $esito['campi'], $esito['quadri']));
+                $this->output(sprintf(str_starts_with($specifica, 'ISA-') ? '  %s: %d campi di %d ISA' : '  %s: %d campi, %d quadri', $specifica, $esito['campi'], $esito['quadri']));
                 if (count($esito['senzaFormato']) > 0) {
                     $this->output('    senza formato nelle specifiche (non trasmessi): ' . implode(', ', $esito['senzaFormato']));
                 }

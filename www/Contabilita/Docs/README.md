@@ -227,7 +227,16 @@ diminuzione (RF55 codice 99). Il servizio `ComponentiReddito` calcola i
 componenti per cassa (le fatture concorrono per la parte incassata o
 pagata nell'anno secondo gli abbinamenti delle partite aperte, vedi sotto;
 dei costi conta la parte deducibile, dei ricavi la parte imponibile) e
-l'utile per competenza con le variazioni in aumento e in diminuzione.
+l'utile per competenza con le variazioni in aumento e in diminuzione;
+`getPerVoceCee` restituisce i componenti dell'ultimo calcolo (con lo stesso
+criterio e la parte deducibile) per voce del conto economico CEE dei
+conti, per i righi del quadro F del modello ISA che distinguono i costi
+per natura (servizi, godimento di beni di terzi, oneri diversi...).
+`BeniStrumentali` ricava dal registro dei cespiti il valore dei beni
+strumentali dell'anno (costo ragguagliato ai giorni di possesso, senza
+immobili e avviamento, con le riduzioni delle istruzioni ISA) e le quote
+di ammortamento deducibili dei beni mobili strumentali (righi F21, F15 e
+H01 dei modelli ISA).
 
 ## Partite aperte e scadenzario
 

@@ -1,5 +1,5 @@
 -- =====================================================
--- Dichiarativi - dichiarazioni fiscali (IVA annuale, Redditi PF)
+-- Dichiarativi - dichiarazioni fiscali (IVA annuale, Redditi PF, ISA)
 -- =====================================================
 -- Richiede le tabelle dei moduli Telonio (studio), Anagrafica (soggetto),
 -- Deleghe (intermediario, archivio dei versamenti e dei crediti) e
@@ -8,7 +8,9 @@
 -- campo del modello (es. VE020001), come nel record a struttura variabile
 -- della fornitura telematica; il catalogo dei campi è per modello e anno
 -- del modello ed è ricavato dalle specifiche tecniche dell'Agenzia delle
--- Entrate (dati-riferimento.sql, "sisma tabelle-dichiarativi").
+-- Entrate (dati-riferimento.sql, "sisma tabelle-dichiarativi"). I modelli
+-- ISA sono dichiarazioni del modello "ISA" collegate alla dichiarazione
+-- Redditi a cui sono allegati; il loro catalogo è anche per codice ISA.
 
 -- -----------------------------------------------------
 -- Catalogo dei campi non posizionali dei modelli
@@ -17,12 +19,13 @@ CREATE TABLE IF NOT EXISTS `campo_modello` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `modello` VARCHAR(3) NOT NULL COMMENT 'IVA dichiarazione IVA annuale, RPF Redditi persone fisiche',
   `anno` SMALLINT UNSIGNED NOT NULL COMMENT 'Anno del modello (anno d''imposta + 1)',
-  `codice` CHAR(8) NOT NULL COMMENT 'Quadro (2), rigo (3 cifre), colonna (3)',
+  `isa` CHAR(5) NOT NULL DEFAULT '' COMMENT 'Modello ISA: codice dell''ISA (es. EM01A); vuoto per gli altri modelli',
+  `codice` CHAR(8) NOT NULL COMMENT 'Quadro (2), rigo (3 cifre), colonna (3); ISA: quadro (3), rigo (3), colonna (2)',
   `quadro` CHAR(2) NOT NULL,
   `descrizione` VARCHAR(500) NOT NULL DEFAULT '',
-  `formato` VARCHAR(4) NULL COMMENT 'Formato del campo-valore (AN, NU, NP, CB, ...); NULL se non indicato dalle specifiche',
+  `formato` VARCHAR(8) NULL COMMENT 'Formato del campo-valore (AN, NU, NP, CB, ..., degli ISA VAL11, NU11, ...); NULL se non indicato dalle specifiche',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_campo_modello` (`modello`, `anno`, `codice`)
+  UNIQUE KEY `uk_campo_modello` (`modello`, `anno`, `isa`, `codice`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Campi dei modelli di dichiarazione dalle specifiche tecniche';
 
@@ -37,6 +40,17 @@ CREATE TABLE IF NOT EXISTS `quadro_modello` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Denominazioni dei quadri dei modelli di dichiarazione';
 
+CREATE TABLE IF NOT EXISTS `indice_isa` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `anno` SMALLINT UNSIGNED NOT NULL COMMENT 'Anno del modello (anno d''imposta + 1)',
+  `codice` CHAR(5) NOT NULL COMMENT 'Codice dell''ISA (es. EM01A)',
+  `descrizione` VARCHAR(255) NOT NULL,
+  `attivita` TEXT NOT NULL COMMENT 'Codici ATECO 2025 delle attività dell''ISA, separati da spazi (es. 47.11.02)',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_indice_isa` (`anno`, `codice`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Indici sintetici di affidabilità fiscale in vigore e loro attività (tabella 1 delle istruzioni ISA)';
+
 -- -----------------------------------------------------
 -- Dichiarazioni dei contribuenti
 -- -----------------------------------------------------
@@ -47,6 +61,8 @@ CREATE TABLE IF NOT EXISTS `dichiarazione` (
   `modello` VARCHAR(3) NOT NULL,
   `anno` SMALLINT UNSIGNED NOT NULL COMMENT 'Anno d''imposta',
   `trimestre` TINYINT UNSIGNED NULL COMMENT 'Modelli trimestrali (IVA TR): trimestre da 1 a 3',
+  `isa` CHAR(5) NULL COMMENT 'Modello ISA: codice dell''ISA applicato',
+  `dichiarazione_redditi_id` INT UNSIGNED NULL COMMENT 'Modello ISA: dichiarazione Redditi a cui è allegato',
   `tipologia` CHAR(1) NOT NULL DEFAULT 'O' COMMENT 'O ordinaria, C correttiva nei termini, I integrativa',
   `stato` CHAR(1) NOT NULL DEFAULT 'B' COMMENT 'B bozza, P presentata',
   `natura_giuridica` TINYINT UNSIGNED NULL COMMENT 'Codice della tabella delle istruzioni (soggetti diversi dalle persone fisiche)',
@@ -73,7 +89,11 @@ CREATE TABLE IF NOT EXISTS `dichiarazione` (
   `protocollo` VARCHAR(50) NULL,
   `data_elaborazione` DATETIME NULL COMMENT 'Ultima proposta dei quadri',
   `avvisi` TEXT NULL,
-  `annotazioni` VARCHAR(500) NULL,
+  `annotazioni` VARCHAR(1768) NULL COMMENT 'Note della dichiarazione; nel modello ISA le note aggiuntive per l''Agenzia (record R)',
+  `calcolo_isa` MEDIUMTEXT NULL COMMENT 'Modello ISA: record P, Q ed R restituiti dal software di calcolo (con punteggio e indicatori), allegati al file Redditi',
+  `esito_isa` MEDIUMTEXT NULL COMMENT 'Modello ISA: esito del calcolo in XML (indicatori e punteggi)',
+  `report_isa` TEXT NULL COMMENT 'Modello ISA: messaggi del software di calcolo (controlli)',
+  `impronta_isa` CHAR(64) NULL COMMENT 'Modello ISA: impronta SHA-256 dei dati calcolati (calcolo da rifare se i quadri cambiano)',
   `otto_per_mille` VARCHAR(2) NULL COMMENT 'Redditi: istituzione beneficiaria dell''otto per mille (NULL = scelta non effettuata)',
   `finalita_stato` TINYINT UNSIGNED NULL COMMENT 'Otto per mille allo Stato: finalità da 1 a 6',
   `cinque_per_mille` VARCHAR(2) NULL COMMENT 'Redditi: finalità del cinque per mille',
@@ -81,9 +101,11 @@ CREATE TABLE IF NOT EXISTS `dichiarazione` (
   `due_per_mille` VARCHAR(3) NULL COMMENT 'Redditi: codice del partito politico del due per mille',
   `data_inserimento` DATETIME NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_dichiarazione` (`soggetto_id`, `modello`, `anno`, `trimestre`),
+  UNIQUE KEY `uk_dichiarazione` (`soggetto_id`, `modello`, `anno`, `trimestre`, `isa`),
+  KEY `idx_dichiarazione_soggetto` (`soggetto_id`),
   KEY `idx_dichiarazione_studio` (`studio_id`, `anno`),
   CONSTRAINT `fk_dichiarazione_studio` FOREIGN KEY (`studio_id`) REFERENCES `studio` (`id`),
+  CONSTRAINT `fk_dichiarazione_redditi` FOREIGN KEY (`dichiarazione_redditi_id`) REFERENCES `dichiarazione` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_dichiarazione_soggetto` FOREIGN KEY (`soggetto_id`) REFERENCES `soggetto` (`id`),
   CONSTRAINT `fk_dichiarazione_dichiarante` FOREIGN KEY (`dichiarante_id`) REFERENCES `soggetto` (`id`),
   CONSTRAINT `fk_dichiarazione_intermediario` FOREIGN KEY (`intermediario_id`) REFERENCES `intermediario` (`id`),

@@ -84,7 +84,6 @@ class RedditiFerri2025Fixture extends BaseFixture
         $dichiarazione->modello = ModelloDichiarativo::redditiPf;
         $dichiarazione->anno = 2025;
         (new Frontespizio($this->dataMapper))->proponi($dichiarazione);
-        $dichiarazione->omessoIsa = true;
         $this->dataMapper->save($dichiarazione);
         $quadri = new QuadriDichiarazione($dichiarazione, $this->dataMapper);
         (new PropostaRedditi($this->dataMapper))->proponi($dichiarazione, $quadri);

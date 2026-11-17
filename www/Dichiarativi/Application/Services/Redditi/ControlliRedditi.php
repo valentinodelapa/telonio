@@ -4,6 +4,9 @@ namespace Dichiarativi\Application\Services\Redditi;
 
 use Dichiarativi\Application\Entities\Dichiarazione;
 use Dichiarativi\Application\Services\Iva\ControlliIva;
+use Dichiarativi\Application\Services\Isa\ConcordatoIsa;
+use Dichiarativi\Application\Services\Isa\ControlliIsa;
+use Dichiarativi\Application\Services\Isa\ModelliIsa;
 use Dichiarativi\Application\Services\QuadriDichiarazione;
 use SismaFramework\Orm\HelperClasses\DataMapper;
 
@@ -30,6 +33,16 @@ class ControlliRedditi
             $etichetta = $modulo > 1 ? 'Mod. ' . $modulo . ', ' : '';
             $this->controllaTerreni($quadri, $modulo, $etichetta, $errori);
             $this->controllaFabbricati($quadri, $modulo, $etichetta, $errori);
+        }
+        // modelli ISA allegati: calcolati sui dati attuali e senza errori del software; non con l'omessa presentazione
+        $modelliIsa = isset($dichiarazione->id) ? (new ModelliIsa($this->dataMapper))->getDichiarazioni($dichiarazione) : [];
+        foreach ($modelliIsa as $isa) {
+            foreach ((new ControlliIsa($this->dataMapper))->getErrori($isa, new QuadriDichiarazione($isa, $this->dataMapper)) as $errore) {
+                $errori[] = 'Modello ISA ' . $isa->isa . ': ' . $errore;
+            }
+        }
+        if ($dichiarazione->omessoIsa && (count($modelliIsa) > 0)) {
+            $errori[] = 'È scelta l\'omessa presentazione del modello ISA ma il modello è allegato: togliere la scelta nel frontespizio o eliminare il modello.';
         }
         $cin = array_map(fn(int $numero) => $quadri->get(sprintf('RB%03d003', $numero), 1), [24, 25]);
         foreach ($cin as $codice) {
@@ -159,6 +172,28 @@ class ControlliRedditi
                 $segnalazioni[] = sprintf('RB%d: immobile a disposizione nel comune dell\'abitazione principale senza il caso particolare IMU 1 o 3.', $rigo['rigo']);
             }
         }
+        return array_merge($segnalazioni, $this->getSegnalazioniIsa($quadri->getDichiarazione()));
+    }
+
+    /**
+     * Segnalazioni dei modelli ISA allegati (es. variabili precalcolate non
+     * importate): il controllo telematico le tratta come errori
+     * confermabili (***C) della dichiarazione Redditi, da confermare nel
+     * frontespizio; nel file la conferma è il campo 9 del record B ("Flag
+     * conferma Studi di settore/parametri").
+     *
+     * @return string[]
+     */
+    public function getSegnalazioniIsa(Dichiarazione $dichiarazione): array
+    {
+        $segnalazioni = [];
+        if (isset($dichiarazione->id)) {
+            foreach ((new ModelliIsa($this->dataMapper))->getDichiarazioni($dichiarazione) as $isa) {
+                foreach ((new ControlliIsa($this->dataMapper))->getSegnalazioni(new QuadriDichiarazione($isa, $this->dataMapper)) as $segnalazione) {
+                    $segnalazioni[] = 'Modello ISA ' . $isa->isa . ': ' . $segnalazione;
+                }
+            }
+        }
         return $segnalazioni;
     }
 
@@ -167,6 +202,16 @@ class ControlliRedditi
      */
     public function getAvvertenze(QuadriDichiarazione $quadri, ?Dichiarazione $dichiarazione = null): array
     {
-        return array_values(array_filter([ControlliIva::getAvvisoVisto($dichiarazione)]));
+        $avvertenze = array_values(array_filter([ControlliIva::getAvvisoVisto($dichiarazione)]));
+        // adesione al concordato preventivo biennale nei modelli ISA allegati
+        $dichiarazione ??= $quadri->getDichiarazione();
+        if (isset($dichiarazione->id)) {
+            foreach ((new ModelliIsa($this->dataMapper))->getDichiarazioni($dichiarazione) as $isa) {
+                if (ConcordatoIsa::isAccettata(new QuadriDichiarazione($isa, $this->dataMapper))) {
+                    $avvertenze[] = 'Adesione al concordato preventivo biennale 2026-2027 nel modello ISA ' . $isa->isa . ': gli acconti 2026 seguono le regole del concordato (art. 20 del D.Lgs. 13/2024), da verificare negli acconti proposti.';
+                }
+            }
+        }
+        return $avvertenze;
     }
 }

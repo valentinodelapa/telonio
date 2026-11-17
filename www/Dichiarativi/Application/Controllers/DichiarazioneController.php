@@ -43,9 +43,18 @@ use Dichiarativi\Application\Services\Iva\PropostaTr;
 use Dichiarativi\Application\Services\Iva\ProspettoRettifiche;
 use Dichiarativi\Application\Services\Iva\VersamentiIva;
 use Dichiarativi\Application\Services\Iva\VersamentiTr;
+use Dichiarativi\Application\Services\Isa\CalcoloIsa;
+use Dichiarativi\Application\Services\Isa\ConcordatoIsa;
+use Dichiarativi\Application\Services\Isa\ControlliIsa;
+use Dichiarativi\Application\Services\Isa\MotoreIsa;
+use Dichiarativi\Application\Services\Isa\PrecalcolateIsa;
+use Dichiarativi\Application\Services\Isa\ModelliIsa;
+use Dichiarativi\Application\Services\Isa\PropostaIsa;
+use Dichiarativi\Application\Models\IndiceIsaModel;
 use Dichiarativi\Application\Services\ModelliContribuente;
 use Dichiarativi\Application\Services\QuadriDichiarazione;
 use Dichiarativi\Application\Services\Telematico\GeneratoreIva;
+use Dichiarativi\Application\Services\Stampa\PdfDichiarazione;
 use Dichiarativi\Application\Services\Telematico\GeneratoreTr;
 use Dichiarativi\Application\Services\Telematico\GeneratoreRedditi;
 use SismaFramework\Core\HttpClasses\Request;
@@ -77,7 +86,7 @@ class DichiarazioneController extends DichiarativiController
         }
         $model = new DichiarazioneModel($this->dataMapper);
         if (($modello === null) || ($modello->isGestito() === false)) {
-            $this->aggiungiMessaggio('Modello di dichiarazione non ancora gestito.', 'warning');
+            $this->aggiungiMessaggio($modello === ModelloDichiarativo::isa ? 'Il modello ISA si crea dalla dichiarazione Redditi a cui è allegato.' : 'Modello di dichiarazione non ancora gestito.', 'warning');
             return $this->vaiAlContribuente($soggetto, $anno);
         }
         if (($esistente = $model->getPerModello($soggetto, $modello, $anno, $trimestre)) !== null) {
@@ -107,10 +116,157 @@ class DichiarazioneController extends DichiarativiController
         return $this->vaiAllaDichiarazione($dichiarazione);
     }
 
+    /**
+     * Crea (o apre) il modello ISA del quadro contabile della dichiarazione
+     * Redditi (RG, RF o RE) e ne propone i quadri.
+     */
+    public function creaIsa(Request $request, Dichiarazione $dichiarazione, string $quadro): Response
+    {
+        $this->autorizza($dichiarazione);
+        $this->verificaCsrf($request);
+        try {
+            $esistenti = array_map(fn(Dichiarazione $isa) => $isa->id, (new ModelliIsa($this->dataMapper))->getDichiarazioni($dichiarazione));
+            $isa = (new ModelliIsa($this->dataMapper))->crea($dichiarazione, $quadro);
+        } catch (\DomainException $errore) {
+            $this->aggiungiMessaggio($errore->getMessage(), 'warning');
+            return $this->vaiAllaDichiarazione($dichiarazione);
+        }
+        if (in_array($isa->id, $esistenti, true) === false) {
+            $this->aggiungiMessaggio('Modello ' . $isa->getDescrizione() . ' proposto dalla dichiarazione Redditi: completare i quadri indicati negli avvisi.');
+        }
+        return $this->vaiAllaDichiarazione($isa);
+    }
+
+    /**
+     * Calcolo del modello ISA con il software ufficiale: punteggio,
+     * indicatori e record da allegare al file Redditi, o i messaggi dei
+     * controlli del software.
+     */
+    public function calcolaIsa(Request $request, Dichiarazione $dichiarazione): Response
+    {
+        $this->autorizza($dichiarazione);
+        $this->verificaCsrf($request);
+        if (($bloccata = $this->verificaModificabile($dichiarazione)) !== null) {
+            return $bloccata;
+        }
+        if ($dichiarazione->modello !== ModelloDichiarativo::isa) {
+            return $this->vaiAllaDichiarazione($dichiarazione);
+        }
+        if ((new MotoreIsa())->isDisponibile($dichiarazione->getAnnoModello()) === false) {
+            $this->aggiungiMessaggio(sprintf('Software di calcolo "Il tuo ISA %d" non installato: ricostruire l\'immagine PHP (stage "iltuoisa" del Dockerfile).', $dichiarazione->getAnnoModello()), 'danger');
+            return $this->vaiAllaDichiarazione($dichiarazione);
+        }
+        try {
+            $elaborato = (new CalcoloIsa($this->dataMapper))->calcola($dichiarazione);
+            $this->aggiungiMessaggio($elaborato ? 'Modello ISA calcolato: punteggio di affidabilità ' . CalcoloIsa::getPunteggio($dichiarazione) . '.'
+                    : 'Il software non ha elaborato il modello: correggere i dati indicati negli errori e ricalcolare.', $elaborato ? 'success' : 'warning');
+        } catch (\InvalidArgumentException | \RuntimeException $errore) {
+            $this->aggiungiMessaggio('Calcolo non eseguito: ' . $errore->getMessage(), 'danger');
+        }
+        return $this->vaiAllaDichiarazione($dichiarazione);
+    }
+
+    /**
+     * Importazione delle variabili precalcolate dell'ISA dal file XML
+     * dell'Agenzia delle Entrate.
+     */
+    public function precalcolateIsa(Request $request, Dichiarazione $dichiarazione): Response
+    {
+        $this->autorizza($dichiarazione);
+        $this->verificaCsrf($request);
+        if (($bloccata = $this->verificaModificabile($dichiarazione)) !== null) {
+            return $bloccata;
+        }
+        $file = $request->files['precalcolate'] ?? null;
+        if (($dichiarazione->modello !== ModelloDichiarativo::isa) || !is_array($file) || (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK)
+                || (is_uploaded_file((string) $file['tmp_name']) === false) || ((int) $file['size'] > 5 * 1024 * 1024)) {
+            $this->aggiungiMessaggio('Scegliere il file XML delle variabili precalcolate (al massimo 5 MB).', 'warning');
+            return $this->vaiAllaDichiarazione($dichiarazione);
+        }
+        try {
+            $importate = (new PrecalcolateIsa($this->dataMapper))->importa($dichiarazione, (string) file_get_contents((string) $file['tmp_name']));
+            $this->aggiungiMessaggio(sprintf('Importate %d variabili precalcolate dell\'ISA %s: ricalcolare il modello.', $importate, $dichiarazione->isa));
+        } catch (\DomainException $errore) {
+            $this->aggiungiMessaggio($errore->getMessage(), 'warning');
+        }
+        return $this->vaiAllaDichiarazione($dichiarazione);
+    }
+
+    /**
+     * Concordato preventivo biennale nel modello ISA: adesione alla
+     * proposta calcolata ("aderisci") o rinuncia/revoca ("rinuncia"), poi
+     * il calcolo rifatto.
+     */
+    public function concordatoIsa(Request $request, Dichiarazione $dichiarazione, string $scelta): Response
+    {
+        $this->autorizza($dichiarazione);
+        $this->verificaCsrf($request);
+        if (($bloccata = $this->verificaModificabile($dichiarazione)) !== null) {
+            return $bloccata;
+        }
+        if ($dichiarazione->modello !== ModelloDichiarativo::isa) {
+            return $this->vaiAllaDichiarazione($dichiarazione);
+        }
+        try {
+            $scelta === 'aderisci' ? (new ConcordatoIsa($this->dataMapper))->aderisci($dichiarazione) : (new ConcordatoIsa($this->dataMapper))->rinuncia($dichiarazione);
+        } catch (\DomainException $errore) {
+            $this->aggiungiMessaggio($errore->getMessage(), 'warning');
+            return $this->vaiAllaDichiarazione($dichiarazione);
+        }
+        $elaborato = (new MotoreIsa())->isDisponibile($dichiarazione->getAnnoModello()) && (new CalcoloIsa($this->dataMapper))->calcola($dichiarazione);
+        $this->aggiungiMessaggio(($scelta === 'aderisci' ? 'Adesione alla proposta di concordato preventivo biennale registrata nel quadro P' : 'Dati del concordato preventivo biennale tolti dal quadro P')
+                . ($elaborato ? '; modello ricalcolato.' : ': ricalcolare il modello.'), $elaborato ? 'success' : 'warning');
+        return $this->vaiAllaDichiarazione($dichiarazione);
+    }
+
+    /**
+     * Note aggiuntive del modello ISA per l'Agenzia delle Entrate (record
+     * R): cambiandole il calcolo va rifatto.
+     */
+    public function noteIsa(Request $request, Dichiarazione $dichiarazione): Response
+    {
+        $this->autorizza($dichiarazione);
+        $this->verificaCsrf($request);
+        if (($bloccata = $this->verificaModificabile($dichiarazione)) !== null) {
+            return $bloccata;
+        }
+        if ($dichiarazione->modello === ModelloDichiarativo::isa) {
+            $note = trim((string) ($request->input['note'] ?? ''));
+            $dichiarazione->annotazioni = $note === '' ? null : mb_substr($note, 0, 1768);
+            $this->dataMapper->save($dichiarazione);
+            $this->aggiungiMessaggio('Note aggiuntive salvate: ricalcolare il modello ISA.');
+        }
+        return $this->vaiAllaDichiarazione($dichiarazione);
+    }
+
+    /**
+     * Stampa del software ufficiale: modello ISA compilato ("modello") o
+     * esito del calcolo ("esito"), in PDF.
+     */
+    public function stampaIsa(Dichiarazione $dichiarazione, string $tipo): Response
+    {
+        $this->autorizza($dichiarazione);
+        if (($dichiarazione->modello !== ModelloDichiarativo::isa) || ($dichiarazione->calcoloIsa === null)) {
+            $this->aggiungiMessaggio('Stampa disponibile dopo il calcolo del modello ISA.', 'warning');
+            return $this->vaiAllaDichiarazione($dichiarazione);
+        }
+        $motore = new MotoreIsa();
+        try {
+            $this->vars['contenuto'] = $tipo === 'esito' ? $motore->stampaEsito($dichiarazione->getAnnoModello(), $dichiarazione->calcoloIsa)
+                    : $motore->stampaModello($dichiarazione->getAnnoModello(), $dichiarazione->calcoloIsa);
+        } catch (\RuntimeException $errore) {
+            $this->aggiungiMessaggio('Stampa non riuscita: ' . $errore->getMessage(), 'danger');
+            return $this->vaiAllaDichiarazione($dichiarazione);
+        }
+        $this->vars['nomeFile'] = sprintf('ISA_%s_%s_%d_%s.pdf', $dichiarazione->isa, preg_replace('/\W+/', '', (string) $dichiarazione->soggetto->codiceFiscale), $dichiarazione->anno, $tipo === 'esito' ? 'esito' : 'modello');
+        return $this->render->generateData('dichiarazione/modello', $this->vars);
+    }
+
     public function show(Dichiarazione $dichiarazione, string $quadro = '', int $modulo = 1): Response
     {
         $this->autorizza($dichiarazione);
         $quadri = new QuadriDichiarazione($dichiarazione, $this->dataMapper);
+        $this->vars['modelloUfficiale'] = (new PdfDichiarazione($this->dataMapper))->isDisponibile($dichiarazione);
         $moduli = $this->getModuli($dichiarazione, $quadri);
         $modulo = isset($moduli[$modulo]) ? $modulo : 1;
         $quadri->usaModulo($modulo);
@@ -143,6 +299,12 @@ class DichiarazioneController extends DichiarativiController
             default => (new VersamentiIva($this->dataMapper))->getCredito($dichiarazione),
         };
         $this->vars['riepilogoRedditi'] = $dichiarazione->modello->isRedditi() ? PropostaRedditi::getRiepilogo($quadri) : [];
+        $this->vars['modelliIsa'] = $dichiarazione->modello->isRedditi() ? (new ModelliIsa($this->dataMapper))->getModelli($dichiarazione) : [];
+        $this->vars['esitoIsa'] = $dichiarazione->modello === ModelloDichiarativo::isa ? CalcoloIsa::getEsito($dichiarazione) : null;
+        $this->vars['propostaCpb'] = $dichiarazione->modello === ModelloDichiarativo::isa ? ConcordatoIsa::getProposta($dichiarazione) : null;
+        $this->vars['cpbAccettato'] = ($dichiarazione->modello === ModelloDichiarativo::isa) && ConcordatoIsa::isAccettata($quadri);
+        $this->vars['calcoloIsaAggiornato'] = ($dichiarazione->modello === ModelloDichiarativo::isa) && (new CalcoloIsa($this->dataMapper))->isAggiornato($dichiarazione, $quadri);
+        $this->vars['indiceIsa'] = $dichiarazione->modello === ModelloDichiarativo::isa ? current(iterator_to_array((new IndiceIsaModel($this->dataMapper))->getByAnnoAndCodice($dichiarazione->getAnnoModello(), (string) $dichiarazione->isa), false)) ?: null : null;
         $this->vars['naturaGiuridica'] = $dichiarazione->naturaGiuridica === null ? null : (Frontespizio::TABELLA_NATURA_GIURIDICA[$dichiarazione->naturaGiuridica] ?? null);
         $this->vars['pageTitle'] = $dichiarazione->getDescrizione() . ' · ' . $dichiarazione->soggetto->nominativo;
         $this->impostaBricioleContribuente($dichiarazione->soggetto, $dichiarazione->anno, $dichiarazione->getDescrizione());
@@ -225,6 +387,9 @@ class DichiarazioneController extends DichiarativiController
     public function rettifiche(Request $request, Dichiarazione $dichiarazione, int $modulo = 1): Response
     {
         $this->autorizza($dichiarazione);
+        if (($bloccata = $this->bloccaIsa($dichiarazione)) !== null) {
+            return $bloccata;
+        }
         if (($bloccata = $this->verificaModificabile($dichiarazione)) !== null) {
             return $bloccata;
         }
@@ -331,6 +496,9 @@ class DichiarazioneController extends DichiarativiController
     public function update(Request $request, Dichiarazione $dichiarazione): Response
     {
         $this->autorizza($dichiarazione);
+        if (($bloccata = $this->bloccaIsa($dichiarazione)) !== null) {
+            return $bloccata;
+        }
         if (($bloccata = $this->verificaModificabile($dichiarazione)) !== null) {
             return $bloccata;
         }
@@ -376,6 +544,9 @@ class DichiarazioneController extends DichiarativiController
     public function versamenti(Request $request, Dichiarazione $dichiarazione): Response
     {
         $this->autorizza($dichiarazione);
+        if (($bloccata = $this->bloccaIsa($dichiarazione)) !== null) {
+            return $bloccata;
+        }
         $this->verificaCsrf($request);
         if ($dichiarazione->modello->isRedditi()) {
             $quadri = new QuadriDichiarazione($dichiarazione, $this->dataMapper);
@@ -499,6 +670,9 @@ class DichiarazioneController extends DichiarativiController
     public function scarica(Dichiarazione $dichiarazione): Response
     {
         $this->autorizza($dichiarazione);
+        if (($bloccata = $this->bloccaIsa($dichiarazione)) !== null) {
+            return $bloccata;
+        }
         try {
             $this->vars['contenuto'] = match (true) {
                 $dichiarazione->modello->isRedditi() => (new GeneratoreRedditi($this->dataMapper))->genera($dichiarazione),
@@ -515,6 +689,26 @@ class DichiarazioneController extends DichiarativiController
             default => GeneratoreIva::getNomeFile($dichiarazione),
         };
         return $this->render->generateData('dichiarazione/scarica', $this->vars);
+    }
+
+    /**
+     * Dichiarazione stampata sul modello ufficiale in PDF (PdfDichiarazione),
+     * da aprire nel browser.
+     */
+    public function modello(Dichiarazione $dichiarazione): Response
+    {
+        $this->autorizza($dichiarazione);
+        if (($bloccata = $this->bloccaIsa($dichiarazione)) !== null) {
+            return $bloccata;
+        }
+        $pdf = new PdfDichiarazione($this->dataMapper);
+        if ($pdf->isDisponibile($dichiarazione) === false) {
+            $this->aggiungiMessaggio('Stampa sul modello ufficiale non disponibile per ' . $dichiarazione->getDescrizione() . '.', 'warning');
+            return $this->vaiAllaDichiarazione($dichiarazione);
+        }
+        $this->vars['contenuto'] = $pdf->genera($dichiarazione);
+        $this->vars['nomeFile'] = PdfDichiarazione::getNomeFile($dichiarazione);
+        return $this->render->generateData('dichiarazione/modello', $this->vars);
     }
 
     public function stampa(Dichiarazione $dichiarazione): Response
@@ -547,6 +741,8 @@ class DichiarazioneController extends DichiarativiController
             (new PropostaTr($this->dataMapper))->proponi($dichiarazione);
         } elseif ($dichiarazione->modello === ModelloDichiarativo::redditiPf) {
             (new PropostaRedditi($this->dataMapper))->proponi($dichiarazione);
+        } elseif ($dichiarazione->modello === ModelloDichiarativo::isa) {
+            (new PropostaIsa($this->dataMapper))->proponi($dichiarazione);
         }
     }
 
@@ -560,6 +756,8 @@ class DichiarazioneController extends DichiarativiController
     {
         $denominazioni = (new QuadroModelloModel($this->dataMapper))->getDenominazioni($dichiarazione->modello, $dichiarazione->getAnnoModello());
         $predefiniti = match (true) {
+            // modello ISA: i quadri presenti nel modello dell'ISA
+            $dichiarazione->modello === ModelloDichiarativo::isa => array_values(array_intersect($dichiarazione->modello->getQuadri(), array_unique(array_map(fn($campo) => $campo->quadro, $quadri->getCatalogo())))),
             ($modulo === 1) || $dichiarazione->modello->isTrimestrale() => $dichiarazione->modello->getQuadri(),
             $dichiarazione->modello->isRedditi() => [],
             default => array_diff($dichiarazione->modello->getQuadri(), PropostaIva::QUADRI_PRIMO_MODULO, ['VH']),
@@ -597,6 +795,9 @@ class DichiarazioneController extends DichiarativiController
     public function aggiungiModulo(Request $request, Dichiarazione $dichiarazione): Response
     {
         $this->autorizza($dichiarazione);
+        if (($bloccata = $this->bloccaIsa($dichiarazione)) !== null) {
+            return $bloccata;
+        }
         $this->verificaCsrf($request);
         if (($bloccata = $this->verificaModificabile($dichiarazione)) !== null) {
             return $bloccata;
@@ -681,6 +882,9 @@ class DichiarazioneController extends DichiarativiController
     public function aggiungiSottoscrizione(Request $request, Dichiarazione $dichiarazione): Response
     {
         $this->autorizza($dichiarazione);
+        if (($bloccata = $this->bloccaIsa($dichiarazione)) !== null) {
+            return $bloccata;
+        }
         $this->verificaCsrf($request);
         $tipo = (int) ($request->input['tipoSoggetto'] ?? 0);
         $soggetto = ctype_digit((string) ($request->input['soggetto'] ?? '')) ? (new SoggettoModel($this->dataMapper))->getEntityById((int) $request->input['soggetto']) : null;
@@ -701,6 +905,9 @@ class DichiarazioneController extends DichiarativiController
     public function proponiSottoscrizioni(Request $request, Dichiarazione $dichiarazione): Response
     {
         $this->autorizza($dichiarazione);
+        if (($bloccata = $this->bloccaIsa($dichiarazione)) !== null) {
+            return $bloccata;
+        }
         $this->verificaCsrf($request);
         $model = new SottoscrizioneControlloModel($this->dataMapper);
         $primaTransazione = $this->dataMapper->startTransaction();
@@ -768,13 +975,28 @@ class DichiarazioneController extends DichiarativiController
     /**
      * Controlli del modello della dichiarazione.
      */
-    private function getControlli(Dichiarazione $dichiarazione): ControlliIva|ControlliTr|ControlliRedditi
+    private function getControlli(Dichiarazione $dichiarazione): ControlliIva|ControlliTr|ControlliRedditi|ControlliIsa
     {
         return match (true) {
+            $dichiarazione->modello === ModelloDichiarativo::isa => new ControlliIsa($this->dataMapper),
             $dichiarazione->modello->isRedditi() => new ControlliRedditi($this->dataMapper),
             $dichiarazione->modello->isTrimestrale() => new ControlliTr($this->dataMapper),
             default => new ControlliIva($this->dataMapper),
         };
+    }
+
+    /**
+     * Funzioni non previste per il modello ISA (frontespizio, moduli,
+     * versamenti, file telematico propri: il modello si allega alla
+     * dichiarazione Redditi).
+     */
+    private function bloccaIsa(Dichiarazione $dichiarazione): ?Response
+    {
+        if ($dichiarazione->modello !== ModelloDichiarativo::isa) {
+            return null;
+        }
+        $this->aggiungiMessaggio('Funzione non prevista per il modello ISA: il modello si allega alla dichiarazione Redditi, con il suo frontespizio e il suo file telematico.', 'warning');
+        return $this->vaiAllaDichiarazione($dichiarazione);
     }
 
     private function autorizza(Dichiarazione $dichiarazione): void

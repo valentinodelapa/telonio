@@ -14,6 +14,10 @@ use Dichiarativi\Application\Enumerations\ModelloDichiarativo;
  * verifica codici, formati e quadri e produce le istruzioni SQL idempotenti
  * per le tabelle campo_modello e quadro_modello.
  *
+ * Per il modello ISA campi-ISA-<anno>.csv ha anche il codice dell'ISA e
+ * isa-<anno>.csv elenca gli ISA con le attività (tabella indice_isa);
+ * quadri-ISA-<anno>.csv ha le denominazioni comuni a tutti gli ISA.
+ *
  * Le aliquote delle addizionali all'IRPEF sono in
  * addizionali-regionali-<anno>.csv (trascritta dalla tabella delle
  * istruzioni del modello Redditi PF) e addizionali-comunali-<anno>.csv
@@ -25,6 +29,8 @@ class TabelleDichiarativi
 
     public const CARTELLA = __DIR__ . '/../../../Database/sorgenti/';
     public const COLONNE_CAMPI = ['codice', 'formato', 'descrizione'];
+    public const COLONNE_CAMPI_ISA = ['isa', 'codice', 'formato', 'descrizione'];
+    public const COLONNE_ISA = ['codice', 'descrizione', 'attivita'];
     public const COLONNE_QUADRI = ['quadro', 'denominazione'];
     public const COLONNE_REGIONALI = ['codice', 'regione', 'scaglioni', 'modalita', 'esenzione_reddito', 'soglia_aliquota', 'detrazioni', 'detrazione_crescente', 'deduzione', 'casi_particolari'];
 
@@ -34,7 +40,7 @@ class TabelleDichiarativi
     }
 
     /**
-     * @return list<array{modello: string, anno: int, url: string, provvedimento: string}>
+     * @return list<array{modello: string, anno: int, url: string, provvedimento: string, istruzioni: ?string}>
      */
     public function leggiSpecifiche(): array
     {
@@ -44,7 +50,7 @@ class TabelleDichiarativi
             if ((ModelloDichiarativo::tryFrom((string) $riga['modello']) === null) || ($anno === null) || ($riga['url'] === null) || ($riga['provvedimento'] === null)) {
                 throw new \UnexpectedValueException('specifiche.csv, riga ' . $numero . ': modello, anno, indirizzo o provvedimento non validi');
             }
-            $specifiche[] = ['modello' => $riga['modello'], 'anno' => $anno, 'url' => $riga['url'], 'provvedimento' => $riga['provvedimento']];
+            $specifiche[] = ['modello' => $riga['modello'], 'anno' => $anno, 'url' => $riga['url'], 'provvedimento' => $riga['provvedimento'], 'istruzioni' => $riga['istruzioni']];
         }
         return $specifiche;
     }
@@ -54,29 +60,41 @@ class TabelleDichiarativi
      */
     public function leggi(): array
     {
-        $dati = ['campi' => [], 'quadri' => [], 'modelli' => [], 'regionali' => [], 'comunali' => [], 'anniAddizionali' => []];
+        $dati = ['campi' => [], 'quadri' => [], 'modelli' => [], 'isa' => [], 'regionali' => [], 'comunali' => [], 'anniAddizionali' => []];
         foreach ($this->leggiSpecifiche() as ['modello' => $modello, 'anno' => $anno]) {
             $nome = $modello . '-' . $anno . '.csv';
+            $isa = $modello === ModelloDichiarativo::isa->value;
             $quadri = [];
             foreach ($this->leggiCsv('quadri-' . $nome, self::COLONNE_QUADRI) as $numero => $riga) {
-                if ((preg_match('/^[A-Z]{2}$/', (string) $riga['quadro']) !== 1) || isset($quadri[$riga['quadro']]) || ($riga['denominazione'] === null)) {
+                if ((preg_match($isa ? '/^[A-Z]$/' : '/^[A-Z]{2}$/', (string) $riga['quadro']) !== 1) || isset($quadri[$riga['quadro']]) || ($riga['denominazione'] === null)) {
                     throw new \UnexpectedValueException('quadri-' . $nome . ', riga ' . $numero . ': quadro non valido o duplicato, o denominazione mancante');
                 }
                 $quadri[$riga['quadro']] = true;
                 $dati['quadri'][] = ['modello' => $modello, 'anno' => $anno, 'quadro' => $riga['quadro'], 'denominazione' => mb_substr($riga['denominazione'], 0, 255)];
             }
             $codici = [];
-            foreach ($this->leggiCsv('campi-' . $nome, self::COLONNE_CAMPI) as $numero => $riga) {
+            foreach ($this->leggiCsv('campi-' . $nome, $isa ? self::COLONNE_CAMPI_ISA : self::COLONNE_CAMPI) as $numero => $riga) {
                 $codice = (string) $riga['codice'];
-                if ((preg_match(LettoreSpecifiche::ESPRESSIONE_CODICE, $codice) !== 1) || isset($codici[$codice])) {
-                    throw new \UnexpectedValueException('campi-' . $nome . ', riga ' . $numero . ': codice non valido o duplicato');
+                $chiave = ($riga['isa'] ?? '') . $codice;
+                if ((preg_match($isa ? LettoreSpecificheIsa::ESPRESSIONE_CODICE : LettoreSpecifiche::ESPRESSIONE_CODICE, $codice) !== 1) || isset($codici[$chiave])
+                        || ($isa && (preg_match(LettoreSpecificheIsa::ESPRESSIONE_ISA, (string) $riga['isa']) !== 1))) {
+                    throw new \UnexpectedValueException('campi-' . $nome . ', riga ' . $numero . ': ' . ($isa ? 'ISA o ' : '') . 'codice non valido o duplicato');
                 }
                 if (($riga['formato'] !== null) && (FormatoCampo::tryFrom($riga['formato']) === null)) {
                     throw new \UnexpectedValueException('campi-' . $nome . ', riga ' . $numero . ': formato ' . $riga['formato'] . ' sconosciuto');
                 }
-                $codici[$codice] = true;
-                $dati['campi'][] = ['modello' => $modello, 'anno' => $anno, 'codice' => $codice, 'quadro' => substr($codice, 0, 2),
+                $codici[$chiave] = true;
+                $dati['campi'][] = ['modello' => $modello, 'anno' => $anno, 'isa' => (string) ($riga['isa'] ?? ''), 'codice' => $codice, 'quadro' => substr($codice, 0, $isa ? 1 : 2),
                     'descrizione' => mb_substr((string) $riga['descrizione'], 0, 500), 'formato' => $riga['formato']];
+            }
+            if ($isa) {
+                foreach ($this->leggiCsv('isa-' . $anno . '.csv', self::COLONNE_ISA) as $numero => $riga) {
+                    if ((preg_match(LettoreSpecificheIsa::ESPRESSIONE_ISA, (string) $riga['codice']) !== 1) || ($riga['descrizione'] === null)
+                            || (preg_match('/^\d{2}\.\d{2}\.\d{2}( \d{2}\.\d{2}\.\d{2})*$/', (string) $riga['attivita']) !== 1)) {
+                        throw new \UnexpectedValueException('isa-' . $anno . '.csv, riga ' . $numero . ': codice, descrizione o attività non validi');
+                    }
+                    $dati['isa'][] = ['anno' => $anno, 'codice' => $riga['codice'], 'descrizione' => mb_substr($riga['descrizione'], 0, 255), 'attivita' => $riga['attivita']];
+                }
             }
             if (count($codici) === 0) {
                 throw new \UnexpectedValueException('campi-' . $nome . ': nessun campo');
@@ -168,13 +186,18 @@ class TabelleDichiarativi
         foreach ($dati['modelli'] as ['modello' => $modello, 'anno' => $anno]) {
             $campi = array_filter($dati['campi'], fn(array $campo) => ($campo['modello'] === $modello) && ($campo['anno'] === $anno));
             $quadri = array_filter($dati['quadri'], fn(array $quadro) => ($quadro['modello'] === $modello) && ($quadro['anno'] === $anno));
-            yield sprintf("DELETE FROM `campo_modello` WHERE `modello` = '%s' AND `anno` = %d AND `codice` NOT IN (%s);", $modello, $anno,
-                    implode(', ', array_map(fn(array $campo) => "'" . $campo['codice'] . "'", $campi)));
+            yield sprintf("DELETE FROM `campo_modello` WHERE `modello` = '%s' AND `anno` = %d AND CONCAT(`isa`, `codice`) NOT IN (%s);", $modello, $anno,
+                    implode(', ', array_map(fn(array $campo) => "'" . $campo['isa'] . $campo['codice'] . "'", $campi)));
             yield sprintf("DELETE FROM `quadro_modello` WHERE `modello` = '%s' AND `anno` = %d AND `quadro` NOT IN (%s);", $modello, $anno,
                     count($quadri) === 0 ? "''" : implode(', ', array_map(fn(array $quadro) => "'" . $quadro['quadro'] . "'", $quadri)));
-            yield from $generatore->generaUpsert('campo_modello', ['modello', 'anno', 'codice', 'quadro', 'descrizione', 'formato'], array_values($campi));
+            yield from $generatore->generaUpsert('campo_modello', ['modello', 'anno', 'isa', 'codice', 'quadro', 'descrizione', 'formato'], array_values($campi));
             if (count($quadri) > 0) {
                 yield from $generatore->generaUpsert('quadro_modello', ['modello', 'anno', 'quadro', 'denominazione'], array_values($quadri));
+            }
+            $indici = array_values(array_filter($dati['isa'] ?? [], fn(array $indice) => ($modello === ModelloDichiarativo::isa->value) && ($indice['anno'] === $anno)));
+            if (count($indici) > 0) {
+                yield sprintf("DELETE FROM `indice_isa` WHERE `anno` = %d AND `codice` NOT IN (%s);", $anno, implode(', ', array_map(fn(array $indice) => "'" . $indice['codice'] . "'", $indici)));
+                yield from $generatore->generaUpsert('indice_isa', ['anno', 'codice', 'descrizione', 'attivita'], $indici);
             }
         }
         foreach ($dati['anniAddizionali'] ?? [] as $anno) {

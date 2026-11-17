@@ -9,6 +9,10 @@ use SismaFramework\Orm\CustomTypes\SismaDate;
  * modello nel codice della fornitura telematica (record A, "IVA26",
  * "RPF26", ...); il catalogo dei campi è per modello e anno del modello
  * (l'anno successivo a quello d'imposta).
+ *
+ * Il modello ISA (indici sintetici di affidabilità fiscale) non ha una
+ * fornitura propria: i suoi record P, Q ed R sono allegati a quelli della
+ * dichiarazione Redditi; il catalogo è anche per codice dell'ISA.
  */
 enum ModelloDichiarativo: string
 {
@@ -16,6 +20,7 @@ enum ModelloDichiarativo: string
     case iva = 'IVA';
     case redditiPf = 'RPF';
     case ivaTr = 'TR';
+    case isa = 'ISA';
 
     public function getLabel(): string
     {
@@ -23,6 +28,7 @@ enum ModelloDichiarativo: string
             self::iva => 'IVA annuale',
             self::redditiPf => 'Redditi Persone fisiche',
             self::ivaTr => 'Credito IVA trimestrale (rimborso o compensazione)',
+            self::isa => 'Indici sintetici di affidabilità fiscale',
         };
     }
 
@@ -32,6 +38,7 @@ enum ModelloDichiarativo: string
             self::iva => 'IVA',
             self::redditiPf => 'Redditi PF',
             self::ivaTr => 'IVA TR',
+            self::isa => 'ISA',
         };
     }
 
@@ -88,6 +95,7 @@ enum ModelloDichiarativo: string
         return match ($this) {
             self::iva => 'D',
             self::redditiPf, self::ivaTr => 'C',
+            self::isa => 'Q',
         };
     }
 
@@ -105,7 +113,7 @@ enum ModelloDichiarativo: string
         }
         return new SismaDate(($annoImposta + 1) . match ($this) {
             self::iva => '-04-30',
-            self::redditiPf => '-10-31',
+            self::redditiPf, self::isa => '-10-31',
             self::ivaTr => '-04-30',
         });
     }
@@ -121,6 +129,8 @@ enum ModelloDichiarativo: string
             self::iva => ['VA', 'VE', 'VF', 'VJ', 'VH', 'VL', 'VT', 'VX'],
             self::redditiPf => ['RA', 'RB', 'RC', 'LC', 'RN', 'RV', 'RX'],
             self::ivaTr => ['TA', 'TB', 'TC', 'TD'],
+            // frontespizio, personale, unità locali, elementi specifici, dati contabili, concordato preventivo biennale
+            self::isa => ['Y', 'A', 'B', 'C', 'D', 'E', 'F', 'H', 'P'],
         };
     }
 }

@@ -9,6 +9,7 @@ $campoCsrf = '<input type="hidden" name="' . Html::e(\Config\CSRF_TOKEN_KEY) . '
 $id = $dichiarazione->id;
 $modificabile = $dichiarazione->isModificabile();
 $redditi = $dichiarazione->modello->isRedditi();
+$isa = $dichiarazione->modello === \Dichiarativi\Application\Enumerations\ModelloDichiarativo::isa;
 $fileDisponibile = (count($errori) === 0) && ((count($segnalazioni) === 0) || $dichiarazione->flagConferma);
 
 require Layout::percorso('header');
@@ -16,14 +17,19 @@ require Layout::percorso('header');
 <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
     <h1 class="h4 mb-0 me-auto"><?= Html::e($pageTitle) ?></h1>
     <?php if ($modificabile): ?>
-        <a href="/dichiarazione/update/dichiarazione/<?= Html::e($id) ?>" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil me-1"></i><?= Html::e($titoloFrontespizio) ?></a>
-        <?php if (($dichiarazione->modello->isTrimestrale() === false) && ($redditi === false)): ?>
+        <?php if ($isa === false): ?>
+            <a href="/dichiarazione/update/dichiarazione/<?= Html::e($id) ?>" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil me-1"></i><?= Html::e($titoloFrontespizio) ?></a>
+        <?php endif; ?>
+        <?php if (($dichiarazione->modello->isTrimestrale() === false) && ($redditi === false) && ($isa === false)): ?>
             <a href="/dichiarazione/rettifiche/dichiarazione/<?= Html::e($id) ?><?= ($modulo ?? 1) > 1 ? '/modulo/' . Html::e($modulo) : '' ?>" class="btn btn-sm btn-outline-primary"><?= Html::e($prospettoD) ?></a>
         <?php endif; ?>
         <form method="post" action="/dichiarazione/proponi/dichiarazione/<?= Html::e($id) ?>"><?= $campoCsrf ?><button type="submit" class="btn btn-sm btn-outline-primary"><i class="bi bi-arrow-repeat me-1"></i><?= Html::e($azioni['riproponi']) ?></button></form>
     <?php endif; ?>
     <a href="/dichiarazione/stampa/dichiarazione/<?= Html::e($id) ?>" class="btn btn-sm btn-outline-secondary" target="_blank"><i class="bi bi-printer me-1"></i><?= Html::e($azioni['stampa']) ?></a>
-    <?php if ($fileDisponibile): ?>
+    <?php if ($modelloUfficiale): ?>
+        <a href="/dichiarazione/modello/dichiarazione/<?= Html::e($id) ?>" class="btn btn-sm btn-outline-secondary" target="_blank"><i class="bi bi-file-earmark-pdf me-1"></i><?= Html::e($azioni['modelloUfficiale']) ?></a>
+    <?php endif; ?>
+    <?php if ($fileDisponibile && ($isa === false)): ?>
         <a href="/dichiarazione/scarica/dichiarazione/<?= Html::e($id) ?>" class="btn btn-sm btn-primary"><i class="bi bi-download me-1"></i><?= Html::e($azioni['fileTelematico']) ?></a>
     <?php endif; ?>
     <?php if ($modificabile): ?>
@@ -54,6 +60,91 @@ require Layout::percorso('header');
 
 <div class="row g-3">
     <div class="col-lg-4">
+        <?php if ($isa): ?>
+        <div class="card shadow-sm">
+            <div class="card-header bg-white fw-semibold"><?= Html::e($titoloModelloIsa) ?></div>
+            <ul class="list-group list-group-flush small">
+                <li class="list-group-item"><strong><?= Html::e($dichiarazione->isa) ?></strong> <?= Html::e($indiceIsa?->descrizione ?? '') ?></li>
+                <li class="list-group-item"><?= Html::e($campi['contribuente']) ?>: <?= Html::e($soggetto->nominativo) ?> · <?= Html::e($soggetto->codiceFiscale) ?></li>
+                <?php if ($dichiarazione->dichiarazioneRedditi !== null): ?>
+                    <li class="list-group-item"><?= Html::e($dichiarazioneRedditiCollegata) ?>: <a href="/dichiarazione/show/dichiarazione/<?= Html::e($dichiarazione->dichiarazioneRedditi->id) ?>"><?= Html::e($dichiarazione->dichiarazioneRedditi->getDescrizione()) ?></a></li>
+                <?php endif; ?>
+            </ul>
+            <div class="card-footer bg-white small text-body-secondary"><?= Html::e($aiutoModelloIsa) ?></div>
+        </div>
+        <div class="card shadow-sm mt-3">
+            <div class="card-header bg-white d-flex align-items-center gap-2">
+                <span class="fw-semibold me-auto"><?= Html::e($punteggioIsa) ?></span>
+                <?php if ($dichiarazione->calcoloIsa !== null): ?>
+                    <a href="/dichiarazione/stampa-isa/dichiarazione/<?= Html::e($id) ?>/tipo/modello" class="btn btn-sm btn-outline-secondary" target="_blank"><i class="bi bi-file-earmark-pdf me-1"></i><?= Html::e($azioni['stampaModelloIsa']) ?></a>
+                    <a href="/dichiarazione/stampa-isa/dichiarazione/<?= Html::e($id) ?>/tipo/esito" class="btn btn-sm btn-outline-secondary" target="_blank"><i class="bi bi-file-earmark-pdf me-1"></i><?= Html::e($azioni['stampaEsitoIsa']) ?></a>
+                <?php endif; ?>
+                <?php if ($modificabile): ?>
+                    <form method="post" action="/dichiarazione/calcola-isa/dichiarazione/<?= Html::e($id) ?>"><?= $campoCsrf ?><button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-calculator me-1"></i><?= Html::e($azioni['calcolaIsa']) ?></button></form>
+                <?php endif; ?>
+            </div>
+            <ul class="list-group list-group-flush small">
+                <?php if ($esitoIsa === null): ?>
+                    <li class="list-group-item text-body-secondary"><?= Html::e($nonCalcolato) ?></li>
+                <?php else: ?>
+                    <li class="list-group-item d-flex align-items-baseline gap-2"><span class="display-6 fw-semibold"><?= Html::e($esitoIsa['punteggio'] ?? '-') ?></span><span class="text-body-secondary">/ 10</span>
+                        <?php if ($calcoloIsaAggiornato === false): ?><span class="badge text-bg-warning ms-auto"><?= Html::e($calcoloSuperato) ?></span><?php endif; ?></li>
+                    <li class="list-group-item"><div class="fw-semibold mb-1"><?= Html::e($indicatoriAffidabilita) ?></div>
+                        <?php foreach ($esitoIsa['affidabilita'] as $indicatore): ?><div class="d-flex"><span class="me-auto"><?= Html::e($indicatore['descrizione']) ?></span><?= Html::e($indicatore['punteggio']) ?></div><?php endforeach; ?></li>
+                    <?php if (count($esitoIsa['anomalie']) > 0): ?>
+                        <li class="list-group-item"><div class="fw-semibold mb-1"><?= Html::e($indicatoriAnomalia) ?></div>
+                            <?php foreach ($esitoIsa['anomalie'] as $indicatore): ?><div class="d-flex text-danger-emphasis"><span class="me-auto"><?= Html::e($indicatore['descrizione']) ?></span><?= Html::e($indicatore['punteggio']) ?></div><?php endforeach; ?></li>
+                    <?php endif; ?>
+                    <?php if (count($esitoIsa['modelliBusiness']) > 0): ?>
+                        <li class="list-group-item"><?= Html::e($modelloBusiness) ?>: <?= Html::e($esitoIsa['modelliBusiness'][0]['descrizione']) ?></li>
+                    <?php endif; ?>
+                <?php endif; ?>
+            </ul>
+            <?php if ($modificabile): ?>
+                <form method="post" action="/dichiarazione/precalcolate-isa/dichiarazione/<?= Html::e($id) ?>" enctype="multipart/form-data" class="card-body d-flex gap-2 align-items-end border-top">
+                    <?= $campoCsrf ?>
+                    <div class="flex-grow-1"><label class="form-label small mb-0" for="precalcolate"><?= Html::e($fileVariabiliPrecalcolate) ?></label><input type="file" class="form-control form-control-sm" id="precalcolate" name="precalcolate" accept=".xml,application/xml,text/xml"></div>
+                    <button type="submit" class="btn btn-sm btn-outline-primary"><i class="bi bi-upload me-1"></i><?= Html::e($azioni['importaPrecalcolate']) ?></button>
+                </form>
+            <?php endif; ?>
+            <div class="card-footer bg-white small text-body-secondary"><?= Html::e($aiutoCalcoloIsa) ?></div>
+        </div>
+        <div class="card shadow-sm mt-3">
+            <div class="card-header bg-white fw-semibold"><?= Html::e($titoloCpb) ?></div>
+            <ul class="list-group list-group-flush small">
+                <?php if ($propostaCpb === null): ?>
+                    <li class="list-group-item text-body-secondary"><?= Html::e($nessunaPropostaCpb) ?></li>
+                <?php else: ?>
+                    <?php foreach (['P0100601' => $redditoProposto2026, 'P0100701' => $redditoProposto2027, 'P0100801' => $irapProposta2026, 'P0100901' => $irapProposta2027] as $codiceCpb => $etichettaCpb): ?>
+                        <li class="list-group-item d-flex"><span class="me-auto"><?= Html::e($etichettaCpb) ?></span><?= Html::e(Importo::euro((float) ($propostaCpb[$codiceCpb] ?? 0))) ?></li>
+                    <?php endforeach; ?>
+                    <?php if ($cpbAccettato): ?><li class="list-group-item text-success-emphasis"><i class="bi bi-check-circle me-1"></i><?= Html::e($testoCpbAccettato) ?></li><?php endif; ?>
+                <?php endif; ?>
+            </ul>
+            <?php if ($modificabile && (($propostaCpb !== null) || $cpbAccettato)): ?>
+                <div class="card-body d-flex gap-2">
+                    <?php if (($propostaCpb !== null) && ($cpbAccettato === false)): ?>
+                        <form method="post" action="/dichiarazione/concordato-isa/dichiarazione/<?= Html::e($id) ?>/scelta/aderisci"><?= $campoCsrf ?><button type="submit" class="btn btn-sm btn-success"><?= Html::e($azioni['aderisciCpb']) ?></button></form>
+                    <?php endif; ?>
+                    <form method="post" action="/dichiarazione/concordato-isa/dichiarazione/<?= Html::e($id) ?>/scelta/rinuncia"><?= $campoCsrf ?><button type="submit" class="btn btn-sm btn-outline-secondary"><?= Html::e($cpbAccettato ? $azioni['revocaCpb'] : $azioni['rinunciaCpb']) ?></button></form>
+                </div>
+            <?php endif; ?>
+            <div class="card-footer bg-white small text-body-secondary"><?= Html::e($aiutoCpb) ?></div>
+        </div>
+        <div class="card shadow-sm mt-3">
+            <div class="card-header bg-white fw-semibold"><?= Html::e($noteAggiuntiveIsa) ?></div>
+            <?php if ($modificabile): ?>
+                <form method="post" action="/dichiarazione/note-isa/dichiarazione/<?= Html::e($id) ?>" class="card-body">
+                    <?= $campoCsrf ?>
+                    <textarea class="form-control form-control-sm mb-2" name="note" rows="4" maxlength="1768" aria-label="<?= Html::e($noteAggiuntiveIsa) ?>"><?= Html::e($dichiarazione->annotazioni ?? '') ?></textarea>
+                    <button type="submit" class="btn btn-sm btn-outline-primary"><?= Html::e($azioni['salvaNote']) ?></button>
+                </form>
+            <?php else: ?>
+                <div class="card-body small"><?= nl2br(Html::e($dichiarazione->annotazioni ?? '-')) ?></div>
+            <?php endif; ?>
+            <div class="card-footer bg-white small text-body-secondary"><?= Html::e($aiutoNoteIsa) ?></div>
+        </div>
+        <?php else: ?>
         <div class="card shadow-sm">
             <div class="card-header bg-white fw-semibold"><?= Html::e($titoloFrontespizio) ?></div>
             <ul class="list-group list-group-flush small">
@@ -73,8 +164,33 @@ require Layout::percorso('header');
                 <?php if ($dichiarazione->flagConferma): ?><li class="list-group-item text-warning-emphasis"><?= Html::e($campi['flagConferma']) ?></li><?php endif; ?>
             </ul>
         </div>
+        <?php endif; ?>
 
-        <?php if ($redditi === false): ?>
+        <?php if ($redditi): ?>
+        <div class="card shadow-sm mt-3">
+            <div class="card-header bg-white fw-semibold"><?= Html::e($titoloModelliIsa) ?></div>
+            <ul class="list-group list-group-flush small">
+                <?php foreach ($modelliIsa as $modelloIsa): ?>
+                    <li class="list-group-item d-flex align-items-center gap-2">
+                        <span class="me-auto">
+                            <span class="font-monospace"><?= Html::e($modelloIsa['quadro']) ?></span> · <?= Html::e($modelloIsa['codiceAttivita'] ?? '-') ?>
+                            <?php if ($modelloIsa['indice'] !== null): ?> · <strong><?= Html::e($modelloIsa['indice']->codice) ?></strong> <?= Html::e($modelloIsa['indice']->descrizione) ?><?php else: ?> · <span class="text-body-secondary"><?= Html::e($attivitaSenzaIsa) ?></span><?php endif; ?>
+                            <?php if ($modelloIsa['causaEsclusione'] !== null): ?><div class="text-warning-emphasis"><?= Html::e($causaEsclusioneIsa . ' ' . $modelloIsa['causaEsclusione']) ?></div><?php endif; ?>
+                        </span>
+                        <?php if ($modelloIsa['dichiarazione'] !== null): ?>
+                            <a href="/dichiarazione/show/dichiarazione/<?= Html::e($modelloIsa['dichiarazione']->id) ?>" class="btn btn-sm btn-outline-primary"><?= Html::e($azioni['apriModelloIsa']) ?></a>
+                        <?php elseif ($modelloIsa['indice'] !== null): ?>
+                            <form method="post" action="/dichiarazione/crea-isa/dichiarazione/<?= Html::e($id) ?>/quadro/<?= Html::e($modelloIsa['quadro']) ?>"><?= $campoCsrf ?><button type="submit" class="btn btn-sm btn-outline-primary"><i class="bi bi-plus-lg me-1"></i><?= Html::e($azioni['creaModelloIsa']) ?></button></form>
+                        <?php endif; ?>
+                    </li>
+                <?php endforeach; ?>
+                <?php if (count($modelliIsa) === 0): ?><li class="list-group-item text-body-secondary"><?= Html::e($nessunQuadroContabile) ?></li><?php endif; ?>
+            </ul>
+            <div class="card-footer bg-white small text-body-secondary"><?= Html::e($aiutoModelliIsa) ?></div>
+        </div>
+        <?php endif; ?>
+
+        <?php if (($redditi === false) && ($isa === false)): ?>
         <div class="card shadow-sm mt-3">
             <div class="card-header bg-white d-flex align-items-center gap-2">
                 <span class="fw-semibold me-auto"><?= Html::e($titoloOrganoControllo) ?></span>
@@ -110,7 +226,8 @@ require Layout::percorso('header');
         </div>
         <?php endif; ?>
 
-        <?php if ($redditi): ?>
+        <?php if ($isa): ?>
+        <?php elseif ($redditi): ?>
         <div class="card shadow-sm mt-3">
             <div class="card-header bg-white fw-semibold"><?= Html::e($titoloRisultato) ?></div>
             <ul class="list-group list-group-flush small">
@@ -172,6 +289,7 @@ require Layout::percorso('header');
         </div>
         <?php endif; ?>
 
+        <?php if ($isa === false): ?>
         <div class="card shadow-sm mt-3">
             <div class="card-body">
                 <?php if ($modificabile): ?>
@@ -187,6 +305,7 @@ require Layout::percorso('header');
                 <div class="small text-body-secondary mt-2"><?= Html::e($aiutoTelematico) ?></div>
             </div>
         </div>
+        <?php endif; ?>
     </div>
 
     <div class="col-lg-8">
@@ -199,11 +318,11 @@ require Layout::percorso('header');
             <?php if ($modificabile && ($modulo > 1)): ?>
                 <form method="post" action="/dichiarazione/elimina-modulo/dichiarazione/<?= Html::e($id) ?>/numero/<?= Html::e($modulo) ?>" data-conferma="<?= Html::e($confermaEliminaModulo) ?>"><?= $campoCsrf ?><button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash me-1"></i><?= Html::e($azioni['eliminaModulo']) ?></button></form>
             <?php endif; ?>
-            <?php if ($modificabile && ($redditi === false)): ?>
+            <?php if ($modificabile && ($redditi === false) && ($isa === false)): ?>
                 <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#nuovoModulo" aria-expanded="false"><i class="bi bi-plus-lg me-1"></i><?= Html::e($azioni['aggiungiModulo']) ?></button>
             <?php endif; ?>
         </div>
-        <?php if ($modificabile && ($redditi === false)): ?>
+        <?php if ($modificabile && ($redditi === false) && ($isa === false)): ?>
             <div class="collapse mb-2" id="nuovoModulo">
                 <form method="post" action="/dichiarazione/aggiungi-modulo/dichiarazione/<?= Html::e($id) ?>" class="card card-body shadow-sm row g-2 flex-row align-items-end">
                     <?= $campoCsrf ?>

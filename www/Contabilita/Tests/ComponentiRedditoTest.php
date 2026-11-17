@@ -78,6 +78,8 @@ class ComponentiRedditoTest extends ContabilitaTestCase
         $componenti = $servizio->perCassa($this->azienda, 2025, false);
         $this->assertSame(2000.0, $componenti['RG2']);
         $this->assertSame(300.0, $componenti['RG22:99']);
+        // gli stessi componenti per voce CEE (righi del quadro F del modello ISA)
+        $this->assertSame(['E.A.1' => 2000.0, 'E.B.7' => 300.0], $servizio->getPerVoceCee());
         $this->assertArrayHasKey('partite', $servizio->getAvvisi());
         // professionista: compensi nel quadro RE
         $this->assertSame(2000.0, $servizio->perCassa($this->azienda, 2025, true)['RE2']);
@@ -90,6 +92,8 @@ class ComponentiRedditoTest extends ContabilitaTestCase
         // costo deducibile all'80 per cento (es. telefonia): nel quadro RG la parte deducibile, nel quadro RF la variazione del 20 per cento
         $consulenze->percentualeDeducibile = 80.0;
         $this->assertSame(['ricavi' => 2000.0, 'costi' => 300.0, 'utile' => 1700.0, 'variazioni' => ['RF31:99' => 60.0]], $servizio->perCompetenza($this->azienda, 2025));
+        // per voce CEE la sola parte deducibile
+        $this->assertSame(['E.A.1' => 2000.0, 'E.B.7' => 240.0], $servizio->getPerVoceCee());
         $consulenze->variazioneRedditi = 'RF18';
         $this->assertSame(['RF18' => 60.0], $servizio->perCompetenza($this->azienda, 2025)['variazioni']);
         $this->rispondiSenzaPartite($righe);

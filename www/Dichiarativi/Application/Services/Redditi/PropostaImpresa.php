@@ -19,6 +19,7 @@ use Deleghe\Application\Enumerations\StatoDelega;
 use Deleghe\Application\Models\VersamentoModel;
 use Dichiarativi\Application\Enumerations\ModelloDichiarativo;
 use Dichiarativi\Application\Models\DichiarazioneModel;
+use Dichiarativi\Application\Services\Isa\ModelliIsa;
 use Dichiarativi\Application\Services\QuadriDichiarazione;
 use SismaFramework\Orm\CustomTypes\SismaDate;
 use SismaFramework\Orm\HelperClasses\DataMapper;
@@ -116,8 +117,10 @@ class PropostaImpresa
             $dati->regimeFiscale === RegimeFiscale::ordinario => $this->proponiOrdinaria($quadri, $dati, $componenti->perCompetenza($soggetto, $anno)),
             default => $this->avvisi[] = 'Regime ' . $dati->regimeFiscale->getLabel() . ': quadro del reddito d\'impresa da compilare a mano.',
         };
-        if (($dati->soggettoIsa === true) && ($dati->regimeFiscale !== RegimeFiscale::forfetario)) {
-            $this->avvisi[] = 'Soggetto ISA: la suite non compila il modello ISA. Senza una causa di esclusione (colonna 2 del rigo RE1, RF1 o RG1) il modello va allegato alla dichiarazione; per trasmetterla senza, spunta nel frontespizio "Modello ISA non presentato con la dichiarazione".';
+        $dichiarazione = $quadri->getDichiarazione();
+        $modelliIsa = isset($dichiarazione->id) ? (new ModelliIsa($this->dataMapper))->getDichiarazioni($dichiarazione) : [];
+        if (($dati->soggettoIsa === true) && ($dati->regimeFiscale !== RegimeFiscale::forfetario) && (count($modelliIsa) === 0)) {
+            $this->avvisi[] = 'Soggetto ISA: senza una causa di esclusione (colonna 2 del rigo RE1, RF1 o RG1) il modello ISA va allegato alla dichiarazione: crealo dalla sezione "Modelli ISA" della scheda, oppure, per trasmettere la dichiarazione senza, spunta nel frontespizio "Modello ISA non presentato con la dichiarazione".';
         }
         // rigo RS140, obbligatorio per i titolari di partita IVA: 1 se nell'anno è stato conservato in modalità elettronica almeno un
         // documento rilevante ai fini tributari (fatture elettroniche), 2 altrimenti (istruzioni, fascicolo 3)

@@ -23,14 +23,17 @@ class CampoModelloModel extends DependentModel
     }
 
     /**
-     * Catalogo dei campi del modello per anno del modello.
+     * Catalogo dei campi del modello per anno del modello (per i modelli
+     * ISA, dell'ISA indicato).
      *
      * @return array<string, CampoModello> per codice, in ordine di codice
      */
-    public function getCatalogo(ModelloDichiarativo $modello, int $anno): array
+    public function getCatalogo(ModelloDichiarativo $modello, int $anno, ?string $isa = null): array
     {
         $catalogo = [];
-        foreach ($this->getByModelloAndAnno($modello, $anno, null, ['codice' => 'ASC']) as $campo) {
+        $campi = $modello === ModelloDichiarativo::isa ? $this->getByModelloAndAnnoAndIsa($modello, $anno, (string) $isa, null, ['codice' => 'ASC'])
+                : $this->getByModelloAndAnno($modello, $anno, null, ['codice' => 'ASC']);
+        foreach ($campi as $campo) {
             $catalogo[$campo->codice] = $campo;
         }
         return $catalogo;

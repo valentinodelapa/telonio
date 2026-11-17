@@ -125,7 +125,7 @@ class FormatiETabelleTest extends DichiarativiTestCase
     {
         $cartella = sys_get_temp_dir() . '/dichiarativi_' . uniqid() . '/';
         mkdir($cartella);
-        file_put_contents($cartella . 'specifiche.csv', "modello;anno;url;provvedimento\nIVA;2026;https://esempio.it/a.pdf;Provvedimento\n");
+        file_put_contents($cartella . 'specifiche.csv', "modello;anno;url;provvedimento;istruzioni\nIVA;2026;https://esempio.it/a.pdf;Provvedimento;\n");
         file_put_contents($cartella . 'quadri-IVA-2026.csv', "quadro;denominazione\nVE;Operazioni attive\n");
         file_put_contents($cartella . 'campi-IVA-2026.csv', "codice;formato;descrizione\nVE023001;XX;Imponibile\n");
         try {

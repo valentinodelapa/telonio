@@ -2,6 +2,123 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.29.0-alpha] - 2026-11-16 - Modelli ISA e Stampa sul Modello Ufficiale
+
+Versioni dei moduli: `Dichiarativi` 0.10.0 (richiede `Anagrafica` 0.14.0 e `Contabilita` 0.12.0), `Contabilita` 0.12.0; gli altri invariati.
+
+**Aggiornamento**: `aggiorna.sh` (cioè `sisma aggiorna-database`) esegue `Dichiarativi/Database/aggiornamento-0.10.sql`:
+- nuova tabella `indice_isa`;
+- colonna `isa` e formato fino a 8 caratteri in `campo_modello`;
+- colonne `isa`, `dichiarazione_redditi_id`, `calcolo_isa`, `esito_isa`, `report_isa` e `impronta_isa` in `dichiarazione`;
+- colonna `annotazioni` portata a 1.768 caratteri.
+
+Il `dati-riferimento.sql` di `Dichiarativi` carica il catalogo dei campi ISA. I modelli in PDF e le posizioni dei campi sono nel modulo (`Dichiarativi/Application/Assets/modelli`); non serve eseguire comandi. L'immagine PHP include ora il software "Il tuo ISA 2026 CPB" dell'Agenzia delle Entrate: alla ricostruzione dei container (fatta da `aggiorna.sh`) viene scaricato l'installer ufficiale (circa 220 MB) e se ne verifica l'impronta SHA-256. Nessun passo manuale.
+
+### ✨ Nuove Funzionalità
+
+#### `Dichiarativi` 0.10.0 — stampa sul modello ufficiale
+
+- **Modello ufficiale (PDF)**: nuovo pulsante nella scheda della dichiarazione. Stampa la dichiarazione sui modelli in PDF dell'Agenzia delle Entrate, per la copia da consegnare al contribuente (art. 3, comma 9, D.P.R. 322/1998). Modelli disponibili:
+  - Redditi Persone fisiche 2026, fascicoli 1, 2 e 3;
+  - IVA 2026;
+  - IVA TR.
+- **Contenuto della stampa**:
+  - il frontespizio, sempre, con i dati del file telematico (anagrafica, domicilio, dichiarante, impegno, visto, caselle dei quadri compilati); nel Redditi PF anche la copertina e la scheda delle scelte dell'otto, cinque e due per mille;
+  - le pagine dei quadri con almeno un valore, una copia per modulo, con il codice fiscale e il numero del modulo in testa;
+  - in fondo, l'elenco dei campi compilati che non hanno una casella nel modello, con codice, descrizione e valore: nessun dato resta fuori dalla stampa.
+- **Scrittura nelle caselle**:
+  - gli importi finiscono al ",00" stampato nella casella e ne seguono la linea, anche dove il numero di colonna è sopra l'importo (come nel rigo VF29);
+  - nel modello IVA TR, che ha i centesimi, la parte intera finisce alla virgola stampata e i centesimi vanno nelle due celle dopo;
+  - nelle caselle divise in celle (codici fiscali, partite IVA, codici attività, percentuali, numero dei moduli) va un carattere per cella;
+  - ogni pagina conserva le dimensioni del modello: le pagine del modello IVA TR sono più larghe di un A4 e non vengono ridotte.
+- **posizioni dei campi ricavate dai modelli**: `sisma modelli-dichiarativi` scarica i fascicoli elencati in `Database/sorgenti/modelli.csv`, ne controlla il numero di pagine e legge la posizione delle caselle dalla grafica e dai testi delle pagine (sigle dei righi, numeri di colonna, ",00" o virgola degli importi, tacche verticali delle celle). Le posizioni del frontespizio, quelle dei quadri TC e TD del modello IVA TR e le correzioni sono in `Database/sorgenti/posizioni-<modello>-<anno>.csv`. Campi collocati:
+  - Redditi PF 2026: 4.228 su 4.605;
+  - IVA 2026: 1.057 su 1.144;
+  - IVA TR: 356 su 413.
+
+  Gli altri campi vanno nell'elenco finale.
+
+#### `Dichiarativi` 0.10.0 — modelli ISA: motore di calcolo ufficiale
+
+- **Motore ISA nell'immagine**: lo stage `iltuoisa` del `Dockerfile` installa in `/opt/iltuoisa/2026` il software ufficiale "Il tuo ISA 2026 CPB" (versione 1.0.2 dell'11 giugno 2026, Linux x64 con JVM).
+  - L'installer si scarica dal sito dell'Agenzia e se ne verifica l'impronta SHA-256 pubblicata.
+  - Il server di download non invia il certificato intermedio di Sectigo: lo si scarica da Sectigo e si verifica che sia firmato da una radice di sistema.
+- **`Services\Isa\MotoreIsa`**: usa il software in modalità batch ("invisibile"):
+  - calcolo dal file d'ingresso con i record P, Q ed R delle specifiche tecniche ISA 2026, con i risultati (punteggio, indicatori, modelli di business) nei campi "I" del record Q da allegare a Redditi;
+  - esito in XML;
+  - PDF del modello compilato e dell'esito.
+
+  I controlli del software restano nel report, ad esempio "B04 deve essere compilato".
+
+#### `Dichiarativi` 0.10.0 — modelli ISA: catalogo dei campi
+
+- **Modello ISA come dichiarazione**: nuovo modello `ISA` delle dichiarazioni. Il modello ISA allegato a una dichiarazione Redditi è una dichiarazione del modello "ISA", con il codice dell'ISA applicato (`dichiarazione.isa`) e il collegamento alla dichiarazione Redditi (`dichiarazione.dichiarazione_redditi_id`).
+- **Catalogo dei campi ISA dalle specifiche ufficiali**: `sisma specifiche-dichiarativi --modello=ISA` scarica l'archivio delle specifiche tecniche ISA 2026 (allegato 1 al provvedimento n. 72335 del 27 febbraio 2026, un file Excel per ISA) e la tabella 1 delle istruzioni "Parte generale". Scrive:
+  - `campi-ISA-2026.csv`: 38.539 campi di 173 ISA, cioè i campi da compilare più le variabili precalcolate;
+  - `isa-2026.csv`: gli ISA con le loro attività ATECO 2025.
+
+  Il catalogo è anche per codice dell'ISA (colonna `campo_modello.isa`), perché i quadri degli elementi specifici cambiano da un ISA all'altro. La nuova tabella `indice_isa` serve a trovare l'ISA dal codice attività del contribuente.
+- **Modelli ISA dalla dichiarazione Redditi**: la scheda della dichiarazione Redditi PF ha la sezione "Modelli ISA", con un modello per categoria di reddito il cui quadro contabile è compilato (RG o RF per l'impresa, RE per il lavoro autonomo).
+  - L'ISA si sceglie dal codice attività del quadro; sono indicate anche la causa di esclusione e le attività senza un ISA.
+  - "Crea modello ISA" crea il modello e lo propone:
+    - frontespizio: codice attività e comune del domicilio fiscale al 31 dicembre;
+    - quadro F dal quadro RG o RF, con le corrispondenze dei controlli di coerenza ISA–Redditi (F01, F03, F06–F09, F17 campo 4, F20, F29) e gli altri righi con lo stesso contenuto (F02, F05, F10, F13 campo 4, F14, F15);
+    - quadro H dal quadro RE (H02–H20);
+    - numero dei collaboratori dell'impresa familiare (A06) dai legami in anagrafica.
+  - I quadri del personale, delle unità locali e degli elementi specifici dell'attività si compilano a mano, ricordati dagli avvisi.
+  - La scheda del modello ISA mostra l'ISA e la dichiarazione Redditi a cui è allegato. Frontespizio, moduli, versamenti e file telematico propri non sono previsti: il modello si allega alla dichiarazione Redditi.
+- **Quadro F dalla contabilità per natura dei costi** (`Contabilita` 0.12.0: `ComponentiReddito::getPerVoceCee`, gli stessi componenti per cassa o per competenza, con la sola parte deducibile, raggruppati per voce del conto economico CEE dei conti).
+  - Dalla contabilità si propongono:
+    - altri proventi (F05, voce A5);
+    - servizi (F12, B7);
+    - godimento di beni di terzi (F13, B8);
+    - accantonamenti (F16, B12 e B13);
+    - oneri diversi (F17, B14 più le maggiorazioni);
+    - gestione finanziaria (F18, C15 e C16; F19, C17).
+  - Con la contabilità ordinaria (quadro RF) si propongono anche ricavi (F01, A1), acquisti (F10, B6), personale (F14, B9) e ammortamenti (F15, B10).
+  - Volume d'affari (F23, VE50) e IVA sulle operazioni imponibili (F25, VE26) vengono dalla dichiarazione IVA dello stesso anno, se è nella suite.
+  - Gli avvisi elencano i campi che la contabilità non distingue.
+- **Beni strumentali dal registro dei cespiti** (`Contabilita` 0.12.0: `Services\BeniStrumentali`).
+  - Valore dei beni strumentali (F21 per le imprese, H01 per i professionisti): costo storico ragguagliato ai giorni di possesso nell'anno (su 365), senza immobili, avviamento e immobilizzazioni in corso.
+  - I beni mobili a uso promiscuo valgono il 50%.
+  - Per le imprese, il costo dei beni del 1994 e del 1995 è ridotto del 10 e del 20 per cento.
+  - Per i professionisti, i mezzi di trasporto valgono nel limite del costo fiscale.
+  - Quote di ammortamento deducibili dei beni mobili strumentali (F15 campo 2).
+  - I beni in locazione finanziaria e in comodato non sono nel registro e restano a mano.
+- **Concordato preventivo biennale 2026-2027 (quadro P)**: il software calcola la proposta dell'Agenzia (redditi e valori IRAP proposti per il 2026 e il 2027) quando sono indicati nel quadro P i requisiti (P01) e l'assenza di cause di esclusione (P02); la scheda del modello ISA la mostra.
+  - "Aderisci" copia la proposta nel quadro P con l'accettazione (P10) e i campi chiave obbligatori del quadro (codice ISA, codice attività, tipologia di reddito), poi ricalcola il modello.
+  - In modalità batch il software toglie l'accettazione dal file restituito; nel software interattivo l'accettazione viene dopo la lettura della proposta. Telonio la aggiunge ai record Q calcolati, dopo gli altri campi del quadro P.
+  - "Non aderire" (o "Revoca l'adesione") svuota il quadro.
+  - Il quadro P compilato senza accettazione è un errore: lo vieta l'allegato 2 al provvedimento del 27 febbraio 2026.
+  - Con l'adesione, la dichiarazione Redditi avverte che gli acconti 2026 seguono le regole del concordato.
+- **Unità locali dalle sedi operative**: il numero delle unità locali (B00) e il comune di ciascuna (i campi "Comune" del quadro B) vengono dalle sedi operative dell'anagrafica vigenti nell'anno. Gli altri dati delle unità (superfici, tipologie), diversi da un ISA all'altro, restano a mano.
+- **Note aggiuntive per l'Agenzia** (record R): un campo nella scheda del modello ISA. Le note del modello si allegano con il calcolo e, se cambiano, il calcolo va rifatto. La colonna `dichiarazione.annotazioni` arriva a 1.768 caratteri, come il record R.
+- **Calcolo con il software ufficiale**: "Calcola" nella scheda del modello ISA genera i record d'ingresso (P, Q ed R delle specifiche tecniche ISA 2026, `Services\Telematico\GeneratoreIsa`) e li fa calcolare a "Il tuo ISA" (`Services\Isa\CalcoloIsa`).
+  - La scheda mostra il punteggio di affidabilità, gli indicatori elementari di affidabilità e di anomalia e il modello di business più probabile.
+  - I controlli del software compaiono tra gli errori (bloccanti) e le avvertenze (segnalazioni), con il codice dell'errore.
+  - Un calcolo superato da modifiche successive dei quadri va rifatto: lo indica la scheda e lo richiedono i controlli.
+  - Il modello compilato e l'esito si stampano con le stampe ufficiali del software, in PDF.
+  - Colonne `dichiarazione.calcolo_isa`, `esito_isa`, `report_isa` e `impronta_isa`.
+- **Variabili precalcolate**: "Importa" carica il file XML fornito dall'Agenzia delle Entrate (Cassetto fiscale o richiesta degli intermediari, schema dell'allegato 2.1 al provvedimento del 13 aprile 2026) e ne prende le variabili del contribuente e dell'ISA (`Services\Isa\PrecalcolateIsa`). Senza importazione la tipologia di precalcolo è "non disponibile" (IFU00101 = 3, che il software richiede) e una segnalazione da confermare ricorda che le precalcolate sono obbligatorie.
+- **Allegato al file Redditi PF**: i record P, Q ed R calcolati vanno dopo i record C della dichiarazione, con la casella ISA del record B (campo 15) e i conteggi del record Z. Il file non si genera se un modello ISA allegato non è calcolato, è da ricalcolare o ha errori del software, né con l'omessa presentazione del modello scelta nel frontespizio.
+  - Le segnalazioni confermabili del modello ISA diventano segnalazioni della dichiarazione Redditi, da confermare nel frontespizio come le altre: le variabili precalcolate non importate e gli errori "***C" del software dopo un calcolo riuscito. Il controllo telematico le tratta come errori confermabili della dichiarazione.
+  - Nel file, confermando, si impostano il "Flag conferma" (campo 8 del record B, posizione 90) e, con le anomalie dei modelli ISA, anche il campo 9 ("Flag conferma Studi di settore/parametri", posizione 91).
+  - I "***C" del software restano errori solo quando il modello non è stato elaborato.
+- **Dati demo**: modello ISA EM01A di Lucia Ferri (commercio al dettaglio alimentare), calcolato con il software ufficiale e allegato al suo file RPF26:
+  - l'unità locale, la tipologia di esercizio e l'offerta sono inserite a mano;
+  - mancano le variabili precalcolate;
+  - nella dichiarazione Redditi non è più scelta l'omessa presentazione del modello ISA;
+  - la dichiarazione Redditi è confermata, perché senza precalcolate la trasmissione richiede la conferma.
+- **Dati demo**: il modello ISA di Ferri ha:
+  - l'unità locale proposta dalla sede operativa di Roma;
+  - una nota aggiuntiva sulla chiusura del negozio per lavori;
+  - l'adesione alla proposta di concordato preventivo biennale.
+
+  Nel registro dei cespiti di Ferri (`Contabilita` 0.12.0) c'è un banco frigo del 2023 con la quota di ammortamento del 2025.
+- **Dati demo** (`Contabilita` 0.12.0): le tre fatture d'acquisto 2025 del negozio Ferri sono pagate con bonifico a dicembre, abbinate alle partite. In contabilità semplificata (per cassa) i costi entrano nel quadro RG della dichiarazione Redditi e nel quadro F del modello ISA; prima il quadro RG aveva i soli ricavi.
+- **Avviso del quadro RG/RF/RE per i soggetti ISA**: rimanda alla sezione "Modelli ISA" ed è mostrato solo se nessun modello è allegato. Prima diceva che la suite non compila il modello ISA.
+- **Formati delle specifiche ISA** in `FormatoCampo` (VAL11, VALS11, NU11, PCD2, CAT, CA, NUC18...): campi-valore di 18 caratteri, con gli zeri iniziali fino alla lunghezza prevista. I formati dei modelli Redditi e IVA restano invariati.
+
 ## [0.28.0-alpha] - 2026-11-15 - Righi del Modello Redditi Inseriti a Mano
 
 Versioni dei moduli: `Dichiarativi` 0.9.0 (richiede `Anagrafica` 0.14.0 e `Contabilita` 0.11.0); gli altri invariati.

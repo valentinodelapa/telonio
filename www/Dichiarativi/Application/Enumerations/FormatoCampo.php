@@ -12,6 +12,13 @@ namespace Dichiarativi\Application\Enumerations;
  * separatori ("1234", "-1234"), decimali con il punto ("33.333"), date
  * "AAAA-MM-GG" (DT, DN), "AAAA" (DA), "MM-GG" (D4), "AAAA-MM" (D6),
  * caselle "1", testo così come inserito.
+ *
+ * I formati delle specifiche tecniche degli ISA (VAL11, NU11, PCD2, CAT...)
+ * hanno campi-valore di 18 caratteri e le cifre con gli zeri iniziali fino
+ * alla lunghezza prevista (NU11 "         00000000060"); la loro
+ * percentuale intera "PC" è qui "PC3", per distinguerla da quella con i
+ * decimali dei modelli Redditi e IVA. Nell'archivio: importi e numeri
+ * senza zeri iniziali, decimali con il punto, codice attività senza punti.
  */
 enum FormatoCampo: string
 {
@@ -54,6 +61,30 @@ enum FormatoCampo: string
     case cifre14 = 'N14';
     case cifre15 = 'N15';
     case cifre16 = 'N16';
+    // formati degli ISA
+    case importoIsa = 'VAL11';
+    case importoConSegnoIsa = 'VALS11';
+    case importoDecimaleIsa = 'VAL11D2';
+    case numeroIsa1 = 'NU1';
+    case numeroIsa2 = 'NU2';
+    case numeroIsa4 = 'NU4';
+    case numeroIsa11 = 'NU11';
+    case decimaleIsa = 'NU11D1';
+    case listaIsa = 'CBN3';
+    case percentualeIsa = 'PC3';
+    case percentualeDecimaleIsa = 'PCD2';
+    case codiceCatastale = 'CAT';
+    case codiceAttivita = 'CA';
+    case codiceIsa = 'CM';
+    case testo5 = 'AN5';
+    case testo6 = 'AN6';
+    case regione = 'REG';
+    case calcolato = 'NUC18';
+    case importoCalcolato = 'VALC18';
+    case punteggio = 'NU2D2';
+
+    /** Lunghezza del campo-valore degli ISA */
+    public const LUNGHEZZA_ISA = 18;
 
     public function getLabel(): string
     {
@@ -74,6 +105,19 @@ enum FormatoCampo: string
             self::percentuale => 'Percentuale (fino a 3 decimali)',
             self::provinciaNascita, self::provincia, self::provinciaSede => 'Sigla della provincia',
             self::quantita => 'Numero (fino a 5 decimali)',
+            self::importoIsa, self::importoDecimaleIsa => 'Importo positivo',
+            self::importoConSegnoIsa => 'Importo',
+            self::numeroIsa1, self::numeroIsa2, self::numeroIsa4, self::numeroIsa11, self::decimaleIsa => 'Numero',
+            self::listaIsa => 'Codice da elenco',
+            self::percentualeIsa => 'Percentuale intera',
+            self::percentualeDecimaleIsa => 'Percentuale (fino a 2 decimali)',
+            self::codiceCatastale => 'Codice catastale del comune',
+            self::codiceAttivita => 'Codice attività',
+            self::codiceIsa => 'Codice ISA',
+            self::testo5, self::testo6 => 'Testo di ' . substr($this->value, 2) . ' caratteri',
+            self::regione => 'Codice della regione',
+            self::calcolato, self::importoCalcolato => 'Valore calcolato',
+            self::punteggio => 'Punteggio',
             default => 'Codice numerico di ' . $this->getCifre() . ($this->getCifre() === 1 ? ' cifra' : ' cifre'),
         };
     }
@@ -88,7 +132,33 @@ enum FormatoCampo: string
 
     public function isImporto(): bool
     {
-        return in_array($this, [self::positivo, self::numerico, self::centesimi, self::centesimiConSegno], true);
+        return in_array($this, [self::positivo, self::numerico, self::centesimi, self::centesimiConSegno, self::importoIsa, self::importoConSegnoIsa, self::importoDecimaleIsa], true);
+    }
+
+    /**
+     * Formato delle specifiche tecniche degli ISA (campo-valore di 18
+     * caratteri).
+     */
+    public function isIsa(): bool
+    {
+        return $this->getStrutturaIsa() !== null || in_array($this, [self::codiceCatastale, self::codiceAttivita, self::codiceIsa, self::testo5, self::testo6, self::regione, self::calcolato, self::importoCalcolato], true);
+    }
+
+    /**
+     * Cifre intere e decimali dei numeri degli ISA a lunghezza fissa e se
+     * ammettono il segno; null per gli altri formati.
+     *
+     * @return array{intere: int, decimali: int, segno: bool}|null
+     */
+    private function getStrutturaIsa(): ?array
+    {
+        return match ($this) {
+            self::percentualeIsa, self::listaIsa => ['intere' => 3, 'decimali' => 0, 'segno' => false],
+            self::percentualeDecimaleIsa => ['intere' => 3, 'decimali' => 2, 'segno' => false],
+            self::importoIsa, self::importoConSegnoIsa, self::importoDecimaleIsa, self::numeroIsa1, self::numeroIsa2, self::numeroIsa4, self::numeroIsa11, self::decimaleIsa, self::punteggio
+            => preg_match('/^(VAL|NU)(S?)(\d+)(D(\d+))?$/', $this->value, $parti) === 1 ? ['intere' => (int) $parti[3], 'decimali' => (int) ($parti[5] ?? 0), 'segno' => $parti[2] === 'S'] : null,
+            default => null,
+        };
     }
 
     public function isCasella(): bool
@@ -123,7 +193,13 @@ enum FormatoCampo: string
             self::percentuale => self::normalizzaDecimale($this, $testo, 3),
             self::quantita => self::normalizzaDecimale($this, $testo, 5),
             self::provinciaNascita, self::provincia, self::provinciaSede => preg_match('/^[A-Z]{2}$/', mb_strtoupper($testo)) === 1 ? mb_strtoupper($testo) : throw self::errore($this, $testo),
-            default => self::normalizzaCifre($this, $testo),
+            self::codiceCatastale => preg_match('/^[A-Z]\d{3}$/', mb_strtoupper($testo)) === 1 ? mb_strtoupper($testo) : throw self::errore($this, $testo),
+            self::codiceAttivita => preg_match('/^\d{6}$/', str_replace('.', '', $testo)) === 1 ? str_replace('.', '', $testo) : throw self::errore($this, $testo),
+            self::codiceIsa => preg_match('/^[A-Z]{2}\d{2}[A-Z]$/', mb_strtoupper($testo)) === 1 ? mb_strtoupper($testo) : throw self::errore($this, $testo),
+            self::testo5, self::testo6 => mb_strlen($testo) <= (int) substr($this->value, 2) ? mb_strtoupper($testo) : throw self::errore($this, $testo),
+            self::regione => preg_match('/^\d{1,2}$/', $testo) === 1 ? str_pad($testo, 2, '0', STR_PAD_LEFT) : throw self::errore($this, $testo),
+            self::calcolato, self::importoCalcolato => self::normalizzaCalcolato($this, $testo),
+            default => $this->getStrutturaIsa() !== null ? self::normalizzaNumeroIsa($this, $valore) : self::normalizzaCifre($this, $testo),
         };
     }
 
@@ -135,10 +211,18 @@ enum FormatoCampo: string
      * @param string $valore valore in forma canonica
      * @return string[]
      */
-    public function formatta(string $valore): array
+    public function formatta(string $valore, int $lunghezza = self::LUNGHEZZA): array
     {
-        $destra = fn(string $testo) => str_pad($testo, self::LUNGHEZZA, ' ', STR_PAD_LEFT);
-        $sinistra = fn(string $testo) => str_pad($testo, self::LUNGHEZZA, ' ');
+        $destra = fn(string $testo) => str_pad($testo, $lunghezza, ' ', STR_PAD_LEFT);
+        $sinistra = fn(string $testo) => str_pad($testo, $lunghezza, ' ');
+        $struttura = $this->getStrutturaIsa();
+        if ($struttura !== null) {
+            // cifre intere con gli zeri iniziali, decimali completati con gli zeri, segno davanti alla prima cifra
+            $numero = abs((float) $valore);
+            $intero = str_pad((string) intdiv((int) round($numero * (10 ** $struttura['decimali'])), 10 ** $struttura['decimali']), $struttura['intere'], '0', STR_PAD_LEFT);
+            $decimali = $struttura['decimali'] === 0 ? '' : ',' . substr(number_format($numero, $struttura['decimali'], '.', ''), -$struttura['decimali']);
+            return [$destra(((float) $valore < 0 ? '-' : '') . $intero . $decimali)];
+        }
         return match ($this) {
             self::alfanumerico => self::formattaTesto($valore),
             self::casella => [$destra('1')],
@@ -151,6 +235,8 @@ enum FormatoCampo: string
             self::percentuale, self::quantita => [$destra(str_replace('.', ',', $valore))],
             self::positivo, self::numerico => [$destra($valore)],
             self::centesimi, self::centesimiConSegno => [$destra(number_format((float) $valore, 2, ',', ''))],
+            self::codiceCatastale, self::codiceAttivita, self::codiceIsa, self::testo5, self::testo6, self::regione => [$sinistra($valore)],
+            self::calcolato, self::importoCalcolato => [self::formattaCalcolato($valore, $lunghezza)],
             default => [$destra(str_pad($valore, $this->getCifre(), '0', STR_PAD_LEFT))],
         };
     }
@@ -171,8 +257,66 @@ enum FormatoCampo: string
             self::meseAnno => substr($valore, 5, 2) . '/' . substr($valore, 0, 4),
             self::giornoMese => str_replace('-', '/', $valore),
             self::percentuale, self::quantita => str_replace('.', ',', $valore),
+            self::importoIsa, self::importoConSegnoIsa => number_format((int) $valore, 0, ',', '.'),
+            self::importoDecimaleIsa => number_format((float) $valore, 2, ',', '.'),
+            self::decimaleIsa, self::percentualeDecimaleIsa, self::calcolato, self::importoCalcolato, self::punteggio => str_replace('.', ',', $valore),
             default => $valore,
         };
+    }
+
+    /**
+     * Numeri degli ISA a lunghezza fissa: importi in euro arrotondati
+     * all'unità (VALn), numeri interi, decimali e percentuali (fino a 100).
+     */
+    private static function normalizzaNumeroIsa(self $formato, string|int|float|bool $valore): ?string
+    {
+        $struttura = $formato->getStrutturaIsa();
+        $testo = is_string($valore) ? str_replace([' ', '€'], '', $valore) : (string) $valore;
+        if (is_string($valore) && str_contains($testo, ',')) {
+            $testo = str_replace(['.', ','], ['', '.'], $testo);
+        } elseif (is_string($valore) && (preg_match('/^-?\d{1,3}(\.\d{3})+$/', $testo) === 1)) {
+            $testo = str_replace('.', '', $testo);
+        }
+        if (is_numeric($testo) === false) {
+            throw self::errore($formato, (string) $valore);
+        }
+        $numero = round((float) $testo, $struttura['decimali'], PHP_ROUND_HALF_UP);
+        if (($numero < 0) && ($struttura['segno'] === false)) {
+            throw new \InvalidArgumentException('Il campo ammette solo valori positivi.');
+        }
+        if ((strlen((string) (int) abs($numero)) > $struttura['intere']) || (in_array($formato, [self::percentualeIsa, self::percentualeDecimaleIsa], true) && ($numero > 100))) {
+            throw self::errore($formato, (string) $valore);
+        }
+        if ($numero == 0) {
+            return null;
+        }
+        return $struttura['decimali'] === 0 ? (string) (int) $numero : rtrim(rtrim(number_format($numero, $struttura['decimali'], '.', ''), '0'), '.');
+    }
+
+    /**
+     * Valori calcolati degli ISA (NUC18, VALC18), come le variabili
+     * precalcolate fornite dall'Agenzia: numeri con il segno e i decimali.
+     */
+    private static function normalizzaCalcolato(self $formato, string $testo): ?string
+    {
+        $testo = str_replace(',', '.', str_replace(' ', '', $testo));
+        if (is_numeric($testo) === false) {
+            throw self::errore($formato, $testo);
+        }
+        $numero = str_contains($testo, '.') ? rtrim(rtrim($testo, '0'), '.') : $testo;
+        return ltrim($numero, '+') === '' ? null : ltrim($numero, '+');
+    }
+
+    /**
+     * Campo calcolato NUCn: il segno (o uno spazio), le cifre intere, la
+     * virgola e i decimali fino a riempire il campo.
+     */
+    private static function formattaCalcolato(string $valore, int $lunghezza): string
+    {
+        $negativo = str_starts_with($valore, '-');
+        [$intero, $decimali] = array_pad(explode('.', ltrim($valore, '-')), 2, '');
+        $intero = ltrim($intero, '0') === '' ? '0' : ltrim($intero, '0');
+        return ($negativo ? '-' : ' ') . $intero . ',' . str_pad(substr($decimali, 0, max(0, $lunghezza - strlen($intero) - 2)), max(0, $lunghezza - strlen($intero) - 2), '0');
     }
 
     private static function normalizzaImporto(self $formato, string|int|float|bool $valore): ?string

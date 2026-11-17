@@ -1,0 +1,174 @@
+codice;descrizione;attivita
+DA01U;"Coltivazioni agricole, silvicoltura ed utilizzo di aree forestali";"01.11.00 01.12.00 01.13.11 01.13.12 01.13.13 01.13.20 01.13.30 01.15.00 01.16.00 01.19.11 01.19.12 01.19.13 01.19.90 01.21.00 01.22.00 01.23.00 01.24.00 01.25.00 01.26.00 01.27.00 01.28.00 01.29.00 01.30.00 01.50.00 01.61.10 01.61.91 01.61.99 01.63.10 01.63.20 02.10.00 02.20.00 02.30.00 02.40.00"
+DA02U;"Produzione di prodotti animali, caccia e servizi connessi";"01.41.00 01.42.00 01.43.00 01.45.00 01.46.00 01.47.00 01.48.10 01.48.20 01.48.30 01.48.40 01.48.91 01.48.99 01.62.09 01.70.00"
+DD03U;"Molitoria dei cereali";"10.61.11 10.61.19 10.61.20 10.61.90"
+DD04U;"Estrazione e lavorazione di pietra, ghiaia, sabbia e altri minerali";"08.11.00 08.12.00 08.99.09 09.90.00 23.70.10 23.70.20 23.70.30"
+DD07U;"Produzione su misura e in serie di abbigliamento, accessori, biancheria per la casa e lavorazioni connesse";"13.30.00 13.92.10 13.92.20 13.99.10 14.10.10 14.10.20 14.21.10 14.21.20 14.22.00 14.23.00 14.29.00"
+DD09U;"Produzione di legno e fabbricazione del mobile";"16.11.00 16.12.00 16.21.00 16.22.00 16.23.01 16.23.09 16.24.00 16.25.00 16.26.00 16.27.00 16.28.19 16.28.20 31.00.11 31.00.12 31.00.13 31.00.14 31.00.15 31.00.20 31.00.31 31.00.32 31.00.33 31.00.34 31.00.35 31.00.36 31.00.37 31.00.39 32.99.40 95.24.01 95.24.09"
+DD18U;"Fabbricazione prodotti in ceramica e terracotta";"23.20.00 23.31.00 23.32.00 23.41.00 23.42.00 23.43.00 23.44.00 23.45.00"
+DD20U;"Fabbricazione e lavorazione di prodotti in metallo";"01.62.01 24.33.02 24.33.03 25.11.00 25.12.10 25.12.20 25.21.10 25.21.20 25.22.00 25.40.00 25.51.00 25.52.00 25.61.00 25.62.00 25.63.11 25.91.00 25.92.00 25.93.10 25.93.20 25.93.30 25.94.00 25.99.10 25.99.20 25.99.90 33.11.02 33.11.04 33.11.09 33.20.04 33.20.05 43.32.01"
+DD21U;"Produzione di occhialeria e strumenti ottici";"26.70.11 26.70.30 32.50.30 32.50.40 33.13.02"
+DD24U;"Produzione e commercio al dettaglio di pellicceria e di abbigliamento in pelle";"14.24.00 47.71.40"
+DD25U;"Concia delle pelli e del cuoio";15.11.00
+DD29U;"Produzione di calcestruzzo e di altri prodotti per l’edilizia";"23.51.00 23.52.10 23.52.20 23.61.01 23.61.02 23.61.03 23.61.04 23.61.09 23.62.00 23.63.00 23.64.00 23.65.01 23.65.02 23.66.01 23.66.09"
+DD30U;"Recupero e preparazione per riciclaggio e commercio all’ingrosso di rottami metallici";"22.11.20 38.21.12 38.21.20 38.21.30 38.21.40 46.87.10 46.87.90"
+DD32U;"Fabbricazione, installazione e riparazione di macchine e apparecchi meccanici";"25.30.10 25.30.20 25.53.00 25.63.12 25.63.20 27.51.00 27.52.00 27.90.01 28.11.10 28.11.20 28.12.00 28.13.00 28.14.00 28.15.00 28.21.10 28.21.20 28.22.01 28.22.09 28.24.00 28.25.00 28.29.10 28.29.20 28.29.30 28.29.41 28.29.49 28.29.91 28.29.99 28.30.10 28.30.91 28.30.99 28.41.00 28.42.00 28.91.00 28.92.00 28.93.00 28.94.10 28.94.20 28.94.30 28.95.00 28.96.00 28.97.01 28.97.02 28.97.09 28.99.10 28.99.20 28.99.92 28.99.99 29.10.00 29.20.00 29.32.00 30.40.00 30.91.11 30.91.12 30.91.20 30.92.10 30.92.20 33.11.03 33.11.05 33.11.06 33.12.10 33.12.20 33.12.30 33.12.40 33.12.52 33.12.53 33.12.54 33.12.59 33.12.60 33.12.70 33.12.91 33.12.99 33.18.10 33.20.09 95.22.02"
+DD35U;"Editoria, prestampa, stampa e legatoria";"18.11.00 18.12.00 18.13.00 18.14.00 18.20.00 58.11.00 58.13.00 58.19.00"
+DD40U;"Fabbricazione di prodotti elettrotecnici ed elettronici";"26.11.00 26.12.00 26.20.00 26.30.01 26.30.09 26.40.09 26.51.10 26.51.21 26.51.29 26.52.00 26.60.01 26.60.02 26.70.12 27.11.00 27.12.00 27.20.00 27.31.00 27.32.00 27.33.00 27.40.01 27.40.02 27.40.09 27.90.02 27.90.03 27.90.04 27.90.09 28.23.00 28.29.92 28.99.93 29.31.00 32.50.20 32.50.51 32.50.53 32.99.91 33.13.01 33.13.09 33.14.00 33.20.01 33.20.02 33.20.03 33.20.06 33.20.07 62.90.01 95.10.29"
+DD45U;"Lavorazione di tè, lavorazione e commercio all’ingrosso di caffè";"10.83.01 10.83.02 46.37.01"
+DD46U;"Fabbricazione di prodotti chimici";"19.10.00 20.11.00 20.12.00 20.13.00 20.14.00 20.15.00 20.16.00 20.17.00 20.20.00 20.30.00 20.41.10 20.41.20 20.42.00 20.51.00 20.59.12 20.59.20 20.59.30 20.59.91 20.59.99 20.60.00 21.10.00 21.20.09 32.50.52"
+DD47U;"Fabbricazione di articoli in carta e cartone";"17.11.00 17.12.00 17.21.00 17.22.00 17.23.01 17.23.09 17.25.00"
+DD48U;"Produzione di prodotti alimentari nca";"10.20.01 10.20.09 10.31.00 10.32.00 10.39.00 10.41.30 10.42.00 10.62.00 10.81.00 10.84.00 10.85.02 10.85.03 10.85.09 10.86.00 10.89.01 10.89.09 10.91.00 10.92.00"
+DD49U;"Industria delle bevande";"11.01.00 11.02.10 11.02.20 11.03.00 11.04.00 11.05.00 11.06.00 11.07.01 11.07.02"
+DD50U;"Produzione tessile nca";"13.94.00 13.95.00 13.96.00 13.99.90"
+DD51U;"Attività manifatturiere ed estrattive nca";"16.28.30 17.24.00 19.20.10 19.20.20 19.20.30 19.20.40 20.59.11 22.11.10 23.91.00 23.99.00 26.40.01 26.70.20 30.20.00 30.99.00 32.20.00 32.30.01 32.30.09 32.40.10 32.40.20 32.99.10 32.99.20 32.99.30 32.99.99 33.11.01 33.12.92 33.17.00 33.19.00"
+DD52U;"Fornitura di energia elettrica, gas, acqua, vapore e aria condizionata e gestione di reti fognarie, attività di risanamento e altre attività di gestione dei rifiuti";"35.11.00 35.12.00 35.13.00 35.14.00 35.15.00 35.16.00 35.21.00 35.22.00 35.23.00 35.24.00 35.30.00 35.40.00 36.00.00 37.00.00 38.11.00 38.12.00 38.21.11 38.22.00 38.23.00 38.31.00 38.32.00 38.33.00 39.00.09"
+DG01U;"Attività relative ai trasporti nca";"49.11.00 49.12.00 49.20.00 51.10.10 51.10.20 51.21.00 52.10.20 52.21.10 52.21.20 52.21.30 52.21.40 52.21.90 52.23.00 52.24.10 52.24.20 52.25.01 52.25.09 52.32.00 53.10.00"
+DG03U;"Servizi di informazione e comunicazione nca";"58.12.00 59.20.20 60.31.00 90.11.01 90.11.02"
+DG04U;"Gestione di spazi culturali, sportivi e ricreativi nca";"59.14.00 90.31.00 93.21.00 93.29.91 93.29.99"
+DG05U;"Servizi di telecomunicazioni e attività connesse nca";"61.10.01 61.10.02 61.10.03 61.20.00 61.90.10 61.90.20 61.90.90"
+DG06U;"Attività finanziarie e assicurative nca";70.10.00
+DG07U;"Attività di associazioni e organizzazioni";"94.99.20 94.99.90"
+DG08U;"Ricerca e sviluppo";"72.10.10 72.10.22 72.10.29 72.20.09"
+DG09U;"Noleggio nca";"77.21.09 77.22.10 77.22.90 77.31.00 77.33.00 77.35.00 77.39.91 77.39.92 77.39.99"
+DG10U;"Servizi di istruzione nca";"85.10.00 85.20.00 85.31.10 85.31.20 85.32.02 85.32.09 85.33.00 85.40.10 85.40.20 85.51.01 85.51.09 85.52.02 85.52.09 85.59.10 85.59.20 85.59.30 85.59.91 85.59.99 85.69.09"
+DG12U;"Servizi di assistenza residenziale";"87.10.00 87.20.00 87.30.00 87.99.00"
+DG13U;"Servizi di assistenza non residenziale";"88.10.00 88.91.00 88.99.01 88.99.02 88.99.03 88.99.04 88.99.09"
+DG15U;"Servizi nca";"55.20.20 55.20.31 55.20.32 69.20.05 70.20.02 71.20.21 71.20.29 74.20.12 74.99.29 78.10.00 78.20.00 80.01.11 80.01.12 80.01.13 80.01.14 80.01.21 80.01.29 80.09.00 81.22.01 81.23.91 82.20.00 82.40.01 82.91.10 84.11.20 90.20.09 90.39.09 95.29.10"
+DG33U;"Servizi estetici e per il benessere fisico";"96.22.01 96.22.09 96.23.10 96.23.91 96.23.99 96.99.91"
+DG41U;"Ricerche di mercato e sondaggi di opinione";73.20.00
+DG48U;"Riparazione di elettrodomestici e di prodotti di consumo audio e video";"95.21.00 95.22.01"
+DG51U;"Conservazione e restauro di opere d’arte";"91.30.01 91.30.09"
+DG53U;"Servizi linguistici e organizzazione di convegni e fiere";"74.30.00 82.30.01 82.30.02 82.30.03 82.30.04 82.30.09"
+DG66U;"Software house, riparazione di macchine per ufficio ed altri servizi connessi all’Information Technology";"33.12.51 58.21.00 58.29.00 60.39.00 62.10.00 62.20.10 62.20.20 62.90.09 63.10.10 63.10.21 63.10.29 63.91.00 74.12.01 95.10.10"
+DG67U;"Tintorie e lavanderie";"96.10.11 96.10.12 96.10.21 96.10.22"
+DG70U;"Servizi di pulizia e di cura e manutenzione delle aree verdi";"81.21.00 81.22.09 81.23.10 81.23.99 81.30.00"
+DG72U;"Trasporto terrestre di passeggeri";"49.31.01 49.31.02 49.32.01 49.32.02 49.33.10 49.33.20 49.34.00 49.39.00"
+DG73U;"Magazzinaggio, movimentazione merci e altre attività connesse al trasporto";"52.10.10 52.24.30 52.24.40 52.26.01 52.26.02 52.31.00 53.20.00 53.30.00"
+DG76U;"Servizi di ristorazione collettiva";"56.21.01 56.21.02 56.22.01 56.22.02"
+DG81U;"Noleggio di macchine e attrezzature per l’edilizia";"43.99.01 77.32.00"
+DG82U;"Servizi pubblicitari, relazioni pubbliche e comunicazione";"73.11.01 73.11.02 73.11.03 73.12.00 73.30.01 73.30.03 73.30.09"
+DG87U;"Consulenza finanziaria, amministrativo-gestionale e agenzie di informazioni commerciali";"70.20.01 70.20.09 82.91.20 85.69.01"
+DG90U;"Attività di pesca e acquacoltura";"03.11.00 03.12.00 03.21.01 03.21.09 03.22.01 03.22.09 03.30.00"
+DG91U;"Attività ausiliarie dei servizi finanziari e assicurativi";"64.92.91 66.19.21 66.19.22 66.19.90 66.21.00 66.22.00 66.29.09"
+DG92U;"Servizi forniti da revisori contabili, periti, consulenti ed altri soggetti che svolgono attività in materia di amministrazione, contabilità e tributi (attività di impresa)";"69.20.02 69.20.06"
+DG93U;"Attività degli studi di design";"74.11.10 74.11.20 74.13.00 74.14.09"
+DG94U;"Produzioni e distribuzioni cinematografiche e di video, attività radiotelevisive";"59.11.00 59.12.00 59.13.00 59.20.10 60.10.00 60.20.00"
+DG98U;"Riparazione beni consumo nca";"95.10.21 95.23.00 95.29.21 95.29.22 95.29.30 95.29.91 95.29.99"
+DK26U;"Attività delle guide e degli accompagnatori turistici e in ambiente naturale";"79.90.01 79.90.02 79.90.03 93.19.92"
+DK27U;"Attività professionali relative all’informatica";"58.21.00 58.29.00 62.10.00 62.20.10 62.20.20 62.90.09 63.10.10 63.10.21 63.10.29 74.12.01"
+DK28U;"Attività nel campo della recitazione, della regia e altre creazioni artistiche e letterarie";"90.11.09 90.12.00 90.13.00 90.20.01 90.39.01"
+DM04U;Farmacie;47.73.10
+DM09U;"Commercio di autoveicoli, motocicli e ciclomotori";"46.18.41 46.18.42 46.18.44 46.71.10 46.71.20 46.73.10 47.81.10 47.81.20 47.83.10 47.92.21 47.92.31 47.92.33"
+DM10U;"Commercio di parti e accessori di autoveicoli e motoveicoli";"46.18.43 46.18.45 46.72.00 46.73.20 47.82.00 47.83.20 47.92.22 47.92.32"
+DM18B;"Commercio all’ingrosso di animali vivi";46.23.00
+DM19U;"Commercio all’ingrosso di abbigliamento, calzature, pelletteria e pelli";"46.24.01 46.24.02 46.41.10 46.41.20 46.41.90 46.42.10 46.42.20 46.42.30 46.49.50"
+DM21U;"Commercio all’ingrosso alimentare";"46.31.10 46.31.20 46.32.11 46.32.12 46.32.20 46.32.31 46.32.32 46.33.10 46.33.20 46.34.10 46.34.20 46.36.00 46.37.02 46.38.00 46.39.00"
+DM22A;"Commercio all’ingrosso di elettrodomestici e casalinghi";"46.43.20 46.43.30 46.44.10 46.44.20 46.44.30 46.47.30"
+DM25U;"Commercio all’ingrosso di giochi, giocattoli, articoli sportivi";"46.49.30 46.49.41 46.49.49"
+DM28U;"Commercio al dettaglio di tessuti, filati e articoli di merceria";"47.51.10 47.51.20 47.53.11"
+DM32U;"Commercio al dettaglio di oggetti d’arte e di antiquariato, di culto e di decorazione, chincaglieria, bigiotteria, bomboniere, articoli da regalo e per fumatori e";"47.26.02 47.26.09 47.69.12 47.69.30 47.69.91 47.78.21 47.78.22 47.78.23 47.78.24 47.78.25 47.79.20"
+DM36U;"Commercio all’ingrosso di libri, riviste e giornali";"46.49.21 46.49.22"
+DM41U;"Commercio all’ingrosso di macchine e attrezzature per ufficio";"46.50.10 46.50.30"
+DM46U;"Commercio all’ingrosso di articoli per fotografia, cinematografia, ottica e strumenti scientifici";"46.43.10 46.46.31 46.64.91"
+DM47U;"Commercio al dettaglio di natanti e forniture di bordo";47.63.10
+DM80U;"Commercio al dettaglio di carburanti per autotrazione";47.30.00
+DM82U;"Commercio all’ingrosso di metalli";"46.82.10 46.82.21 46.82.29"
+DM83U;"Commercio all’ingrosso di prodotti chimici";"46.85.01 46.85.09 46.86.10"
+ED02U;"Produzione di paste alimentari";"10.73.01 10.73.02 10.85.05"
+ED05U;"Produzione e conservazione di carne";"10.11.00 10.12.00 10.13.00 10.85.01"
+ED08U;"Fabbricazione di calzature, parti e accessori";"15.20.10 15.20.20"
+ED11U;"Produzione di olio di oliva e di semi";"10.41.10 10.41.20"
+ED12U;"Produzione e commercio al dettaglio di prodotti di panetteria";"10.71.10 47.24.10"
+ED14U;"Produzione tessile";"13.10.00 13.20.00 13.91.00 13.93.00"
+ED15U;"Trattamento igienico e confezionamento di latte e derivati";"10.51.10 10.51.20"
+ED17U;"Fabbricazione di prodotti in gomma e plastica";"22.12.00 22.21.00 22.22.00 22.23.00 22.24.01 22.24.09 22.25.00 22.26.11 22.26.12 22.26.91 22.26.99 32.91.00"
+ED23U;"Laboratori di corniciai";16.28.11
+ED27U;"Fabbricazione di articoli da viaggio, borse, marocchineria e selleria";15.12.00
+ED28U;"Fabbricazione, lavorazione e trasformazione del vetro";"23.11.00 23.12.00 23.13.00 23.14.00 23.15.10 23.15.90"
+ED33U;"Produzione e lavorazione di oggetti di gioielleria, oreficeria e bigiotteria";"24.41.00 32.11.00 32.12.10 32.12.20 32.13.00"
+ED34U;"Fabbricazione e riparazione di protesi dentarie";32.50.10
+ED36U;"Fusione di metalli, prima trasformazione del ferro e dell’acciaio";"24.10.00 24.20.10 24.20.20 24.31.00 24.32.00 24.33.01 24.34.00 24.42.00 24.43.00 24.44.00 24.45.00 24.51.01 24.51.02 24.51.09 24.52.00 24.53.01 24.53.02 24.53.03 24.53.09 24.54.01 24.54.02 24.54.03 24.54.09"
+ED37U;"Costruzione e riparazione di imbarcazioni";"30.11.00 30.12.00 30.13.00 33.15.00 33.18.20"
+EG02U;"Servizi di alloggio e ristorazione in aziende agricole e ittiche";"55.20.51 55.20.52 56.11.91 56.11.92"
+EG14U;"Attività sportive e di intrattenimento nca";"92.00.09 93.12.00 93.19.10 93.19.93 93.19.99"
+EG31U;"Manutenzione e riparazione di autoveicoli, motocicli e ciclomotori";"71.20.22 95.31.10 95.31.20 95.31.30 95.32.00"
+EG34U;"Servizi di acconciatura";96.21.00
+EG36U;"Servizi di ristorazione commerciale";"56.11.11 56.11.12 56.12.01"
+EG37U;"Attività di bar, gelateria, pasticceria e produzione dolciaria";"10.52.00 10.71.20 10.72.00 10.82.00 10.85.04 47.24.20 56.11.21 56.11.22 56.11.23 56.11.24 56.12.02 56.12.03 56.30.01 56.30.02 56.30.03 56.30.04"
+EG39U;"Agenzie di mediazione immobiliare";"68.31.00 68.32.09"
+EG40U;"Locazione, valorizzazione, compravendita di beni immobili";"68.11.00 68.12.00 68.20.01 68.20.02 68.20.09"
+EG44U;"Strutture ricettive alberghiere ed extralberghiere";"55.10.00 55.20.41 55.20.42 55.90.00"
+EG50U;"Intonacatura, rivestimento, tinteggiatura ed altri lavori di completamento e finitura degli edifici";"43.31.01 43.31.02 43.33.00 43.34.01 43.34.02 43.35.00 43.91.00"
+EG54U;"Sale giochi e gestione di apparecchi automatici da intrattenimento";"92.00.01 93.29.30"
+EG55U;"Servizi di pompe funebri e attività connesse";"96.30.01 96.30.02 96.30.09"
+EG57U;"Laboratori di analisi cliniche e ambulatori";"86.10.00 86.22.01 86.22.02 86.22.03 86.91.01 86.91.02"
+EG58U;"Strutture ricettive all’aperto";"55.30.01 55.30.02 55.30.03"
+EG60U;"Stabilimenti balneari";93.29.20
+EG61U;"Intermediari del commercio e dei servizi";"43.60.00 46.11.01 46.11.02 46.11.03 46.11.04 46.12.01 46.12.02 46.12.03 46.12.04 46.12.05 46.13.01 46.13.02 46.13.03 46.14.01 46.14.02 46.14.03 46.14.04 46.14.05 46.15.01 46.15.02 46.15.03 46.15.04 46.15.05 46.16.01 46.16.02 46.16.03 46.16.04 46.16.05 46.16.06 46.16.07 46.17.01 46.17.02 46.17.03 46.17.04 46.17.05 46.17.06 46.17.07 46.18.11 46.18.12 46.18.13 46.18.14 46.18.21 46.18.22 46.18.23 46.18.24 46.18.25 46.18.26 46.18.31 46.18.32 46.18.33 46.18.46 46.18.50 46.18.91 46.18.92 46.18.93 46.18.99 46.19.00 47.91.10 47.91.20 47.92.10 47.92.29 47.92.34 47.92.35 47.92.36 47.92.39 55.40.00 56.40.00 77.51.00 77.52.00 82.40.09 85.61.00 86.97.00 87.91.00 95.40.00 96.40.00"
+EG68U;"Trasporto di merci su strada e servizi di trasloco";"49.41.00 49.42.00"
+EG69U;Costruzioni;"39.00.01 41.00.00 42.11.00 42.12.00 42.13.00 42.21.00 42.22.00 42.91.00 42.99.00 43.11.00 43.12.01 43.12.09 43.13.00 43.41.00 43.42.00 43.50.00 43.99.02 43.99.09"
+EG74U;"Attività fotografiche";"74.20.11 74.20.19 74.20.20"
+EG75U;"Installazione di impianti elettrici, idraulico-sanitari e altri impianti";"43.21.01 43.21.02 43.21.03 43.21.04 43.21.05 43.22.01 43.22.02 43.22.03 43.22.04 43.22.05 43.22.06 43.22.07 43.23.00 43.24.01 43.24.02 43.24.09 43.32.02"
+EG77U;"Trasporti marittimi e per vie d’acqua interne, noleggio di imbarcazioni e servizi connessi";"50.10.00 50.20.00 50.30.00 50.40.00 52.22.09 55.30.04 77.21.02 77.34.00 85.32.01"
+EG78U;"Attività delle agenzie di viaggio e turismo e dei tour operator";"79.11.00 79.12.00 79.90.04"
+EG79U;"Noleggio di autovetture e altri mezzi di trasporto terrestre";"77.11.00 77.12.00 77.21.01 77.39.10"
+EG83U;"Gestione di impianti sportivi";"93.11.10 93.11.90 93.13.01 93.13.09"
+EG85U;"Discoteche, sale da ballo e scuole di danza";"85.52.01 93.29.10"
+EG88U;"Autoscuole, scuole nautiche e agenzie di disbrigo pratiche";"82.99.11 82.99.19 85.32.03 85.53.00"
+EG96U;"Altre attività di manutenzione autoveicoli e di soccorso stradale";"52.21.50 52.21.60 95.31.91 95.31.92 95.31.99"
+EG99U;"Altri servizi a imprese e famiglie";"63.92.00 74.91.00 74.99.93 74.99.94 77.40.00 82.10.00 82.92.10 82.92.20 82.99.91 82.99.99 91.30.02 96.91.00 96.99.11 96.99.12 96.99.13 96.99.14 96.99.19 96.99.92 96.99.93 96.99.94 96.99.99"
+EK01U;"Studi notarili";69.10.20
+EK02U;"Attività degli studi di ingegneria";71.12.10
+EK03U;"Attività tecniche svolte da geometri";71.12.30
+EK04U;"Attività degli studi legali";69.10.10
+EK05U;"Servizi forniti da dottori commercialisti, ragionieri, periti commerciali e consulenti del lavoro";"69.20.01 69.20.03 69.20.04"
+EK06U;"Servizi forniti da revisori contabili, periti, consulenti ed altri soggetti che svolgono attività in materia di amministrazione, contabilità e tributi (lavoro autonomo)";"69.20.02 69.20.06"
+EK08U;"Attività dei disegnatori tecnici";"74.12.09 74.14.01"
+EK10U;"Studi medici e laboratori di analisi cliniche";"86.10.00 86.21.00 86.22.01 86.22.02 86.22.03 86.91.01 86.91.02"
+EK16U;"Amministrazione di condomini, gestione di beni immobili per conto terzi e servizi integrati di gestione agli edifici";"68.32.01 81.10.00"
+EK17U;"Periti industriali";74.99.91
+EK18U;"Attività degli studi di architettura";"71.11.01 71.11.09"
+EK19U;"Attività professionali paramediche indipendenti";"86.92.00 86.94.01 86.94.02 86.95.00 86.96.01 86.99.03 86.99.09"
+EK20U;"Attività professionale svolta da psicologi";86.93.00
+EK21U;"Attività degli studi odontoiatrici e delle imprese operanti in ambito odontoiatrico";86.23.00
+EK22U;"Servizi veterinari";75.00.00
+EK23U;"Servizi di ingegneria integrata";71.12.20
+EK24U;"Consulenza agraria fornita da agrotecnici e periti agrari";"74.99.12 74.99.13 74.99.14"
+EK25U;"Consulenza agraria fornita da agronomi";74.99.11
+EK29U;"Studi di geologia";"71.12.50 72.10.21"
+EK30U;"Altre attività tecniche, scientifiche e professionali nca";"69.10.30 71.12.40 71.20.11 71.20.19 72.20.01 73.30.02 74.99.15 74.99.16 74.99.19 74.99.21 74.99.31 74.99.32 74.99.33 74.99.41 74.99.42 74.99.92 74.99.99 86.96.09 86.99.01 86.99.02"
+EM01A;"Commercio al dettaglio alimentare";"47.11.01 47.11.02 47.25.00 47.27.10 47.27.20 47.27.30 47.27.90"
+EM01B;"Commercio al dettaglio di frutta e verdura";"47.21.01 47.21.02"
+EM01C;"Commercio al dettaglio di pesce, crostacei e molluschi";47.23.00
+EM02U;"Commercio al dettaglio di carni";47.22.00
+EM08U;"Commercio al dettaglio di giochi, giocattoli, articoli sportivi";"47.63.21 47.63.29 47.64.00 93.19.91"
+EM11U;"Commercio all’ingrosso e al dettaglio di ferramenta ed utensileria, termoidraulica, legname, materiali da costruzione, piastrelle, pavimenti e prodotti vernicianti";"46.83.10 46.83.21 46.83.22 46.83.23 46.83.29 46.83.30 46.84.10 46.84.20 47.52.10 47.52.20 47.52.31 47.52.32 47.53.20"
+EM12U;"Commercio al dettaglio di libri";"47.61.00 47.79.10"
+EM13U;"Commercio al dettaglio di giornali, riviste e periodici";47.62.10
+EM15B;"Commercio al dettaglio di materiale per ottica, fotografia, cinematografia, strumenti di precisione";"47.74.01 47.78.10"
+EM16U;"Commercio al dettaglio di articoli di profumeria, per l’igiene personale e della casa";"47.75.00 47.78.40"
+EM17U;"Commercio all’ingrosso di cereali, legumi secchi e sementi";"46.21.10 46.21.22"
+EM18A;"Commercio all’ingrosso di fiori e piante";46.22.00
+EM20U;"Commercio al dettaglio di articoli di cartoleria e forniture per ufficio";47.62.20
+EM22C;"Commercio all’ingrosso di mobili di qualsiasi materiale";46.47.10
+EM23U;"Commercio all’ingrosso di medicinali, di articoli medicali e ortopedici";"46.46.10 46.46.20 46.46.39"
+EM24U;"Commercio all’ingrosso di carta, cartone e articoli di cartoleria";46.49.10
+EM29U;"Commercio al dettaglio di mobili";"47.55.10 47.55.20"
+EM31U;"Commercio all’ingrosso di orologi e di gioielleria";46.48.00
+EM35U;Erboristerie;47.73.20
+EM37U;"Commercio all’ingrosso di saponi, detersivi, profumi e cosmetici";"46.44.40 46.45.00"
+EM39U;"Commercio al dettaglio di combustibili per uso domestico e per riscaldamento";47.78.30
+EM40A;"Commercio al dettaglio di fiori e piante";47.76.10
+EM42U;"Commercio al dettaglio di articoli medicali e ortopedici";47.74.09
+EM43U;"Commercio all’ingrosso e al dettaglio di macchine e attrezzature agricole e per il giardinaggio";"46.61.00 47.52.40"
+EM44U;"Commercio al dettaglio di macchine e attrezzature per ufficio";47.40.10
+EM48U;"Commercio al dettaglio di animali da compagnia e alimenti per animali da compagnia";47.76.20
+EM81U;"Commercio all’ingrosso di combustibili";46.81.00
+EM84U;"Commercio all’ingrosso di macchine utensili";"46.50.20 46.62.00 46.63.00 46.64.11 46.64.19 46.64.20 46.64.30 46.64.40 46.64.51 46.64.59 46.64.60 46.64.99"
+EM85U;"Commercio al dettaglio di prodotti del tabacco";47.26.01
+EM88U;"Commercio all’ingrosso di altri prodotti nca";"46.21.21 46.35.01 46.35.09 46.47.20 46.49.91 46.49.92 46.49.99 46.64.92 46.85.02 46.86.20 46.86.30 46.86.90 46.89.00 46.90.00"
+FM05U;"Commercio al dettaglio di abbigliamento, calzature, pelletterie ed accessori";"47.71.10 47.71.20 47.71.30 47.71.50 47.72.11 47.72.12 47.72.20 47.79.31"
+FM06A;"Commercio al dettaglio di elettrodomestici, casalinghi e attrezzature per bambini";"47.12.10 47.40.20 47.40.30 47.53.12 47.54.00 47.55.30 47.55.40 47.55.90 47.69.11"
+FM15A;"Commercio al dettaglio e riparazione di orologi e gioielli";"47.77.00 47.79.32 95.25.00"
+FM87U;"Commercio al dettaglio di altri prodotti nca";"47.12.20 47.12.30 47.12.40 47.12.50 47.12.90 47.69.20 47.69.99 47.73.90 47.78.91 47.78.92 47.78.93 47.78.99 47.79.39"

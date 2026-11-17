@@ -12,13 +12,21 @@ namespace Dichiarativi\Application\Services\TabelleRiferimento;
  * e quadri-<modello>-<anno>.csv. Le sorgenti si importano poi con
  * TabelleDichiarativi ("sisma tabelle-dichiarativi").
  *
+ * Le specifiche degli ISA sono un archivio 7z con un file Excel per ISA
+ * (estratto con bsdtar, libarchive-tools, e convertito con xls2csv,
+ * catdoc): se ne leggono i campi (LettoreSpecificheIsa) e dalle istruzioni
+ * "Parte generale" (colonna "istruzioni" di specifiche.csv) l'elenco degli
+ * ISA con le attività; si riscrivono campi-ISA-<anno>.csv e isa-<anno>.csv
+ * (le denominazioni dei quadri, comuni a tutti gli ISA, sono in
+ * quadri-ISA-<anno>.csv).
+ *
  * @see https://www.agenziaentrate.gov.it/portale/it/iva_2026specifichetecniche
  * @see https://www.agenziaentrate.gov.it/portale/modello-redditi-persone-fisiche-2026/software-di-compilazione
  */
 class SpecificheDichiarativi
 {
 
-    public const COLONNE_SPECIFICHE = ['modello', 'anno', 'url', 'provvedimento'];
+    public const COLONNE_SPECIFICHE = ['modello', 'anno', 'url', 'provvedimento', 'istruzioni'];
 
     /**
      * Formati incoerenti nelle specifiche ufficiali, corretti alla lettura:
@@ -58,6 +66,9 @@ class SpecificheDichiarativi
      */
     private function aggiornaSpecifica(array $specifica): array
     {
+        if ($specifica['modello'] === 'ISA') {
+            return $this->aggiornaSpecificheIsa($specifica);
+        }
         $pdf = tempnam(sys_get_temp_dir(), 'spec');
         try {
             file_put_contents($pdf, $this->scarica($specifica['url']));
@@ -91,6 +102,77 @@ class SpecificheDichiarativi
         ];
     }
 
+    /**
+     * @param array{modello: string, anno: int, url: string, provvedimento: string, istruzioni: ?string} $specifica
+     */
+    private function aggiornaSpecificheIsa(array $specifica): array
+    {
+        foreach (['bsdtar' => 'libarchive-tools', 'xls2csv' => 'catdoc', 'pdftotext' => 'poppler-utils'] as $comando => $pacchetto) {
+            if (trim((string) shell_exec('command -v ' . $comando)) === '') {
+                throw new \RuntimeException($comando . ' non disponibile: installare ' . $pacchetto . ' (vedi Dockerfile)');
+            }
+        }
+        if ($specifica['istruzioni'] === null) {
+            throw new \UnexpectedValueException('specifiche.csv: manca l\'indirizzo delle istruzioni ISA "Parte generale" (colonna istruzioni)');
+        }
+        $lettore = new LettoreSpecificheIsa();
+        $cartella = sys_get_temp_dir() . '/specifiche-isa-' . bin2hex(random_bytes(4));
+        mkdir($cartella);
+        try {
+            file_put_contents($cartella . '/specifiche.7z', $this->scarica($specifica['url'], "7z\xBC\xAF\x27\x1C"));
+            exec(sprintf('bsdtar -xf %s -C %s 2>&1', escapeshellarg($cartella . '/specifiche.7z'), escapeshellarg($cartella)), $uscita, $esito);
+            $archivi = self::trova($cartella, '/\.zip$/i');
+            foreach ($archivi as $archivio) {
+                exec(sprintf('bsdtar -xf %s -C %s 2>&1', escapeshellarg($archivio), escapeshellarg(dirname($archivio))), $uscita, $esito);
+            }
+            $campi = [];
+            foreach (self::trova($cartella, '/^[A-Z]{2}\d{2}[A-Z]_SPECDEF\.xls$/') as $file) {
+                $isa = substr(basename($file), 0, 5);
+                $testo = shell_exec('xls2csv -d utf-8 -c ";" ' . escapeshellarg($file) . ' 2>/dev/null');
+                foreach ($lettore->leggiCampi((string) $testo) as $codice => $campo) {
+                    $campi[] = [$isa, $codice, LettoreSpecificheIsa::FORMATI[$campo['formato']] ?? $campo['formato'], $campo['descrizione']];
+                }
+            }
+            $pdf = $cartella . '/istruzioni.pdf';
+            file_put_contents($pdf, $this->scarica($specifica['istruzioni']));
+            $elenco = $lettore->leggiElenco((string) shell_exec('pdftotext -enc UTF-8 -layout ' . escapeshellarg($pdf) . ' - 2>/dev/null'));
+        } finally {
+            foreach (array_reverse(self::trova($cartella, '/./', true)) as $elemento) {
+                is_dir($elemento) ? @rmdir($elemento) : @unlink($elemento);
+            }
+            @rmdir($cartella);
+        }
+        $isaSpecifiche = array_values(array_unique(array_column($campi, 0)));
+        if (count($isaSpecifiche) < 100) {
+            throw new \UnexpectedValueException(sprintf('Specifiche ISA %d: trovati solo %d ISA, archivio cambiato?', $specifica['anno'], count($isaSpecifiche)));
+        }
+        $senzaElenco = array_diff($isaSpecifiche, array_keys($elenco));
+        if (count($senzaElenco) > 0) {
+            throw new \UnexpectedValueException('ISA delle specifiche assenti dalla tabella 1 delle istruzioni: ' . implode(', ', $senzaElenco));
+        }
+        usort($campi, fn(array $a, array $b) => [$a[0], $a[1]] <=> [$b[0], $b[1]]);
+        ksort($elenco);
+        $this->scriviCsv('campi-ISA-' . $specifica['anno'] . '.csv', TabelleDichiarativi::COLONNE_CAMPI_ISA, $campi);
+        $this->scriviCsv('isa-' . $specifica['anno'] . '.csv', TabelleDichiarativi::COLONNE_ISA,
+            array_map(fn(string $codice, array $isa) => [$codice, $isa['descrizione'], implode(' ', $isa['attivita'])], array_keys($elenco), $elenco));
+        return ['campi' => count($campi), 'senzaFormato' => [], 'quadri' => count($isaSpecifiche)];
+    }
+
+    /**
+     * @return string[] percorsi dei file (e, con $cartelle, delle cartelle) sotto $cartella il cui nome corrisponde all'espressione
+     */
+    private static function trova(string $cartella, string $espressione, bool $cartelle = false): array
+    {
+        $trovati = [];
+        foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($cartella, \FilesystemIterator::SKIP_DOTS), \RecursiveIteratorIterator::SELF_FIRST) as $elemento) {
+            if (($cartelle || $elemento->isFile()) && (preg_match($espressione, $elemento->getFilename()) === 1)) {
+                $trovati[] = $elemento->getPathname();
+            }
+        }
+        sort($trovati);
+        return $trovati;
+    }
+
     private function scriviCsv(string $nome, array $colonne, array $righe): void
     {
         $file = @fopen($this->cartella . $nome, 'w') ?: throw new \RuntimeException('Impossibile scrivere ' . $nome);
@@ -101,14 +183,14 @@ class SpecificheDichiarativi
         fclose($file);
     }
 
-    protected function scarica(string $url): string
+    protected function scarica(string $url, string $firma = '%PDF'): string
     {
         $curl = curl_init($url);
         curl_setopt_array($curl, [CURLOPT_RETURNTRANSFER => true, CURLOPT_FOLLOWLOCATION => true, CURLOPT_TIMEOUT => 120,
             CURLOPT_USERAGENT => 'Mozilla/5.0 (compatible; Telonio)']);
         $contenuto = curl_exec($curl);
         $codice = curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
-        if (($contenuto === false) || ($codice !== 200) || (str_starts_with((string) $contenuto, '%PDF') === false)) {
+        if (($contenuto === false) || ($codice !== 200) || (str_starts_with((string) $contenuto, $firma) === false)) {
             throw new \RuntimeException('Download non riuscito (HTTP ' . $codice . '): ' . $url);
         }
         return $contenuto;

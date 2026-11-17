@@ -34,9 +34,13 @@ class TracciatoRedditi
         'progressivoModulo' => [18, 8, 'NU'],
         'identificativoProduttore' => [74, 16, 'AN'],
         'flagConferma' => [90, 1, 'NU'],
+        // campo 9 "Flag conferma Studi di settore/parametri": conferma delle anomalie dei modelli ISA allegati
+        'flagConfermaIsa' => [91, 1, 'NU'],
         'moduloRw' => [94, 1, 'NU'],
         'quadroVo' => [95, 1, 'NU'],
         'quadroAc' => [96, 1, 'NU'],
+        // campo 15: modello ISA allegato (record P, Q ed R)
+        'isa' => [97, 1, 'NU'],
         'correttiva' => [103, 1, 'NU'],
         'cognome' => [107, 24, 'AN'],
         'nome' => [131, 20, 'AN'],

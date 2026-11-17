@@ -11,6 +11,7 @@ use Deleghe\Application\Services\Telematico\RecordF24;
 use Dichiarativi\Application\Entities\Dichiarazione;
 use Dichiarativi\Application\Enumerations\TipologiaDichiarazione;
 use Dichiarativi\Application\Services\Frontespizio;
+use Dichiarativi\Application\Services\Isa\ModelliIsa;
 use Dichiarativi\Application\Services\QuadriDichiarazione;
 use Dichiarativi\Application\Services\Redditi\ControlliRedditi;
 use Dichiarativi\Application\Services\Redditi\VersamentiRedditi;
@@ -47,6 +48,7 @@ class GeneratoreRedditi
             throw new \InvalidArgumentException(implode(' ', $errori));
         }
         $segnalazioni = $controlli->getSegnalazioni($quadri);
+        $segnalazioniIsa = $controlli->getSegnalazioniIsa($dichiarazione);
         if ((count($segnalazioni) > 0) && ($dichiarazione->flagConferma === false)) {
             throw new \InvalidArgumentException('Dati non coerenti (' . implode(' ', $segnalazioni) . '): correggerli o confermarli nel frontespizio.');
         }
@@ -58,16 +60,45 @@ class GeneratoreRedditi
             }
         }
         $recordC = RecordQuadri::genera('C', $dichiarazione->soggetto->codiceFiscale, $valori, $quadri->getCatalogo());
+        $recordIsa = $this->getRecordIsa($dichiarazione);
         return implode('', [
             (string) (new RecordF24(TracciatoRedditi::RECORD_A))
                     ->imposta('tipoRecord', 'A')
                     ->imposta('codiceFornitura', $dichiarazione->modello->getCodiceFornitura($dichiarazione->anno))
                     ->imposta('tipoFornitore', $dichiarazione->intermediario === null ? 1 : 10)
                     ->imposta('codiceFiscaleFornitore', $dichiarazione->intermediario?->soggetto->codiceFiscale ?? $dichiarazione->soggetto->codiceFiscale),
-            (string) $this->recordB($dichiarazione, $quadri),
+            (string) $this->recordB($dichiarazione, $quadri, count($recordIsa['P']) > 0, count($segnalazioniIsa) > 0, count($segnalazioni) > count($segnalazioniIsa)),
             ...$recordC,
-            (string) (new RecordF24(TracciatoRedditi::RECORD_Z))->imposta('tipoRecord', 'Z')->imposta('numeroRecordB', 1)->imposta('numeroRecordC', count($recordC)),
+            ...$recordIsa['P'],
+            ...$recordIsa['Q'],
+            ...$recordIsa['R'],
+            (string) (new RecordF24(TracciatoRedditi::RECORD_Z))->imposta('tipoRecord', 'Z')->imposta('numeroRecordB', 1)->imposta('numeroRecordC', count($recordC))
+                    ->imposta('numeroRecordP', count($recordIsa['P']))->imposta('numeroRecordQ', count($recordIsa['Q']))->imposta('numeroRecordR', count($recordIsa['R'])),
         ]);
+    }
+
+    /**
+     * Record P, Q ed R dei modelli ISA allegati, come restituiti dal
+     * software di calcolo (CalcoloIsa), per tipo di record: dopo i record C,
+     * ordinati per tipo record (specifiche Redditi PF, par. 2.2).
+     *
+     * @return array{P: string[], Q: string[], R: string[]}
+     */
+    private function getRecordIsa(Dichiarazione $dichiarazione): array
+    {
+        $record = ['P' => [], 'Q' => [], 'R' => []];
+        foreach ((new ModelliIsa($this->dataMapper))->getDichiarazioni($dichiarazione) as $isa) {
+            foreach (explode("\r\n", (string) $isa->calcoloIsa) as $riga) {
+                $tipo = substr($riga, 0, 1);
+                if (isset($record[$tipo])) {
+                    if (strlen($riga) !== GeneratoreIsa::LUNGHEZZA_RECORD - 2) {
+                        throw new \LengthException(sprintf('Modello ISA %s: record %s di %d caratteri invece di %d.', $isa->isa, $tipo, strlen($riga) + 2, GeneratoreIsa::LUNGHEZZA_RECORD));
+                    }
+                    $record[$tipo][] = $riga . "\r\n";
+                }
+            }
+        }
+        return $record;
     }
 
     public static function getNomeFile(Dichiarazione $dichiarazione): string
@@ -75,7 +106,11 @@ class GeneratoreRedditi
         return sprintf('%s_%s_%d.txt', $dichiarazione->modello->getCodiceFornitura($dichiarazione->anno), preg_replace('/\W+/', '', $dichiarazione->soggetto->codiceFiscale), $dichiarazione->anno);
     }
 
-    private function recordB(Dichiarazione $dichiarazione, QuadriDichiarazione $quadri): string
+    /**
+     * @param bool $anomalieIsa segnalazioni confermabili dei modelli ISA allegati
+     * @param bool $anomalieRedditi segnalazioni confermabili della dichiarazione
+     */
+    private function recordB(Dichiarazione $dichiarazione, QuadriDichiarazione $quadri, bool $isa = false, bool $anomalieIsa = false, bool $anomalieRedditi = false): string
     {
         $soggetto = $dichiarazione->soggetto;
         $anno = $dichiarazione->anno;
@@ -91,7 +126,10 @@ class GeneratoreRedditi
                 ->imposta('codiceFiscale', $soggetto->codiceFiscale)
                 ->imposta('progressivoModulo', 1)
                 ->imposta('identificativoProduttore', 'TELONIO')
+                // conferma delle anomalie (campo 8, anche per quelle dei modelli ISA allegati, che sono anomalie della dichiarazione) e,
+                // per i modelli ISA, anche il campo 9 "Flag conferma Studi di settore/parametri"
                 ->imposta('flagConferma', (int) $dichiarazione->flagConferma)
+                ->imposta('flagConfermaIsa', (int) ($dichiarazione->flagConferma && $anomalieIsa))
                 ->imposta('correttiva', (int) ($dichiarazione->tipologia === TipologiaDichiarazione::correttiva))
                 ->impostaTroncato('cognome', $soggetto->cognome)
                 ->impostaTroncato('nome', $soggetto->nome)
@@ -104,7 +142,10 @@ class GeneratoreRedditi
                 ->imposta('sesso', $soggetto->sesso?->value)
                 ->imposta('firmaDichiarante', 1);
         $this->impostaScelte($record, $dichiarazione);
-        // omessa presentazione del modello ISA scelta nel frontespizio (la suite non compila il modello): casella del quadro RE (campo
+        if ($isa) {
+            $record->imposta('isa', 1);
+        }
+        // omessa presentazione del modello ISA scelta nel frontespizio (modello non allegato): casella del quadro RE (campo
         // 179) o dei quadri RF e RG (campo 180) senza causa di esclusione (controlli dei campi RE001002, RF001002 e RG001002)
         if ($dichiarazione->omessoIsa) {
             foreach (['RE' => 'assenzaIsaQuadroH', 'RF' => 'assenzaIsaQuadroF', 'RG' => 'assenzaIsaQuadroF'] as $quadro => $campo) {

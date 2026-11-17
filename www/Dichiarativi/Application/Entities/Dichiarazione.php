@@ -26,6 +26,10 @@ use Telonio\Application\Entities\Studio;
  * Una sola dichiarazione per contribuente, modello e anno: la correttiva o
  * l'integrativa si predispone riportando in bozza quella presentata e
  * cambiandone il tipo.
+ *
+ * Il modello ISA è una dichiarazione del modello "ISA" con il codice
+ * dell'ISA applicato, collegata alla dichiarazione Redditi a cui è
+ * allegato (una per ISA: impresa e lavoro autonomo).
  */
 class Dichiarazione extends ReferencedEntity
 {
@@ -38,6 +42,8 @@ class Dichiarazione extends ReferencedEntity
     protected ModelloDichiarativo $modello;
     protected int $anno;
     protected ?int $trimestre = null;
+    protected ?string $isa = null;
+    protected ?Dichiarazione $dichiarazioneRedditi = null;
     protected TipologiaDichiarazione $tipologia = TipologiaDichiarazione::ordinaria;
     protected StatoDichiarazione $stato = StatoDichiarazione::bozza;
     protected ?int $naturaGiuridica = null;
@@ -65,6 +71,10 @@ class Dichiarazione extends ReferencedEntity
     protected ?SismaDateTime $dataElaborazione = null;
     protected ?string $avvisi = null;
     protected ?string $annotazioni = null;
+    protected ?string $calcoloIsa = null;
+    protected ?string $esitoIsa = null;
+    protected ?string $reportIsa = null;
+    protected ?string $improntaIsa = null;
     protected ?OttoPerMille $ottoPerMille = null;
     protected ?int $finalitaStato = null;
     protected ?CinquePerMille $cinquePerMille = null;
@@ -98,6 +108,9 @@ class Dichiarazione extends ReferencedEntity
     {
         if ($this->modello->isTrimestrale()) {
             return $this->modello->getSigla() . ' ' . $this->trimestre . '° trimestre ' . $this->anno;
+        }
+        if ($this->modello === ModelloDichiarativo::isa) {
+            return $this->modello->getSigla() . ' ' . $this->isa . ' ' . $this->getAnnoModello() . ' (anno ' . $this->anno . ')';
         }
         return $this->modello->getSigla() . ' ' . $this->getAnnoModello() . ' (anno ' . $this->anno . ')';
     }

@@ -56,6 +56,9 @@ class ComponentiReddito
     /** @var array{ricavi: float, costi: float} totali dell'ultimo calcolo per cassa (esclusi i conti con rigo "NO") */
     private array $totaliCassa = ['ricavi' => 0.0, 'costi' => 0.0];
 
+    /** @var array<string, float> */
+    private array $perVoce = [];
+
     public function __construct(private DataMapper $dataMapper = new DataMapper())
     {
 
@@ -64,6 +67,20 @@ class ComponentiReddito
     /**
      * @return string[]
      */
+    /**
+     * Componenti dell'ultimo calcolo (per cassa o per competenza) per voce
+     * del conto economico CEE dei conti (es. "E.B.7" costi per servizi),
+     * con lo stesso criterio e la sola parte deducibile dei costi (parte
+     * imponibile dei ricavi): i ricavi positivi, i costi positivi. Per i
+     * righi del modello ISA che distinguono i costi per natura (quadro F).
+     *
+     * @return array<string, float> voce CEE => importo
+     */
+    public function getPerVoceCee(): array
+    {
+        return array_map(fn(float $importo) => round($importo, 2), $this->perVoce);
+    }
+
     public function getAvvisi(): array
     {
         return $this->avvisi;
@@ -177,6 +194,7 @@ class ComponentiReddito
     public function perCassa(Soggetto $soggetto, int $anno, bool $professionista): array
     {
         $this->avvisi = [];
+        $this->perVoce = [];
         $this->totaliCassa = ['ricavi' => 0.0, 'costi' => 0.0];
         // senza epilogo, chiusura e riapertura dei conti
         $righe = array_values(array_filter(iterator_to_array((new RigaContabileModel($this->dataMapper))->getMovimenti($soggetto, null, null, null), false),
@@ -254,11 +272,17 @@ class ComponentiReddito
     {
         $ricavi = $costi = 0.0;
         $variazioni = [];
+        $this->perVoce = [];
         $dal = new SismaDate($anno . '-01-01');
         $al = new SismaDate($anno . '-12-31');
         foreach ((new RigaContabileModel($this->dataMapper))->getMovimenti($soggetto, null, $dal, $al) as $riga) {
             if ($riga->registrazioneContabile->origine === ChiusuraEsercizio::ORIGINE) {
                 continue;
+            }
+            if (in_array($riga->conto->natura, [NaturaConto::ricavo, NaturaConto::costo], true) && ($riga->conto->voceCee !== null)) {
+                $importo = $riga->conto->natura === NaturaConto::ricavo ? $riga->avere - $riga->dare : $riga->dare - $riga->avere;
+                $voce = $riga->conto->voceCee->value;
+                $this->perVoce[$voce] = ($this->perVoce[$voce] ?? 0.0) + $importo * ($riga->conto->percentualeDeducibile ?? 100.0) / 100;
             }
             if ($riga->conto->natura === NaturaConto::ricavo) {
                 $ricavi += $riga->avere - $riga->dare;
@@ -299,6 +323,9 @@ class ComponentiReddito
             $importo *= $conto->percentualeDeducibile / 100;
         }
         $componenti[$rigo] = ($componenti[$rigo] ?? 0.0) + $importo;
+        if (($conto->voceCee !== null) && ($rigo !== RighiRedditi::ESCLUSO)) {
+            $this->perVoce[$conto->voceCee->value] = ($this->perVoce[$conto->voceCee->value] ?? 0.0) + $importo;
+        }
         if ($rigo !== RighiRedditi::ESCLUSO) {
             $this->totaliCassa[$conto->natura === NaturaConto::ricavo ? 'ricavi' : 'costi'] += $importo;
         }

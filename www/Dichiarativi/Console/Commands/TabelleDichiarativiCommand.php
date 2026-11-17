@@ -62,7 +62,7 @@ OUTPUT;
                 . "-- =====================================================\n"
                 . "-- Generato con \"sisma tabelle-dichiarativi --sql\" il " . date('d/m/Y H:i') . ": non modificare a mano.\n"
                 . "-- Fonte: Dichiarativi/Database/sorgenti, dalle specifiche tecniche dell'Agenzia delle Entrate (specifiche.csv) e dalle tabelle delle addizionali (addizionali.csv).\n"
-                . sprintf("-- Righe: campo_modello %d, quadro_modello %d, addizionale_regionale %d, addizionale_comunale %d.\n", count($dati['campi']), count($dati['quadri']), count($dati['regionali']), count($dati['comunali']))
+                . sprintf("-- Righe: campo_modello %d, quadro_modello %d, indice_isa %d, addizionale_regionale %d, addizionale_comunale %d.\n", count($dati['campi']), count($dati['quadri']), count($dati['isa']), count($dati['regionali']), count($dati['comunali']))
                 . "-- Idempotente. Da eseguire dopo schema.sql.\n\n"
                 . "SET NAMES utf8mb4;\n\n");
         foreach ($tabelle->istruzioni($dati) as $istruzione) {

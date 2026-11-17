@@ -44,7 +44,7 @@ class QuadriDichiarazione
 
     public function __construct(private Dichiarazione $dichiarazione, private DataMapper $dataMapper = new DataMapper(), ?array $catalogo = null)
     {
-        $this->catalogo = $catalogo ?? (new CampoModelloModel($dataMapper))->getCatalogo($dichiarazione->modello, $dichiarazione->getAnnoModello());
+        $this->catalogo = $catalogo ?? (new CampoModelloModel($dataMapper))->getCatalogo($dichiarazione->modello, $dichiarazione->getAnnoModello(), $dichiarazione->isa);
         if (isset($dichiarazione->id)) {
             foreach ((new ValoreDichiarazioneModel($dataMapper))->getValori($dichiarazione) as $valore) {
                 $this->valori[$valore->modulo][$valore->codice] = ['valore' => $valore->valore, 'manuale' => $valore->manuale, 'entita' => $valore];
@@ -63,6 +63,24 @@ class QuadriDichiarazione
     public function getCatalogo(): array
     {
         return $this->catalogo;
+    }
+
+    /**
+     * Quadro del campo dal catalogo (per i modelli ISA la lettera
+     * iniziale del codice, per gli altri le prime due lettere).
+     */
+    public function getQuadro(string $codice): string
+    {
+        return $this->catalogo[$codice]->quadro ?? substr($codice, 0, 2);
+    }
+
+    /**
+     * Campo nel catalogo del modello (per i modelli ISA, dell'ISA della
+     * dichiarazione).
+     */
+    public function haCampo(string $codice): bool
+    {
+        return isset($this->catalogo[$codice]);
     }
 
     public function getCampo(string $codice): CampoModello
@@ -105,7 +123,7 @@ class QuadriDichiarazione
     public function eliminaModulo(int $modulo, string ...$quadriEsclusi): void
     {
         foreach (array_keys($this->valori[$modulo] ?? []) as $codice) {
-            if (in_array(substr($codice, 0, 2), $quadriEsclusi, true) === false) {
+            if (in_array($this->getQuadro($codice), $quadriEsclusi, true) === false) {
                 $this->rimuovi($codice, $modulo);
             }
         }
@@ -168,7 +186,7 @@ class QuadriDichiarazione
      */
     public function getQuadriCompilati(?int $modulo = null): array
     {
-        $quadri = array_unique(array_map(fn(string $codice) => substr($codice, 0, 2), array_keys($this->valori[$modulo ?? $this->moduloCorrente] ?? [])));
+        $quadri = array_unique(array_map(fn(string $codice) => $this->getQuadro($codice), array_keys($this->valori[$modulo ?? $this->moduloCorrente] ?? [])));
         sort($quadri);
         return $quadri;
     }
@@ -181,7 +199,7 @@ class QuadriDichiarazione
     {
         $this->quadriInProposta = array_values(array_unique(array_merge($this->quadriInProposta, $quadri)));
         foreach ($this->valori[$this->moduloCorrente] ?? [] as $codice => $dati) {
-            if (($dati['manuale'] === false) && in_array(substr($codice, 0, 2), $quadri, true)) {
+            if (($dati['manuale'] === false) && in_array($this->getQuadro($codice), $quadri, true)) {
                 $this->rimuovi($codice, $this->moduloCorrente);
             }
         }
