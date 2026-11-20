@@ -250,6 +250,8 @@
                 "rigoVx8": "IVA a credito trasferita al gruppo (VX8)",
                 "rigoVy1": "IVA del gruppo da versare (VY1)",
                 "rigoVy5": "Credito del gruppo da riportare o compensare (VY5)",
+                "titoloAliquoteIrap": "Codici aliquota IRAP della regione",
+                "aiutoAliquoteIrap": "Tabella del Dipartimento delle Finanze per la regione del rigo IR1 (evidenziato il codice indicato). Per un'aliquota agevolata o maggiorata del settore o della categoria indica il codice nella colonna 6 del rigo IR1: l'aliquota si ricalcola alla riproposta.",
                 "nessunRedditoProposto": "Nessun reddito proposto: riproponi la dichiarazione dopo aver registrato possessi, contratti e Certificazioni Uniche.",
                 "aiutoVersamentiRedditi": "Saldi e acconti di IRPEF, addizionali, cedolare secca e imposta dei forfetari nelle scadenze del 30 giugno (o 30 luglio con lo 0,40%) e del 30 novembre; saldo e primo acconto anche a rate mensili fino a dicembre, con il piano di rateazione e gli interessi in Deleghe; i crediti da compensare del quadro RX in Deleghe.",
                 "titoloModelliIsa": "Modelli ISA",

@@ -2,6 +2,7 @@
 
 namespace Contabilita\Application\Services\TabelleRiferimento;
 
+use Contabilita\Application\Services\RighiIrap;
 use Contabilita\Application\Services\RighiIsa;
 use Anagrafica\Application\Services\TabelleRiferimento\GeneratoreSql;
 use Contabilita\Application\Entities\CodiceIva;
@@ -36,7 +37,7 @@ class TabelleContabilita
 
     public const CARTELLA = __DIR__ . '/../../../Database/sorgenti/';
     public const COLONNE_PIANI = ['id', 'denominazione', 'descrizione'];
-    public const COLONNE_CONTI = ['piano_conti_id', 'id', 'codice', 'descrizione', 'natura', 'funzione', 'voce_cee', 'rigo_isa'];
+    public const COLONNE_CONTI = ['piano_conti_id', 'id', 'codice', 'descrizione', 'natura', 'funzione', 'voce_cee', 'rigo_isa', 'rigo_irap'];
     public const COLONNE_PRODOTTI = ['id', 'voce', 'descrizione', 'percentuale', 'aliquota', 'dal_anno', 'al_anno'];
     public const COLONNE_CODICI_IVA = ['id', 'codice', 'descrizione', 'aliquota', 'natura', 'detraibilita', 'inversione_contabile', 'ventilazione', 'norma', 'norma_testo_unico', 'valido_fino'];
     public const PRIMO_ID_CONTO_STUDIO = 100000;
@@ -67,7 +68,7 @@ class TabelleContabilita
         yield from $generatore->generaUpsert('piano_conti', ['id', 'studio_id', 'soggetto_id', 'denominazione', 'descrizione', 'piano_origine_id', 'data_creazione'], $dati['piani']);
         $idPiani = implode(', ', array_column($dati['piani'], 'id'));
         yield 'DELETE FROM `conto` WHERE `piano_conti_id` IN (' . $idPiani . ') AND `id` NOT IN (' . implode(', ', array_column($dati['conti'], 'id')) . ');';
-        yield from $generatore->generaUpsert('conto', ['id', 'piano_conti_id', 'parent_conto_id', 'codice', 'descrizione', 'livello', 'natura', 'funzione', 'voce_cee', 'rigo_isa', 'attivo'], $dati['conti']);
+        yield from $generatore->generaUpsert('conto', ['id', 'piano_conti_id', 'parent_conto_id', 'codice', 'descrizione', 'livello', 'natura', 'funzione', 'voce_cee', 'rigo_isa', 'rigo_irap', 'attivo'], $dati['conti']);
         yield from $generatore->generaUpsert('codice_iva', ['id', 'studio_id', 'codice', 'descrizione', 'aliquota', 'natura', 'detraibilita', 'inversione_contabile', 'ventilazione', 'norma', 'norma_testo_unico', 'valido_fino', 'attivo'], $dati['codiciIva']);
         yield 'DELETE FROM `prodotto_agricolo` WHERE `id` NOT IN (' . implode(', ', array_column($dati['prodotti'], 'id')) . ');';
         yield from $generatore->generaUpsert('prodotto_agricolo', ['id', 'voce', 'descrizione', 'percentuale', 'dal_anno', 'al_anno'], $dati['prodotti']);
@@ -128,12 +129,15 @@ class TabelleContabilita
             if (RighiIsa::isValido($riga['rigo_isa']) === false) {
                 throw $errore('rigo dei modelli ISA non previsto');
             }
+            if (RighiIrap::isValido($riga['rigo_irap']) === false) {
+                throw $errore('variazione del modello IRAP non prevista');
+            }
             $codici[$piano][$codice] = $id;
             if ($funzione !== null) {
                 $funzioni[$piano][$funzione->value] = true;
             }
             $conti[$id] = ['id' => $id, 'piano_conti_id' => $piano, 'parent_conto_id' => $padre === null ? null : $codici[$piano][$padre], 'codice' => $codice,
-                'descrizione' => $riga['descrizione'], 'livello' => $livello->value, 'natura' => $natura->value, 'funzione' => $funzione?->value, 'voce_cee' => $voce?->value, 'rigo_isa' => $riga['rigo_isa'], 'attivo' => 1];
+                'descrizione' => $riga['descrizione'], 'livello' => $livello->value, 'natura' => $natura->value, 'funzione' => $funzione?->value, 'voce_cee' => $voce?->value, 'rigo_isa' => $riga['rigo_isa'], 'rigo_irap' => $riga['rigo_irap'], 'attivo' => 1];
         }
         foreach (array_keys($piani) as $piano) {
             foreach ([FunzioneConto::clienti, FunzioneConto::fornitori] as $funzione) {

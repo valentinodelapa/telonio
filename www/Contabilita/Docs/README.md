@@ -512,6 +512,22 @@ F14 campo 4 per le società di persone). `ComponentiReddito::getPerRigoIsa`
 dà i componenti per rigo con lo stesso criterio e la parte deducibile; i
 campi "di cui" sono compresi anche nel rigo.
 
+### Variazioni IRAP
+
+Ogni conto economico può indicare anche la variazione del valore della
+produzione del quadro IC del modello IRAP (società di capitali) a cui
+concorrono i suoi costi o ricavi dell'anno (servizio `RighiIrap`): righi
+propri (IC43 costi indeducibili dell'art. 11, c. 1, lett. b, come i
+compensi ai collaboratori coordinati e continuativi e agli amministratori
+non professionisti; IC44 quota interessi dei canoni di leasing; IC45
+perdite su crediti; IC46 IMU; IC48 ammortamento indeducibile di marchi e
+avviamento; IC49 interessi passivi indeducibili) e altre variazioni con il
+codice del paragrafo 2.1.7 delle istruzioni ("IC51:99" in aumento,
+"IC57:04" in diminuzione). Vuoto: nessuna variazione. Nel piano modello
+hanno la variazione i compensi agli amministratori (IC43) e il conto IMU
+(IC46). `ComponentiReddito::getPerRigoIrap` dà gli importi per
+competenza, che `Dichiarativi` propone nel quadro IC.
+
 ### Esigibilità differita e IVA per cassa
 
 L'esigibilità della registrazione (`EsigibilitaIva`) può essere

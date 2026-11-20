@@ -62,6 +62,9 @@ class ComponentiReddito
     /** @var array<string, float> */
     private array $perRigoIsa = [];
 
+    /** @var array<string, float> */
+    private array $perRigoIrap = [];
+
     public function __construct(private DataMapper $dataMapper = new DataMapper())
     {
 
@@ -95,6 +98,19 @@ class ComponentiReddito
     public function getPerRigoIsa(): array
     {
         return array_map(fn(float $importo) => round($importo, 2), $this->perRigoIsa);
+    }
+
+    /**
+     * Componenti dell'ultimo calcolo per competenza per variazione del
+     * quadro IC del modello IRAP indicata sul conto (RighiIrap, es. "IC46"
+     * o "IC51:99"), con la stessa parte dei costi e dei ricavi delle voci:
+     * l'importo da indicare nella variazione.
+     *
+     * @return array<string, float> rigo => importo
+     */
+    public function getPerRigoIrap(): array
+    {
+        return array_map(fn(float $importo) => round($importo, 2), $this->perRigoIrap);
     }
 
     public function getAvvisi(): array
@@ -212,6 +228,7 @@ class ComponentiReddito
         $this->avvisi = [];
         $this->perVoce = [];
         $this->perRigoIsa = [];
+        $this->perRigoIrap = [];
         $this->totaliCassa = ['ricavi' => 0.0, 'costi' => 0.0];
         // senza epilogo, chiusura e riapertura dei conti
         $righe = array_values(array_filter(iterator_to_array((new RigaContabileModel($this->dataMapper))->getMovimenti($soggetto, null, null, null), false),
@@ -291,6 +308,7 @@ class ComponentiReddito
         $variazioni = [];
         $this->perVoce = [];
         $this->perRigoIsa = [];
+        $this->perRigoIrap = [];
         $dal = new SismaDate($anno . '-01-01');
         $al = new SismaDate($anno . '-12-31');
         foreach ((new RigaContabileModel($this->dataMapper))->getMovimenti($soggetto, null, $dal, $al) as $riga) {
@@ -306,6 +324,10 @@ class ComponentiReddito
                 $importo = $riga->conto->natura === NaturaConto::ricavo ? $riga->avere - $riga->dare : $riga->dare - $riga->avere;
                 foreach (RighiIsa::getChiavi($riga->conto) as $chiave) {
                     $this->perRigoIsa[$chiave] = ($this->perRigoIsa[$chiave] ?? 0.0) + $importo * ($riga->conto->percentualeDeducibile ?? 100.0) / 100;
+                }
+                $rigoIrap = RighiIrap::getRigo($riga->conto);
+                if ($rigoIrap !== null) {
+                    $this->perRigoIrap[$rigoIrap] = ($this->perRigoIrap[$rigoIrap] ?? 0.0) + $importo * ($riga->conto->percentualeDeducibile ?? 100.0) / 100;
                 }
             }
             if ($riga->conto->natura === NaturaConto::ricavo) {

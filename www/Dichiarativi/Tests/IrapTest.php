@@ -117,6 +117,41 @@ class IrapTest extends DichiarativiTestCase
         $this->assertNull($aliquote->getAliquota(2026, '08', '99'));
     }
 
+    public function testCategorieECodiciDellaRegione(): void
+    {
+        // categoria dell'art. 16, comma 1-bis, dal codice ATECO
+        $this->assertSame(AliquoteIrap::FINANZIARI, AliquoteIrap::getCategoria('64.19.10'));
+        $this->assertSame(AliquoteIrap::FINANZIARI, AliquoteIrap::getCategoria('66.12.00'));
+        $this->assertSame(AliquoteIrap::ASSICURAZIONI, AliquoteIrap::getCategoria('65.12.00'));
+        $this->assertNull(AliquoteIrap::getCategoria('69.20.01'));
+        $this->assertNull(AliquoteIrap::getCategoria(null));
+        $aliquote = new AliquoteIrap();
+        // Lazio: banche codice 2 (5,57), assicurazioni codice 3 (6,82); elenco in ordine di codice
+        $this->assertSame(['2'], array_map('strval', array_keys($aliquote->getCandidati(2026, '08', AliquoteIrap::FINANZIARI))));
+        $this->assertSame(['3'], array_map('strval', array_keys($aliquote->getCandidati(2026, '08', AliquoteIrap::ASSICURAZIONI))));
+        $this->assertSame('1', (string) array_key_first($aliquote->getElenco(2026, '8')));
+    }
+
+    public function testVariazioniDelQuadroIcDaiConti(): void
+    {
+        $dichiarazione = $this->creaDichiarazione();
+        $dichiarazione->modello = ModelloDichiarativo::irap;
+        $quadri = new QuadriDichiarazione($dichiarazione, $this->dataMapper, $this->getCatalogo(ModelloDichiarativo::irap, 2026));
+        // coppia di IC51 già compilata a mano con il codice 3: la variazione con il codice 99 va nella coppia successiva
+        $quadri->imposta('IC051001', 3);
+        $quadri->imposta('IC051002', 100);
+        $metodo = new \ReflectionMethod(PropostaIrap::class, 'proponiVariazioniConti');
+        $metodo->invoke(new PropostaIrap($this->dataMapper), $quadri, ['IC43' => 12000.4, 'IC46' => 800.0, 'IC51:99' => 250.0, 'IC57:04' => 1500.0]);
+        $this->assertSame(12000, $quadri->getImporto('IC043001'));
+        $this->assertSame(800, $quadri->getImporto('IC046001'));
+        $this->assertSame(99, $quadri->getImporto('IC051003'));
+        $this->assertSame(250, $quadri->getImporto('IC051004'));
+        $this->assertSame(4, $quadri->getImporto('IC057001'));
+        $this->assertSame(1500, $quadri->getImporto('IC057002'));
+        $this->assertTrue(\Contabilita\Application\Services\RighiIrap::isValido('IC51:99'));
+        $this->assertFalse(\Contabilita\Application\Services\RighiIrap::isValido('IC52'));
+    }
+
     public function testDeduzioniEAcconti(): void
     {
         // ulteriore deduzione (art. 11, c. 4-bis): società di capitali e società di persone (importi aumentati)

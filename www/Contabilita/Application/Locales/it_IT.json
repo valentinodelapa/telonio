@@ -162,7 +162,8 @@
                 "registratoNellEsercizio": "Costo o ricavo già registrato nell'esercizio (risconto); se si registra nell'esercizio successivo è un rateo",
                 "percentualeFiscale": "Coefficiente fiscale %",
                 "limiteCostoFiscale": "Costo fiscale massimo",
-                "rigoIsa": "Rigo del quadro F dei modelli ISA"
+                "rigoIsa": "Rigo del quadro F dei modelli ISA",
+                "rigoIrap": "Variazione del valore della produzione IRAP (quadro IC)"
             },
             "azioni": {
                 "salva": "Salva",
@@ -290,6 +291,8 @@
             "form": {
                 "aiuto": "Il codice indica il livello: NN mastro, NN.NN conto, NN.NN.NNNN sottoconto (si registra solo sui sottoconti). La funzione indica il conto alle proposte automatiche della prima nota; la voce CEE lo raccorda allo schema di bilancio.",
                 "rigoDallaVoce": "Dalla voce di bilancio",
+                "nessunaVariazioneIrap": "Nessuna variazione",
+                "aiutoRigoIrap": "Per le società di capitali (quadro IC del modello IRAP): i costi e i ricavi del conto nell'anno sono indeducibili (variazioni in aumento) o non imponibili (variazioni in diminuzione) ai fini IRAP. Per esempio i compensi agli amministratori non professionisti e ai collaboratori coordinati e continuativi (rigo IC43) e l'IMU (rigo IC46).",
                 "aiutoPercentualeDeducibile": "Per i costi deducibili in parte (es. 20 per le auto, 80 per la telefonia) o i ricavi imponibili in parte; vuota se interamente deducibile o imponibile. Nei quadri RG ed RE conta solo la parte deducibile o imponibile.",
                 "variazioneAltre": "RF31 o RF55 codice 99 (altre variazioni)",
                 "aiutoVariazione": "Rigo del quadro RF (contabilità ordinaria) per la parte indeducibile dei costi (in aumento) o non imponibile dei ricavi (in diminuzione, RF55).",

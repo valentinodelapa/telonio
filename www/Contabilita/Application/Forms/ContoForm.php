@@ -2,6 +2,7 @@
 
 namespace Contabilita\Application\Forms;
 
+use Contabilita\Application\Services\RighiIrap;
 use Contabilita\Application\Services\RighiIsa;
 use Contabilita\Application\Services\RighiRedditi;
 use Contabilita\Application\Entities\Conto;
@@ -53,6 +54,7 @@ class ContoForm extends BaseForm
                 ->addFilterFieldMode('voceCee', FilterType::isEnumeration, [], true)
                 ->addFilterFieldMode('rigoRedditi', FilterType::isMaxLimitString, [10], true)
                 ->addFilterFieldMode('rigoIsa', FilterType::isMaxLimitString, [8], true)
+                ->addFilterFieldMode('rigoIrap', FilterType::isMaxLimitString, [8], true)
                 ->addFilterFieldMode('percentualeDeducibile', FilterType::isNumeric, [], true)
                 ->addFilterFieldMode('variazioneRedditi', FilterType::isMaxLimitString, [10], true)
                 ->addFilterFieldMode('attivo', FilterType::isBoolean);
@@ -74,6 +76,10 @@ class ContoForm extends BaseForm
         }
         if (RighiIsa::isValido($this->entityData->rigoIsa ?? null) === false) {
             $this->formFilterError->rigoIsaCustomMessage = 'Rigo dei modelli ISA non previsto.';
+            $valido = false;
+        }
+        if (RighiIrap::isValido($this->entityData->rigoIrap ?? null) === false) {
+            $this->formFilterError->rigoIrapCustomMessage = 'Variazione del modello IRAP non prevista.';
             $valido = false;
         }
         $percentuale = $this->entityData->percentualeDeducibile ?? null;

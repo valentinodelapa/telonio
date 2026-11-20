@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.34.0-alpha] - 2026-11-20 - Codici delle Aliquote IRAP e Variazioni IRAP dei Conti
+
+Versioni dei moduli: `Dichiarativi` 0.15.0 (richiede `Anagrafica` 0.15.0, `Deleghe` 0.5.0 e `Contabilita` 0.14.0), `Contabilita` 0.14.0; gli altri invariati.
+
+**Aggiornamento**: `aggiorna.sh` (cioè `sisma aggiorna-database`) esegue `Contabilita/Database/aggiornamento-0.14.sql` (nuova colonna `rigo_irap` in `conto`; variazione IC43 dei compensi agli amministratori nei piani delle aziende copiati dal piano modello, se non indicata; idempotente) e importa da `Contabilita/Database/dati-riferimento.sql` il piano modello con le variazioni e il nuovo conto "IMU". Nessun passo manuale.
+
+### ✨ Nuove Funzionalità
+
+#### `Contabilita` 0.14.0 — variazioni IRAP sul conto
+
+- **Variazione IRAP del conto**: il conto economico può indicare la variazione del valore della produzione del quadro IC a cui concorrono i suoi costi o ricavi. Ci sono i righi propri (IC43 costi indeducibili dell'art. 11, c. 1, lett. b; IC44 interessi nei canoni di leasing; IC45 perdite su crediti; IC46 IMU; IC48 ammortamento di marchi e avviamento; IC49 interessi indeducibili) e le altre variazioni con il codice delle istruzioni (righi IC51 e IC57).
+- Nel piano modello: variazione IC43 sui compensi agli amministratori e nuovo conto "IMU" (oneri diversi di gestione, F17 campo 8 dei modelli ISA, IC46).
+
+#### `Dichiarativi` 0.15.0 — codici delle aliquote IRAP e variazioni dai conti
+
+- **Quadro IC**: variazioni in aumento e in diminuzione proposte dai conti con la variazione IRAP (righi IC43-IC49 e coppie codice-importo dei righi IC51 e IC57, nella coppia con lo stesso codice o nella prima libera); totali ricalcolati.
+- **Codice aliquota IRAP per banche, enti finanziari e assicurazioni** (art. 16, comma 1-bis, D.Lgs. 446/1997, dal codice ATECO: 64.1, 64.3, 64.9 e 66 per l'art. 6, 65 per l'art. 7): il codice ordinario non è proposto; l'avviso elenca i codici della regione per la categoria, da scegliere a mano.
+- **Elenco dei codici aliquota della regione** nella scheda della dichiarazione IRAP, dalla tabella del Dipartimento delle Finanze, con il codice scelto evidenziato.
+- **Dati demo**: Alfa Consulting registra nel 2025 il compenso dell'amministratore (6.000 euro) e l'IMU dell'ufficio (800 euro), proposti nei righi IC43 e IC46 del modello IRAP.
+
 ## [0.33.0-alpha] - 2026-11-20 - Crediti d'Imposta del Quadro RU
 
 Versioni dei moduli: `Dichiarativi` 0.14.0 (richiede `Anagrafica` 0.15.0, `Deleghe` 0.5.0 e `Contabilita` 0.13.0); gli altri invariati.

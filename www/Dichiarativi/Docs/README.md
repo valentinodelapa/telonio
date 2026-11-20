@@ -1303,8 +1303,10 @@ XSD (verificato nei test).
 
 - **Quadro IC** (società di capitali, art. 5 D.Lgs. 446/1997): componenti
   dal conto economico per competenza (voci A1-A5; B6, B7, B8, B10 a e b,
-  B11, B14), variazioni inserite a mano con i totali, valore della
-  produzione lorda e netta.
+  B11, B14), variazioni dai conti con la variazione IRAP del piano dei
+  conti (`Contabilita`, `RighiIrap`: righi IC43-IC49 e coppie dei righi
+  IC51 e IC57), le altre a mano, con i totali; valore della produzione
+  lorda e netta.
 - **Quadro IP** (società di persone, art. 5-bis): ricavi meno costi di
   materie e merci, servizi, ammortamenti e canoni, per cassa in
   contabilità semplificata.
@@ -1321,7 +1323,11 @@ XSD (verificato nei test).
   dell'Agenzia verificano codice e aliquota): proposto il codice 1,
   aliquota ordinaria della regione (art. 16 con le variazioni regionali);
   per le aliquote agevolate o maggiorate si indica a mano il codice nella
-  colonna 6 e l'aliquota si ricalcola alla riproposta. La tabella non si
+  colonna 6 e l'aliquota si ricalcola alla riproposta. Per banche, enti
+  finanziari (ATECO 64.1, 64.3, 64.9, 66) e assicurazioni (65) il codice
+  non è proposto: l'avviso elenca i codici della regione per la categoria
+  (`AliquoteIrap::getCandidati`). La scheda della dichiarazione mostra
+  l'elenco dei codici della regione. La tabella non si
   scarica con `sisma specifiche-dichiarativi` (il sito delle Finanze non ha
   un file stabile): si aggiorna a mano ogni anno con il nuovo modello.
   Poi imposta, eccedenza del modello dell'anno prima, acconti versati (3812 e 3813),
@@ -1567,8 +1573,9 @@ dei moduli devono essere dello stesso studio.
   (RM51-RM54, RM91, RL17, CR16);
 - **società**: stampa sul modello ufficiale dei modelli SP, SC, CNM e
   IRAP; quadri RV, RQ, GC, NI, PN, sezioni II e III del quadro RU e
-  consolidato mondiale a mano; aliquote IRAP regionali diverse
-  dall'ordinaria a mano; modello Redditi ENC e IRAP degli enti;
+  consolidato mondiale a mano; codice delle aliquote IRAP agevolate o di
+  settore e variazioni IRAP non legate a un conto a mano; modello Redditi
+  ENC e IRAP degli enti;
 - calcolo automatico di rimanenze e servizi non utilizzati nella rettifica per
   il cambio di regime;
 - verifica dei file con il software di controllo dell'Agenzia delle

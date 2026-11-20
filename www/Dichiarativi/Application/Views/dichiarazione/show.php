@@ -235,6 +235,24 @@ require Layout::percorso('header');
         </div>
         <?php endif; ?>
 
+        <?php if (count($aliquoteIrap) > 0): ?>
+            <div class="card shadow-sm mt-3">
+                <details>
+                    <summary class="card-header bg-white fw-semibold"><?= Html::e($titoloAliquoteIrap) ?></summary>
+                    <ul class="list-group list-group-flush small">
+                        <?php foreach ($aliquoteIrap as $codiceAliquota => $voceAliquota): ?>
+                            <li class="list-group-item d-flex gap-2<?= (string) $codiceAliquota === (string) $codiceAliquotaIrap ? ' list-group-item-primary' : '' ?>">
+                                <span class="fw-semibold"><?= Html::e($codiceAliquota) ?></span>
+                                <span class="me-auto"><?= Html::e($voceAliquota['descrizione']) ?></span>
+                                <span class="text-nowrap"><?= Html::e(number_format($voceAliquota['aliquota'], 2, ',', '.')) ?>%</span>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                    <div class="card-footer bg-white small text-body-secondary"><?= Html::e($aiutoAliquoteIrap) ?></div>
+                </details>
+            </div>
+        <?php endif; ?>
+
         <?php if ($isa): ?>
         <?php elseif ($redditi): ?>
         <div class="card shadow-sm mt-3">

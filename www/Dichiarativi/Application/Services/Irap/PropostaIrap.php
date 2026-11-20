@@ -96,8 +96,8 @@ class PropostaIrap
             }
             return (int) round($totale);
         };
-        $netto = $persone ? $this->proponiIp($quadri, $voce) : $this->proponiIc($quadri, $voce);
-        $this->proponiIr($quadri, $dichiarazione, $netto, $dati?->soggettoIsa ?? false);
+        $netto = $persone ? $this->proponiIp($quadri, $voce) : $this->proponiIc($quadri, $voce, $componenti->getPerRigoIrap());
+        $this->proponiIr($quadri, $dichiarazione, $netto, $dati?->soggettoIsa ?? false, AliquoteIrap::getCategoria($dati?->codiceAteco?->codice));
         array_push($this->avvisi, ...array_values($componenti->getAvvisi()));
         array_push($this->avvisi, ...$quadri->getDifferenzeManuali());
         if ($salva) {
@@ -112,8 +112,9 @@ class PropostaIrap
     /**
      * Quadro IC, sezione I: valore della produzione netta.
      */
-    private function proponiIc(QuadriDichiarazione $quadri, \Closure $voce): int
+    private function proponiIc(QuadriDichiarazione $quadri, \Closure $voce, array $variazioni = []): int
     {
+        $this->proponiVariazioniConti($quadri, $variazioni);
         $quadri->proponi('IC000001', 1);
         $positivi = ['IC001001' => $voce('E.A.1'), 'IC002001' => $voce('E.A.2'), 'IC003001' => $voce('E.A.3'), 'IC004001' => $voce('E.A.4'), 'IC005001' => $voce('E.A.5')];
         $negativi = ['IC007001' => $voce('E.B.6'), 'IC008001' => $voce('E.B.7'), 'IC009001' => $voce('E.B.8'), 'IC010001' => $voce('E.B.10.a'), 'IC011001' => $voce('E.B.10.b'),
@@ -156,8 +157,62 @@ class PropostaIrap
         if ($personale > 0) {
             $this->avvisi[] = sprintf('Quadro IC: deduzione del costo del personale dipendente (rigo IC69) proposta per l\'intero costo del personale (voce B9, %s euro): spetta per i lavoratori a tempo indeterminato; per gli altri indicare a mano le deduzioni dei righi IC66 e IC67.', number_format($personale, 0, ',', '.'));
         }
-        $this->avvisi[] = 'Quadro IC: componenti dal conto economico per competenza (voci CEE); variazioni in aumento e in diminuzione (righi da IC43 a IC57) da indicare a mano, i totali si ricalcolano alla riproposta.';
+        $this->avvisi[] = 'Quadro IC: componenti dal conto economico per competenza (voci CEE); variazioni (righi da IC43 a IC57) dai conti con la variazione IRAP del piano dei conti, le altre a mano; i totali si ricalcolano alla riproposta.';
         return $netto;
+    }
+
+    /**
+     * Variazioni dei righi da IC43 a IC57 dai conti con la variazione IRAP
+     * (Contabilita, RighiIrap): righi propri (IC43-IC49) e altre variazioni
+     * con il codice (IC51 in aumento, IC57 in diminuzione) nella coppia con
+     * lo stesso codice o nella prima libera.
+     *
+     * @param array<string, float> $variazioni rigo del conto => importo
+     */
+    private function proponiVariazioniConti(QuadriDichiarazione $quadri, array $variazioni): void
+    {
+        foreach (['IC43', 'IC44', 'IC45', 'IC46', 'IC48', 'IC49'] as $rigo) {
+            $importo = (int) round($variazioni[$rigo] ?? 0);
+            $quadri->proponi(sprintf('IC%03d001', (int) substr($rigo, 2)), $importo > 0 ? $importo : null);
+        }
+        foreach (['IC51' => 9, 'IC57' => 18] as $rigo => $coppie) {
+            $base = sprintf('IC%03d', (int) substr($rigo, 2));
+            $usate = [];
+            foreach ($variazioni as $chiave => $importo) {
+                if (str_starts_with($chiave, $rigo . ':') === false) {
+                    continue;
+                }
+                $codice = (int) substr($chiave, strlen($rigo) + 1);
+                $importo = (int) round($importo);
+                if ($importo <= 0) {
+                    continue;
+                }
+                $libera = null;
+                for ($coppia = 1; $coppia <= $coppie; $coppia++) {
+                    $campoCodice = sprintf('%s%03d', $base, $coppia * 2 - 1);
+                    if (in_array($coppia, $usate, true)) {
+                        continue;
+                    }
+                    if ((int) $quadri->get($campoCodice) === $codice) {
+                        $libera = $coppia;
+                        break;
+                    }
+                    if (($libera === null) && ($quadri->get($campoCodice) === null)) {
+                        $libera = $coppia;
+                    }
+                }
+                if ($libera === null) {
+                    $this->avvisi[] = sprintf('Rigo %s: nessuna coppia libera per la variazione con il codice %d (%s euro), da indicare a mano.', $rigo, $codice, number_format($importo, 0, ',', '.'));
+                    continue;
+                }
+                $usate[] = $libera;
+                $quadri->proponi(sprintf('%s%03d', $base, $libera * 2 - 1), $codice);
+                $quadri->proponi(sprintf('%s%03d', $base, $libera * 2), $importo);
+            }
+        }
+        if (count($variazioni) > 0) {
+            $this->avvisi[] = 'Quadro IC: variazioni dai conti con la variazione IRAP indicata nel piano dei conti (' . implode(', ', array_keys($variazioni)) . '); le altre si indicano a mano.';
+        }
     }
 
     /**
@@ -228,7 +283,7 @@ class PropostaIrap
         return $primo > 103 ? [$primo, $base - $primo] : [0.0, $base];
     }
 
-    private function proponiIr(QuadriDichiarazione $quadri, Dichiarazione $dichiarazione, int $netto, bool $isa): void
+    private function proponiIr(QuadriDichiarazione $quadri, Dichiarazione $dichiarazione, int $netto, bool $isa, ?string $categoria = null): void
     {
         $soggetto = $dichiarazione->soggetto;
         $anno = $dichiarazione->anno;
@@ -250,7 +305,8 @@ class PropostaIrap
             if ($rigo <= max(1, count($valori))) {
                 $quadri->proponi($campo(1), $regione);
                 $quadri->proponi($campo(2), $valori[$rigo - 1] ?? null);
-                $quadri->proponi($campo(6), $regione === null ? null : AliquoteIrap::CODICE_ORDINARIA);
+                // banche, enti finanziari e assicurazioni: codice della categoria da scegliere a mano tra quelli della regione
+                $quadri->proponi($campo(6), ($regione === null) || ($categoria !== null) ? null : AliquoteIrap::CODICE_ORDINARIA);
             }
             if ($quadri->get($campo(1)) === null) {
                 continue;
@@ -286,7 +342,12 @@ class PropostaIrap
             $this->avvisi[] = sprintf('Acconti IRAP %d: %s euro (100%% dell\'imposta dell\'anno, metodo storico)%s.', $anno + 1, number_format($primo + $secondo, 0, ',', '.'),
                     $primo > 0 ? sprintf(', in due rate da %s e %s euro', number_format($primo, 0, ',', '.'), number_format($secondo, 0, ',', '.')) : ' in unica rata a novembre');
         }
-        if ($regione !== null) {
+        if (($regione !== null) && ($categoria !== null)) {
+            $candidati = $tabella->getCandidati($annoModello, $regione, $categoria);
+            $this->avvisi[] = sprintf('Quadro IR: %s (art. 16, comma 1-bis, D.Lgs. 446/1997, dal codice ATECO): il codice aliquota non è proposto, indicalo a mano nella colonna 6 del rigo IR1 scegliendo tra i codici della regione%s (elenco completo nella scheda della dichiarazione); l\'aliquota si ricalcola alla riproposta.',
+                    $categoria === AliquoteIrap::ASSICURAZIONI ? 'impresa di assicurazione dell\'art. 7' : 'banca o altro ente finanziario dell\'art. 6',
+                    count($candidati) === 0 ? '' : ', per la categoria: ' . implode('; ', array_map(fn(string $codice, array $voce) => sprintf('%s (%s%%, %s)', $codice, number_format($voce['aliquota'], 2, ',', ''), mb_substr($voce['descrizione'], 0, 80)), array_keys($candidati), $candidati)));
+        } elseif ($regione !== null) {
             $this->avvisi[] = sprintf('Quadro IR: codice aliquota %s della regione (%s, %s%%) dalla tabella del Dipartimento delle Finanze; per le aliquote agevolate o maggiorate del settore o della categoria indicare a mano il codice nella colonna 6 del rigo IR1: l\'aliquota si ricalcola alla riproposta.',
                     AliquoteIrap::CODICE_ORDINARIA, $tabella->getDescrizione($annoModello, $regione, AliquoteIrap::CODICE_ORDINARIA) ?? 'aliquota ordinaria',
                     number_format($tabella->getAliquota($annoModello, $regione, AliquoteIrap::CODICE_ORDINARIA) ?? self::ALIQUOTA_ORDINARIA, 2, ',', ''));

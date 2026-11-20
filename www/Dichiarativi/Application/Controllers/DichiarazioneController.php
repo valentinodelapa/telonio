@@ -17,6 +17,7 @@ use Dichiarativi\Application\Entities\ModuloDichiarazione;
 use Dichiarativi\Application\Entities\RettificaDetrazione;
 use Dichiarativi\Application\Entities\SottoscrizioneControllo;
 use Dichiarativi\Application\Enumerations\CanoneRai;
+use Dichiarativi\Application\Services\Irap\AliquoteIrap;
 use Dichiarativi\Application\Enumerations\ModalitaSaldo;
 use Dichiarativi\Application\Enumerations\CinquePerMille;
 use Dichiarativi\Application\Enumerations\ModelloDichiarativo;
@@ -332,6 +333,10 @@ class DichiarazioneController extends DichiarativiController
             $dichiarazione->modello === ModelloDichiarativo::irap => PropostaIrap::getRiepilogo($quadri),
             default => [],
         };
+        // IRAP: codici aliquota della regione del rigo IR1 (tabella del Dipartimento delle Finanze)
+        $regioneIrap = $dichiarazione->modello === ModelloDichiarativo::irap ? $quadri->get('IR001001', 1) : null;
+        $this->vars['aliquoteIrap'] = $regioneIrap === null ? [] : (new AliquoteIrap())->getElenco($dichiarazione->getAnnoModello(), $regioneIrap);
+        $this->vars['codiceAliquotaIrap'] = $dichiarazione->modello === ModelloDichiarativo::irap ? $quadri->get('IR001006', 1) : null;
         $this->vars['modelliIsa'] = $dichiarazione->modello->isRedditi() && ($dichiarazione->modello !== ModelloDichiarativo::irap) ? (new ModelliIsa($this->dataMapper))->getModelli($dichiarazione) : [];
         $this->vars['esitoIsa'] = $dichiarazione->modello === ModelloDichiarativo::isa ? CalcoloIsa::getEsito($dichiarazione) : null;
         $this->vars['propostaCpb'] = $dichiarazione->modello === ModelloDichiarativo::isa ? ConcordatoIsa::getProposta($dichiarazione) : null;

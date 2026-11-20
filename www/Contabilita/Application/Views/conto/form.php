@@ -43,6 +43,7 @@ require Layout::percorso('header');
             </div>
             <?= Campo::selezione('rigoRedditi', $campi['rigoRedditi'], $formEntity, $errors, $righiRedditi, ['colonna' => 'col-md-8', 'vuota' => $rigoDallaVoce, 'aiuto' => $aiutoRigoRedditi]) ?>
             <?= Campo::selezione('rigoIsa', $campi['rigoIsa'], $formEntity, $errors, $righiIsa, ['colonna' => 'col-md-8', 'vuota' => $rigoDallaVoce, 'aiuto' => $aiutoRigoIsa]) ?>
+            <?= Campo::selezione('rigoIrap', $campi['rigoIrap'], $formEntity, $errors, $righiIrap, ['colonna' => 'col-md-8', 'vuota' => $nessunaVariazioneIrap, 'aiuto' => $aiutoRigoIrap]) ?>
             <?= Campo::testo('percentualeDeducibile', $campi['percentualeDeducibile'], $formEntity, $errors, ['colonna' => 'col-md-4', 'attributi' => 'inputmode="decimal"', 'aiuto' => $aiutoPercentualeDeducibile]) ?>
             <?= Campo::selezione('variazioneRedditi', $campi['variazioneRedditi'], $formEntity, $errors, $variazioniRedditi, ['colonna' => 'col-md-8', 'vuota' => $variazioneAltre, 'aiuto' => $aiutoVariazione]) ?>
         </div>

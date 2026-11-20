@@ -8,6 +8,14 @@ use Anagrafica\Application\Enumerations\RuoloLegame;
 use Anagrafica\Application\Enumerations\TipoOpzioneTassazione;
 use Anagrafica\Application\Fixtures\ContoCorrenteAlfaFixture;
 use Anagrafica\Application\Fixtures\SoggettoAlfaFixture;
+use Contabilita\Application\Entities\RegistrazioneContabile;
+use Contabilita\Application\Entities\RigaContabile;
+use Contabilita\Application\Enumerations\CausaleContabile;
+use Contabilita\Application\Enumerations\FunzioneConto;
+use Contabilita\Application\Models\ContoModel;
+use Contabilita\Application\Models\EsercizioContabileModel;
+use Contabilita\Application\Models\PianoContiModel;
+use Contabilita\Application\Services\SalvataggioRegistrazione;
 use Deleghe\Application\Entities\Credito;
 use Deleghe\Application\Entities\Delega;
 use Deleghe\Application\Entities\Versamento;
@@ -80,6 +88,9 @@ class RedditiSocieta2025Fixture extends BaseFixture
         // perdite residue a fine 2024 (dichiarazione 2025 fuori dalla suite): riportate nel rigo RN4 e nel prospetto RS44
         $this->perdite($alfa, 2024, TipoPerdita::impresa, 3000, 0, 'Prospetto RS44 del modello Redditi SC 2025');
         $this->creditoArtBonus($alfa);
+        // costi indeducibili ai fini IRAP (variazione IRAP dei conti del piano): compenso dell'amministratore (IC43) e IMU dell'ufficio (IC46)
+        $this->registraCosto($alfa, '22.01.0009', "Compenso dell'amministratore 2025", 6000.0);
+        $this->registraCosto($alfa, '27.01.0006', "IMU 2025 dell'ufficio", 800.0);
         $redditiAlfa = $this->crea($alfa, ModelloDichiarativo::redditiSc, true);
         $societa->proponi($redditiAlfa);
         $versamenti->registraVersamenti($redditiAlfa, new QuadriDichiarazione($redditiAlfa, $this->dataMapper));
@@ -193,6 +204,31 @@ class RedditiSocieta2025Fixture extends BaseFixture
             $riga->credito = $collegato;
             $this->dataMapper->save($riga);
         }
+    }
+
+    /**
+     * Costo pagato dalla banca nell'esercizio 2025 (registrazione senza IVA).
+     */
+    private function registraCosto(Soggetto $azienda, string $codiceConto, string $descrizione, float $importo): void
+    {
+        $piano = (new PianoContiModel($this->dataMapper))->getPerAzienda($azienda);
+        $conti = new ContoModel($this->dataMapper);
+        $registrazione = new RegistrazioneContabile($this->dataMapper);
+        $registrazione->studio = $azienda->studio;
+        $registrazione->soggetto = $azienda;
+        $registrazione->esercizioContabile = (new EsercizioContabileModel($this->dataMapper))->getPerAnno($azienda, 2025);
+        $registrazione->causale = CausaleContabile::giroconto;
+        $registrazione->dataRegistrazione = new SismaDate('2025-06-30');
+        $registrazione->descrizione = $descrizione;
+        $righe = [];
+        foreach ([[$conti->getPerCodice($piano, $codiceConto), $importo, 0.0], [$conti->getPerFunzione($piano, FunzioneConto::banca), 0.0, $importo]] as [$conto, $dare, $avere]) {
+            $riga = new RigaContabile($this->dataMapper);
+            $riga->conto = $conto;
+            $riga->dare = $dare;
+            $riga->avere = $avere;
+            $righe[] = $riga;
+        }
+        (new SalvataggioRegistrazione($this->dataMapper))->salva($registrazione, [], $righe);
     }
 
     private function perdite(Soggetto $soggetto, int $anno, TipoPerdita $tipo, int $limitata, int $piena, string $note): void
