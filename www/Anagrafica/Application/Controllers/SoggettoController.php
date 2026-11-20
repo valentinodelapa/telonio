@@ -17,6 +17,7 @@ use Anagrafica\Application\Models\DatiFiscaliModel;
 use Anagrafica\Application\Models\InterventoEdilizioModel;
 use Anagrafica\Application\Models\PossessoModel;
 use Anagrafica\Application\Models\DocumentoIdentitaModel;
+use Anagrafica\Application\Models\OpzioneTassazioneModel;
 use Anagrafica\Application\Models\IndirizzoModel;
 use Anagrafica\Application\Models\LegameModel;
 use Anagrafica\Application\Models\RecapitoModel;
@@ -160,6 +161,7 @@ class SoggettoController extends AnagraficaController
         $this->vars['collegati'] = $legameModel->getCollegati($soggetto);
         $this->vars['incarichi'] = $legameModel->getIncarichi($soggetto);
         $this->vars['documenti'] = $soggetto->isPersonaFisica() ? (new DocumentoIdentitaModel($this->dataMapper))->getElenco($soggetto) : [];
+        $this->vars['opzioniTassazione'] = $soggetto->tipoSoggetto === TipoSoggetto::societaCapitali ? (new OpzioneTassazioneModel($this->dataMapper))->getElenco($soggetto) : [];
         $this->vars['possessi'] = (new PossessoModel($this->dataMapper))->getStoricoSoggetto($soggetto);
         $datiCatastaliModel = new DatiCatastaliModel($this->dataMapper);
         $datiCatastaliVigenti = [];
@@ -195,6 +197,8 @@ class SoggettoController extends AnagraficaController
         (new RecapitoModel($this->dataMapper))->deleteBySoggetto($soggetto);
         (new ContoCorrenteModel($this->dataMapper))->deleteBySoggetto($soggetto);
         (new DocumentoIdentitaModel($this->dataMapper))->deleteBySoggetto($soggetto);
+        (new OpzioneTassazioneModel($this->dataMapper))->deleteByConsolidante($soggetto);
+        (new OpzioneTassazioneModel($this->dataMapper))->deleteBySoggetto($soggetto);
         (new DatiFiscaliModel($this->dataMapper))->deleteBySoggetto($soggetto);
         $this->dataMapper->delete($soggetto);
         $this->dataMapper->commitTransaction($primaTransazione);

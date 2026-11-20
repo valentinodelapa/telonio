@@ -8,8 +8,11 @@ use Anagrafica\Application\Models\DatiFiscaliModel;
 use Anagrafica\Application\Models\IndirizzoModel;
 use Deleghe\Application\Services\DatiContribuente;
 use Deleghe\Application\Services\Telematico\RecordF24;
+use Contabilita\Application\Models\EsercizioContabileModel;
 use Dichiarativi\Application\Entities\Dichiarazione;
+use Dichiarativi\Application\Enumerations\ModelloDichiarativo;
 use Dichiarativi\Application\Enumerations\TipologiaDichiarazione;
+use Dichiarativi\Application\Models\SottoscrizioneControlloModel;
 use Dichiarativi\Application\Services\Frontespizio;
 use Dichiarativi\Application\Services\Isa\CalcoloIsa;
 use Dichiarativi\Application\Services\Isa\ConcordatoIsa;
@@ -21,7 +24,8 @@ use SismaFramework\Orm\CustomTypes\SismaDate;
 use SismaFramework\Orm\HelperClasses\DataMapper;
 
 /**
- * Fornitura telematica del modello Redditi PF ("RPF26"): record A, B
+ * Fornitura telematica dei modelli Redditi: PF ("RPF26"), SP ("RSP26") e
+ * SC ("RSC26", frontespizio in recordBSocieta). Per Redditi PF: record A, B
  * (frontespizio: dati anagrafici, residenza variata nell'anno, domicilio
  * fiscale al 1° gennaio dell'anno d'imposta e del successivo, caselle dei
  * quadri compilati, impegno alla trasmissione e visto), record C dei quadri
@@ -191,6 +195,12 @@ class GeneratoreRedditi
      */
     private function recordB(Dichiarazione $dichiarazione, QuadriDichiarazione $quadri, bool $isa = false, bool $anomalieIsa = false, bool $anomalieRedditi = false, ?int $comunicazioneCpb = null): string
     {
+        if ($dichiarazione->modello->isRedditiSocieta()) {
+            return $this->recordBSocieta($dichiarazione, $quadri, $isa, $anomalieIsa, $comunicazioneCpb);
+        }
+        if ($dichiarazione->modello === ModelloDichiarativo::consolidato) {
+            return $this->recordBConsolidato($dichiarazione, $quadri);
+        }
         $autonoma = in_array($comunicazioneCpb, [self::CPB_ADESIONE, self::CPB_REVOCA], true);
         $soggetto = $dichiarazione->soggetto;
         $anno = $dichiarazione->anno;
@@ -282,6 +292,200 @@ class GeneratoreRedditi
         foreach (array_unique($compilati) as $quadro) {
             if (isset(TracciatoRedditi::CASELLE_QUADRI[$quadro])) {
                 $testo = substr_replace($testo, '1', TracciatoRedditi::CASELLE_QUADRI[$quadro] - 1, 1);
+            }
+        }
+        return $testo;
+    }
+
+    /**
+     * Frontespizio dei modelli Redditi SP e SC (TracciatoRedditiSocieta):
+     * denominazione, partita IVA e recapiti, periodo d'imposta (esercizio
+     * contabile dell'anno, altrimenti l'anno solare), stato e situazione
+     * ordinari (codici 1 e 6 delle tabelle A e C delle istruzioni), natura
+     * giuridica, rappresentante firmatario con il codice di carica,
+     * impegno alla trasmissione, visto, organo di controllo (solo SC, con la
+     * firma della dichiarazione), caselle dei quadri compilati e del modello
+     * ISA. Con la comunicazione del concordato con invio autonomo (codice 1
+     * o 2) solo i campi ammessi (specifiche SC, campo B11): dati della
+     * società, periodo, natura giuridica, rappresentante, impegno e firme.
+     */
+    private function recordBSocieta(Dichiarazione $dichiarazione, QuadriDichiarazione $quadri, bool $isa, bool $anomalieIsa, ?int $comunicazioneCpb): string
+    {
+        $soggetto = $dichiarazione->soggetto;
+        $anno = $dichiarazione->anno;
+        $sc = $dichiarazione->modello === ModelloDichiarativo::redditiSc;
+        $autonoma = in_array($comunicazioneCpb, [self::CPB_ADESIONE, self::CPB_REVOCA], true);
+        $campi = TracciatoRedditiSocieta::RECORD_B + ($sc ? TracciatoRedditiSocieta::RECORD_B_SC : TracciatoRedditiSocieta::RECORD_B_SP);
+        foreach ($sc ? TracciatoRedditiSocieta::NUMERICI_B_SC : TracciatoRedditiSocieta::NUMERICI_B_SP as $posizione => $lunghezza) {
+            $campi['numerico' . $posizione] = [$posizione, $lunghezza, 'NU'];
+        }
+        $recapiti = (new Frontespizio($this->dataMapper))->getRecapiti($soggetto);
+        $datiFiscali = (new DatiFiscaliModel($this->dataMapper))->getVigenteAl($soggetto, new SismaDate($anno . '-12-31'));
+        $esercizio = (new EsercizioContabileModel($this->dataMapper))->getPerAnno($soggetto, $anno);
+        $record = (new RecordF24($campi))
+                ->imposta('tipoRecord', 'B')
+                ->imposta('codiceFiscale', $soggetto->codiceFiscale)
+                ->imposta('progressivoModulo', 1)
+                ->imposta('identificativoProduttore', 'TELONIO')
+                ->imposta('flagConferma', (int) ($dichiarazione->flagConferma && (($autonoma === false) || $anomalieIsa)))
+                ->imposta('flagConfermaIsa', (int) ($dichiarazione->flagConferma && $anomalieIsa))
+                ->imposta('comunicazioneCpb', $comunicazioneCpb)
+                ->impostaTroncato('denominazione', mb_strtoupper($soggetto->nominativo))
+                ->imposta('partitaIva', $datiFiscali?->partitaIva)
+                ->imposta('telefono', $recapiti['telefono'])
+                ->impostaTroncato('email', $recapiti['email'])
+                ->imposta('dataInizioPeriodo', ($esercizio?->dataInizio ?? new SismaDate($anno . '-01-01'))->format('dmY'))
+                ->imposta('dataFinePeriodo', ($esercizio?->dataFine ?? new SismaDate($anno . '-12-31'))->format('dmY'))
+                ->imposta('stato', 1)
+                ->imposta('naturaGiuridica', $dichiarazione->naturaGiuridica)
+                ->imposta('situazione', 6)
+                ->imposta('firmaDichiarante', 1);
+        $rappresentante = $dichiarazione->dichiarante;
+        if ($rappresentante !== null) {
+            $record->imposta('codiceFiscaleRappresentante', $rappresentante->codiceFiscale)
+                    ->imposta('codiceCaricaRappresentante', $dichiarazione->codiceCarica?->value);
+            if ($rappresentante->isPersonaFisica()) {
+                [$comune, $provincia] = DatiContribuente::getLuogoNascita($rappresentante);
+                $record->impostaTroncato('cognomeRappresentante', $rappresentante->cognome)
+                        ->impostaTroncato('nomeRappresentante', $rappresentante->nome)
+                        ->imposta('sessoRappresentante', $rappresentante->sesso?->value)
+                        ->imposta('dataNascitaRappresentante', $rappresentante->dataNascita?->format('dmY'))
+                        ->impostaTroncato('comuneNascitaRappresentante', $comune)
+                        ->imposta('provinciaNascitaRappresentante', $provincia === 'EE' ? '' : $provincia);
+            }
+        }
+        if ($dichiarazione->intermediario !== null) {
+            $record->imposta('codiceFiscaleIncaricato', $dichiarazione->intermediario->soggetto->codiceFiscale)
+                    ->imposta('impegno', $dichiarazione->impegno?->value)
+                    ->imposta('dataImpegno', $dichiarazione->dataImpegno?->format('dmY'))
+                    ->imposta('firmaIncaricato', 1);
+        }
+        if ($autonoma) {
+            return (string) $record;
+        }
+        $record->imposta('correttiva', (int) ($dichiarazione->tipologia === TipologiaDichiarazione::correttiva))
+                ->imposta('canoneRai', $dichiarazione->canoneRai?->value);
+        if ($isa) {
+            $record->imposta('isa', 1);
+        }
+        if ($comunicazioneCpb === self::CPB_REVOCA_CON_DICHIARAZIONE) {
+            $record->imposta('comunicazioneCpb', $comunicazioneCpb);
+        }
+        // omessa presentazione del modello ISA: casella del quadro RE (solo SP) o dei quadri RF e RG
+        if ($dichiarazione->omessoIsa) {
+            foreach (['RE' => 'assenzaIsaQuadroH', 'RF' => 'assenzaIsaQuadroF', 'RG' => 'assenzaIsaQuadroF'] as $quadro => $campo) {
+                if (isset($campi[$campo]) && ($quadri->get($quadro . '001001', 1) !== null)) {
+                    $record->imposta($campo, 1);
+                }
+            }
+        }
+        if ($dichiarazione->vistoProfessionista !== null) {
+            $record->imposta('codiceFiscaleProfessionista', $dichiarazione->vistoProfessionista->codiceFiscale)->imposta('firmaVisto', 1);
+        } elseif ($dichiarazione->vistoCaf !== null) {
+            $record->imposta('codiceFiscaleResponsabileCaf', $dichiarazione->vistoResponsabileCaf?->codiceFiscale)
+                    ->imposta('codiceFiscaleCaf', $dichiarazione->vistoCaf->codiceFiscale)
+                    ->imposta('firmaVisto', 1);
+        }
+        $compilati = [];
+        foreach ($quadri->getModuli() as $modulo) {
+            array_push($compilati, ...$quadri->getQuadriCompilati($modulo));
+        }
+        foreach (['VO' => 'quadroVo', 'AC' => 'quadroAc', 'RW' => 'quadroRw', 'GN' => 'consolidato', 'TN' => 'trasparenza'] as $quadro => $campo) {
+            if (isset($campi[$campo]) && in_array($quadro, $compilati, true)) {
+                $record->imposta($campo, 1);
+            }
+        }
+        $testo = (string) $record;
+        $caselle = $sc ? TracciatoRedditiSocieta::CASELLE_QUADRI_SC : TracciatoRedditiSocieta::CASELLE_QUADRI_SP;
+        foreach (array_unique($compilati) as $quadro) {
+            if (isset($caselle[$quadro])) {
+                $testo = substr_replace($testo, '1', $caselle[$quadro] - 1, 1);
+            }
+        }
+        // organo di controllo (Redditi SC, campi B86-B105): soggetto, codice fiscale, firma della dichiarazione, firma per attestazione
+        if ($sc && isset($dichiarazione->id)) {
+            foreach (array_slice(iterator_to_array((new SottoscrizioneControlloModel($this->dataMapper))->getSottoscrizioni($dichiarazione), false), 0, 5) as $indice => $sottoscrizione) {
+                $gruppo = (string) $sottoscrizione->tipoSoggetto . str_pad(strtoupper((string) $sottoscrizione->soggetto->codiceFiscale), 16) . (int) $sottoscrizione->isFirmata() . '0';
+                $testo = substr_replace($testo, $gruppo, TracciatoRedditiSocieta::ORGANO_CONTROLLO_SC[$indice] - 1, strlen($gruppo));
+            }
+        }
+        return $testo;
+    }
+
+    /**
+     * Frontespizio del modello CNM (TracciatoRedditiSocieta::RECORD_B_CNM):
+     * consolidante con denominazione e recapiti, casella del consolidato
+     * nazionale, periodo d'imposta e natura giuridica (la situazione si
+     * indica solo per il consolidato mondiale, istruzioni CNM),
+     * rappresentante, impegno, visto, organo di controllo e caselle dei
+     * quadri compilati.
+     */
+    private function recordBConsolidato(Dichiarazione $dichiarazione, QuadriDichiarazione $quadri): string
+    {
+        $soggetto = $dichiarazione->soggetto;
+        $anno = $dichiarazione->anno;
+        $campi = TracciatoRedditiSocieta::RECORD_B_CNM;
+        foreach (TracciatoRedditiSocieta::NUMERICI_B_CNM as $posizione => $lunghezza) {
+            $campi['numerico' . $posizione] = [$posizione, $lunghezza, 'NU'];
+        }
+        $recapiti = (new Frontespizio($this->dataMapper))->getRecapiti($soggetto);
+        $esercizio = (new EsercizioContabileModel($this->dataMapper))->getPerAnno($soggetto, $anno);
+        $record = (new RecordF24($campi))
+                ->imposta('tipoRecord', 'B')
+                ->imposta('codiceFiscale', $soggetto->codiceFiscale)
+                ->imposta('progressivoModulo', 1)
+                ->imposta('identificativoProduttore', 'TELONIO')
+                ->imposta('flagConferma', (int) $dichiarazione->flagConferma)
+                ->imposta('consolidatoNazionale', 1)
+                ->imposta('correttiva', (int) ($dichiarazione->tipologia === TipologiaDichiarazione::correttiva))
+                ->impostaTroncato('denominazione', mb_strtoupper($soggetto->nominativo))
+                ->imposta('telefono', $recapiti['telefono'])
+                ->impostaTroncato('email', $recapiti['email'])
+                ->imposta('dataInizioPeriodo', ($esercizio?->dataInizio ?? new SismaDate($anno . '-01-01'))->format('dmY'))
+                ->imposta('dataFinePeriodo', ($esercizio?->dataFine ?? new SismaDate($anno . '-12-31'))->format('dmY'))
+                ->imposta('naturaGiuridica', $dichiarazione->naturaGiuridica)
+                ->imposta('firmaDichiarante', 1);
+        $rappresentante = $dichiarazione->dichiarante;
+        if ($rappresentante !== null) {
+            $record->imposta('codiceFiscaleRappresentante', $rappresentante->codiceFiscale)
+                    ->imposta('codiceCaricaRappresentante', $dichiarazione->codiceCarica?->value);
+            if ($rappresentante->isPersonaFisica()) {
+                [$comune, $provincia] = DatiContribuente::getLuogoNascita($rappresentante);
+                $record->impostaTroncato('cognomeRappresentante', $rappresentante->cognome)
+                        ->impostaTroncato('nomeRappresentante', $rappresentante->nome)
+                        ->imposta('sessoRappresentante', $rappresentante->sesso?->value)
+                        ->imposta('dataNascitaRappresentante', $rappresentante->dataNascita?->format('dmY'))
+                        ->impostaTroncato('comuneNascitaRappresentante', $comune)
+                        ->imposta('provinciaNascitaRappresentante', $provincia === 'EE' ? '' : $provincia);
+            }
+        }
+        if ($dichiarazione->intermediario !== null) {
+            $record->imposta('codiceFiscaleIncaricato', $dichiarazione->intermediario->soggetto->codiceFiscale)
+                    ->imposta('impegno', $dichiarazione->impegno?->value)
+                    ->imposta('dataImpegno', $dichiarazione->dataImpegno?->format('dmY'))
+                    ->imposta('firmaIncaricato', 1);
+        }
+        if ($dichiarazione->vistoProfessionista !== null) {
+            $record->imposta('codiceFiscaleProfessionista', $dichiarazione->vistoProfessionista->codiceFiscale)->imposta('firmaVisto', 1);
+        } elseif ($dichiarazione->vistoCaf !== null) {
+            $record->imposta('codiceFiscaleResponsabileCaf', $dichiarazione->vistoResponsabileCaf?->codiceFiscale)
+                    ->imposta('codiceFiscaleCaf', $dichiarazione->vistoCaf->codiceFiscale)
+                    ->imposta('firmaVisto', 1);
+        }
+        $testo = (string) $record;
+        $compilati = [];
+        foreach ($quadri->getModuli() as $modulo) {
+            array_push($compilati, ...$quadri->getQuadriCompilati($modulo));
+        }
+        foreach (array_unique($compilati) as $quadro) {
+            if (isset(TracciatoRedditiSocieta::CASELLE_QUADRI_CNM[$quadro])) {
+                $testo = substr_replace($testo, '1', TracciatoRedditiSocieta::CASELLE_QUADRI_CNM[$quadro] - 1, 1);
+            }
+        }
+        if (isset($dichiarazione->id)) {
+            foreach (array_slice(iterator_to_array((new SottoscrizioneControlloModel($this->dataMapper))->getSottoscrizioni($dichiarazione), false), 0, 5) as $indice => $sottoscrizione) {
+                $gruppo = (string) $sottoscrizione->tipoSoggetto . str_pad(strtoupper((string) $sottoscrizione->soggetto->codiceFiscale), 16) . (int) $sottoscrizione->isFirmata() . '0';
+                $testo = substr_replace($testo, $gruppo, TracciatoRedditiSocieta::ORGANO_CONTROLLO_SC[$indice] - 1, strlen($gruppo));
             }
         }
         return $testo;

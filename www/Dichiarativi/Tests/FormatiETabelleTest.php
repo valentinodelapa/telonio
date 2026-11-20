@@ -105,6 +105,47 @@ class FormatiETabelleTest extends DichiarativiTestCase
         $this->assertSame(['VE' => 'Operazioni attive'], $lettore->getQuadri());
     }
 
+    /**
+     * Intestazione corrente in sovrimpressione su ogni pagina, sulla stessa
+     * riga di un campo (specifiche Redditi SP 2026): non entra né nella
+     * descrizione né nelle denominazioni dei quadri.
+     */
+    public function testIntestazioniCorrentiEscluse(): void
+    {
+        $righe = ["level\tpage_num\tpar_num\tblock_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext"];
+        for ($pagina = 1; $pagina <= 12; $pagina++) {
+            $parole = [[30, 50, 'Campo'], [119, 59, 'Descrizione'], [205, 63, 'Formato'], [235, 63, 'Valori'],
+                [16, 72, 'QUADRO'], [40, 72, 'AC'], [49, 72, '-'], [52, 72, 'Comunicazione'],
+                [18, 73, sprintf('RA%03d001', $pagina)], [130, 73 + ($pagina % 3) * 0.3, 'Reddito'], [211, 73 + ($pagina % 3) * 0.3, 'NP']];
+            foreach ($parole as [$x, $y, $testo]) {
+                $righe[] = implode("\t", [5, $pagina, 0, 0, 0, 0, $x, $y, strlen($testo) * 4, 6, 100, $testo]);
+            }
+        }
+        $lettore = new LettoreSpecifiche();
+        $campi = $lettore->leggi(implode("\n", $righe));
+        $this->assertCount(12, $campi);
+        $this->assertSame(['descrizione' => 'Reddito', 'formato' => 'NP', 'pagina' => 1], $campi['RA001001']);
+        $this->assertSame([], $lettore->getQuadri());
+    }
+
+    public function testDenominazioniDeiQuadriDalleIstruzioni(): void
+    {
+        $testo = "INDICE\n4. QUADRO RF - REDDITO D’IMPRESA IN REGIME DI CONTABILITÀ ORDINARIA\n\n"
+                . "5 – QUADRO RG – REDDITO D’IMPRESA IN REGIME DI CONTABILITÀ SEMPLIFICATA\n"
+                . "18. QUADRO RN - REDDITI DELLA SOCIETÀ O ASSOCIAZIONE DA IMPUTARE\n             AI SOCI O ASSOCIATI\n"
+                . "23. QUADRO FC - REDDITI DEI SOGGETTI CONTROLLATI NON RESIDENTI (CFC)\n24. QUADRO RF - ALTRO TITOLO\n"
+                // istruzioni del modello CNM: titolo sulla riga successiva; sigle fiscali maiuscole
+                . "C14. QUADRO CN\n    DETERMINAZIONE DELL’IMPOSTA\nIn tale quadro va determinata l’IRES.\nC15. QUADRO CK\n    CESSIONE DELLE ECCEDENZE DELL’IRES, ART. 165 DEL TUIR\n";
+        $this->assertSame([
+            'RF' => 'Reddito d’impresa in regime di contabilità ordinaria',
+            'RG' => 'Reddito d’impresa in regime di contabilità semplificata',
+            'RN' => 'Redditi della società o associazione da imputare ai soci o associati',
+            'FC' => 'Redditi dei soggetti controllati non residenti (CFC)',
+            'CN' => 'Determinazione dell’imposta',
+            'CK' => 'Cessione delle eccedenze dell’IRES, art. 165 del TUIR',
+        ], \Dichiarativi\Application\Services\TabelleRiferimento\SpecificheDichiarativi::leggiTitoliIstruzioni($testo));
+    }
+
     public function testCatalogoDalleSorgentiDelModulo(): void
     {
         $tabelle = new TabelleDichiarativi();
@@ -125,7 +166,7 @@ class FormatiETabelleTest extends DichiarativiTestCase
     {
         $cartella = sys_get_temp_dir() . '/dichiarativi_' . uniqid() . '/';
         mkdir($cartella);
-        file_put_contents($cartella . 'specifiche.csv', "modello;anno;url;provvedimento;istruzioni\nIVA;2026;https://esempio.it/a.pdf;Provvedimento;\n");
+        file_put_contents($cartella . 'specifiche.csv', "modello;anno;url;provvedimento;istruzioni;schema\nIVA;2026;https://esempio.it/a.pdf;Provvedimento;;\n");
         file_put_contents($cartella . 'quadri-IVA-2026.csv', "quadro;denominazione\nVE;Operazioni attive\n");
         file_put_contents($cartella . 'campi-IVA-2026.csv', "codice;formato;descrizione\nVE023001;XX;Imponibile\n");
         try {

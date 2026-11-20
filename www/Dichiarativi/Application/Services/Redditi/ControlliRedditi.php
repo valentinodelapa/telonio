@@ -3,6 +3,9 @@
 namespace Dichiarativi\Application\Services\Redditi;
 
 use Dichiarativi\Application\Entities\Dichiarazione;
+use Dichiarativi\Application\Enumerations\CanoneRai;
+use Dichiarativi\Application\Enumerations\ModelloDichiarativo;
+use Dichiarativi\Application\Models\IndiceIsaModel;
 use Dichiarativi\Application\Services\Iva\ControlliIva;
 use Dichiarativi\Application\Services\Isa\ConcordatoIsa;
 use Dichiarativi\Application\Services\Isa\ControlliIsa;
@@ -11,9 +14,10 @@ use Dichiarativi\Application\Services\QuadriDichiarazione;
 use SismaFramework\Orm\HelperClasses\DataMapper;
 
 /**
- * Controlli del modello Redditi PF dalle specifiche tecniche 2026 (par. 6.1
- * per il quadro RA, 7.1 per il quadro RB): errori che impediscono la
- * trasmissione, segnalazioni da confermare, avvertenze.
+ * Controlli dei modelli Redditi dalle specifiche tecniche 2026: per Redditi
+ * PF quelli dei quadri RA e RB (par. 6.1 e 7.1); per tutti i modelli quelli
+ * dei modelli ISA allegati. Errori che impediscono la trasmissione,
+ * segnalazioni da confermare, avvertenze.
  */
 class ControlliRedditi
 {
@@ -29,7 +33,8 @@ class ControlliRedditi
     public function getErrori(Dichiarazione $dichiarazione, QuadriDichiarazione $quadri): array
     {
         $errori = [];
-        foreach ($quadri->getModuli() as $modulo) {
+        // controlli dei quadri RA e RB del modello Redditi PF (specifiche PF, par. 6.1 e 7.1)
+        foreach ($dichiarazione->modello === ModelloDichiarativo::redditiPf ? $quadri->getModuli() : [] as $modulo) {
             $etichetta = $modulo > 1 ? 'Mod. ' . $modulo . ', ' : '';
             $this->controllaTerreni($quadri, $modulo, $etichetta, $errori);
             $this->controllaFabbricati($quadri, $modulo, $etichetta, $errori);
@@ -44,13 +49,50 @@ class ControlliRedditi
         if ($dichiarazione->omessoIsa && (count($modelliIsa) > 0)) {
             $errori[] = 'È scelta l\'omessa presentazione del modello ISA ma il modello è allegato: togliere la scelta nel frontespizio o eliminare il modello.';
         }
-        $cin = array_map(fn(int $numero) => $quadri->get(sprintf('RB%03d003', $numero), 1), [24, 25]);
+        if ($dichiarazione->modello->isRedditiSocieta()) {
+            $this->controllaSocieta($dichiarazione, $quadri, count($modelliIsa) > 0, $errori);
+        }
+        $cin = $dichiarazione->modello === ModelloDichiarativo::redditiPf ? array_map(fn(int $numero) => $quadri->get(sprintf('RB%03d003', $numero), 1), [24, 25]) : [];
         foreach ($cin as $codice) {
             if (($codice !== null) && (strlen($codice) !== 18)) {
                 $errori[] = 'Quadro RB, sezione III: il CIN ha 18 caratteri.';
             }
         }
         return $errori;
+    }
+
+    /**
+     * Frontespizio e quadri d'impresa di Redditi SP e SC: casella "Canone
+     * RAI" obbligatoria (campo 69 del record B) con il prospetto del quadro
+     * RS per i codici 1 e 2; modello ISA da allegare se l'attività del quadro
+     * RE, RF o RG ha un ISA e non c'è causa di esclusione (o è la 7 o la 14),
+     * salvo la casella di omessa presentazione (specifiche SC e SP, campo
+     * RF001002 e analoghi).
+     *
+     * @param string[] $errori
+     */
+    private function controllaSocieta(Dichiarazione $dichiarazione, QuadriDichiarazione $quadri, bool $isa, array &$errori): void
+    {
+        if ($dichiarazione->canoneRai === null) {
+            $errori[] = 'Frontespizio: manca la casella "Canone RAI" (1 apparecchi radio, 2 radiotelevisivi, 3 nessun apparecchio).';
+        } elseif ($dichiarazione->canoneRai !== CanoneRai::nessunApparecchio) {
+            $rigo = $dichiarazione->modello === ModelloDichiarativo::redditiSc ? 'RS111' : 'RS047';
+            if ($quadri->get($rigo . '002', 1) === null) {
+                $errori[] = sprintf('Quadro RS: con la casella "Canone RAI" %s va compilato il prospetto del canone (rigo %s, numero di abbonamento e indirizzo).', $dichiarazione->canoneRai->value, $rigo);
+            }
+        }
+        if ($isa || $dichiarazione->omessoIsa) {
+            return;
+        }
+        foreach (['RE', 'RF', 'RG'] as $quadro) {
+            $attivita = $quadri->get($quadro . '001001', 1);
+            $causa = (int) $quadri->get($quadro . '001002', 1);
+            if (($attivita !== null) && in_array($causa, [0, 7, 14], true)
+                    && ((new IndiceIsaModel($this->dataMapper))->getPerAttivita($dichiarazione->getAnnoModello(), $attivita) !== null)) {
+                $errori[] = sprintf('Quadro %s: l\'attività %s ha un ISA e non c\'è causa di esclusione%s: allegare il modello ISA (sezione "Modelli ISA" della scheda) o scegliere l\'omessa presentazione nel frontespizio.',
+                        $quadro, $attivita, $causa > 0 ? ' (o è la ' . $causa . ', che richiede comunque il modello)' : '');
+            }
+        }
     }
 
     private function controllaTerreni(QuadriDichiarazione $quadri, int $modulo, string $etichetta, array &$errori): void
@@ -150,7 +192,7 @@ class ControlliRedditi
         // fabbricato a disposizione nel comune dell'abitazione principale tenuta tutto l'anno: casi IMU 1 o 3 (specifiche 7.1.1)
         $comuniPrincipale = [];
         $righi = [];
-        foreach ($quadri->getModuli() as $modulo) {
+        foreach ($quadri->getDichiarazione()->modello === ModelloDichiarativo::redditiPf ? $quadri->getModuli() : [] as $modulo) {
             $comune = null;
             for ($rigo = 1; $rigo <= 9; $rigo++) {
                 $codice = fn(int $colonna) => sprintf('RB%03d%03d', $rigo, $colonna);

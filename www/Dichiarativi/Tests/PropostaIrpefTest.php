@@ -231,7 +231,7 @@ class PropostaIrpefTest extends SuiteTestCase
     public function testPartecipazioniConIlConcordatoPreventivo(): void
     {
         // società in concordato: conta il reddito concordato (12.000) e la soglia minima (3.000); associazione sotto la soglia
-        $quadri = $this->creaQuadri(['RH001001' => '09990012008', 'RH001002' => 1, 'RH001003' => 50, 'RH001004' => 9000,
+        $quadri = $this->creaQuadri(['RH001001' => '09990010580', 'RH001002' => 1, 'RH001003' => 50, 'RH001004' => 9000,
             'RH00113A' => true, 'RH001014' => 12000, 'RH001016' => 3000,
             'RH002001' => '01234560785', 'RH002002' => 1, 'RH002003' => 20, 'RH002004' => -2000,
             'RH003001' => '01234980587', 'RH003002' => 2, 'RH003003' => 30, 'RH003004' => 400, 'RH003014' => 500, 'RH003016' => 1500]);
@@ -263,7 +263,7 @@ class PropostaIrpefTest extends SuiteTestCase
     public function testTotaliPartecipazioni(): void
     {
         // righi RH inseriti a mano: impresa in utile e in perdita, associazione tra professionisti con ritenute, società semplice
-        $quadri = $this->creaQuadri(['RH001001' => '09990012008', 'RH001002' => 1, 'RH001003' => 50, 'RH001004' => 9000,
+        $quadri = $this->creaQuadri(['RH001001' => '09990010580', 'RH001002' => 1, 'RH001003' => 50, 'RH001004' => 9000,
             'RH002001' => '01234560785', 'RH002002' => 1, 'RH002003' => 20, 'RH002004' => -2000,
             'RH003001' => '01234980587', 'RH003002' => 2, 'RH003003' => 30, 'RH003004' => 3000, 'RH003009' => 600,
             'RH004001' => '09990010994', 'RH004002' => 4, 'RH004003' => 10, 'RH004004' => 1000]);

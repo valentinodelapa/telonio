@@ -80,6 +80,34 @@ class LettoreSpecifiche
             }
             $pagine[(int) $campi[1]][] = ['x' => (float) $campi[6], 'y' => (float) $campi[7], 'fine' => (float) $campi[6] + (float) $campi[8], 'testo' => $testo];
         }
+        return self::togliIntestazioniCorrenti($pagine);
+    }
+
+    /**
+     * Toglie le intestazioni correnti: parole con lo stesso testo nella
+     * stessa posizione in almeno metà delle pagine (e in almeno dieci),
+     * tranne le intestazioni delle colonne della tabella. Nelle specifiche
+     * Redditi SP 2026 ogni pagina ha in sovrimpressione il titolo del primo
+     * quadro ("QUADRO AC - Comunicazione dell'amministratore di
+     * condominio"), che altrimenti si mescola alle righe della tabella.
+     *
+     * @param array<int, list<array{x: float, y: float, fine: float, testo: string}>> $pagine
+     * @return array<int, list<array{x: float, y: float, fine: float, testo: string}>>
+     */
+    private static function togliIntestazioniCorrenti(array $pagine): array
+    {
+        $chiave = fn(array $parola) => sprintf('%.1f|%.1f|%s', $parola['x'], $parola['y'], $parola['testo']);
+        $conteggi = [];
+        foreach ($pagine as $parole) {
+            foreach (array_unique(array_map($chiave, $parole)) as $chiaveParola) {
+                $conteggi[$chiaveParola] = ($conteggi[$chiaveParola] ?? 0) + 1;
+            }
+        }
+        $soglia = max(10, count($pagine) / 2);
+        foreach ($pagine as $numero => $parole) {
+            $pagine[$numero] = array_values(array_filter($parole, fn(array $parola) => in_array($parola['testo'], ['Descrizione', 'Formato', 'Valori'], true)
+                    || ($conteggi[$chiave($parola)] < $soglia)));
+        }
         return $pagine;
     }
 

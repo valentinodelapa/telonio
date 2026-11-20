@@ -21,6 +21,10 @@ enum ModelloDichiarativo: string
     case redditiPf = 'RPF';
     case ivaTr = 'TR';
     case isa = 'ISA';
+    case redditiSp = 'RSP';
+    case redditiSc = 'RSC';
+    case consolidato = 'CNM';
+    case irap = 'IRA';
 
     public function getLabel(): string
     {
@@ -29,6 +33,10 @@ enum ModelloDichiarativo: string
             self::redditiPf => 'Redditi Persone fisiche',
             self::ivaTr => 'Credito IVA trimestrale (rimborso o compensazione)',
             self::isa => 'Indici sintetici di affidabilità fiscale',
+            self::redditiSp => 'Redditi Società di persone',
+            self::redditiSc => 'Redditi Società di capitali',
+            self::consolidato => 'Consolidato nazionale e mondiale',
+            self::irap => 'Imposta regionale sulle attività produttive',
         };
     }
 
@@ -39,6 +47,10 @@ enum ModelloDichiarativo: string
             self::redditiPf => 'Redditi PF',
             self::ivaTr => 'IVA TR',
             self::isa => 'ISA',
+            self::redditiSp => 'Redditi SP',
+            self::redditiSc => 'Redditi SC',
+            self::consolidato => 'CNM',
+            self::irap => 'IRAP',
         };
     }
 
@@ -48,12 +60,28 @@ enum ModelloDichiarativo: string
      */
     public function isGestito(): bool
     {
-        return in_array($this, [self::iva, self::ivaTr, self::redditiPf], true);
+        return in_array($this, [self::iva, self::ivaTr, self::redditiPf, self::redditiSp, self::redditiSc, self::consolidato, self::irap], true);
     }
 
+    /**
+     * Modelli delle imposte sui redditi (Redditi PF, SP, SC, Consolidato
+     * nazionale e mondiale) e IRAP: stessi termini di presentazione e
+     * versamenti con le deleghe F24 (saldo, acconti, crediti); i modelli
+     * Redditi hanno la fornitura a record A, B, C (P, Q, R dei modelli ISA)
+     * e Z, l'IRAP la fornitura XML.
+     */
     public function isRedditi(): bool
     {
-        return $this === self::redditiPf;
+        return in_array($this, [self::redditiPf, self::redditiSp, self::redditiSc, self::consolidato, self::irap], true);
+    }
+
+    /**
+     * Modelli Redditi delle società (SP e SC), con il frontespizio dei
+     * soggetti diversi dalle persone fisiche.
+     */
+    public function isRedditiSocieta(): bool
+    {
+        return in_array($this, [self::redditiSp, self::redditiSc], true);
     }
 
     /**
@@ -94,7 +122,9 @@ enum ModelloDichiarativo: string
     {
         return match ($this) {
             self::iva => 'D',
-            self::redditiPf, self::ivaTr => 'C',
+            self::redditiPf, self::ivaTr, self::redditiSp, self::redditiSc, self::consolidato => 'C',
+            // fornitura XML: nessun record a struttura variabile
+            self::irap => '',
             self::isa => 'Q',
         };
     }
@@ -113,7 +143,7 @@ enum ModelloDichiarativo: string
         }
         return new SismaDate(($annoImposta + 1) . match ($this) {
             self::iva => '-04-30',
-            self::redditiPf, self::isa => '-10-31',
+            self::redditiPf, self::isa, self::redditiSp, self::redditiSc, self::consolidato, self::irap => '-10-31',
             self::ivaTr => '-04-30',
         });
     }
@@ -131,6 +161,12 @@ enum ModelloDichiarativo: string
             self::ivaTr => ['TA', 'TB', 'TC', 'TD'],
             // frontespizio, personale, unità locali, elementi specifici, dati contabili, concordato preventivo biennale
             self::isa => ['Y', 'A', 'B', 'C', 'D', 'E', 'F', 'H', 'P'],
+            self::redditiSp => ['RA', 'RB', 'RD', 'RE', 'RF', 'RG', 'RH', 'RJ', 'RL', 'RM', 'RN', 'RO', 'RP', 'RQ', 'RS', 'RT', 'RU', 'RV', 'RW', 'RX', 'AC', 'CP', 'DI', 'FC', 'OP', 'TR'],
+            // consolidato nazionale (NF, NX, NI, crediti esteri NR, NE, NC), mondiale (MF, MX, MR, ME, MC), imposta (CC, CN), prospetti (CK, CS)
+            // società di persone (IP), di capitali (IC), enti (IE), amministrazioni (IK), ripartizione e versamenti (IR), prospetti (IS)
+            self::irap => ['IP', 'IC', 'IE', 'IK', 'IR', 'IS'],
+            self::consolidato => ['NF', 'NX', 'NI', 'NR', 'NE', 'NC', 'MF', 'MX', 'MR', 'ME', 'MC', 'CC', 'CN', 'CK', 'CS'],
+            self::redditiSc => ['RA', 'RB', 'RF', 'RH', 'RI', 'RJ', 'RK', 'RL', 'RM', 'RN', 'RO', 'RQ', 'RS', 'RT', 'RU', 'RV', 'RX', 'RZ', 'AC', 'CE', 'CP', 'DI', 'FC', 'GC', 'GN', 'NI', 'OP', 'PN', 'TN', 'TR'],
         };
     }
 }

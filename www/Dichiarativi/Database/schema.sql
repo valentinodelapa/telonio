@@ -82,6 +82,7 @@ CREATE TABLE IF NOT EXISTS `dichiarazione` (
   `concordato_biennale` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Adesione al concordato preventivo biennale (D.Lgs. 13/2024) prima dell''anno',
   `omesso_isa` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Redditi: omessa presentazione del modello ISA nella dichiarazione (campi 179 e 180 del record B)',
   `revoca_cpb` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Redditi: revoca delle adesioni al concordato preventivo biennale con la dichiarazione (casella "Comunicazione CPB" codice 3, campo 11 del record B)',
+  `canone_rai` CHAR(1) NULL COMMENT 'Redditi SP e SC: casella "Canone RAI" (campo 69 del record B): 1 apparecchi radio, 2 radiotelevisivi, 3 nessun apparecchio',
   `modalita_saldo` CHAR(1) NOT NULL DEFAULT 'U' COMMENT 'U unica soluzione, R rate, D differito al termine dei redditi',
   `numero_rate` TINYINT UNSIGNED NULL,
   `data_differimento` DATE NULL COMMENT 'Data del versamento differito',

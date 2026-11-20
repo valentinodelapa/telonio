@@ -7,6 +7,7 @@ use Anagrafica\Application\Enumerations\NaturaGiuridica;
 use Anagrafica\Application\Enumerations\RegimeFiscale;
 use Anagrafica\Application\Enumerations\RuoloLegame;
 use Anagrafica\Application\Enumerations\TipoAttivita;
+use Anagrafica\Application\Enumerations\TipoOpzioneTassazione;
 use Anagrafica\Application\Enumerations\TipoSoggetto;
 use Anagrafica\Application\Models\DatiFiscaliModel;
 use Anagrafica\Application\Models\LegameModel;
@@ -14,14 +15,18 @@ use Contabilita\Application\Models\PianoContiModel;
 use Contabilita\Application\Services\ComponentiReddito;
 use Contabilita\Application\Services\PartiteAperte;
 use Contabilita\Application\Services\RighiRedditi;
+use Dichiarativi\Application\Enumerations\ModelloDichiarativo;
+use Dichiarativi\Application\Models\DichiarazioneModel;
 use Dichiarativi\Application\Services\QuadriDichiarazione;
 use SismaFramework\Orm\CustomTypes\SismaDate;
 use SismaFramework\Orm\HelperClasses\DataMapper;
 
 /**
  * Quadro RH dalle partecipazioni del contribuente in società di persone
- * dell'Anagrafica (legami di socio con la quota) che tengono la
- * contabilità nella suite: reddito della società dalla Contabilità secondo
+ * dell'Anagrafica (legami di socio con la quota): se la società ha la
+ * dichiarazione Redditi SP dell'anno nella suite, redditi e ritenute da
+ * imputare del suo quadro RN (righi RN1-RN3) per la quota; altrimenti, se
+ * tiene la contabilità nella suite, reddito della società dalla Contabilità secondo
  * il regime (ordinaria: utile con le variazioni del quadro RF proposte dai
  * conti; semplificata e professionisti: ricavi meno costi per cassa) e
  * ritenute d'acconto subite dagli abbinamenti delle partite, imputati per
@@ -45,6 +50,9 @@ class PropostaPartecipazioni
     /** @var list<array<int, int|float|string>> */
     private array $righi = [];
 
+    /** @var list<array<int, int|float|string>> righi RH5 e RH6: società trasparenti (art. 116 Tuir) */
+    private array $righiTrasparenza = [];
+
     /** @var string[] */
     private array $avvisi = [];
 
@@ -63,12 +71,17 @@ class PropostaPartecipazioni
 
     public function getModuliNecessari(): int
     {
-        return (int) ceil(count($this->righi) / self::RIGHI_RH);
+        return max((int) ceil(count($this->righi) / self::RIGHI_RH), (int) ceil(count($this->righiTrasparenza) / 2));
     }
 
     public function carica(Soggetto $socio, int $anno): self
     {
-        $this->righi = $this->avvisi = [];
+        $this->righi = $this->avvisi = $this->righiTrasparenza = [];
+        foreach (PropostaRedditiSocieta::getPartecipazioniTrasparenti($this->dataMapper, $socio, $anno, TipoOpzioneTassazione::trasparenzaRistretta) as $partecipazione) {
+            $this->righiTrasparenza[] = [1 => $partecipazione['societa']->codiceFiscale, 3 => round($partecipazione['quota'], 2),
+                4 => $partecipazione['reddito'] - $partecipazione['perdita'], 9 => $partecipazione['ritenute']];
+            $this->avvisi[] = 'Quadro RH: quota di ' . $partecipazione['societa']->nominativo . ' (trasparenza, art. 116 Tuir) dal quadro TN della dichiarazione Redditi SC della società.';
+        }
         $fine = new SismaDate($anno . '-12-31');
         foreach ((new LegameModel($this->dataMapper))->getIncarichi($socio) as $legame) {
             $societa = $legame->soggetto;
@@ -80,19 +93,26 @@ class PropostaPartecipazioni
                 $this->avvisi[] = 'Quadro RH: quota di partecipazione in ' . $societa->nominativo . ' non indicata nel legame di socio, rigo da compilare a mano.';
                 continue;
             }
+            $quota = $legame->quotaPartecipazione;
+            // dichiarazione Redditi SP della società nella suite: redditi e ritenute da imputare del quadro RN (righi RN1-RN3)
+            $redditiSp = (new DichiarazioneModel($this->dataMapper))->getPerModello($societa, ModelloDichiarativo::redditiSp, $anno);
+            if ($redditiSp !== null) {
+                $quadriSp = new QuadriDichiarazione($redditiSp, $this->dataMapper);
+                $reddito = $quadriSp->getImporto('RN001001', 1) + $quadriSp->getImporto('RN002001', 1) + $quadriSp->getImporto('RN003001', 1);
+                $ritenute = $quadriSp->getImporto('RN001002', 1) + $quadriSp->getImporto('RN002002', 1) + $quadriSp->getImporto('RN003002', 1);
+                $tipo = $this->getTipo((new DatiFiscaliModel($this->dataMapper))->getVigenteAl($societa, $fine));
+                $this->righi[] = [1 => $societa->codiceFiscale, 2 => $tipo, 3 => round($quota, 2), 4 => (int) round($reddito * $quota / 100), 9 => (int) round($ritenute * $quota / 100)];
+                $this->avvisi[] = 'Quadro RH: quota di ' . $societa->nominativo . ' dal quadro RN della dichiarazione Redditi SP ' . ($anno + 1) . ' della società; verifica crediti, oneri e perdite con il prospetto della società.';
+                continue;
+            }
             if ((new PianoContiModel($this->dataMapper))->getPerAzienda($societa) === null) {
                 $this->avvisi[] = 'Quadro RH: ' . $societa->nominativo . ' non tiene la contabilità nella suite, rigo da compilare con il prospetto della società.';
                 continue;
             }
             $dati = (new DatiFiscaliModel($this->dataMapper))->getVigenteAl($societa, $fine);
             $professionisti = ($dati?->naturaGiuridica === NaturaGiuridica::studioAssociato) || ($dati?->tipoAttivita === TipoAttivita::lavoroAutonomo);
-            $tipo = match (true) {
-                $dati?->naturaGiuridica === NaturaGiuridica::studioAssociato => 2,
-                $dati?->naturaGiuridica === NaturaGiuridica::societaSemplice => $professionisti ? 3 : 4,
-                default => 1,
-            };
+            $tipo = $this->getTipo($dati);
             $reddito = $this->getReddito($societa, $anno, $dati?->regimeFiscale, $professionisti);
-            $quota = $legame->quotaPartecipazione;
             $ritenute = (new PartiteAperte($this->dataMapper))->getRitenute($societa, $anno);
             $this->righi[] = [1 => $societa->codiceFiscale, 2 => $tipo, 3 => round($quota, 2), 4 => (int) round($reddito * $quota / 100),
                 9 => (int) round($ritenute * $quota / 100)];
@@ -100,6 +120,20 @@ class PropostaPartecipazioni
                     . '); verifica con il prospetto della società variazioni fiscali, perdite, crediti e oneri.';
         }
         return $this;
+    }
+
+    /**
+     * Tipo della colonna 2 del rigo RH: 2 studi associati, 3 o 4 società
+     * semplici (3 se esercitano lavoro autonomo), 1 le altre.
+     */
+    private function getTipo(?\Anagrafica\Application\Entities\DatiFiscali $dati): int
+    {
+        $professionisti = ($dati?->naturaGiuridica === NaturaGiuridica::studioAssociato) || ($dati?->tipoAttivita === TipoAttivita::lavoroAutonomo);
+        return match (true) {
+            $dati?->naturaGiuridica === NaturaGiuridica::studioAssociato => 2,
+            $dati?->naturaGiuridica === NaturaGiuridica::societaSemplice => $professionisti ? 3 : 4,
+            default => 1,
+        };
     }
 
     /**
@@ -127,6 +161,12 @@ class PropostaPartecipazioni
             $quadri->usaModulo(intdiv($indice, self::RIGHI_RH) + 1);
             foreach ($rigo as $colonna => $valore) {
                 $quadri->proponi(sprintf('RH%03d%03d', $indice % self::RIGHI_RH + 1, $colonna), $valore === 0 ? null : $valore);
+            }
+        }
+        foreach ($this->righiTrasparenza as $indice => $rigo) {
+            $quadri->usaModulo(intdiv($indice, 2) + 1);
+            foreach ($rigo as $colonna => $valore) {
+                $quadri->proponi(sprintf('RH%03d%03d', $indice % 2 + 5, $colonna), $valore === 0 ? null : $valore);
             }
         }
         $quadri->usaModulo(1);

@@ -50,16 +50,16 @@ class DichiarazioneIvaAutotrasporti2025Fixture extends BaseFixture
     {
         $demo = new AziendaDemo($this->dataMapper);
         $studio = $this->getEntityByFixtureName(StudioFixture::class);
-        $azienda = $demo->creaSocieta($studio, 'C076', '09990007602', 'Autotrasporti Emiliani S.r.l.', NaturaGiuridica::societaResponsabilitaLimitata, '49.41.00', PeriodicitaIva::trimestrale,
+        $azienda = $demo->creaSocieta($studio, 'C076', '09990000581', 'Autotrasporti Emiliani S.r.l.', NaturaGiuridica::societaResponsabilitaLimitata, '49.41.00', PeriodicitaIva::trimestrale,
                 'A944', 'Via del Lavoro 12', '40127');
         $datiFiscali = (new DatiFiscaliModel($this->dataMapper))->getVigenteAl($azienda, new SismaDate('2025-01-01'));
         $datiFiscali->trimestraleSpeciale = true;
         $this->dataMapper->save($datiFiscali);
         $demo->legame($azienda, $this->getEntityByFixtureName(SoggettoNeriFixture::class), RuoloLegame::amministratoreUnico);
         $esercizio = $demo->apriContabilita($azienda, 2025);
-        $logistica = $demo->controparte($azienda, 'Logistica Padana S.p.A.', '09990017601', true);
-        $carburanti = $demo->controparte($azienda, 'Carburanti Emilia S.r.l.', '09990027600', false);
-        $officina = $demo->controparte($azienda, 'Officina Veicoli Industriali S.n.c.', '09990037609', false);
+        $logistica = $demo->controparte($azienda, 'Logistica Padana S.p.A.', '09990010036', true);
+        $carburanti = $demo->controparte($azienda, 'Carburanti Emilia S.r.l.', '09990020589', false);
+        $officina = $demo->controparte($azienda, 'Officina Veicoli Industriali S.n.c.', '09990030588', false);
         $vendita = CausaleContabile::fatturaVendita;
         $acquisto = CausaleContabile::fatturaAcquisto;
         // trasporti fatturati a fine trimestre, gasolio e manutenzioni dei mezzi

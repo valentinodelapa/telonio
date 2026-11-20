@@ -19,6 +19,7 @@ use Deleghe\Application\Services\ArchivioVersamenti;
 use Deleghe\Application\Services\CalcoloRateazione;
 use Deleghe\Application\Services\RateazioneService;
 use Dichiarativi\Application\Entities\Dichiarazione;
+use Dichiarativi\Application\Enumerations\ModelloDichiarativo;
 use Dichiarativi\Application\Enumerations\ModalitaSaldo;
 use Dichiarativi\Application\Services\Iva\RegioniVt;
 use Dichiarativi\Application\Services\Isa\ConcordatoIsa;
@@ -28,10 +29,14 @@ use SismaFramework\Orm\HelperClasses\DataMapper;
 use Telonio\Application\HelperClasses\Calendario;
 
 /**
- * Versamenti del modello Redditi PF in Deleghe F24 (saldo e primo acconto
- * entro il 30 giugno, secondo o unico acconto entro il 30 novembre
+ * Versamenti dei modelli Redditi PF e SC in Deleghe F24 (saldo e primo
+ * acconto entro il 30 giugno, secondo o unico acconto entro il 30 novembre
  * dell'anno successivo, art. 17 D.P.R. 435/2001; termini delle istruzioni,
- * fascicolo 1, righi RN62 e LC2):
+ * fascicolo 1, righi RN62 e LC2, e delle istruzioni generali dei modelli
+ * delle società, par. 4; per Redditi SC l'esercizio coincide con l'anno
+ * solare). Redditi SC: IRES 2003, acconti 2001 e 2002
+ * (PropostaRedditiSocieta::getAccontiIres), credito IRES in compensazione
+ * (RX1, col. 5). Redditi PF:
  * - IRPEF 4001, acconti 4033 e 4034; maggiorazione dell'acconto per il
  *   primo periodo di adesione al concordato preventivo biennale 4068
  *   (ConcordatoIsa);
@@ -69,7 +74,7 @@ class VersamentiRedditi
 
     /** IRPEF, addizionali, IVIE, IVAFE e cripto-attività fino a 12 euro: né versamento né compensazione (istruzioni, fascicolo 1, parte I, e quadro RW) */
     private const IMPORTO_MINIMO = 12.0;
-    private const CODICI_SOGLIA = ['4001', '3801', '3844', '3843', '4041', '4043', '1727'];
+    private const CODICI_SOGLIA = ['2003', '3800', '4001', '3801', '3844', '3843', '4041', '4043', '1727'];
 
     /** Codici degli acconti versati per anno di riferimento */
     public const ACCONTI = ['irpef' => ['4033', '4034'], 'cedolare' => ['1840', '1841'], 'comunale' => ['3843'], 'forfetario' => ['1790', '1791'],
@@ -140,10 +145,39 @@ class VersamentiRedditi
             [SezioneF24::erario, '1100', $q('RX020001'), $anno, $giugno, null, 'Imposta sostitutiva sulle plusvalenze'],
             [SezioneF24::erario, '1715', $q('RX021001'), $anno, $giugno, null, 'Imposta sostitutiva sulle plusvalenze delle cripto-attività'],
         ];
+        if ($dichiarazione->modello === ModelloDichiarativo::irap) {
+            // IRAP: saldo 3800 (IR26) e acconti 3812 e 3813 (art. 30 D.Lgs. 446/1997) nella sezione Regioni, con la regione del domicilio fiscale
+            [$primoIrap, $secondoIrap] = \Dichiarativi\Application\Services\Irap\PropostaIrap::getAcconti((float) ($quadri->getImporto('IR021001', 1) - $quadri->getImporto('IR022004', 1)),
+                    $soggetto->tipoSoggetto === \Anagrafica\Application\Enumerations\TipoSoggetto::societaPersone, $isa);
+            $regioneIrap = $quadri->get('IR001001', 1) === null ? $regione : sprintf('%02d', (int) $quadri->get('IR001001', 1));
+            $voci = [
+                [SezioneF24::regioni, '3800', $q('IR026001'), $anno, $giugno, $regioneIrap, 'Saldo IRAP'],
+                [SezioneF24::regioni, '3812', $primoIrap, $anno + 1, $giugno, $regioneIrap, 'Primo acconto IRAP'],
+                [SezioneF24::regioni, '3813', $secondoIrap, $anno + 1, $novembre, $regioneIrap, 'Secondo o unico acconto IRAP'],
+            ];
+        }
+        if ($dichiarazione->modello === ModelloDichiarativo::consolidato) {
+            // IRES del consolidato: saldo 2003 (CN20, col. 2) e acconti 2001 e 2002 sull'IRES dovuta (CN13), versati dalla consolidante
+            [$primoIres, $secondoIres] = PropostaRedditiSocieta::getAccontiIres((float) $quadri->getImporto('CN013001', 1), $isa);
+            $voci = [
+                [SezioneF24::erario, '2003', $q('CN020002'), $anno, $giugno, null, 'Saldo IRES del consolidato'],
+                [SezioneF24::erario, '2001', $primoIres, $anno + 1, $giugno, null, 'Primo acconto IRES del consolidato'],
+                [SezioneF24::erario, '2002', $secondoIres, $anno + 1, $novembre, null, 'Secondo o unico acconto IRES del consolidato'],
+            ];
+        }
+        if ($dichiarazione->modello === ModelloDichiarativo::redditiSc) {
+            // IRES: saldo 2003 (RX1, col. 1) e acconti 2001 e 2002 sull'IRES dovuta (RN17) con il metodo storico (istruzioni generali, par. 4.2)
+            [$primoIres, $secondoIres] = PropostaRedditiSocieta::getAccontiIres((float) $quadri->getImporto('RN017001', 1), $isa);
+            $voci = [
+                [SezioneF24::erario, '2003', $q('RX001001'), $anno, $giugno, null, 'Saldo IRES'],
+                [SezioneF24::erario, '2001', $primoIres, $anno + 1, $giugno, null, 'Primo acconto IRES'],
+                [SezioneF24::erario, '2002', $secondoIres, $anno + 1, $novembre, null, 'Secondo o unico acconto IRES'],
+            ];
+        }
         $versamenti = [];
         $messaggi = [];
         // imposte del quadro RM senza un codice tributo certo nell'archivio: versamento da inserire a mano
-        foreach (['RX008001' => 'imposta sostitutiva sui proventi delle obbligazioni (RM32)', 'RX010001' => 'imposta sostitutiva sulla rivalutazione del TFR (RM91)',
+        foreach ($dichiarazione->modello !== ModelloDichiarativo::redditiPf ? [] : ['RX008001' => 'imposta sostitutiva sui proventi delle obbligazioni (RM32)', 'RX010001' => 'imposta sostitutiva sulla rivalutazione del TFR (RM91)',
             'RX013001' => 'imposta sostitutiva del riallineamento dei valori fiscali (RM39)', 'RX015001' => 'imposta sui redditi delle imprese estere partecipate (RM62)',
             'RX017001' => 'imposta sui proventi del noleggio occasionale di imbarcazioni (RM35)'] as $codice => $descrizione) {
             if ($q($codice) > 0) {
@@ -226,6 +260,15 @@ class VersamentiRedditi
             [SezioneF24::erario, '1856', 'RX018005', null, 'Credito imposta sostitutiva sulle lezioni private'],
             [SezioneF24::erario, '1715', 'RX021005', null, 'Credito imposta sostitutiva sulle plusvalenze delle cripto-attività'],
         ];
+        if ($dichiarazione->modello === ModelloDichiarativo::redditiSc) {
+            $voci = [[SezioneF24::erario, '2003', 'RX001005', null, 'Credito IRES']];
+        }
+        if ($dichiarazione->modello === ModelloDichiarativo::consolidato) {
+            $voci = [[SezioneF24::erario, '2003', 'CN024003', null, 'Credito IRES del consolidato']];
+        }
+        if ($dichiarazione->modello === ModelloDichiarativo::irap) {
+            $voci = [[SezioneF24::regioni, '3800', 'IR030001', $quadri->get('IR001001', 1) === null ? $this->getCodiceRegione($soggetto, $anno) : sprintf('%02d', (int) $quadri->get('IR001001', 1)), 'Credito IRAP']];
+        }
         $messaggi = [];
         $creditoModel = new CreditoModel($this->dataMapper);
         foreach ($voci as [$sezione, $codice, $campo, $ente, $descrizione]) {
@@ -324,6 +367,27 @@ class VersamentiRedditi
         return $primo > 103 ? [$primo, $base - $primo] : [0.0, $base];
     }
 
+    /**
+     * Versamenti in delega (non in bozza) con anno di riferimento $anno,
+     * per codice tributo, dei codici indicati (es. acconti IRES 2001 e 2002).
+     *
+     * @param string[] $codici
+     * @return array<string, float> codice => importo versato
+     */
+    public static function getVersatiPerCodici(DataMapper $dataMapper, Soggetto $soggetto, int $anno, array $codici): array
+    {
+        $versati = array_fill_keys($codici, 0.0);
+        foreach ((new VersamentoModel($dataMapper))->getPerPeriodo($soggetto->studio, new SismaDate($anno . '-01-01'), new SismaDate($anno . '-12-31'), $soggetto) as $versamento) {
+            if (($versamento->delega === null) || ($versamento->delega->stato === StatoDelega::bozza) || ($versamento->annoRiferimento !== $anno)) {
+                continue;
+            }
+            if (in_array($versamento->codiceTributo?->codice, $codici, true)) {
+                $versati[$versamento->codiceTributo->codice] += $versamento->importoDebito;
+            }
+        }
+        return $versati;
+    }
+
     public static function getAccontiVersati(DataMapper $dataMapper, Soggetto $soggetto, int $anno): array
     {
         $acconti = array_fill_keys(array_keys(self::ACCONTI), 0.0);
@@ -347,7 +411,8 @@ class VersamentiRedditi
     public static function getDomicilio(DataMapper $dataMapper, Soggetto $soggetto, \DateTimeImmutable $data): ?Comune
     {
         $indirizzi = (new IndirizzoModel($dataMapper))->getVigentiAl($soggetto, $data);
-        foreach ([TipoIndirizzo::domicilioFiscale, TipoIndirizzo::residenza] as $tipo) {
+        // per le società e gli enti il domicilio fiscale è la sede legale
+        foreach ([TipoIndirizzo::domicilioFiscale, TipoIndirizzo::residenza, TipoIndirizzo::sedeLegale] as $tipo) {
             foreach ($indirizzi as $indirizzo) {
                 if (($indirizzo->tipoIndirizzo === $tipo) && ($indirizzo->comune !== null)) {
                     return $indirizzo->comune;
@@ -363,8 +428,19 @@ class VersamentiRedditi
      */
     private function getCodiceRegione(Soggetto $soggetto, int $anno): ?string
     {
-        $rigo = RegioniVt::getRigo(self::getDomicilio($this->dataMapper, $soggetto, new \DateTimeImmutable($anno . '-01-01'))?->siglaProvincia);
-        return $rigo === null ? null : sprintf('%02d', $rigo - 1);
+        $codice = self::getCodiceRegioneDomicilio($this->dataMapper, $soggetto, new \DateTimeImmutable($anno . '-01-01'));
+        return $codice === null ? null : sprintf('%02d', $codice);
+    }
+
+    /**
+     * Codice della regione (o provincia autonoma) del domicilio fiscale alla
+     * data, nella tabella dei codici regione delle deleghe F24 e del modello
+     * IRAP (1 Abruzzo ... 21 Veneto); null senza domicilio.
+     */
+    public static function getCodiceRegioneDomicilio(DataMapper $dataMapper, Soggetto $soggetto, \DateTimeImmutable $data): ?int
+    {
+        $rigo = RegioniVt::getRigo(self::getDomicilio($dataMapper, $soggetto, $data)?->siglaProvincia);
+        return $rigo === null ? null : $rigo - 1;
     }
 
     private function getCodiceTributo(SezioneF24 $sezione, string $codice): \Deleghe\Application\Entities\CodiceTributo

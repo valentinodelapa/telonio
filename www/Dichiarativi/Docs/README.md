@@ -10,7 +10,12 @@ modello **Redditi Persone fisiche 2026** (anno 2025): redditi fondiari
 dagli immobili e dai contratti di locazione dell'Anagrafica, lavoro
 dipendente e pensione dall'archivio delle Certificazioni Uniche, redditi
 d'impresa e di lavoro autonomo dalla Contabilità, IRPEF, addizionali e
-cedolare secca, versamenti e crediti in Deleghe e file telematico.
+cedolare secca, versamenti e crediti in Deleghe e file telematico. Dalla
+0.12 gestisce anche i modelli delle società: **Redditi Società di
+persone** e **Redditi Società di capitali 2026**, con il consolidato
+nazionale e la trasparenza fiscale, il modello **Consolidato nazionale e
+mondiale (CNM)** della consolidante e il modello **IRAP 2026** (fornitura
+XML).
 
 Il contribuente è il soggetto dell'Anagrafica; partita IVA, natura
 giuridica, codice ATECO, regime e periodicità IVA si leggono dai dati
@@ -1114,6 +1119,185 @@ dichiarazioni demo superano la procedura di controllo dell'Agenzia
 (versione 1.7.0 del 22 ottobre 2026); quello di Lucia Ferri con la sola
 segnalazione, non bloccante, del modello ISA non allegato.
 
+## Modelli Redditi SP e SC
+
+Redditi SP per le società di persone e le associazioni professionali,
+Redditi SC per le società di capitali (tipo del soggetto
+nell'Anagrafica). Il catalogo dei campi viene dalle specifiche tecniche
+(SP aggiornate al 13 maggio 2026, SC al 15 settembre 2026): le specifiche
+SP hanno in sovrimpressione su ogni pagina il titolo del quadro AC, che la
+lettura toglie (`LettoreSpecifiche::togliIntestazioniCorrenti`), e non
+hanno i titoli dei quadri, che vengono dall'indice delle istruzioni.
+
+### Frontespizio e file
+
+Il frontespizio (`TracciatoRedditiSocieta`, record B diverso tra SP e SC,
+ricavato dalle specifiche) ha denominazione, partita IVA e recapiti,
+periodo d'imposta dall'esercizio contabile (altrimenti l'anno solare),
+stato 1 e situazione 6 (tabelle A e C delle istruzioni generali), natura
+giuridica (tabella B), rappresentante firmatario con il codice di carica,
+impegno alla trasmissione, visto, organo di controllo (solo SC), caselle
+dei quadri compilati, del modello ISA, del consolidato e della
+trasparenza, comunicazione del concordato (codici 1-3), casella "Canone
+RAI" (campo 69, obbligatoria: 1 apparecchi radio, 2 radiotelevisivi, 3
+nessun apparecchio; si sceglie nel frontespizio, senza valore proposto).
+Record A, C e Z come Redditi PF; i modelli ISA allegati hanno nella testa
+il modello di dichiarazione 4-6 (SP, quadro RE, RF, RG) o 7 (SC).
+
+Quadro RS proposto dalla contabilità:
+
+- **Società di comodo** (`OperativitaSocieta`, art. 30 L. 724/1994; righi
+  RS11-RS20 di SP, RS116-RS125 di SC), se non c'è a mano una causa di
+  esclusione o di disapplicazione: valori dei beni dal registro dei
+  cespiti (costo, ragguagliato ai giorni di possesso; fabbricati tra gli
+  immobili, gli altri beni tra le altre immobilizzazioni, escluse quelle
+  in corso e gli acconti) con la media del triennio e, se la società non
+  è operativa, il valore dell'esercizio; titoli e crediti non commerciali dai saldi delle voci
+  B.III e C.III; ricavi effettivi come media delle voci A1, A2, A3 e A5
+  degli esercizi in contabilità; ricavi e reddito presunti con le
+  percentuali delle specifiche. "Casi particolari" 1 senza beni nel
+  triennio, 2 senza beni nell'ultimo esercizio. Se la società non è
+  operativa: reddito minimo, con le agevolazioni inserite a mano. Restano
+  a mano la distinzione degli immobili A/10, abitativi e nei piccoli
+  comuni, i beni in leasing e il confronto del reddito minimo con quello
+  dichiarato.
+- **Ricavi** (RS107 di SC, art. 85, c. 1, lett. a e b): voce A1 del
+  conto economico, o la casella dell'assenza di ricavi.
+- **Conservazione dei documenti rilevanti** (RS40 di SP, RS104 di SC):
+  codice 1 proposto per i soggetti IVA, come in Redditi PF.
+
+Nel quadro TN la sezione di imputazione (righi da TN30 a TN33) ha i soci
+dei legami con la quota agli utili e alle perdite e il reddito o la
+perdita imputati; l'arrotondamento va all'ultimo socio, perché il totale
+coincida con il rigo TN4 (oltre quattro soci, moduli successivi a mano).
+
+Controlli prima della trasmissione (`ControlliRedditi`): casella "Canone
+RAI" scelta, con il prospetto del canone del quadro RS per i codici 1 e 2
+(rigo RS47 di SP, RS111 di SC); modello ISA allegato, o omessa
+presentazione, se l'attività del quadro RE, RF o RG ha un ISA e non c'è
+causa di esclusione o è la 7 o la 14 (che richiedono comunque il modello).
+
+### Proposta dalla contabilità (`PropostaRedditiSocieta`)
+
+- **Quadro RF** (contabilità ordinaria, per competenza): utile o perdita,
+  imposte sul reddito dell'esercizio (voce E.20) e costi deducibili in
+  parte tra le variazioni in aumento (RF16, RF18, RF31 codice 99), parte
+  non imponibile dei ricavi in diminuzione (RF55 codice 99), totali RF32 e
+  RF56 con le formule dei controlli di ciascun modello (le specifiche SP
+  citano il campo RF048002, che non è nel modello: si somma RF048001),
+  RF57, RF60 e RF63; per SP anche RF64-RF66.
+- **Quadro RG di Redditi SP** (contabilità semplificata, per cassa come
+  Redditi PF): ricavi nella colonna 5 del rigo RG2 (in SP le colonne 1-4
+  sono "di cui"), totali RG12 e RG24 con le formule delle specifiche,
+  reddito RG31 e RG34.
+- **Quadro RN di Redditi SC** (IRES): reddito o perdita, perdite pregresse
+  inserite a mano (RN4, colonna 1 limitata all'80 per cento del reddito),
+  reddito imponibile, IRES al 24 per cento, ritenute dalle partite
+  aperte, eccedenza della dichiarazione dell'anno prima, acconti versati
+  (2001 e 2002), IRES a debito o a credito (RN23, RN24, RX1). Versamenti:
+  saldo 2003, acconti 2001 e 2002 con il metodo storico (100 per cento,
+  40/60 o 50/50 per i soggetti ISA, nessun acconto fino a 20,66 euro,
+  rata unica se la prima non supera 103 euro).
+- **Quadri RN e RO di Redditi SP**: redditi da imputare ai soci (RN1
+  ordinaria, RN2 semplificata) con le ritenute; amministratori (sezione I)
+  e soci con la quota e la qualifica (sezione II) dai legami
+  dell'Anagrafica. Il quadro RH della dichiarazione Redditi PF del socio
+  prende quota di reddito e ritenute dal quadro RN della società, se la
+  sua dichiarazione è nella suite.
+
+### Consolidato e trasparenza
+
+Le opzioni della società sono nell'Anagrafica (`OpzioneTassazione`, nei
+dati fiscali): consolidato nazionale con la consolidante, trasparenza
+(art. 115) e trasparenza delle s.r.l. con soci persone fisiche (art.
+116), per tre periodi d'imposta.
+
+- **Consolidato**: la società compila il quadro GN al posto del quadro RN
+  (reddito complessivo netto da trasferire, perdite anteriori al
+  consolidato inserite a mano) e non liquida l'IRES; la consolidante
+  presenta il **modello CNM** (`PropostaConsolidato`): quadro NF con il
+  reddito o la perdita di ciascuna società dai quadri GN (righi NF1-NF7,
+  più moduli se servono), reddito complessivo globale (NF12) con le
+  rettifiche inserite a mano, quadro CN con l'IRES del gruppo, le
+  ritenute delle società, l'eccedenza del CNM dell'anno prima e gli
+  acconti; versamenti 2003, 2001 e 2002 della consolidante. Il frontespizio
+  del CNM ha posizioni proprie (`TracciatoRedditiSocieta::RECORD_B_CNM`);
+  la situazione si indica solo per il consolidato mondiale.
+- **Trasparenza**: la società compila il quadro TN (reddito imponibile del
+  rigo TN4, colonna 6, o perdita da attribuire) e non liquida l'IRES; il reddito va ai soci per la
+  quota del legame di socio: alle società socie (art. 115) nel rigo RF58
+  o RF59, colonna 2, ai soci persone fisiche (art. 116) nei righi RH5 e
+  RH6 di Redditi PF.
+
+Restano a mano: quadri GC, NI, PN, le sezioni II-V del quadro NF e il
+consolidato mondiale.
+
+## Modello IRAP
+
+Il modello IRAP 2026 (società di persone e di capitali; le persone fisiche
+non sono soggetti passivi dal 2022, L. 234/2021) si trasmette in XML
+("IRA26").
+
+### Catalogo dei campi e schema
+
+Le specifiche tecniche elencano, nella "rappresentazione tabellare", il
+tag XML, il codice del campo del modello (es. `IC001001` per
+RicaviVendite) e il tipo. `LettoreSpecificheIrap` allinea questo elenco
+alle foglie dello schema XSD ufficiale sotto DatiContabili, nello stesso
+ordine, e ricava il percorso XML di ogni codice (le righe con più
+occorrenze hanno un codice per occorrenza; il nome del tag può andare a
+capo sopra il codice o il codice sotto il tag). `sisma
+specifiche-dichiarativi --modello=IRA` scarica le specifiche, le
+istruzioni e l'archivio degli schemi (colonna `schema` di
+`specifiche.csv`), estrae gli schemi in `Database/sorgenti/xsd-IRA-2026`
+e riscrive `campi-`, `quadri-` e `xml-IRA-2026.csv` (codice e percorso).
+Due campi delle specifiche (IS001001, IS220001) non sono nello schema
+pubblicato: se compilati, il file non si genera.
+
+### File XML
+
+`GeneratoreIrap` scrive il messaggio (`tm:Messaggio` con l'intestazione
+del fornitore e il contenuto "IRA26"), la fornitura e la dichiarazione con
+`ScritturaXml`, che segue l'ordine e i namespace dello schema
+(`SchemaXsd`): ogni elemento nel namespace dello schema in cui è
+dichiarato. Il frontespizio ha regione del domicilio fiscale (sede legale),
+partita IVA, denominazione, periodo, stato, natura giuridica e situazione,
+modello Redditi (1 quadro IP, 2 IC, 3 IE, 4 IK), sottoscrittore, caselle
+dei quadri, organo di controllo, impegno e visto; i dati contabili vengono
+dai valori dei quadri con i percorsi del catalogo. Importi zero non si
+scrivono (lo schema non li ammette). Il file è valido rispetto allo schema
+XSD (verificato nei test).
+
+### Proposta dalla contabilità (`PropostaIrap`)
+
+- **Quadro IC** (società di capitali, art. 5 D.Lgs. 446/1997): componenti
+  dal conto economico per competenza (voci A1-A5; B6, B7, B8, B10 a e b,
+  B11, B14), variazioni inserite a mano con i totali, valore della
+  produzione lorda e netta.
+- **Quadro IP** (società di persone, art. 5-bis): ricavi meno costi di
+  materie e merci, servizi, ammortamenti e canoni, per cassa in
+  contabilità semplificata.
+- Deduzioni: costo del personale dipendente (voce B9) proposto con un
+  avviso, perché spetta per il tempo indeterminato; ulteriore deduzione
+  dell'art. 11, comma 4-bis (8.000 euro fino a 180.759,91 euro di base, a
+  scalare; per le società di persone 13.000 euro).
+- **Quadro IR**: regione del domicilio fiscale; valore della produzione,
+  con quello negativo (IC64 meno IC65, o colonne 3 negative dei righi da
+  IP60 a IP65) in un rigo a sé, come chiedono istruzioni e controlli;
+  codice e aliquota dalla tabella delle aliquote regionali del
+  Dipartimento delle Finanze (`AliquoteIrap`, sorgente
+  `Database/sorgenti/aliquote-IRA-2026.csv`, la stessa con cui i controlli
+  dell'Agenzia verificano codice e aliquota): proposto il codice 1,
+  aliquota ordinaria della regione (art. 16 con le variazioni regionali);
+  per le aliquote agevolate o maggiorate si indica a mano il codice nella
+  colonna 6 e l'aliquota si ricalcola alla riproposta. La tabella non si
+  scarica con `sisma specifiche-dichiarativi` (il sito delle Finanze non ha
+  un file stabile): si aggiorna a mano ogni anno con il nuovo modello.
+  Poi imposta, eccedenza del modello dell'anno prima, acconti versati (3812 e 3813),
+  IRAP a debito o a credito. Versamenti nella sezione Regioni: saldo 3800
+  e acconti 3812 e 3813 (100 per cento, 40/60 o 50/50 per i soggetti ISA;
+  nessun acconto fino a 20,66 euro, 51,65 per le società di persone).
+
 ## Fixture
 
 - **Alfa Consulting S.r.l.** (mensile): esercizio 2025 con prestazioni al
@@ -1125,6 +1309,17 @@ segnalazione, non bloccante, del modello ISA non allegato.
   quarto trimestre); dichiarazione IVA 2026 presentata con il credito di
   8.000 euro e il visto di conformità del commercialista Paolo Marini, che
   adotta il credito IVA 2025 già presente in Deleghe;
+- **modelli delle società 2026** (`RedditiBarCentrale2025Fixture`,
+  `RedditiSocieta2025Fixture`): Bar Centrale s.n.c. (Redditi SP in
+  contabilità semplificata, soci Mario Rossi e Paolo Neri al 50 per
+  cento, modello ISA EG37U con i dati del locale e i prezzi, IRAP); Alfa
+  Consulting S.r.l. (Redditi SC con l'IRES e IRAP, versamenti); gruppo
+  Verde in consolidato nazionale (Holding consolidante con la perdita,
+  Distribuzione e Servizi consolidate, quadri GN, modello CNM con l'IRES
+  del gruppo e versamenti, IRAP di ciascuna); Lumen Grafica S.r.l. in
+  trasparenza (art. 116) con i soci Laura Bianchi e Mario Rossi (quadro TN,
+  IRAP); la dichiarazione di Rossi ha le quote del bar (RH1) e di Lumen
+  (RH5);
 - **modelli Redditi PF 2026**: Mario Rossi (dipendente con la CU, casa di
   Massimeno locata con il box pertinenza e la cedolare al 21 per cento,
   aggiornamento ISTAT, coniuge e due figli nei legami familiari con il
@@ -1314,6 +1509,16 @@ dei moduli devono essere dello stesso studio.
   <https://www.istat.it/wp-content/uploads/2022/03/Tavola-di-raccordo-ATECOFIN-2004-ATECO-2007.pdf>;
 - elenco delle province e delle città metropolitane (ISTAT) per il
   raccordo con i righi regionali del quadro VT;
+- modelli Redditi SP 2026 e Redditi SC 2026, istruzioni (con la parte
+  generale comune) e specifiche tecniche (SP aggiornate al 13 maggio 2026,
+  SC al 15 settembre 2026); modello Consolidato nazionale e mondiale 2026,
+  istruzioni e specifiche (aggiornate al 25 giugno 2026); modello IRAP
+  2026, istruzioni, specifiche tecniche e schemi XSD (provvedimenti del 27
+  febbraio 2026), dalle pagine dell'Agenzia delle Entrate "Redditi
+  società di persone 2026", "Redditi società di capitali 2026",
+  "Consolidato nazionale e mondiale 2026" e "Dichiarazione Irap 2026";
+- controlli di coerenza tra modelli ISA e Redditi SP e SC (allegato 2 al
+  provvedimento del 27 febbraio 2026, par. 6.2 e 6.3);
 - modelli in PDF per la stampa: Redditi PF 2026, fascicoli 1, 2 e 3
   aggiornati al 13 maggio 2026; IVA 2026; IVA TR aggiornato a marzo 2025
   (indirizzi in `Database/sorgenti/modelli.csv`).
@@ -1329,6 +1534,10 @@ dei moduli devono essere dello stesso studio.
   fiscale;
 - **Redditi PF**: righi da inserire a mano senza proposta dagli archivi
   (RM51-RM54, RM91, RL17, CR16);
+- **società**: stampa sul modello ufficiale dei modelli SP, SC, CNM e
+  IRAP; prospetti del quadro RS (perdite), quadri RV, RQ, RU, GC, NI, PN e
+  consolidato mondiale a mano; aliquote IRAP regionali diverse
+  dall'ordinaria a mano; modello Redditi ENC e IRAP degli enti;
 - calcolo automatico di rimanenze e servizi non utilizzati nella rettifica per
   il cambio di regime;
 - verifica dei file con il software di controllo dell'Agenzia delle

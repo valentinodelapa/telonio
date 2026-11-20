@@ -210,15 +210,15 @@ class RedditiRossi2025Fixture extends BaseFixture
         $this->dataMapper->save($occasionale);
 
         // partecipazione in una società di persone in contabilità semplificata
-        $bar = $demo->creaSocieta($rossi->studio, 'C075', '09990012008', 'Bar Centrale di Rossi e Neri s.n.c.', NaturaGiuridica::societaNomeCollettivo, '56.30.01',
+        $bar = $demo->creaSocieta($rossi->studio, 'C075', '09990010580', 'Bar Centrale di Rossi e Neri s.n.c.', NaturaGiuridica::societaNomeCollettivo, '56.30.01',
                 PeriodicitaIva::trimestrale, 'H501', 'Via Nazionale 10', '00184');
         $bar->tipoSoggetto = TipoSoggetto::societaPersone;
         $this->dataMapper->save($bar);
         $demo->variaDatiFiscali($bar, '2025-01-01', ['regimeFiscale' => RegimeFiscale::semplificato]);
         $demo->legame($bar, $rossi, RuoloLegame::socio, '2018-03-01', 50.0);
         $esercizioBar = $demo->apriContabilita($bar, 2025);
-        $clienteBar = $demo->controparte($bar, 'Catering Eventi Roma S.r.l.', '09990012016', true);
-        $fornitoreBar = $demo->controparte($bar, 'Torrefazione Laziale S.r.l.', '09990012024', false);
+        $clienteBar = $demo->controparte($bar, 'Catering Eventi Roma S.r.l.', '09990010010', true);
+        $fornitoreBar = $demo->controparte($bar, 'Torrefazione Laziale S.r.l.', '09990010028', false);
         RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizioBar, $clienteBar, CausaleContabile::fatturaVendita, '2025-03-15', '1', ['10' => 30000.0]);
         RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizioBar, $clienteBar, CausaleContabile::incasso, '2025-04-15', null, [], ['totale' => 33000.0]);
         RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizioBar, $fornitoreBar, CausaleContabile::fatturaAcquisto, '2025-05-10', 'TL/88', ['22' => 12000.0]);

@@ -49,9 +49,12 @@ require Layout::percorso('header');
             <div class="w-100 m-0"></div>
             <?= Campo::spunta('adempimentoCollaborativo', $campi['adempimentoCollaborativo'], $formEntity, $errors, ['colonna' => 'col-md-3']) ?>
             <?= Campo::spunta('concordatoBiennale', $campi['concordatoBiennale'], $formEntity, $errors, ['colonna' => 'col-md-3']) ?>
-            <?php if ($dichiarazione->modello->isRedditi()): ?>
+            <?php if ($dichiarazione->modello->isRedditi() && !in_array($dichiarazione->modello, [\Dichiarativi\Application\Enumerations\ModelloDichiarativo::consolidato, \Dichiarativi\Application\Enumerations\ModelloDichiarativo::irap], true)): ?>
                 <?= Campo::spunta('omessoIsa', $campi['omessoIsa'], $formEntity, $errors, ['colonna' => 'col-12', 'aiuto' => $aiutoOmessoIsa]) ?>
                 <?= Campo::spunta('revocaCpb', $campi['revocaCpb'], $formEntity, $errors, ['colonna' => 'col-12', 'aiuto' => $aiutoRevocaCpb]) ?>
+            <?php endif; ?>
+            <?php if ($dichiarazione->modello->isRedditiSocieta()): ?>
+                <?= Campo::selezioneEnum('canoneRai', $campi['canoneRai'], $formEntity, $errors, $canoniRai, ['colonna' => 'col-md-8', 'vuota' => $nessuno, 'aiuto' => $aiutoCanoneRai]) ?>
             <?php endif; ?>
             <?= Campo::autocompleta('vistoCaf', $campi['vistoCaf'], $formEntity, $errors, '/soggetto/cerca', $cafCorrente, ['colonna' => 'col-md-6', 'aiuto' => $aiutoVistoCaf]) ?>
             <?= Campo::autocompleta('vistoResponsabileCaf', $campi['vistoResponsabileCaf'], $formEntity, $errors, '/soggetto/cerca', $responsabileCorrente, ['colonna' => 'col-md-6']) ?>
@@ -59,7 +62,7 @@ require Layout::percorso('header');
             <?= Campo::areaTesto('annotazioni', $campi['annotazioni'], $formEntity, $errors, ['colonna' => 'col-12', 'righe' => 3, 'attributi' => 'maxlength="500"']) ?>
         </div>
     </div>
-    <?php if ($dichiarazione->modello->isRedditi()): ?>
+    <?php if ($dichiarazione->modello === \Dichiarativi\Application\Enumerations\ModelloDichiarativo::redditiPf): ?>
         <div class="card shadow-sm mt-3">
             <div class="card-header"><?= Html::e($sezioneScelte) ?></div>
             <div class="card-body row g-3">

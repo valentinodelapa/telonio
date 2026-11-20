@@ -175,9 +175,9 @@ class PropostaImpresa
 
     /**
      * Righi con il codice della voce (RG10, RG22): coppie codice e importo,
-     * totale nell'ultima colonna.
+     * totale nell'ultima colonna (anche per il quadro RG di Redditi SP).
      */
-    private function proponiCodici(QuadriDichiarazione $quadri, string $prefisso, int $colonnaTotale, array $componenti, string $rigo): int
+    public function proponiCodici(QuadriDichiarazione $quadri, string $prefisso, int $colonnaTotale, array $componenti, string $rigo): int
     {
         $voci = [];
         foreach ($componenti as $chiave => $importo) {

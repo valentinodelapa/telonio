@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:cm="urn:www.agenziaentrate.gov.it:specificheTecniche:common" xmlns:sc="urn:www.agenziaentrate.gov.it:specificheTecniche:sco:common" xmlns:ir="urn:www.agenziaentrate.gov.it:specificheTecniche:sco:ira" xmlns:tm="www.agenziaentrate.gov.it:specificheTecniche:telent:v1" targetNamespace="urn:www.agenziaentrate.gov.it:specificheTecniche:sco:ira" elementFormDefault="qualified" attributeFormDefault="unqualified" version="1.0">
+	<xs:annotation>
+		<xs:documentation xml:lang="it"><![CDATA[
+		Versione 1.0 - 18/02/26
+		]]></xs:documentation>
+	</xs:annotation>
+	<xs:import namespace="urn:www.agenziaentrate.gov.it:specificheTecniche:common" schemaLocation="../../common/fornitura_v4.xsd"/>
+	<xs:import namespace="urn:www.agenziaentrate.gov.it:specificheTecniche:sco:common" schemaLocation="../../common/datiFiscali_v5.xsd"/>
+	<xs:import namespace="www.agenziaentrate.gov.it:specificheTecniche:telent:v1" schemaLocation="../../common/telematico_v1.xsd"/>
+	<xs:element name="Intestazione" type="ir:Intestazione_IRAP_Type"/>
+	<xs:complexType name="Intestazione_IRAP_Type">
+		<xs:sequence>
+			<xs:element name="TipoFornitore">
+				<xs:simpleType>
+					<xs:restriction base="cm:DatoAN_Type">
+						<xs:enumeration value="1"/>
+						<xs:enumeration value="10"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="SpazioUtente" type="cm:DatoAN_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+</xs:schema>

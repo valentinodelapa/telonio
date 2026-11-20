@@ -2,6 +2,100 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.31.0-alpha] - 2026-11-20 - Redditi delle Società, Consolidato e IRAP
+
+Versioni dei moduli: `Dichiarativi` 0.12.0 (richiede `Anagrafica` 0.15.0 e `Contabilita` 0.13.0), `Anagrafica` 0.15.0; gli altri invariati.
+
+**Aggiornamento**: `aggiorna.sh` (cioè `sisma aggiorna-database`) esegue `Anagrafica/Database/aggiornamento-0.15.sql` (nuova tabella `opzione_tassazione`) e `Dichiarativi/Database/aggiornamento-0.12.sql` (colonna `canone_rai` della tabella `dichiarazione`), entrambi idempotenti, e importa da `Dichiarativi/Database/dati-riferimento.sql` i cataloghi dei nuovi modelli. Nessun passo manuale.
+
+### ✨ Nuove Funzionalità
+
+#### `Dichiarativi` 0.12.0 — Redditi Società di persone e Società di capitali, Consolidato, IRAP
+
+- **Catalogo dei campi di Redditi SP 2026 e Redditi SC 2026** dalle specifiche tecniche ufficiali: SP aggiornate al 13 maggio 2026, 3.984 campi in 26 quadri; SC aggiornate al 15 settembre 2026, 5.973 campi in 31 quadri.
+  - Le denominazioni dei quadri SP vengono dall'indice delle istruzioni del modello, perché le specifiche SP non hanno i titoli dei quadri.
+- **Dichiarazioni Redditi SP e SC nella scheda del contribuente**: Redditi SP per le società di persone e le associazioni professionali, Redditi SC per le società di capitali (tipo del soggetto nell'Anagrafica).
+  - Il frontespizio è proposto come per le altre dichiarazioni: natura giuridica, rappresentante firmatario, intermediario.
+  - Per Redditi SC c'è l'organo di controllo, come nella dichiarazione IVA.
+- **File telematico "RSP26" e "RSC26"**: record A, B, C e Z come Redditi PF, con il frontespizio delle società (tracciato del record B dalle specifiche, diverso tra SP e SC).
+  - Il frontespizio contiene denominazione, partita IVA e recapiti, periodo d'imposta dall'esercizio contabile, stato e situazione ordinari, natura giuridica, rappresentante, impegno alla trasmissione, visto, organo di controllo (SC), caselle dei quadri e del modello ISA.
+  - Comprende la comunicazione del concordato preventivo biennale (codici 1-3).
+- **Quadro RF proposto dalla contabilità** (contabilità ordinaria, per competenza), per SC e per le SP in contabilità ordinaria.
+  - Utile o perdita, con le variazioni in aumento: imposte sul reddito dell'esercizio (voce E.20) e costi deducibili in parte (RF16, RF18, RF31 codice 99).
+  - Variazioni in diminuzione: parte non imponibile dei ricavi (RF55 codice 99).
+  - Totali RF32 e RF56 con le formule dei controlli delle specifiche di ciascun modello, somma algebrica RF57, reddito RF60 e RF63; per SP anche il reddito RF66.
+- **IRES nel quadro RN di Redditi SC**: reddito o perdita, perdite pregresse inserite a mano (in misura limitata all'80% o piena), reddito imponibile, IRES al 24% e imposta netta.
+  - Calcolati anche ritenute d'acconto subite, eccedenza della dichiarazione dell'anno prima, acconti versati in Deleghe (codici 2001 e 2002) e IRES a debito o a credito nel rigo RX1.
+- **Versamenti di Redditi SC in Deleghe**: saldo IRES (2003) e acconti per l'anno successivo (2001 e 2002), registrati con "Registra versamenti"; il credito IRES in compensazione si registra alla presentazione.
+  - Gli acconti seguono il metodo storico: 100% dell'IRES dovuta, nessun acconto fino a 20,66 euro, rate 40/60 (50/50 per i soggetti ISA), rata unica a novembre se la prima non supera 103 euro.
+- La scheda della dichiarazione delle società mostra il riepilogo del reddito e dell'IRES.
+- **Redditi SP**:
+  - Quadro RG per le società in contabilità semplificata, per cassa come in Redditi PF, fino al reddito del rigo RG34.
+  - Quadro RN con i redditi da imputare ai soci (RN1 contabilità ordinaria, RN2 semplificata) e le ritenute d'acconto subite.
+  - Quadro RO dai legami dell'Anagrafica: amministratori nella sezione I, soci con la quota di partecipazione e la qualifica nella sezione II.
+- **Consolidato nazionale e trasparenza fiscale in Redditi SC**, con l'opzione della società in Anagrafica.
+  - **Consolidato** (artt. 117-129 Tuir): quadro GN al posto del quadro RN, con la consolidante, il reddito o la perdita, le perdite anteriori al consolidato (inserite a mano, con il limite dell'80%) e il reddito complessivo netto da comunicare alla consolidante. Casella "Consolidato" nel frontespizio. La società non liquida né versa l'IRES.
+  - **Trasparenza** (artt. 115 e 116 Tuir): quadro TN al posto del quadro RN, con il tipo di trasparenza, il reddito imponibile o la perdita da attribuire ai soci. Casella "Trasparenza" nel frontespizio.
+- **Modello Consolidato nazionale e mondiale (CNM 2026)** per la consolidante: catalogo dei campi dalle specifiche ufficiali (aggiornate al 25 giugno 2026), dichiarazione nella scheda del contribuente della consolidante, file telematico "CNM26" con il frontespizio del modello.
+  - Quadro NF: reddito o perdita trasferiti dalla consolidante e dalle consolidate (dai loro quadri GN, righi NF1-NF7 con più moduli), totale e reddito complessivo globale con le rettifiche inserite a mano.
+  - Quadro CN: IRES di gruppo al 24% con le perdite del consolidato (limite dell'80%), imposta netta, ritenute delle società del gruppo, eccedenza del CNM dell'anno prima, acconti versati, IRES a debito o a credito.
+  - Versamenti della consolidante in Deleghe: saldo (2003) e acconti (2001 e 2002) dell'IRES del gruppo; credito in compensazione registrato alla presentazione.
+  - Il reddito della società trasparente è imputato ai soci per la quota del legame di socio: alle società socie (art. 115) nel rigo RF58 o RF59, colonna 2, della loro dichiarazione Redditi SC; ai soci persone fisiche (art. 116) nei righi RH5 e RH6 della dichiarazione Redditi PF.
+- **Modelli ISA allegati a Redditi SP e SC**, come per Redditi PF, dalla sezione "Modelli ISA" della scheda della dichiarazione.
+  - Nell'intestazione dei record ISA il modello di dichiarazione è 4-6 per Redditi SP (quadro RE, RF, RG) e 7 per Redditi SC.
+  - Proposte del quadro F con le corrispondenze dei controlli ufficiali per SP e SC: F01 dal rigo RG2, colonna 5, di SP; maggiorazioni del rigo F17, campo 4, con i codici dei righi RG22 e RF55 delle società.
+  - La maggiorazione dell'acconto per il concordato preventivo biennale resta proposta solo per l'IRPEF (codice 4068).
+- Il domicilio fiscale delle società e degli enti è la sede legale dell'Anagrafica: comune del frontespizio ISA, versamenti con codice dell'ente.
+- **Modello IRAP 2026** per le società di persone e di capitali; non per le persone fisiche, esenti dal 2022, né per il regime forfetario. File telematico "IRA26" in XML.
+  - **Catalogo dei campi** dalle specifiche tecniche ufficiali: 888 campi in 6 quadri, ciascuno con il percorso nel file XML.
+    - Il percorso si ricava allineando la "rappresentazione tabellare" delle specifiche allo schema XSD ufficiale, che `sisma specifiche-dichiarativi` scarica tra le sorgenti del modulo (`xsd-IRA-2026`).
+    - Le righe con più occorrenze hanno un codice per occorrenza.
+  - **File XML** scritto nell'ordine e nei namespace dello schema XSD (valido contro lo schema), con frontespizio e dati contabili.
+    - Il frontespizio contiene: regione del domicilio fiscale, denominazione, periodo d'imposta, natura giuridica, modello Redditi, sottoscrittore, caselle dei quadri, organo di controllo, impegno e visto.
+  - **Società di capitali, quadro IC** (art. 5): valore della produzione dal conto economico per competenza (voci A1-A5, B6, B7, B8, B10 a e b, B11, B14).
+    - Variazioni inserite a mano con i totali.
+    - Deduzione del costo del personale dipendente proposta da verificare (spetta per il tempo indeterminato).
+    - Ulteriore deduzione dell'art. 11, comma 4-bis.
+  - **Società di persone, quadro IP** (art. 5-bis): ricavi meno costi di materie e merci, servizi, ammortamenti e canoni; per cassa in contabilità semplificata. Ulteriore deduzione con gli importi aumentati (13.000 euro).
+  - **Quadro IR**:
+    - regione del domicilio fiscale; codice e aliquota dalla tabella delle aliquote regionali del Dipartimento delle Finanze (`Database/sorgenti/aliquote-IRA-2026.csv`, la stessa dei controlli dell'Agenzia): proposto il codice 1, aliquota ordinaria della regione (per esempio 3,9% in Lombardia, 4,82% nel Lazio), modificabile per le aliquote agevolate o maggiorate; imposta;
+    - valore della produzione negativo (IC64 meno IC65, o colonne 3 negative dei righi da IP60 a IP65) ripartito a parte, come chiedono istruzioni e controlli;
+    - eccedenza del modello dell'anno prima, acconti versati in Deleghe (3812 e 3813), IRAP a debito o a credito.
+  - **Versamenti in Deleghe** nella sezione Regioni: saldo (3800) e acconti (3812 e 3813).
+    - Gli acconti seguono il metodo storico: 100%, rate 40/60 o 50/50 per i soggetti ISA, nessun acconto fino a 20,66 euro (51,65 per le società di persone). Il credito in compensazione si registra alla presentazione.
+- **Casella "Canone RAI" nel frontespizio di Redditi SP e SC** (obbligatoria): apparecchi radio (1), radiotelevisivi (2) o nessun apparecchio (3), da scegliere nel frontespizio; con i codici 1 e 2 si compila il prospetto del canone nel quadro RS.
+- **Prospetto delle società di comodo nel quadro RS di Redditi SP e SC** (verifica dell'operatività, art. 30 L. 724/1994; righi RS11-RS20 di SP, RS116-RS125 di SC), proposto dalla contabilità se non è indicata a mano una causa di esclusione o di disapplicazione.
+  - Valori dei beni dal registro dei cespiti (costo, ragguagliato ai giorni di possesso): fabbricati tra gli immobili, gli altri beni tra le altre immobilizzazioni; media del triennio e, solo per la società non operativa, valore dell'esercizio. Titoli e crediti non commerciali dai saldi delle voci B.III e C.III.
+  - Ricavi effettivi: media delle voci A1, A2, A3 e A5 degli esercizi in contabilità. Ricavi e reddito presunti con le percentuali dell'art. 30.
+  - Casella "Casi particolari" 1 se nei tre esercizi non ci sono beni, 2 se mancano solo nell'ultimo.
+  - Società non operativa: reddito minimo, con un avviso.
+- **Ricavi del rigo RS107 di Redditi SC** (art. 85, comma 1, lettere a e b, Tuir): dalla voce A1 del conto economico, o la casella dell'assenza di ricavi.
+- **Conservazione dei documenti rilevanti ai fini tributari** (rigo RS40 di SP, RS104 di SC, obbligatorio per i soggetti IVA): proposto il codice 1, come il rigo RS140 di Redditi PF.
+- **Imputazione ai soci nel quadro TN** (righi da TN30 a TN33): codice fiscale, partecipazione agli utili e alle perdite dai legami di socio, reddito o perdita per la quota; il totale coincide con il reddito della società.
+- **Controlli di Redditi SP e SC prima della trasmissione**: casella "Canone RAI" mancante o senza il prospetto del quadro RS; attività del quadro RE, RF o RG con un ISA, senza causa di esclusione (o con le cause 7 e 14) e senza il modello ISA allegato né l'omessa presentazione.
+- **Quadro RH di Redditi PF dalla dichiarazione della società**: se la società di persone ha la dichiarazione Redditi SP dell'anno nella suite, la quota di reddito e di ritenute del socio viene dal suo quadro RN. Prima veniva sempre dalla contabilità della società.
+
+- **Dati demo**:
+  - Bar Centrale s.n.c. (Redditi SP con i due soci, modello ISA EG37U, IRAP);
+  - Alfa Consulting S.r.l. (Redditi SC con l'IRES, IRAP);
+  - gruppo Verde in consolidato nazionale (quadri GN, modello CNM della holding, IRAP di ciascuna società);
+  - Lumen Grafica S.r.l. in trasparenza con soci persone fisiche (quadro TN, IRAP).
+  - Il bar ha la casella "Canone RAI" 2 con il prospetto del canone; le società di capitali la casella 3 e l'omessa presentazione del modello ISA (le società del gruppo Verde con la causa di esclusione 14, gruppo IVA).
+  - La dichiarazione Redditi PF di Mario Rossi ha le quote del bar (rigo RH1) e di Lumen (rigo RH5).
+
+#### `Anagrafica` 0.15.0 — opzioni per la tassazione di gruppo
+
+- **Opzioni delle società di capitali per la tassazione di gruppo**, nella scheda dei dati fiscali: consolidato nazionale (con la consolidante), trasparenza fiscale (art. 115) e trasparenza delle s.r.l. con soci persone fisiche (art. 116), per i periodi d'imposta dell'opzione (tre, rinnovabili).
+
+### 🐛 Correzioni
+
+#### `Dichiarativi` 0.12.0
+
+- **Lettura delle specifiche**: le intestazioni ripetute nella stessa posizione su gran parte delle pagine non entrano più nelle descrizioni e nei formati dei campi.
+  - Nelle specifiche SP ogni pagina ha in sovrimpressione il titolo del quadro AC, che si mescolava alle righe della tabella.
+  - Nel catalogo IVA 2026 i campi del quadro VP ora hanno il formato delle specifiche (VN, VP), prima mancante.
+- **Dati demo**: partite IVA delle società e delle controparti demo con un codice ufficio valido (cifre 8-10: da 001 a 100, 120, 121, 888 o 999), scartate prima dai controlli dell'Agenzia anche con la cifra di controllo esatta.
+
 ## [0.30.0-alpha] - 2026-11-17 - Concordato Preventivo Biennale e Righi ISA dei Conti
 
 Versioni dei moduli: `Dichiarativi` 0.11.0 (richiede `Anagrafica` 0.14.0 e `Contabilita` 0.13.0), `Contabilita` 0.13.0; gli altri invariati.

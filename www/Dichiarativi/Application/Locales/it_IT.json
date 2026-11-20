@@ -53,6 +53,7 @@
                 "adempimentoCollaborativo": "Adempimento collaborativo",
                 "concordatoBiennale": "Concordato preventivo biennale",
                 "omessoIsa": "Modello ISA non presentato con la dichiarazione",
+                "canoneRai": "Canone RAI",
                 "dataNotifica": "Data di notifica",
                 "estremiAtto": "Estremi dell'atto",
                 "importoDichiarato": "Importo dichiarato",
@@ -288,6 +289,7 @@
                 "aiutoAttestazione": "Con il visto o la sottoscrizione dell'organo di controllo esonera dalla garanzia i rimborsi oltre 30.000 euro (patrimonio netto, cessioni di quote, contributi versati).",
                 "aiutoVerificaAccertamenti": "Da spuntare dopo aver controllato gli atti del contribuente: senza la spunta i rimborsi oltre 30.000 euro restano con l'avviso, anche se l'archivio è vuoto.",
                 "aiutoOmessoIsa": "Soggetti ISA senza causa di esclusione che non allegano il modello ISA (si crea dalla sezione \"Modelli ISA\" della scheda). La spunta barra nel file la casella di omessa presentazione (campi 179 e 180 del record B), che consente la trasmissione senza il modello; se la casella è barrata senza che ricorrano questi casi, la dichiarazione è scartata.",
+                "aiutoCanoneRai": "Casella obbligatoria del frontespizio di Redditi SP e SC: apparecchi radio (1) o radiotelevisivi (2) detenuti in esercizi pubblici, in locali aperti al pubblico o impiegati a scopo di lucro, oppure nessun apparecchio (3). Con i codici 1 e 2 si compila il prospetto del canone nel quadro RS (righi RS47 di SP, RS111 e RS112 di SC).",
                 "aiutoRevocaCpb": "Casella \"Comunicazione CPB\" con il codice 3: la dichiarazione revoca le adesioni al concordato 2026-2027 già comunicate (entro i termini dell'adesione). Una nuova adesione si comunica con il quadro P del modello ISA allegato. Per la revoca senza la dichiarazione c'è il file con invio autonomo nella scheda del modello ISA."
             }
         },

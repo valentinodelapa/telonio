@@ -71,6 +71,36 @@ abstract class DichiarativiTestCase extends ContabilitaTestCase
         return self::$catalogoTr;
     }
 
+    /** @var array<string, array<string, CampoModello>> catalogo per "<modello>-<anno>" */
+    private static array $cataloghi = [];
+
+    /**
+     * Catalogo reale di un modello letto dalle sorgenti del modulo.
+     *
+     * @return array<string, CampoModello>
+     */
+    protected function getCatalogo(ModelloDichiarativo $modello, int $anno): array
+    {
+        $chiave = $modello->value . '-' . $anno;
+        if (isset(self::$cataloghi[$chiave]) === false) {
+            self::$cataloghi[$chiave] = [];
+            foreach ((new TabelleDichiarativi())->leggi()['campi'] as $riga) {
+                if (($riga['modello'] !== $modello->value) || ($riga['anno'] !== $anno) || ((string) ($riga['isa'] ?? '') !== '')) {
+                    continue;
+                }
+                $campo = new CampoModello($this->dataMapper);
+                $campo->modello = $modello;
+                $campo->anno = $anno;
+                $campo->codice = $riga['codice'];
+                $campo->quadro = $riga['quadro'];
+                $campo->descrizione = $riga['descrizione'];
+                $campo->formato = $riga['formato'] === null ? null : FormatoCampo::from($riga['formato']);
+                self::$cataloghi[$chiave][$campo->codice] = $campo;
+            }
+        }
+        return self::$cataloghi[$chiave];
+    }
+
     protected function creaDichiarazione(int $anno = 2025): Dichiarazione
     {
         $dichiarazione = new Dichiarazione($this->dataMapper);

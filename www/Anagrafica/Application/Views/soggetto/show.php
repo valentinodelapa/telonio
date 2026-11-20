@@ -220,6 +220,28 @@ require Layout::percorso('header');
                 </table>
             </div>
         <?php endif; ?>
+
+    <?php if ($soggetto->tipoSoggetto === \Anagrafica\Application\Enumerations\TipoSoggetto::societaCapitali): ?>
+        <div class="d-flex align-items-center mt-4 mb-2">
+            <h2 class="h6 mb-0 me-auto"><?= Html::e($titoloOpzioniTassazione) ?></h2>
+            <a href="/opzione-tassazione/create/soggetto/<?= Html::e($id) ?>" class="btn btn-sm btn-outline-primary"><i class="bi bi-plus-lg me-1"></i><?= Html::e($azioni['aggiungi']) ?></a>
+        </div>
+        <?php if (count($opzioniTassazione) === 0): ?>
+            <p class="small text-body-secondary mb-0"><?= Html::e($nessunaOpzioneTassazione) ?></p>
+        <?php else: ?>
+            <table class="table table-sm table-anagrafica mb-0">
+                <tbody>
+                    <?php foreach ($opzioniTassazione as $opzione): ?>
+                        <tr>
+                            <td class="text-nowrap" style="width: 8rem;"><?= Html::e($opzione->annoInizio . ' - ' . $opzione->annoFine) ?></td>
+                            <td><?= Html::e($opzione->tipoOpzione->getLabel()) ?><?= $opzione->consolidante !== null ? '<div class="small text-body-secondary">' . Html::e($campi['consolidante'] . ': ' . $opzione->consolidante->nominativo) . '</div>' : '' ?></td>
+                            <td class="text-end text-nowrap"><?= $pulsanteModifica('/opzione-tassazione/update/opzione-tassazione/' . $opzione->id) ?> <?= $pulsanteElimina('/opzione-tassazione/delete/opzione-tassazione/' . $opzione->id) ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php endif; ?>
+    <?php endif; ?>
     </div>
 
     <div class="tab-pane fade <?= $scheda === 'indirizzi' ? 'show active' : '' ?>" id="scheda-indirizzi" role="tabpanel">

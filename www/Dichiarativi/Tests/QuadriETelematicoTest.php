@@ -2,7 +2,10 @@
 
 namespace Dichiarativi\Tests;
 
+use Dichiarativi\Application\Entities\CampoModello;
+use Dichiarativi\Application\Enumerations\ModelloDichiarativo;
 use Dichiarativi\Application\Services\Iva\ControlliIva;
+use Dichiarativi\Application\Services\QuadriDichiarazione;
 use Dichiarativi\Application\Services\Telematico\RecordQuadri;
 use Dichiarativi\Application\Services\Telematico\GeneratoreIva;
 
@@ -55,14 +58,33 @@ class QuadriETelematicoTest extends DichiarativiTestCase
         }
     }
 
+    /**
+     * Catalogo IVA con un campo che le specifiche elencano senza formato
+     * (non trasmesso).
+     *
+     * @return array<string, CampoModello>
+     */
+    private function getCatalogoConCampoSenzaFormato(): array
+    {
+        $catalogo = $this->getCatalogoIva();
+        $campo = new CampoModello($this->dataMapper);
+        $campo->modello = ModelloDichiarativo::iva;
+        $campo->anno = 2026;
+        $campo->codice = 'VP099001';
+        $campo->quadro = 'VP';
+        $campo->descrizione = 'Campo senza formato';
+        $campo->formato = null;
+        $catalogo['VP099001'] = $campo;
+        return $catalogo;
+    }
+
     public function testCampiSenzaFormatoNonCompilabili(): void
     {
-        $quadri = $this->creaQuadri();
-        $this->assertNull($this->getCatalogoIva()['VP014001']->formato);
-        $quadri->proponi('VP014001', 0);
-        $this->assertNull($quadri->get('VP014001'));
+        $quadri = new QuadriDichiarazione($this->creaDichiarazione(), $this->dataMapper, $this->getCatalogoConCampoSenzaFormato());
+        $quadri->proponi('VP099001', 0);
+        $this->assertNull($quadri->get('VP099001'));
         $this->expectException(\InvalidArgumentException::class);
-        $quadri->imposta('VP014001', '150');
+        $quadri->imposta('VP099001', '150');
     }
 
     public function testRecordAStrutturaVariabile(): void
@@ -95,7 +117,7 @@ class QuadriETelematicoTest extends DichiarativiTestCase
         $this->assertContains('VE023001           30000', $elementi);
         $this->assertContains('VH001003               1', array_merge($elementi, str_split(substr($record[1], 89, 1800), 24)));
         $this->expectException(\InvalidArgumentException::class);
-        RecordQuadri::genera('D', '01234560785', [1 => ['VP014001' => '10']], $this->getCatalogoIva());
+        RecordQuadri::genera('D', '01234560785', [1 => ['VP099001' => '10']], $this->getCatalogoConCampoSenzaFormato());
     }
 
     public function testControlliDiRispondenza(): void

@@ -3,6 +3,7 @@
 namespace Dichiarativi\Application\Services\Isa;
 
 use Dichiarativi\Application\Entities\Dichiarazione;
+use Dichiarativi\Application\Enumerations\ModelloDichiarativo;
 use Dichiarativi\Application\Services\QuadriDichiarazione;
 use SismaFramework\Orm\HelperClasses\DataMapper;
 
@@ -78,7 +79,8 @@ class ConcordatoIsa
      */
     public function getMaggiorazioneAcconto(Dichiarazione $redditi, QuadriDichiarazione $quadriRedditi): ?array
     {
-        if (isset($redditi->id) === false) {
+        // maggiorazione dell'acconto IRPEF (codice 4068): per le società la maggiorazione dell'acconto IRES si calcola a mano
+        if ((isset($redditi->id) === false) || ($redditi->modello !== ModelloDichiarativo::redditiPf)) {
             return null;
         }
         if (in_array('CP', $quadriRedditi->getQuadriCompilati(1), true)) {

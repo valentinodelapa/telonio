@@ -50,7 +50,7 @@ class TabelleDichiarativi
             if ((ModelloDichiarativo::tryFrom((string) $riga['modello']) === null) || ($anno === null) || ($riga['url'] === null) || ($riga['provvedimento'] === null)) {
                 throw new \UnexpectedValueException('specifiche.csv, riga ' . $numero . ': modello, anno, indirizzo o provvedimento non validi');
             }
-            $specifiche[] = ['modello' => $riga['modello'], 'anno' => $anno, 'url' => $riga['url'], 'provvedimento' => $riga['provvedimento'], 'istruzioni' => $riga['istruzioni']];
+            $specifiche[] = ['modello' => $riga['modello'], 'anno' => $anno, 'url' => $riga['url'], 'provvedimento' => $riga['provvedimento'], 'istruzioni' => $riga['istruzioni'], 'schema' => $riga['schema']];
         }
         return $specifiche;
     }

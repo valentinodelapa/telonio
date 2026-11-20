@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="urn:www.agenziaentrate.gov.it:specificheTecniche:sco:common" targetNamespace="urn:www.agenziaentrate.gov.it:specificheTecniche:sco:common" elementFormDefault="qualified" attributeFormDefault="unqualified" version="4.0">
+	<xs:annotation>
+		<xs:documentation xml:lang="it"><![CDATA[
+		Versione 4.0 - 10/12/13
+		- modificato targetNamespace
+		- modificato elenco di valori e descrizioni associate
+
+		Versione 3.0 - 15/02/13
+		- modificato targetNamespace ed elenco valori
+
+		Versione 2.0 - 15/02/12
+		- modificato targetNamespace ed elenco valori
+		]]></xs:documentation>
+	</xs:annotation>
+	<xs:simpleType name="Eventi_Ecc_Type">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="1">
+				<xs:annotation>
+					<xs:documentation><![CDATA[Vittime di richieste estorsive e dell'usura]]></xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="2">
+				<xs:annotation>
+					<xs:documentation><![CDATA[Soggetti colpiti dagli eventi meteorologici del novembre 2013, verificatisi nella regione Sardegna]]></xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="3">
+				<xs:annotation>
+					<xs:documentation><![CDATA[Soggetti interessati dall'emergenza umanitaria legata all'afflusso di migranti dal Nord Africa]]></xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="4">
+				<xs:annotation>
+					<xs:documentation><![CDATA[Soggetti colpiti da altri eventi eccezionali]]></xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+		</xs:restriction>
+	</xs:simpleType>
+</xs:schema>

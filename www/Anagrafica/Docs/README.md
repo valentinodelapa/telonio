@@ -249,6 +249,19 @@ Sui database creati con le versioni precedenti alla 0.5.0 eseguire
 il regime ordinario alle società di capitali con partita IVA ed elenca le
 versioni in vigore da completare (regime e periodicità IVA).
 
+## Opzioni per la tassazione di gruppo
+
+Le società di capitali possono avere, nella scheda dei dati fiscali, le
+opzioni per la tassazione di gruppo (`OpzioneTassazione`, tabella
+`opzione_tassazione`): consolidato nazionale (artt. 117-129 Tuir) con la
+consolidante (la società stessa se è la consolidante), trasparenza fiscale
+(art. 115) e trasparenza delle s.r.l. con soci persone fisiche (art. 116),
+dal periodo d'imposta di inizio a quello di fine (tre, rinnovabili). Il
+modulo Dichiarativi le usa per i quadri GN e TN di Redditi SC, il modello
+CNM della consolidante e l'imputazione del reddito ai soci (quote dei
+legami di socio). Sui database delle versioni precedenti alla 0.15.0
+`aggiornamento-0.15.sql` crea la tabella.
+
 ## Ditte individuali e lavoratori autonomi
 
 Non sono un tipo di soggetto a sé: l'imprenditore individuale e il

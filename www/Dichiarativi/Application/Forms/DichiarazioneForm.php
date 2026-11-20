@@ -54,6 +54,7 @@ class DichiarazioneForm extends BaseForm
                 ->addFilterFieldMode('concordatoBiennale', FilterType::isBoolean)
                 ->addFilterFieldMode('omessoIsa', FilterType::isBoolean)
                 ->addFilterFieldMode('revocaCpb', FilterType::isBoolean)
+                ->addFilterFieldMode('canoneRai', FilterType::isEnumeration, [], true)
                 ->addFilterFieldMode('annotazioni', FilterType::isMaxLimitString, [500], true)
                 ->addFilterFieldMode('ottoPerMille', FilterType::isEnumeration, [], true)
                 ->addFilterFieldMode('finalitaStato', FilterType::isInteger, [], true)

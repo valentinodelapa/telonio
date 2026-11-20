@@ -6,6 +6,7 @@ use Anagrafica\Application\Entities\Soggetto;
 use Contabilita\Application\Enumerations\CodiceCaricaIva;
 use Contabilita\Application\Enumerations\ImpegnoPresentazione;
 use Deleghe\Application\Entities\Intermediario;
+use Dichiarativi\Application\Enumerations\CanoneRai;
 use Dichiarativi\Application\Enumerations\CinquePerMille;
 use Dichiarativi\Application\Enumerations\ModalitaSaldo;
 use Dichiarativi\Application\Enumerations\ModelloDichiarativo;
@@ -63,6 +64,7 @@ class Dichiarazione extends ReferencedEntity
     protected bool $concordatoBiennale = false;
     protected bool $omessoIsa = false;
     protected bool $revocaCpb = false;
+    protected ?CanoneRai $canoneRai = null;
     protected ModalitaSaldo $modalitaSaldo = ModalitaSaldo::unicaSoluzione;
     protected ?int $numeroRate = null;
     protected ?SismaDate $dataDifferimento = null;

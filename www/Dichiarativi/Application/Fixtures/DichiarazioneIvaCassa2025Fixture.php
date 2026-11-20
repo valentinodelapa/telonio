@@ -65,16 +65,16 @@ class DichiarazioneIvaCassa2025Fixture extends BaseFixture
     {
         $demo = new AziendaDemo($this->dataMapper);
         $studio = $this->getEntityByFixtureName(StudioFixture::class);
-        $azienda = $demo->creaSocieta($studio, 'C077', '09990008709', 'Lumen Grafica S.r.l.', NaturaGiuridica::societaResponsabilitaLimitata, '74.12.01', PeriodicitaIva::trimestrale,
+        $azienda = $demo->creaSocieta($studio, 'C077', '09990000011', 'Lumen Grafica S.r.l.', NaturaGiuridica::societaResponsabilitaLimitata, '74.12.01', PeriodicitaIva::trimestrale,
                 'D612', 'Via dei Servi 18', '50122');
         $demo->variaDatiFiscali($azienda, '2025-01-01', ['ivaPerCassa' => true]);
         $demo->legame($azienda, $this->getEntityByFixtureName(SoggettoBianchiFixture::class), RuoloLegame::amministratoreUnico);
         $esercizio = $demo->apriContabilita($azienda, 2025);
-        $editore = $demo->controparte($azienda, 'Editoriale Toscana S.r.l.', '09990018708', true);
-        $museo = $demo->controparte($azienda, 'Fondazione Arte Viva', '09990028707', true);
-        $agenzia = $demo->controparte($azienda, 'Agenzia Viaggi Ponte S.r.l.', '09990038706', true);
-        $tipografia = $demo->controparte($azienda, 'Tipografia Medicea S.r.l.', '09990048705', false);
-        $software = $demo->controparte($azienda, 'Software Creativo S.p.A.', '09990058704', false);
+        $editore = $demo->controparte($azienda, 'Editoriale Toscana S.r.l.', '09990010044', true);
+        $museo = $demo->controparte($azienda, 'Fondazione Arte Viva', '09990020019', true);
+        $agenzia = $demo->controparte($azienda, 'Agenzia Viaggi Ponte S.r.l.', '09990030018', true);
+        $tipografia = $demo->controparte($azienda, 'Tipografia Medicea S.r.l.', '09990040587', false);
+        $software = $demo->controparte($azienda, 'Software Creativo S.p.A.', '09990050586', false);
         $vendita = CausaleContabile::fatturaVendita;
         $acquisto = CausaleContabile::fatturaAcquisto;
         $cassa = ['esigibilita' => EsigibilitaIva::perCassa];
@@ -94,15 +94,15 @@ class DichiarazioneIvaCassa2025Fixture extends BaseFixture
         RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $editore, $incasso, '2025-07-10', null, [], ['totale' => 6100.0]);
         RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $software, $pagamento, '2025-12-10', null, [], ['totale' => 1830.0]);
         // computer acquistato a giugno e pagato subito: cespite ammortizzato al 20%, metà nel primo esercizio
-        $informatica = $demo->controparte($azienda, 'Informatica Fiorentina S.r.l.', '09990068703', false, '02.04.0002');
+        $informatica = $demo->controparte($azienda, 'Informatica Fiorentina S.r.l.', '09990060585', false, '02.04.0002');
         $computer = RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $informatica, $acquisto, '2025-06-16', 'IF/233', ['22' => 2000.0], $cassa);
         RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $informatica, $pagamento, '2025-06-30', null, [], ['totale' => 2440.0]);
         // polizza annuale da luglio, esente: risconto della parte del 2026
-        $assicurazione = $demo->controparte($azienda, 'Assicurazioni Arno S.p.A.', '09990078702', false, '22.01.0005');
+        $assicurazione = $demo->controparte($azienda, 'Assicurazioni Arno S.p.A.', '09990070584', false, '22.01.0005');
         RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $assicurazione, $acquisto, '2025-07-01', 'POL-5521', ['N4' => 1200.0], $cassa);
         RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $assicurazione, $pagamento, '2025-07-01', null, [], ['totale' => 1200.0]);
         // autovettura aziendale: IVA detraibile al 40%, quote deducibili al 20% sul costo fino a 18.075,99 euro
-        $concessionario = $demo->controparte($azienda, 'Auto Toscana S.p.A.', '09990088701', false, '02.04.0003');
+        $concessionario = $demo->controparte($azienda, 'Auto Toscana S.p.A.', '09990080583', false, '02.04.0003');
         $auto = RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $concessionario, $acquisto, '2025-09-30', 'AT/1180', ['A22' => 25000.0], $cassa);
         RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $concessionario, $pagamento, '2025-09-30', null, [], ['totale' => 30500.0]);
         $elaborazione = new ElaborazioneLiquidazione($this->dataMapper);

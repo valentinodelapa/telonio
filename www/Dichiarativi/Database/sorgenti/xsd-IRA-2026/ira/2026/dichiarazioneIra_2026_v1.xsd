@@ -1,0 +1,1321 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited by Sogei S.p.A. 06/01/2022 -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:cm="urn:www.agenziaentrate.gov.it:specificheTecniche:common" xmlns:sc="urn:www.agenziaentrate.gov.it:specificheTecniche:sco:common" xmlns:ir="urn:www.agenziaentrate.gov.it:specificheTecniche:sco:ira" xmlns:tm="www.agenziaentrate.gov.it:specificheTecniche:telent:v1" targetNamespace="urn:www.agenziaentrate.gov.it:specificheTecniche:sco:ira" elementFormDefault="qualified" attributeFormDefault="unqualified" version="1.0">
+	<xs:annotation>
+		<xs:documentation xml:lang="it"><![CDATA[
+		Versione 1.0 - 18/02/26
+		]]></xs:documentation>
+	</xs:annotation>
+	<xs:import namespace="urn:www.agenziaentrate.gov.it:specificheTecniche:common" schemaLocation="../../common/fornitura_v4.xsd"/>
+	<xs:import namespace="urn:www.agenziaentrate.gov.it:specificheTecniche:sco:common" schemaLocation="../../common/datiFiscali_v5.xsd"/>
+	<xs:include schemaLocation="typesIra_2026_v1.xsd"/>
+	<xs:element name="Dichiarazione" type="ir:Dichiarazione_IRAP_Type"/>
+	<xs:complexType name="Dichiarazione_IRAP_Type">
+		<xs:complexContent>
+			<xs:extension base="cm:Documento_Type">
+				<xs:sequence>
+					<xs:element name="Frontespizio" type="ir:Frontespizio_IRAP_Type"/>
+					<xs:element name="DatiContabili" type="ir:Dati_Contabili_IRAP_Type" minOccurs="0"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="Frontespizio_IRAP_Type">
+		<xs:complexContent>
+			<xs:extension base="sc:Frontespizio_Type">
+				<xs:sequence>
+					<xs:element name="CodiceRegione" type="sc:Codice_Regione_Type"/>
+					<xs:element name="Regione" type="cm:DatoAN_Type"/>
+					<xs:element name="TipoDichiarazione" type="ir:Tipo_Dichiarazione_Type" minOccurs="0"/>
+					<xs:element name="EventiEccezionali" type="ir:Eventi_Ecc_Type" minOccurs="0"/>
+					<xs:element name="PartitaIVA" type="cm:DatoPI_Type" minOccurs="0"/>
+					<xs:element name="SoggettiDiversiDaPF" type="ir:Soggetti_Diversi_Da_PF_Type"/>
+					<xs:element name="DichiarazioneRedditi" type="ir:Dichiarazione_Redditi_Type" minOccurs="0"/>
+					<xs:element name="ImpresaConcessionaria" type="cm:DatoCB_Type" minOccurs="0"/>
+					<xs:element name="DatiSottoscrittore" type="ir:Dati_Sottoscrittore_Type" minOccurs="0"/>
+					<xs:element name="FirmaDichiarazione" type="ir:Firma_Dichiarazione_Type"/>
+					<xs:element name="ImpegnoATrasmettere" type="ir:Impegno_A_Trasmettere_Type" minOccurs="0"/>
+					<xs:element name="VistoConformita" type="sc:Visto_Conformita_Type" minOccurs="0"/>
+					<xs:element name="FlagConferma" type="cm:DatoCB_Type" minOccurs="0"/>
+					<xs:element name="IdentificativoProdSoftware" type="cm:DatoAN_Type" minOccurs="0"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="Dati_Contabili_IRAP_Type">
+		<xs:sequence>
+			<xs:choice minOccurs="0">
+				<xs:element name="QuadroIP" type="ir:QuadroIP_Type"/>
+				<xs:element name="QuadroIC" type="ir:QuadroIC_Type"/>
+				<xs:element name="QuadroIE" type="ir:QuadroIE_Type"/>
+				<xs:element name="QuadroIK" type="ir:QuadroIK_Type"/>
+			</xs:choice>
+			<xs:element name="QuadroIR" type="ir:QuadroIR_Type" minOccurs="0"/>
+			<xs:element name="QuadroIS" type="ir:QuadroIS_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Firma_Dichiarazione_Type">
+		<xs:sequence>
+			<xs:element name="CasellaIP" type="sc:Casella_Quadro_Type" minOccurs="0"/>
+			<xs:element name="CasellaIC" type="sc:Casella_Quadro_Type" minOccurs="0"/>
+			<xs:element name="CasellaIE" type="sc:Casella_Quadro_Type" minOccurs="0"/>
+			<xs:element name="CasellaIK" type="sc:Casella_Quadro_Type" minOccurs="0"/>
+			<xs:element name="CasellaIR" type="sc:Casella_Quadro_Type" minOccurs="0"/>
+			<xs:element name="CasellaIS" type="sc:Casella_Quadro_Type" minOccurs="0"/>
+			<xs:element name="InvioAvvisoIntermediario" type="cm:DatoCB_Type" minOccurs="0"/>
+			<xs:element name="irInvioAltreComunicazioniIntermediario" type="cm:DatoCB_Type" minOccurs="0"/>
+			<xs:element name="SituazioniParticolari" type="cm:DatoNP_Type" minOccurs="0" />
+			<xs:element name="FirmaDichiarante" type="cm:DatoCB_Type" minOccurs="0"/>
+			<xs:element name="FirmaRevisore" type="ir:Firma_Revisore_Type" minOccurs="0" maxOccurs="5"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Primo_Modulo_Type">
+		<xs:sequence>
+			<xs:element name="UlterioriCompPosISA" type="ir:Ulteriori_Comp_Pos_ISA_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Ulteriori_Comp_Pos_ISA_Type">
+		<xs:sequence>
+			<xs:element name="MaggioriRicavi" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="MaggioriCompensi" type="cm:DatoNP_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Modulo_Type">
+		<xs:sequence>
+			<xs:element name="ProduzioneAttAgricola" type="ir:Produzione_Att_Agricola_Type"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="QuadroIP_Type">
+		<xs:sequence>
+			<xs:element name="PrimoModulo" type="ir:PrimoModulo_IP_Type"/>
+			<xs:element name="Modulo" type="ir:Modulo_Type" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="PrimoModulo_IP_Type">
+		<xs:complexContent>
+			<xs:extension base="ir:Primo_Modulo_Type">
+				<xs:sequence>
+					<xs:element name="ProduzioneArt5Bis" type="ir:Produzione_Art5_Bis_Type" minOccurs="0"/>
+					<xs:element name="ProduzioneArt5Art6Co9" type="ir:Produzione_Art5_Art6_Type" minOccurs="0"/>
+					<xs:element name="ProduzioneRegimeForf" type="ir:Produzione_Regime_Forf_Type" minOccurs="0"/>
+					<xs:element name="ProduzioneAttAgricola" type="ir:Produzione_Att_Agricola_Type" minOccurs="0"/>
+					<xs:element name="ProduzioneArtiProfessioni" type="ir:Produzione_Arti_Professioni_Type" minOccurs="0"/>
+					<xs:element name="ProduzioneNetta_IP" type="ir:Produzione_Netta_IP_Type" minOccurs="0"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="QuadroIC_Type">
+		<xs:sequence>
+			<xs:element name="PrimoModulo" type="ir:PrimoModulo_IC_Type"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="PrimoModulo_IC_Type">
+		<xs:sequence>
+			<xs:element name="MaggioriRicavi" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CodiceIdentificativoSoggetto" type="ir:Codice_Identificativo_Type" minOccurs="0"/>
+			<xs:element name="ImpreseIndustriali" type="ir:Imprese_Industriali_Type" minOccurs="0"/>
+			<xs:element name="BancheSoggettiFinanz" type="ir:Banche_Soggetti_Finaz_Type" minOccurs="0"/>
+			<xs:element name="ImpreseAssicurazione" type="ir:Imprese_Assicurazione_Type" minOccurs="0"/>
+			<xs:element name="Variazioni" type="ir:Variazioni_Type" minOccurs="0"/>
+			<xs:element name="SocRegimeForf" type="ir:Soc_Regime_Forf_Type" minOccurs="0"/>
+			<xs:element name="RetribuzioniCoopConfidi" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="ProduzioneNettaIC" type="ir:Produzione_Netta_IC_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Banche_Soggetti_Finaz_Type">
+		<xs:sequence>
+			<xs:element name="InteressiAttivi" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="InteressiPassivi" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="MargineInteresse" type="cm:DatoNU_Type" minOccurs="0"/>
+			<xs:element name="CommissioniAttive" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CommissioniPassive" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CommissioniNette" type="cm:DatoNU_Type" minOccurs="0"/>
+			<xs:element name="DividendiProventiSimili" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="RisultatoNettoNegoziazione" type="cm:DatoNU_Type" minOccurs="0"/>
+			<xs:element name="RisultatoNettoCopertura" type="cm:DatoNU_Type" minOccurs="0"/>
+			<xs:element name="UtiliPerditeDaCessione" type="cm:DatoNU_Type" minOccurs="0"/>
+			<xs:element name="RisultatoFairValue" type="cm:DatoNU_Type" minOccurs="0"/>
+			<xs:element name="MargineIntermediazione" type="cm:DatoNU_Type" minOccurs="0"/>
+			<xs:element name="Dividendi" type="ir:Dividendi_Type" minOccurs="0"/>
+			<xs:element name="AmmortamentoBeni" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="SpeseAmministrative" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="RettificheDeterioramentoCreditidiCui" type="cm:DatoNU_Type" minOccurs="0"/>
+			<xs:element name="RettificheDeterioramentoCrediti" type="cm:DatoNU_Type" minOccurs="0"/>
+			<xs:element name="InteressiNetti" type="cm:DatoNU_Type" minOccurs="0"/>
+			<xs:element name="RisultatoCommissioniProvvigioniTariffe" type="cm:DatoNU_Type" minOccurs="0"/>
+			<xs:element name="CostiProduzioneBanconote" type="cm:DatoNU_Type" minOccurs="0"/>
+			<xs:element name="RisultatoRedistribRedditoMonetario" type="cm:DatoNU_Type" minOccurs="0"/>
+			<xs:element name="AmmortamentoImmobilizzazioni" type="cm:DatoNU_Type" minOccurs="0"/>
+			<xs:element name="SpeseAmministrazione" type="cm:DatoNU_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Imprese_Assicurazione_Type">
+		<xs:sequence>
+			<xs:element name="RisultatoRamiDanni" type="cm:DatoNU_Type" minOccurs="0"/>
+			<xs:element name="RisultatoRamiVita" type="cm:DatoNU_Type" minOccurs="0"/>
+			<xs:element name="AmmortamentoBeniStrumentali" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="AltreSpese" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="Dividendi" type="ir:Dividendi_Type" minOccurs="0"/>
+			<xs:element name="PerditeDeterioramentoCrediti" type="cm:DatoNU_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Dividendi_Type">
+		<xs:sequence>
+			<xs:element name="Dividendi50" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="Dividendi95" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="DividendiTotale" type="cm:DatoNP_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Variazioni_Type">
+		<xs:sequence>
+			<xs:element name="VariazioniInAumento" type="ir:Var_Aum_Art5_Art6_Type" minOccurs="0"/>
+			<xs:element name="TotaleVariazioniInAumento" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="VariazioniInDiminuzione" type="ir:Var_Dim_Art5_Art6_Type" minOccurs="0"/>
+			<xs:element name="TotaleVariazioniInDiminuzione" type="cm:DatoNP_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Soc_Regime_Forf_Type">
+		<xs:complexContent>
+			<xs:extension base="ir:Produzione_Regime_Forf_Type"/>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="Produzione_Netta_IC_Type">
+		<xs:sequence>
+			<xs:element name="ValoreProduzioneLorda" type="cm:DatoNU_Type" minOccurs="0"/>
+			<xs:element name="QuotaValoreProduzioneEstero" type="cm:DatoNU_Type" minOccurs="0"/>
+			<xs:element name="Deduzioni" type="ir:Deduzioni_IC_Type" minOccurs="0"/>
+			<xs:element name="ValoreProduzioneNetta" type="cm:DatoNP_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="QuadroIE_Type">
+		<xs:sequence>
+			<xs:element name="PrimoModulo" type="ir:PrimoModulo_IE_Type"/>
+			<xs:element name="Modulo" type="ir:Modulo_Type" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="PrimoModulo_IE_Type">
+		<xs:complexContent>
+			<xs:extension base="ir:Primo_Modulo_Type">
+				<xs:sequence>
+					<xs:element name="EntiAttNonCommerciale" type="ir:Enti_Att_Non_Commerciale_Type" minOccurs="0"/>
+					<xs:element name="EntiAttCommerciale" type="ir:Produzione_Art5_Type" minOccurs="0"/>
+					<xs:element name="ProduzioneRegimeForf" type="ir:Produzione_Regime_Forf_Type" minOccurs="0"/>
+					<xs:element name="ProduzioneAttAgricola" type="ir:Produzione_Att_Agricola_Type" minOccurs="0"/>
+					<xs:element name="ProduzioneArtiProfessioni" type="ir:Produzione_Arti_Professioni_Type" minOccurs="0"/>
+					<xs:element name="ProduzioneNettaIE" type="ir:Produzione_Netta_IE_Type" minOccurs="0"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="QuadroIK_Type">
+		<xs:sequence>
+			<xs:element name="PrimoModulo" type="ir:PrimoModulo_IK_Type"/>
+			<xs:element name="Modulo" type="ir:Modulo_IK_Type" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="PrimoModulo_IK_Type">
+		<xs:sequence>
+			<xs:element name="ModuloRiepilogativo" type="cm:DatoCB_Type" minOccurs="0"/>
+			<xs:element name="AmministrazioniAttIstituzionali" type="ir:Amministrazioni_Att_Istituzionali_Type" minOccurs="0"/>
+			<xs:element name="AmministrazioniAttCommerciali" type="ir:Amministrazioni_Att_Commerciali_Type" minOccurs="0"/>
+			<xs:element name="AmministrazioniProdAgricoli" type="ir:Amministrazioni_Prod_Agricoli_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Amministrazioni_Prod_Agricoli_Type">
+		<xs:sequence>
+			<xs:element name="Corrispettivi" type="cm:DatoNU_Type" minOccurs="0"/>
+			<xs:element name="AcquistiProduzione" type="cm:DatoNU_Type" minOccurs="0"/>
+			<xs:element name="Deduzioni" type="ir:Deduzioni_Agricoli_IK_Type" minOccurs="0"/>
+			<xs:element name="ValoreProduzioneNetta" type="cm:DatoNU_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Modulo_IK_Type">
+		<xs:sequence>
+			<xs:element name="CodiceFiscaleFunzionario" type="cm:DatoCF_Type" minOccurs="0"/>
+			<xs:element name="AmministrazioniAttIstituzionali" type="ir:Amministrazioni_Att_Istituzionali_Type" minOccurs="0"/>
+			<xs:element name="AmministrazioniAttCommerciali" type="ir:Amministrazioni_Att_Commerciali_Type" minOccurs="0"/>
+			<xs:element name="AmministrazioniProdAgricoli" type="ir:Amministrazioni_Prod_Agricoli_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Amministrazioni_Att_Istituzionali_Type">
+		<xs:sequence>
+			<xs:element name="RetribuzioniPersonaleDip" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="RedditiExArt50" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="RedditiExArt67" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="Deduzioni" type="ir:Deduzioni_Istituz_IK_Type" minOccurs="0"/>
+			<xs:element name="ValoreProduzione" type="cm:DatoNU_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Amministrazioni_Att_Commerciali_Type">
+		<xs:sequence>
+			<xs:element name="ComponentiPositivi" type="ir:Componenti_Positivi_Art5_Type" minOccurs="0"/>
+			<xs:element name="TotalePositivi" type="ir:Totale_Componenti_Pos_IK_Type" minOccurs="0"/>
+			<xs:element name="ComponentiNegativi" type="ir:Componenti_Negativi_Art5_Type" minOccurs="0"/>
+			<xs:element name="TotaleNegativi" type="ir:Totale_Componenti_Neg_IK_Type" minOccurs="0"/>
+			<xs:element name="Deduzioni" type="ir:Deduzioni_Commerc_IK_Type" minOccurs="0"/>
+			<xs:element name="ValoreProduzione" type="cm:DatoNU_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Produzione_Art5_Bis_Type">
+		<xs:sequence>
+			<xs:element name="ComponentiPositivi" type="ir:Componenti_Positivi_Art5_Bis_Type" minOccurs="0"/>
+			<xs:element name="TotalePositivi" type="cm:DatoNU_Type" minOccurs="0"/>
+			<xs:element name="ComponentiNegativi" type="ir:Componenti_Negativi_Art5_Bis_Type" minOccurs="0"/>
+			<xs:element name="QuotaValProdAttAgricola" type="cm:DatoNU_Type" minOccurs="0"/>
+			<xs:element name="TotaleNegativi" type="cm:DatoNU_Type" minOccurs="0"/>
+			<xs:element ref="ir:ValoreProduzione" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Imprese_Industriali_Type">
+		<xs:sequence>
+			<xs:element name="ComponentiPositivi" type="ir:Componenti_Positivi_Art5_Type" minOccurs="0"/>
+			<xs:element name="TotalePositivi" type="cm:DatoNU_Type" minOccurs="0"/>
+			<xs:element name="ComponentiNegativi" type="ir:Componenti_Negativi_Art5_Type" minOccurs="0"/>
+			<xs:element name="TotaleNegativi" type="cm:DatoNU_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Produzione_Art5_Type">
+		<xs:sequence>
+			<xs:element name="ComponentiPositivi" type="ir:Componenti_Positivi_Art5_Type" minOccurs="0"/>
+			<xs:element name="TotalePositivi" type="cm:DatoNU_Type" minOccurs="0"/>
+			<xs:element name="ComponentiNegativi" type="ir:Componenti_Negativi_Art5_Type" minOccurs="0"/>
+			<xs:element name="TotaleNegativi" type="cm:DatoNU_Type" minOccurs="0"/>
+			<xs:element name="VariazioniInAumento" type="ir:Variazioni_Aumento_Art5_Type" minOccurs="0"/>
+			<xs:element name="TotaleVariazioniInAumento" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="VariazioniInDiminuzione" type="ir:Variazioni_Diminuzione_Art5_Type" minOccurs="0"/>
+			<xs:element name="TotaleVariazioniInDiminuzione" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element ref="ir:ValoreProduzione" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Produzione_Art5_Art6_Type">
+		<xs:sequence>
+			<xs:element name="ComponentiPositivi" type="ir:Comp_Pos_Art5_Art6_Type" minOccurs="0"/>
+			<xs:element name="TotalePositivi" type="cm:DatoNU_Type" minOccurs="0"/>
+			<xs:element name="ComponentiNegativi" type="ir:Comp_Neg_Art5_Art6_Type" minOccurs="0"/>
+			<xs:element name="TotaleNegativi" type="cm:DatoNU_Type" minOccurs="0"/>
+			<xs:element name="VariazioniInAumento" type="ir:Var_Aum_Art5_Art6_Type" minOccurs="0"/>
+			<xs:element name="TotalevariazioniInAumento" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="VariazioniInDiminuzione" type="ir:Var_Dim_Art5_Art6_Type" minOccurs="0"/>
+			<xs:element name="TotaleVariazioniInDiminuzione" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element ref="ir:ValoreProduzione" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Enti_Att_Non_Commerciale_Type">
+		<xs:sequence>
+			<xs:element name="RetribuzioniPersonaleDip" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="RedditiExArt50" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="RedditiExArt67" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="ValoreProduzione" type="cm:DatoNP_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Produzione_Att_Agricola_Type">
+		<xs:sequence>
+			<xs:element name="Corrispettivi" type="cm:DatoNU_Type" minOccurs="0"/>
+			<xs:element name="AcquistiProduzione" type="cm:DatoNU_Type" minOccurs="0"/>
+			<xs:element ref="ir:ValoreProduzione" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Produzione_Regime_Forf_Type">
+		<xs:sequence>
+			<xs:element name="RedditoImpresaForf" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="Retribuzioni" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="Interessi" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element ref="ir:ValoreProduzione" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Produzione_Arti_Professioni_Type">
+		<xs:sequence>
+			<xs:element name="CompensiAtt" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CostiAtt" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element ref="ir:ValoreProduzione" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Adeguamento_Studi_Type">
+		<xs:sequence>
+			<xs:element name="MaggioriCompensi" type="cm:DatoNP_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Componenti_Positivi_Art5_Bis_Type">
+		<xs:sequence>
+			<xs:element name="RicaviArt85" type="cm:DatoNU_Type" minOccurs="0"/>
+			<xs:element name="VariazioniRimanenzeFinali" type="cm:DatoNU_Type" minOccurs="0"/>
+			<xs:element name="ContributiErogati" type="cm:DatoNP_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Componenti_Negativi_Art5_Bis_Type">
+		<xs:sequence>
+			<xs:element name="CostiMateriePrime" type="cm:DatoNU_Type" minOccurs="0"/>
+			<xs:element name="CostiServizi" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="AmmortamentoBeniMateriali" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="AmmortamentoBeniImmateriali" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CanoniLocazione" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="ComponentiDetassati" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="PatentBoxArt6DL46" type="cm:DatoNP_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Componenti_Positivi_Art5_Type">
+		<xs:sequence>
+			<xs:element name="RicaviVendite" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="VariazioniRimanenzeProdotti" type="cm:DatoNU_Type" minOccurs="0"/>
+			<xs:element name="VariazioniLavoriInCorso" type="cm:DatoNU_Type" minOccurs="0"/>
+			<xs:element name="IncrementiImmobilizzazioni" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="AltriRicavi" type="cm:DatoNP_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Componenti_Negativi_Art5_Type">
+		<xs:sequence>
+			<xs:element name="CostiMateriePrime" type="cm:DatoNU_Type" minOccurs="0"/>
+			<xs:element name="CostiServizi" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CostiGodimentoBeni" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="AmmortamentoImmImmateriali" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="AmmortamentoImmMateriali" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="VariazioniRimanenze" type="cm:DatoNU_Type" minOccurs="0"/>
+			<xs:element name="OneriGestione" type="cm:DatoNP_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Variazioni_Aumento_Art5_Type">
+		<xs:sequence>
+			<xs:element name="CostiArt11" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="QuotaInteressiLeasing" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="PerditeCrediti" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="ImpostaMunicipalePropria" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="AmmortamentoIndeducibile" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="AltreVariazioniAumento" type="ir:Altre_Variazioni_Aumento_Type" minOccurs="0" maxOccurs="9"/>
+			<xs:element name="TotaleAltreVariazioniAumento" type="cm:DatoNP_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Variazioni_Diminuzione_Art5_Type">
+		<xs:sequence>
+			<xs:element name="UtilizzoFondi" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="AltreVariazioniDiminuzione" type="ir:Altre_Variazioni_Diminuzione_Type" minOccurs="0" maxOccurs="18"/>
+			<xs:element name="TotaleAltreVariazioniDiminuzione" type="cm:DatoNP_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Comp_Pos_Art5_Art6_Type">
+		<xs:complexContent>
+			<xs:extension base="ir:Componenti_Positivi_Art5_Type">
+				<xs:sequence>
+					<xs:element name="InteressiAttiviProventi" type="cm:DatoNU_Type" minOccurs="0"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="Comp_Neg_Art5_Art6_Type">
+		<xs:complexContent>
+			<xs:extension base="ir:Componenti_Negativi_Art5_Type">
+				<xs:sequence>
+					<xs:element name="InteressiPassiviOneri" type="cm:DatoNU_Type" minOccurs="0"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="Var_Aum_Art5_Art6_Type">
+		<xs:complexContent>
+			<xs:extension base="ir:Variazioni_Aumento_Art5_Type">
+				<xs:sequence>
+					<xs:element name="InteressiPassiviIndeducibili" type="cm:DatoNP_Type" minOccurs="0"/>
+					<xs:element name="VariazioniContabili" type="ir:VariazioniContabili_Type" minOccurs="0"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="Var_Dim_Art5_Art6_Type">
+		<xs:complexContent>
+			<xs:extension base="ir:Variazioni_Diminuzione_Art5_Type">
+				<xs:sequence>
+					<xs:element name="AmmortamentoCostoMarchi" type="cm:DatoNP_Type" minOccurs="0"/>
+					<xs:element name="VariazioniContabili" type="ir:VariazioniContabili_Type" minOccurs="0"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="Totale_Produzione_Type">
+		<xs:sequence>
+			<xs:element name="ProduzioneSez1" type="ir:Ripartizione_Estero_Italia_Type" minOccurs="0"/>
+			<xs:element name="ProduzioneSez2" type="ir:Ripartizione_Estero_Italia_Type" minOccurs="0"/>
+			<xs:element name="ProduzioneSez3" type="ir:Ripartizione_Estero_Italia_Type" minOccurs="0"/>
+			<xs:element name="ProduzioneSez4" type="ir:Ripartizione_Estero_Italia_Type" minOccurs="0"/>
+			<xs:element name="ProduzioneSez4SecModulo" type="ir:Ripartizione_Estero_Italia_Type" minOccurs="0"/>
+			<xs:element name="ProduzioneSez5" type="ir:Ripartizione_Estero_Italia_Type" minOccurs="0"/>
+			<xs:element name="ProduzioneTotale" type="cm:DatoNU_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Ripartizione_Estero_Italia_Type">
+		<xs:sequence>
+			<xs:element name="Importo" type="cm:DatoNU_Type" minOccurs="0"/>
+			<xs:element name="ImportoEstero" type="cm:DatoNU_Type" minOccurs="0"/>
+			<xs:element name="ImportoItalia" type="cm:DatoNU_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Deduzioni_Type">
+		<xs:sequence>
+			<xs:element name="DeduzioniArt11Comma1LettA" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="DeduzioniArt11Comma4Bis" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="DeduzioneCostoPersDip" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="DeduzioniRedditiRicercatori" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="DeduzioneContributiaConsorzi" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="DeduzioneRedditiAttivTrasferite" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="UlterioreDeduzione" type="cm:DatoNP_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Produzione_Netta_IP_Type">
+		<xs:complexContent>
+			<xs:extension base="ir:Totale_Produzione_Type">
+				<xs:sequence>
+					<xs:element name="Deduzioni" type="ir:Deduzioni_IP_Type" minOccurs="0"/>
+					<xs:element name="ValoreProduzioneNetta" type="cm:DatoNP_Type" minOccurs="0"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="Produzione_Netta_IE_Type">
+		<xs:complexContent>
+			<xs:extension base="ir:Totale_Produzione_Type">
+				<xs:sequence>
+					<xs:element name="Deduzioni" type="ir:Deduzioni_Type" minOccurs="0"/>
+					<xs:element name="ValoreProduzioneNetta" type="cm:DatoNP_Type" minOccurs="0"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="QuadroIR_Type">
+		<xs:sequence>
+			<xs:element name="PrimoModulo" type="ir:PrimoModulo_IR_Type"/>
+			<xs:element name="Modulo" type="ir:Modulo_IR_Type" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="QuadroIS_Type">
+		<xs:sequence>
+			<xs:element name="PrimoModulo" type="ir:PrimoModulo_IS_Type"/>
+			<xs:element name="Modulo" type="ir:Modulo_IS_Type" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="PrimoModulo_IR_Type">
+		<xs:sequence>
+			<xs:element name="RipartizioneBaseImp" type="ir:Ripartizione_Base_Imp_Type" minOccurs="0"/>
+			<xs:element name="VersamentoImposta" type="ir:Versamento_Imposta_Type" minOccurs="0"/>
+			<xs:element name="RipartizioneBaseImpRetrib" type="ir:Ripartizione_Base_Imp_Retrib_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Modulo_IR_Type">
+		<xs:sequence>
+			<xs:element name="RipartizioneBaseImp" type="ir:Ripartizione_Base_Imp_Type" minOccurs="0"/>
+			<xs:element name="VersamentoImposta" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="AccontiVersati" type="ir:Acconti_Versati_Type"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="RipartizioneBaseImpRetrib" type="ir:Ripartizione_Base_Imp_Retrib_Type" minOccurs="0"/>
+			<xs:element name="CFFunzDelegato" type="cm:DatoCF_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="PrimoModulo_IS_Type">
+		<xs:sequence>
+			<xs:element name="DeduzioniArt11" type="ir:Deduzioni_Art11_Type" minOccurs="0"/>
+			<xs:element name="RipartizioneTerritoriale" type="ir:Ripartizione_Territoriale_Type" minOccurs="0"/>
+			<xs:element name="SoggettiNonOperativi" type="ir:Soggetti_Non_Operativi_Type" minOccurs="0"/>
+			<xs:element name="DisallFusioneScissione" type="ir:Disall_Fusione_Scissione_Type" minOccurs="0"/>
+			<xs:element name="DatiConvenzioneUsa" type="ir:Dati_Convenzione_Usa_Type" minOccurs="0"/>
+			<xs:element name="RidetermAcconto" type="ir:Rideterm_Acconto_Type" minOccurs="0"/>
+			<xs:element name="Opzioni" type="ir:Opzioni_Type" minOccurs="0"/>
+			<xs:element name="CodiciAtt" type="ir:Codici_Att_Type" minOccurs="0"/>
+			<xs:element name="OperazioniStraordinarie" type="ir:Operazioni_Straordinarie_Type" minOccurs="0"/>
+			<xs:element name="TotaleOperazioni" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="Geie" type="ir:Geie_Type" minOccurs="0"/>
+			<xs:element name="TotaleGeie" type="ir:Totale_Geie_Type" minOccurs="0"/>
+			<xs:element name="DeduzioniDetrazioniCreditiReg" type="ir:Deduzioni_Detrazioni_Crediti_Reg_Type" minOccurs="0"/>
+			<xs:element name="ZoneFrancheUrbane" type="ir:Zone_Franche_Urbane_Type" minOccurs="0"/>
+			<xs:element name="irTotaleZfu" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CredAceQuartoPerPrecedente" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CredAceTerzoPerPrecedente" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CredAceSecondoPerPrecedente" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CredAcePrimoPerPrecedente" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CredResiduoQuartoPerPrecedenteDaIrap" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CredResiduoTerzoPerPrecedenteDaIrap" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CredResiduoSecondoPerPrecedenteDaIrap" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CredResiduoPrimoPerPrecedenteDaIrap" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CreditoResiduoQuartoPerPrecedente" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CreditoResiduoTerzoPerPrecedente" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CredResiduoSecondoPerPrecedente" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CredResiduoPrimoPerPrecedente" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CredResiduoUtilizzabile" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CredResiduodaRiportare" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CodiceFiscale" type="cm:DatoCN_Type" minOccurs="0"/>
+			<xs:element name="PatBoxValProdEscluso" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="PatBoxDocumentazione1" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="PatBoxPlusvEscluso" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="PatBoxDocumentazione2" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="PatBoxAgevAnniPrec" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="PatBoxRecuperoPlus" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CreditoEccedPrecDichiarazione" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CreditoEccedPrecDichiarazioneCompensata" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CreditoCompensazione" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CreditoCedutoConsolidato" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="DichiarazioneIntegrativa" type="ir:DichiarazioneIntegrativa_Type" minOccurs="0"/>
+			<xs:element name="AiutiDiStato" type="ir:Aiuti_Di_Stato_Type" minOccurs="0"/>
+			<xs:element name="CampioneDiItalia" type="ir:Campione_Di_Italia_Type" minOccurs="0"/>
+			<xs:element name="RiscattoAlloggiSociali" type="ir:RiscattoAlloggiSociali_Type" minOccurs="0"/>
+			<xs:element name="VersamentiSospesiDispRegionali" type="ir:Versamenti_Sospesi_DispRegionali_Type" minOccurs="0"/>
+			<xs:element name="NumeroMeccanismoTransfrontaliero" type="cm:DatoAN_Type" minOccurs="0"/>
+			<xs:element name="ConcordatoPreventivoBiennale" type="ir:Concordato_Preventivo_Biennale_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Modulo_IS_Type">
+		<xs:sequence>
+			<xs:element name="DisallFusioneScissione" type="ir:Disall_Fusione_Scissione_Type" minOccurs="0"/>
+			<xs:element name="CodiciAtt" type="ir:Codici_Att_Type" minOccurs="0"/>
+			<xs:element name="OperazioniStraordinarie" type="ir:Operazioni_Straordinarie_Type" minOccurs="0"/>
+			<xs:element name="Geie" type="ir:Geie_Type" minOccurs="0"/>
+			<xs:element name="DeduzioniDetrazioniCreditiReg" type="ir:Deduzioni_Detrazioni_Crediti_Reg_Type" minOccurs="0"/>
+			<xs:element name="DichiarazioneIntegrativa" type="ir:DichiarazioneIntegrativa_Type" minOccurs="0"/>
+			<xs:element name="ZoneFrancheUrbane" type="ir:Zone_Franche_Urbane_Type" minOccurs="0"/>
+			<xs:element name="CredAceQuartoPerPrecedente" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CredAceTerzoPerPrecedente" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CredAceSecondoPerPrecedente" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CredAcePrimoPerPrecedente" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CredResiduoQuartoPerPrecedenteDaIrap" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CredResiduoTerzoPerPrecedenteDaIrap" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CredResiduoSecondoPerPrecedenteDaIrap" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CredResiduoPrimoPerPrecedenteDaIrap" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CredResiduoUtilizzabile" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CodiceFiscale" type="cm:DatoCN_Type" minOccurs="0"/>
+			<xs:element name="AiutiDiStato" type="ir:Aiuti_Di_Stato_Type" minOccurs="0"/>
+			<xs:element name="CampioneDiItalia" type="ir:Campione_Di_Italia_Type" minOccurs="0"/>
+			<xs:element name="VersamentiSospesiDispRegionali" type="ir:Versamenti_Sospesi_DispRegionali_Type" minOccurs="0"/>
+			<xs:element name="NumeroMeccanismoTransfrontaliero" type="cm:DatoAN_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Ripartizione_Base_Imp_Type">
+		<xs:sequence>
+			<xs:element name="RipartizioneRegionale" type="ir:Ripartizione_Regionale_Type" maxOccurs="8"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Versamento_Imposta_Type">
+		<xs:sequence>
+			<xs:element name="RiscattoAlloggiSociali" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="TotaleImposta" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CreditoAceQuoteAnnuali" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CreditoAceResiduo" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="AltriCrediti" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CreditoImposta" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="Eccedenza" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="EccedenzaCompensata" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="AccontiVersati" type="ir:Acconti_Versati_Type" minOccurs="0"/>
+			<xs:element name="ImportoDebito" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="ImportoCredito" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="EccedenzaSaldo" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CreditoRimborso" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CreditoCompensazione" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CodiceFiscaleConsolidante" type="cm:DatoCN_Type" minOccurs="0"/>
+			<xs:element name="CreditoCedutoConsolidato" type="cm:DatoNP_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Versamento_Imposta_Funz_Type">
+		<xs:sequence>
+			<xs:element name="AccontiVersati" type="ir:Acconti_Versati_Type"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Ripartizione_Base_Imp_Retrib_Type">
+		<xs:sequence>
+			<xs:element name="RipartizioneRegionaleRetrib" type="ir:Ripartizione_Regionale_Retrib_Type" maxOccurs="9"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Deduzioni_Art11_Type">
+		<xs:sequence>
+			<xs:element name="DeduzioneContributiAss" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="DeduzioneSpeseRicercaSvil" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="DeduzioneSpeseAppr" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="Deduzione1850Euro" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="DeduzioneCostoLavorStag" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="DeduzioneCostoPersDip" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="SommaDeduzioni" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="SommaEccedenze" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="TotaleDeduzioni" type="cm:DatoNP_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Ripartizione_Territoriale_Type">
+		<xs:sequence>
+			<xs:element name="CasiParticolari" type="cm:DatoCB_Type" minOccurs="0"/>
+			<xs:element name="AmmontareRetribuzioni" type="ir:Territoriale_Estero_Italia_Type" minOccurs="0"/>
+			<xs:element name="AmmontareDepositi" type="ir:Territoriale_Estero_Italia_Type" minOccurs="0"/>
+			<xs:element name="AmmontareImpieghi" type="ir:Territoriale_Estero_Italia_Type" minOccurs="0"/>
+			<xs:element name="AmmontarePremi" type="ir:Territoriale_Estero_Italia_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Recupero_Ded_Extracont_Type">
+		<xs:sequence>
+			<xs:element name="DeduzioniQuadroEC" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="EccedenzeImpostaSost" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="DistribuzioneRiserve" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="Differenza" type="cm:DatoNU_Type" minOccurs="0"/>
+			<xs:element name="QuotaImponibile" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="ImportoDeducibile" type="cm:DatoNP_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Soggetti_Non_Operativi_Type">
+		<xs:choice>
+			<xs:element name="Esonero" type="cm:DatoCB_Type"/>
+			<xs:element name="ValoreProdMinimo" type="ir:Valore_Prod_Minimo_Type"/>
+		</xs:choice>
+	</xs:complexType>
+	<xs:complexType name="Disall_Fusione_Scissione_Type">
+		<xs:sequence>
+			<xs:element name="Disallineamenti" type="ir:Disallineamenti_Type" maxOccurs="2"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Disallineamenti_Type">
+		<xs:sequence>
+			<xs:element name="TipoBeni" type="cm:DatoAN_Type"/>
+			<xs:element name="ValoreFiscaleDanteCausa" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="ValoreCivile" type="ir:Valore_Type" minOccurs="0"/>
+			<xs:element name="ValoreFiscale" type="ir:Valore_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Dati_Convenzione_Usa_Type">
+		<xs:sequence>
+			<xs:element name="CostiLavoroDipendente" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="InteressiPassivi" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="ImportoAccreditabile" type="cm:DatoNP_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Rideterm_Acconto_Type">
+		<xs:sequence>
+			<xs:element name="ValoreProdRideterminato" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="ImpostaRideterminata" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="AccontoRideterminato" type="cm:DatoNP_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Opzioni_Type">
+		<xs:sequence>
+			<xs:element name="ProduttoriAgricoli" minOccurs="0">
+				<xs:complexType>
+					<xs:choice>
+						<xs:element name="Opzione" type="cm:DatoCB_Type"/>
+						<xs:element name="Revoca" type="cm:DatoCB_Type"/>
+					</xs:choice>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="AmministrazioniEntiPubblici" minOccurs="0">
+				<xs:complexType>
+					<xs:choice>
+						<xs:element name="Opzione" type="cm:DatoCB_Type"/>
+						<xs:element name="Revoca" type="cm:DatoCB_Type"/>
+					</xs:choice>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="OpzioneSocPers" type="cm:DatoCB_Type" minOccurs="0"/>
+			<xs:element name="RevSocPers" type="cm:DatoCB_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Opzione_Revoca_Type">
+		<xs:choice>
+			<xs:element name="Opzione" type="cm:DatoCB_Type"/>
+			<xs:element name="Revoca" type="cm:DatoCB_Type"/>
+		</xs:choice>
+	</xs:complexType>
+	<xs:complexType name="Codici_Att_Type">
+		<xs:sequence>
+			<xs:element name="CodiceAttivita" maxOccurs="5">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Sezione" type="cm:DatoNP_Type" minOccurs="0"/>
+						<xs:element name="Valore" type="cm:DatoAN_Type" minOccurs="0"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Totale_Estero_Italia_Type">
+		<xs:sequence>
+			<xs:element name="Importo" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="ImportoEstero" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="ImportoItalia" type="cm:DatoNP_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Ripartizione_Regionale_Type">
+		<xs:sequence>
+			<xs:element name="CodiceRegione" type="sc:Codice_Regione_Type"/>
+			<xs:element name="ValoreProd" type="cm:DatoNU_Type" minOccurs="0"/>
+			<xs:element name="QuotaGEIE" type="cm:DatoNU_Type" minOccurs="0"/>
+			<xs:element name="DeduzioneRegionale" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="BaseImponibile" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CodiceAliquota" type="cm:DatoAN_Type" minOccurs="0"/>
+			<xs:element name="Aliquota" type="cm:DatoPC_Type" minOccurs="0"/>
+			<xs:element name="ImpostaLorda" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="DetrazioneRegionale" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CreditiImpostaRegionali" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="ImpostaNetta" type="cm:DatoNU_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Acconti_Versati_Type">
+		<xs:sequence>
+			<xs:element name="CreditoRiversato" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="MaggioriAccontiArt1co20" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="Importo" type="cm:DatoNP_Type"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Ripartizione_Regionale_Retrib_Type">
+		<xs:sequence>
+			<xs:element name="CodiceRegione" type="sc:Codice_Regione_Type"/>
+			<xs:element name="BaseImponibile" type="cm:DatoNU_Type" minOccurs="0"/>
+			<xs:element name="CodiceAliquota" type="cm:DatoAN_Type" minOccurs="0"/>
+			<xs:element name="Imposta" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CreditoImposta" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="Eccedenza" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="DiCuiCompensata" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="TotaleAccontiDovuti" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="TotaleAcconti" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="DiCuiTesoreria" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="ImportoDebito" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="VersatoF24" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="VersatoTesoreria" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="ImportoCredito" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="EccedenzaSaldo" type="cm:DatoNP_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Territoriale_Estero_Italia_Type">
+		<xs:sequence>
+			<xs:element name="Estero" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="Italia" type="cm:DatoNP_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Valore_Type">
+		<xs:sequence>
+			<xs:element name="ValoreIniziale" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="Incrementi" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="Decrementi" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="ValoreFinale" type="cm:DatoNP_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="VariazioniContabili_Type">
+		<xs:sequence>
+			<xs:element name="ImportoArt2Co2" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="ImportoIFRS9" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="Importo" type="cm:DatoNP_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Altre_Variazioni_Aumento_Type">
+		<xs:sequence>
+			<xs:element name="CodiceAltraVariazioneAumento" minOccurs="0">
+				<xs:simpleType>
+					<xs:restriction base="cm:DatoNP_Type">
+						<xs:enumeration value="1"/>
+						<xs:enumeration value="2"/>
+						<xs:enumeration value="3"/>
+						<xs:enumeration value="4"/>
+						<xs:enumeration value="5"/>
+						<xs:enumeration value="6"/>
+						<xs:enumeration value="11"/>
+						<xs:enumeration value="12"/>
+						<xs:enumeration value="13"/>
+						<xs:enumeration value="14"/>
+						<xs:enumeration value="15"/>
+						<xs:enumeration value="99"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="ImportoAltraVariazioneAumento" type="cm:DatoNP_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Altre_Variazioni_Aumento_IC_Type">
+		<xs:sequence>
+			<xs:element name="CodiceAltraVariazioneAumento" minOccurs="0">
+				<xs:simpleType>
+					<xs:restriction base="cm:DatoNP_Type">
+						<xs:enumeration value="1"/>
+						<xs:enumeration value="2"/>
+						<xs:enumeration value="3"/>
+						<xs:enumeration value="4"/>
+						<xs:enumeration value="5"/>
+						<xs:enumeration value="6"/>
+						<xs:enumeration value="11"/>
+						<xs:enumeration value="12"/>
+						<xs:enumeration value="13"/>
+						<xs:enumeration value="14"/>
+						<xs:enumeration value="15"/>
+						<xs:enumeration value="99"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="ImportoAltraVariazioneAumento" type="cm:DatoNP_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Altre_Variazioni_Diminuzione_Type">
+		<xs:sequence>
+			<xs:element name="CodiceAltraVariazioneDiminuzione" minOccurs="0">
+				<xs:simpleType>
+					<xs:restriction base="cm:DatoNP_Type">
+						<xs:enumeration value="2"/>
+						<xs:enumeration value="3"/>
+						<xs:enumeration value="4"/>
+						<xs:enumeration value="5"/>
+						<xs:enumeration value="6"/>
+						<xs:enumeration value="7"/>
+						<xs:enumeration value="8"/>
+						<xs:enumeration value="9"/>
+						<xs:enumeration value="10"/>
+						<xs:enumeration value="11"/>
+						<xs:enumeration value="12"/>
+						<xs:enumeration value="13"/>
+						<xs:enumeration value="14"/>
+						<xs:enumeration value="15"/>
+						<xs:enumeration value="16"/>
+						<xs:enumeration value="17"/>
+						<xs:enumeration value="18"/>
+						<xs:enumeration value="19"/>
+						<xs:enumeration value="20"/>
+						<xs:enumeration value="21"/>
+						<xs:enumeration value="22"/>
+						<xs:enumeration value="99"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="ImportoAltraVariazioneDiminuzione" type="cm:DatoNP_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Imposta_Sostitutiva_Type">
+		<xs:sequence>
+			<xs:element name="MaggioriValori" type="ir:Maggiori_Valori_Type" maxOccurs="3"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Maggiori_Valori_Type">
+		<xs:sequence>
+			<xs:element name="Anno" type="ir:Anno_Operazione_Type"/>
+			<xs:element name="TipoOperazione" type="ir:Tipo_Operazione_Type"/>
+			<xs:element name="SoggettoSubentrato" type="cm:DatoCB_Type" minOccurs="0"/>
+			<xs:element name="DifferenzaContabile" type="cm:DatoNP_Type"/>
+			<xs:element name="Valori" type="ir:Valori_Type"/>
+			<xs:element name="Imponibile" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="ImponibileImpSost" type="cm:DatoNP_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Valori_Type">
+		<xs:sequence>
+			<xs:element name="Avviamento" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="Marchi" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="AltreAttivImmateriali" type="cm:DatoNP_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Valore_Prod_Minimo_Type">
+		<xs:sequence>
+			<xs:element name="RedditoMinimo" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="RetribuzioniCompensi" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="InteressiPassivi" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="Deduzioni" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="ValoreProduzione" type="cm:DatoNP_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Operazioni_Straordinarie_Type">
+		<xs:sequence>
+			<xs:element name="CreditoRicevuto" type="ir:Credito_Ricevuto_Type" maxOccurs="2"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Totale_Operazioni_Type"/>
+	<xs:complexType name="Credito_Ricevuto_Type">
+		<xs:sequence>
+			<xs:element name="CfCedente" type="cm:DatoCF_Type"/>
+			<xs:element name="Importo" type="cm:DatoNP_Type"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="ContributiAssicurazioni" type="cm:DatoNP_Type"/>
+	<xs:element name="DeduzioniRedditiRicercatori" type="cm:DatoNP_Type"/>
+	<xs:complexType name="Totale_Componenti_Neg_IK_Type">
+		<xs:sequence>
+			<xs:element name="PatentBoxArt6Dl46" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="Totale" type="cm:DatoNU_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Totale_Componenti_Pos_IK_Type">
+		<xs:sequence>
+			<xs:element name="Totale" type="cm:DatoNU_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Deduzioni_IK_Type">
+		<xs:sequence>
+			<xs:element name="TotaleDeduzioni" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="SpeseApprendistiDisabili" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="ContrattiFormazione" type="cm:DatoNP_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Deduzioni_Istituz_IK_Type">
+		<xs:complexContent>
+			<xs:extension base="ir:Deduzioni_IK_Type">
+				<xs:sequence>
+					<xs:element ref="ir:DeduzioniRedditiRicercatori" minOccurs="0"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="Deduzioni_Commerc_IK_Type">
+		<xs:complexContent>
+			<xs:extension base="ir:Deduzioni_IK_Type">
+				<xs:sequence>
+					<xs:element ref="ir:DeduzioniRedditiRicercatori" minOccurs="0"/>
+					<xs:element name="DeduzioneCostoPersDip" type="cm:DatoNP_Type" minOccurs="0"/>
+					<xs:element ref="ir:ContributiAssicurazioni" minOccurs="0"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="Deduzioni_Agricoli_IK_Type">
+		<xs:complexContent>
+			<xs:extension base="ir:Deduzioni_IK_Type">
+				<xs:sequence>
+					<xs:element name="DeduzioneCostoPersDip" type="cm:DatoNP_Type" minOccurs="0"/>
+					<xs:element ref="ir:ContributiAssicurazioni" minOccurs="0"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="Deduzioni_IC_Type">
+		<xs:complexContent>
+			<xs:extension base="ir:Deduzioni_Type">
+				<xs:sequence>
+					<xs:element name="DeduzioniCoopSociali" type="cm:DatoNP_Type" minOccurs="0"/>
+					<xs:element name="RiallineamentoDivergenze" type="cm:DatoNP_Type" minOccurs="0"/>
+					<xs:element name="QuotaValoreProdEsenteSIIQ" type="cm:DatoNU_Type" minOccurs="0"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="Geie_Type">
+		<xs:sequence>
+			<xs:element name="DatiGeie" type="ir:Dati_Geie_Type" maxOccurs="2"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Totale_Geie_Type">
+		<xs:sequence>
+			<xs:element name="Quota" type="cm:DatoNU_Type" minOccurs="0"/>
+			<xs:element name="UlterioreDeduzione" type="cm:DatoNP_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Dati_Geie_Type">
+		<xs:sequence>
+			<xs:element name="CodiceFiscale" type="cm:DatoCF_Type"/>
+			<xs:element name="Quota" type="cm:DatoNU_Type"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Deduzioni_Detrazioni_Crediti_Reg_Type">
+		<xs:sequence>
+			<xs:element name="DatiRegione" type="ir:Dati_Regione_Type" maxOccurs="3"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Dati_Regione_Type">
+		<xs:sequence>
+			<xs:element name="CodiceRegione" type="sc:Codice_Regione_Type"/>
+			<xs:choice>
+				<xs:element name="CodiceDeduzione" type="cm:DatoNP_Type"/>
+				<xs:element name="CodiceDetrazione" type="cm:DatoNP_Type"/>
+				<xs:element name="CodiceCreditoImposta" type="cm:DatoNP_Type"/>
+			</xs:choice>
+			<xs:element name="Importo" type="cm:DatoNP_Type"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Deduzioni_IP_Type">
+		<xs:complexContent>
+			<xs:extension base="ir:Deduzioni_Type"/>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:element name="ValoreProduzione" type="cm:DatoNU_Type"/>
+	<xs:element name="RegimeArt27" type="cm:DatoNP_Type"/>
+	<xs:complexType name="Zone_Franche_Urbane_Type">
+		<xs:sequence>
+			<xs:element name="DatiZfu" type="ir:Dati_Zfu_Type" maxOccurs="4"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Dati_Zfu_Type">
+		<xs:sequence>
+			<xs:element name="CodiceZfu" type="ir:Codice_Zfu_Type"/>
+			<xs:element name="CodiceRegione" type="sc:Codice_Regione_Type"/>
+			<xs:element name="ValoreProdFruito" type="cm:DatoNP_Type"/>
+			<xs:element name="CodiceAliquota" type="cm:DatoAN_Type"/>
+			<xs:element name="Aliquota" type="cm:DatoPC_Type"/>
+			<xs:element name="Agevolazione" type="cm:DatoNP_Type"/>
+			<xs:element name="AgevUtilizzataAcconti" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="Differenza" type="cm:DatoNP_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Soggetti_Diversi_Da_PF_Type">
+		<xs:sequence>
+			<xs:element name="Denominazione" type="cm:DatoAN_Type"/>
+			<xs:element name="DataApprovazioneBilancio" type="cm:DatoDT_Type" minOccurs="0"/>
+			<xs:element name="TermineApprovazioneBilancio" type="cm:DatoDN_Type" minOccurs="0"/>
+			<xs:element name="InizioPeriodoImposta" type="cm:DatoDT_Type"/>
+			<xs:element name="FinePeriodoImposta" type="cm:DatoDT_Type"/>
+			<xs:element name="Stato" type="sc:Stato_Type"/>
+			<xs:element name="NaturaGiuridica" type="sc:Natura_Giuridica_Type"/>
+			<xs:element name="Situazione">
+				<xs:simpleType>
+					<xs:restriction base="cm:DatoN1_Type">
+						<xs:enumeration value="1"/>
+						<xs:enumeration value="2"/>
+						<xs:enumeration value="3"/>
+						<xs:enumeration value="4"/>
+						<xs:enumeration value="5"/>
+						<xs:enumeration value="6"/>
+						<xs:enumeration value="7"/>
+						<xs:enumeration value="8"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Dati_Sottoscrittore_Type">
+		<xs:sequence>
+			<xs:element name="CodiceFiscale" type="cm:DatoCF_Type"/>
+			<xs:element name="CodiceCarica" type="sc:Codice_Carica_Type"/>
+			<xs:element name="CodiceFiscaleSocieta" type="cm:DatoCN_Type" minOccurs="0"/>
+			<xs:element name="DatiAnagrafici" type="sc:Dati_Anagrafici_Type"/>
+			<xs:element name="Telefono" type="cm:DatoTL_Type" minOccurs="0"/>
+			<xs:element name="DataCarica" type="cm:DatoDT_Type" minOccurs="0"/>
+			<xs:element name="InizioProcedura" type="cm:DatoDT_Type" minOccurs="0"/>
+			<xs:element name="ProceduraNonTerminata" type="cm:DatoCB_Type" minOccurs="0"/>
+			<xs:element name="FineProcedura" type="cm:DatoDT_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="DichiarazioneIntegrativa_Type">
+		<xs:sequence>
+			<xs:element name="DichiarazioneIntegrativaDati" type="ir:DichiarazioneIntegrativaDati_Type" maxOccurs="5"/>
+			<xs:element name="TotaleErroriContabili" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="TotaleMaggiorCredito" type="cm:DatoNP_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="DichiarazioneIntegrativaDati_Type">
+		<xs:sequence>
+			<xs:element name="CodiceFiscale" type="cm:DatoCF_Type" minOccurs="0"/>
+			<xs:element name="PeriodoImposta" minOccurs="0">
+				<xs:simpleType>
+					<xs:restriction base="cm:DatoNP_Type">
+						<xs:enumeration value="2019"/>
+						<xs:enumeration value="2020"/>
+						<xs:enumeration value="2021"/>
+						<xs:enumeration value="2022"/>
+						<xs:enumeration value="2023"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="CodiceRegione" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="ErroriContabili" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="MaggiorCredito" type="cm:DatoNP_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Firma_Revisore_Type">
+		<xs:sequence>
+			<xs:element name="Soggetto" minOccurs="0">
+				<xs:simpleType>
+					<xs:restriction base="cm:DatoNP_Type">
+						<xs:pattern value="[1-4]"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="CodiceFiscale" type="cm:DatoCF_Type" minOccurs="0"/>
+			<xs:element name="FirmaDichiarante" type="cm:DatoCB_Type" minOccurs="0"/>
+			<xs:element name="FirmaAttestazione" type="cm:DatoCB_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Impegno_A_Trasmettere_Type">
+		<xs:sequence>
+			<xs:element name="CFintermediario" type="cm:DatoCF_Type"/>
+			<xs:element name="ImpegnoATrasmettere">
+				<xs:simpleType>
+					<xs:restriction base="cm:DatoNP_Type">
+						<xs:pattern value="1|2"/>
+						<xs:enumeration value="1"/>
+						<xs:enumeration value="2"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="RicezioneAvvisoTelem" type="cm:DatoCB_Type" minOccurs="0"/>
+			<xs:element name="RicezioneAltreComunicazioni" type="cm:DatoCB_Type" minOccurs="0"/>
+			<xs:element name="DataImpegno" type="cm:DatoDT_Type"/>
+			<xs:element name="FirmaIntermediario" type="cm:DatoCB_Type"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Tipo_Dichiarazione_Type">
+		<xs:sequence>
+			<xs:choice minOccurs="0">
+				<xs:element name="Correttiva" type="cm:DatoCB_Type"/>
+				<xs:element name="Integrativa">
+					<xs:simpleType>
+						<xs:restriction base="cm:DatoN1_Type">
+							<xs:enumeration value="1"/>
+							<xs:enumeration value="2"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+				<xs:element name="IntegrativaArt2Co8Ter" type="cm:DatoCB_Type"/>
+			</xs:choice>
+			<xs:element name="IntegrativaErroriContabili" type="cm:DatoCB_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Aiuti_Di_Stato_Type">
+		<xs:sequence>
+			<xs:element name="TipoAiuto" minOccurs="0">
+				<xs:simpleType>
+					<xs:restriction base="cm:DatoNP_Type">
+						<xs:enumeration value="1"/>
+						<xs:enumeration value="2"/>
+						<xs:enumeration value="3"/>
+						<xs:enumeration value="4"/>
+						<xs:enumeration value="5"/>
+						<xs:enumeration value="6"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="CodiceAiuto" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CodiceRegione" type="sc:Codice_Regione_Type" minOccurs="0"/>
+			<xs:element name="Quadro" minOccurs="0">
+				<xs:simpleType>
+					<xs:restriction base="cm:DatoAN_Type">
+						<xs:enumeration value="IP"/>
+						<xs:enumeration value="IC"/>
+						<xs:enumeration value="IE"/>
+						<xs:enumeration value="IR"/>
+						<xs:enumeration value="IK"/>
+						<xs:enumeration value="IS"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="TipoNorma" minOccurs="0">
+				<xs:simpleType>
+					<xs:restriction base="cm:DatoNP_Type">
+						<xs:enumeration value="1"/>
+						<xs:enumeration value="2"/>
+						<xs:enumeration value="3"/>
+						<xs:enumeration value="4"/>
+						<xs:enumeration value="5"/>
+						<xs:enumeration value="6"/>
+						<xs:enumeration value="7"/>
+						<xs:enumeration value="8"/>
+						<xs:enumeration value="9"/>
+						<xs:enumeration value="10"/>
+						<xs:enumeration value="11"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="Anno" type="cm:DatoDA_Type" minOccurs="0"/>
+			<xs:element name="Numero" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="Articolo" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="Estensione" type="cm:DatoAN_Type" minOccurs="0"/>
+			<xs:element name="CommaNumero" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CommaEstensione" type="cm:DatoAN_Type" minOccurs="0"/>
+			<xs:element name="CommaLettera" type="cm:DatoAN_Type" minOccurs="0"/>
+			<xs:element name="CodiceCAR" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="FormaGiuridica" type="cm:DatoAN_Type" minOccurs="0"/>
+			<xs:element name="DimensioneImpresa" minOccurs="0">
+				<xs:simpleType>
+					<xs:restriction base="cm:DatoNP_Type">
+						<xs:enumeration value="1"/>
+						<xs:enumeration value="2"/>
+						<xs:enumeration value="3"/>
+						<xs:enumeration value="4"/>
+						<xs:enumeration value="5"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="CodiceAttivitaAteco" type="cm:DatoAN_Type" minOccurs="0"/>
+			<xs:element name="Settore" minOccurs="0">
+				<xs:simpleType>
+					<xs:restriction base="cm:DatoNP_Type">
+						<xs:enumeration value="1"/>
+						<xs:enumeration value="3"/>
+						<xs:enumeration value="4"/>
+						<xs:enumeration value="5"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="TipoSieg" minOccurs="0">
+				<xs:simpleType>
+					<xs:restriction base="cm:DatoNP_Type">
+						<xs:enumeration value="1"/>
+						<xs:enumeration value="2"/>
+						<xs:enumeration value="3"/>
+						<xs:enumeration value="4"/>
+						<xs:enumeration value="5"/>
+						<xs:enumeration value="6"/>
+						<xs:enumeration value="7"/>
+						<xs:enumeration value="8"/>
+						<xs:enumeration value="9"/>
+						<xs:enumeration value="10"/>
+						<xs:enumeration value="11"/>
+						<xs:enumeration value="12"/>
+						<xs:enumeration value="13"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="ImportoTotaleAiuto" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="DataInizio" type="cm:DatoDT_Type" minOccurs="0"/>
+			<xs:element name="DataFine" type="cm:DatoDN_Type" minOccurs="0"/>
+			<xs:element name="CodRegioneProgetto" type="sc:Codice_Regione_Type" minOccurs="0"/>
+			<xs:element name="CodiceComune" type="cm:DatoAN_Type" minOccurs="0"/>
+			<xs:element name="TipologiaCosti" minOccurs="0">
+				<xs:simpleType>
+					<xs:restriction base="cm:DatoNP_Type">
+						<xs:enumeration value="1"/>
+						<xs:enumeration value="2"/>
+						<xs:enumeration value="3"/>
+						<xs:enumeration value="4"/>
+						<xs:enumeration value="5"/>
+						<xs:enumeration value="6"/>
+						<xs:enumeration value="7"/>
+						<xs:enumeration value="8"/>
+						<xs:enumeration value="9"/>
+						<xs:enumeration value="10"/>
+						<xs:enumeration value="11"/>
+						<xs:enumeration value="12"/>
+						<xs:enumeration value="13"/>
+						<xs:enumeration value="14"/>
+						<xs:enumeration value="15"/>
+						<xs:enumeration value="16"/>
+						<xs:enumeration value="17"/>
+						<xs:enumeration value="18"/>
+						<xs:enumeration value="19"/>
+						<xs:enumeration value="20"/>
+						<xs:enumeration value="31"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="CostiAgevolabili" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="IntensitaAiuto" type="cm:DatoPC_Type" minOccurs="0"/>
+			<xs:element name="ImportoAiutoSpettante" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="AssenzaImpresaUnica" type="cm:DatoCB_Type" minOccurs="0"/>
+			<xs:element name="CodFiscaleImpresaUnica" type="cm:DatoCN_Type" minOccurs="0" maxOccurs="6"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Campione_Di_Italia_Type">
+		<xs:sequence>
+			<xs:element name="CodiceAliquota" type="cm:DatoAN_Type" minOccurs="0"/>
+			<xs:element name="Importo" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CodiceAliquota2" type="cm:DatoAN_Type" minOccurs="0"/>
+			<xs:element name="ImportoEuro" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="ImportoFranchiSvizzeri" type="cm:DatoNP_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="RiscattoAlloggiSociali_Type">
+		<xs:sequence>
+			<xs:element name="ResiduoAnnoPrecedente" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CreditoImposta" type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="CreditoDaRiportare" type="cm:DatoNP_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Versamenti_Sospesi_DispRegionali_Type">
+		<xs:sequence>
+			<xs:element name="CodiceRegione" 	type="sc:Codice_Regione_Type" minOccurs="0"/>
+			<xs:element name="Anno" 			type="cm:DatoDA_Type" minOccurs="0"/>
+			<xs:element name="Numero" 			type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="Articolo" 		type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="ImportoAliquota" 	type="cm:DatoNP_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Concordato_Preventivo_Biennale_Type">
+		<xs:sequence>
+			<xs:element name="ValoreProduzione" 	       type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="Plusvalenze" 			       type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="Minusvalenze" 			   type="cm:DatoNP_Type" minOccurs="0"/>
+			<xs:element name="ValoreProduzioneRettificato" type="cm:DatoNP_Type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+</xs:schema>

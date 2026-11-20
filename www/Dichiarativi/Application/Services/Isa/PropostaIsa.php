@@ -64,6 +64,9 @@ class PropostaIsa
     /** Codici degli altri componenti negativi (RG22) e delle variazioni in diminuzione (RF55) che sono maggiorazioni fiscali (F17 campo 4) */
     public const MAGGIORAZIONI_RG = [27, 28, 29, 36, 37, 38, 42, 43, 44, 47, 53, 54];
     public const MAGGIORAZIONI_RF = [50, 55, 56, 57, 58, 59, 66, 67, 75, 76, 79, 86];
+    /** Codici delle maggiorazioni per Redditi SP e SC (allegato 2, controlli 6.2.1 e 6.3.1) */
+    public const MAGGIORAZIONI_RG_SOCIETA = [27, 28, 29, 32, 36, 37, 38, 42, 43, 44, 47, 53, 54, 55];
+    public const MAGGIORAZIONI_RF_SOCIETA = [50, 51, 55, 56, 57, 58, 59, 66, 67, 75, 76, 79, 86, 98];
 
     /**
      * Righi F dal quadro RG: [rigo F, campo] => codici RG da sommare.
@@ -221,7 +224,9 @@ class PropostaIsa
         // componenti per rigo del quadro F (rigo ISA del conto o, senza, dalla voce CEE), con i campi "di cui"
         $perRigo = $componenti->getPerRigoIsa();
         $righi = fn(string $chiave): ?int => (int) round($perRigo[$chiave] ?? 0.0) ?: null;
-        $maggiorazioni = $quadro === 'RG' ? self::sommaCodici($redditi, 'RG022', 32, self::MAGGIORAZIONI_RG) : self::sommaCodici($redditi, 'RF055', 38, self::MAGGIORAZIONI_RF);
+        $societa = $redditi->getDichiarazione()->modello->isRedditiSocieta();
+        $maggiorazioni = $quadro === 'RG' ? self::sommaCodici($redditi, 'RG022', 32, $societa ? self::MAGGIORAZIONI_RG_SOCIETA : self::MAGGIORAZIONI_RG)
+                : self::sommaCodici($redditi, 'RF055', 38, $societa ? self::MAGGIORAZIONI_RF_SOCIETA : self::MAGGIORAZIONI_RF);
         foreach (['F01', 'F02', 'F10', 'F14', 'F15'] as $chiave) {
             $this->proponi1($quadri, self::codice('F', (int) substr($chiave, 1), 1), $righi($chiave));
         }
@@ -244,6 +249,8 @@ class PropostaIsa
             $spostati = ['1-1' => ['F01', ['E.A.1']], '10-1' => ['F10', ['E.B.6']], '14-1' => ['F14', ['E.B.9']], '15-1' => ['F15', ['E.B.10.a', 'E.B.10.b']]];
             foreach (self::DA_RG as $rigoCampo => $codici) {
                 [$rigo, $campo] = array_map('intval', explode('-', $rigoCampo));
+                // Redditi SP: totale dei ricavi nella colonna 5 del rigo RG2 (allegato 2, controllo 6.2.1)
+                $codici = $societa && ($rigoCampo === '1-1') ? ['RG002005'] : $codici;
                 $valore = $redditi->somma(...$codici);
                 if (isset($spostati[$rigoCampo])) {
                     [$chiave, $prefissi] = $spostati[$rigoCampo];

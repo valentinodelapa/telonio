@@ -3,6 +3,8 @@
 namespace Dichiarativi\Application\Services;
 
 use Anagrafica\Application\Entities\Soggetto;
+use Anagrafica\Application\Enumerations\TipoSoggetto;
+use Anagrafica\Application\Models\OpzioneTassazioneModel;
 use Contabilita\Application\Models\PartecipanteGruppoIvaModel;
 use Contabilita\Application\Services\EsoneroAgricolo;
 use Contabilita\Application\Services\RegimeIva;
@@ -13,7 +15,9 @@ use SismaFramework\Orm\HelperClasses\DataMapper;
  * Modelli di dichiarazione che riguardano il contribuente nell'anno
  * d'imposta: IVA annuale per i titolari di partita IVA in un regime con le
  * liquidazioni IVA (dati fiscali dell'Anagrafica), Redditi PF per le
- * persone fisiche, modello IVA TR per il credito trimestrale.
+ * persone fisiche, Redditi SP per le società di persone e le associazioni
+ * professionali, Redditi SC per le società di capitali (tipo del soggetto
+ * nell'Anagrafica), modello IVA TR per il credito trimestrale.
  */
 class ModelliContribuente
 {
@@ -40,6 +44,17 @@ class ModelliContribuente
             $modelli[ModelloDichiarativo::iva->value] = $esonerato && ($esonero->getMotivoDichiarazione($soggetto, $anno) !== null) ? null : $motivo->getMessage();
         }
         $modelli[ModelloDichiarativo::redditiPf->value] = $soggetto->isPersonaFisica() ? null : 'Il soggetto non è una persona fisica.';
+        $modelli[ModelloDichiarativo::redditiSp->value] = $soggetto->tipoSoggetto === TipoSoggetto::societaPersone ? null : 'Il soggetto non è una società di persone o un\'associazione professionale.';
+        $modelli[ModelloDichiarativo::redditiSc->value] = $soggetto->tipoSoggetto === TipoSoggetto::societaCapitali ? null : 'Il soggetto non è una società di capitali.';
+        // IRAP: società di persone e di capitali (le persone fisiche non sono soggetti passivi dal 2022, L. 234/2021), non nel regime forfetario
+        $regime = (new \Anagrafica\Application\Models\DatiFiscaliModel($this->dataMapper))->getVigenteAl($soggetto, new \SismaFramework\Orm\CustomTypes\SismaDate($anno . '-12-31'))?->regimeFiscale;
+        $modelli[ModelloDichiarativo::irap->value] = match (true) {
+            in_array($soggetto->tipoSoggetto, [TipoSoggetto::societaPersone, TipoSoggetto::societaCapitali], true) === false => 'Il soggetto non è una società: le persone fisiche non sono soggette all\'IRAP dal 2022 (L. 234/2021); per gli enti il modello non è ancora gestito.',
+            $regime === \Anagrafica\Application\Enumerations\RegimeFiscale::forfetario => 'Regime forfetario: nessuna IRAP.',
+            default => null,
+        };
+        $opzione = $soggetto->tipoSoggetto === TipoSoggetto::societaCapitali ? (new OpzioneTassazioneModel($this->dataMapper))->getVigente($soggetto, $anno) : null;
+        $modelli[ModelloDichiarativo::consolidato->value] = $opzione?->isConsolidante() ? null : 'Il soggetto non è la consolidante di un consolidato nazionale nell\'anno (opzioni dei dati fiscali dell\'Anagrafica).';
         // modello IVA TR: chi liquida l'IVA, salvo le controllate del gruppo IVA (lo presenta la controllante)
         $modelli[ModelloDichiarativo::ivaTr->value] = $esonerato ? 'Agricoltore esonerato: nessuna liquidazione periodica.' : $modelli[ModelloDichiarativo::iva->value]
                 ?? ((new PartecipanteGruppoIvaModel($this->dataMapper))->getPerControllata($soggetto, $anno) === null ? null

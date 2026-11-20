@@ -775,21 +775,21 @@ VP001002;N1;Trimestre
 VP001003;CB;Subforniture
 VP001004;CB;LiquidazioneGruppo
 VP001005;CN;OperazioniStraordinarie
-VP002001;;"TotaleOperazioniAttive (al netto dell’IVA)"
-VP003001;;"TotaleOperazioniPassive (al netto dell’IVA)"
-VP004001;;"IvaEsigibile (debiti)"
-VP005001;;"IvaDetratta (crediti)"
-VP006001;;IvaDovuta
-VP006002;;IvaCredito
-VP007001;;"DebitoPrecedente (non superiore a 100 euro)"
-VP008001;;CreditoPeriodoPrecedente
-VP009001;;CreditoAnnoPrecedente
-VP010001;;VersamentiAutoF24ElementiIdentificativi
-VP011001;;CreditiImposta
+VP002001;VN;"TotaleOperazioniAttive (al netto dell’IVA)"
+VP003001;VN;"TotaleOperazioniPassive (al netto dell’IVA)"
+VP004001;VN;"IvaEsigibile (debiti)"
+VP005001;VN;"IvaDetratta (crediti)"
+VP006001;VP;IvaDovuta
+VP006002;VP;IvaCredito
+VP007001;VP;"DebitoPrecedente (non superiore a 100 euro)"
+VP008001;VP;CreditoPeriodoPrecedente
+VP009001;VN;CreditoAnnoPrecedente
+VP010001;VP;VersamentiAutoF24ElementiIdentificativi
+VP011001;VP;CreditiImposta
 VP013001;N1;Metodo
-VP013002;;Acconto
-VP014001;;ImportoDaVersare
-VP014002;;ImportoACredito
+VP013002;VP;Acconto
+VP014001;VP;ImportoDaVersare
+VP014002;VP;ImportoACredito
 VQ001001;DA;"Anno imposta IVA periodica non versata"
 VQ001002;NP;"Differenza tra IVA periodica dovuta e IVA periodica versata"
 VQ001003;NP;"Differenza tra credito potenziale e credito effettivo"

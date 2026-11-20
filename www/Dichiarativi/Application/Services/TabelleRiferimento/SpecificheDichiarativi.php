@@ -20,13 +20,20 @@ namespace Dichiarativi\Application\Services\TabelleRiferimento;
  * (le denominazioni dei quadri, comuni a tutti gli ISA, sono in
  * quadri-ISA-<anno>.csv).
  *
+ * Se le specifiche non hanno il titolo di un quadro del catalogo (Redditi SP
+ * 2026), la denominazione viene dall'indice delle istruzioni del modello
+ * (colonna "istruzioni" di specifiche.csv: righe "N. QUADRO XX - TITOLO").
+ *
  * @see https://www.agenziaentrate.gov.it/portale/it/iva_2026specifichetecniche
  * @see https://www.agenziaentrate.gov.it/portale/modello-redditi-persone-fisiche-2026/software-di-compilazione
  */
 class SpecificheDichiarativi
 {
 
-    public const COLONNE_SPECIFICHE = ['modello', 'anno', 'url', 'provvedimento', 'istruzioni'];
+    public const COLONNE_SPECIFICHE = ['modello', 'anno', 'url', 'provvedimento', 'istruzioni', 'schema'];
+
+    /** Namespace degli elementi del modello IRAP nello schema XSD */
+    public const NAMESPACE_IRAP = 'urn:www.agenziaentrate.gov.it:specificheTecniche:sco:ira';
 
     /**
      * Formati incoerenti nelle specifiche ufficiali, corretti alla lettura:
@@ -69,6 +76,9 @@ class SpecificheDichiarativi
         if ($specifica['modello'] === 'ISA') {
             return $this->aggiornaSpecificheIsa($specifica);
         }
+        if ($specifica['modello'] === 'IRA') {
+            return $this->aggiornaSpecificheIrap($specifica);
+        }
         $pdf = tempnam(sys_get_temp_dir(), 'spec');
         try {
             file_put_contents($pdf, $this->scarica($specifica['url']));
@@ -91,6 +101,17 @@ class SpecificheDichiarativi
         }
         ksort($campi);
         $quadri = $lettore->getQuadri();
+        $mancanti = array_diff(array_unique(array_map(fn(string $codice) => substr($codice, 0, 2), array_keys($campi))), array_keys($quadri));
+        if ((count($mancanti) > 0) && ($specifica['istruzioni'] ?? null) !== null) {
+            $pdf = tempnam(sys_get_temp_dir(), 'istr');
+            try {
+                file_put_contents($pdf, $this->scarica($specifica['istruzioni']));
+                $testo = (string) shell_exec('pdftotext -enc UTF-8 -layout ' . escapeshellarg($pdf) . ' - 2>/dev/null');
+            } finally {
+                unlink($pdf);
+            }
+            $quadri += array_intersect_key(self::leggiTitoliIstruzioni($testo), array_flip($mancanti));
+        }
         ksort($quadri);
         $nome = $specifica['modello'] . '-' . $specifica['anno'] . '.csv';
         $this->scriviCsv('campi-' . $nome, TabelleDichiarativi::COLONNE_CAMPI, array_map(fn(string $codice, array $campo) => [$codice, $campo['formato'], $campo['descrizione']], array_keys($campi), $campi));
@@ -156,6 +177,132 @@ class SpecificheDichiarativi
         $this->scriviCsv('isa-' . $specifica['anno'] . '.csv', TabelleDichiarativi::COLONNE_ISA,
             array_map(fn(string $codice, array $isa) => [$codice, $isa['descrizione'], implode(' ', $isa['attivita'])], array_keys($elenco), $elenco));
         return ['campi' => count($campi), 'senzaFormato' => [], 'quadri' => count($isaSpecifiche)];
+    }
+
+    /**
+     * Modello IRAP (fornitura XML): scarica le specifiche (PDF) e
+     * l'archivio degli schemi XSD (colonna "schema" di specifiche.csv),
+     * estrae gli schemi in xsd-IRA-<anno> tra le sorgenti (servono anche al
+     * generatore del file), legge i campi con il loro percorso XML
+     * (LettoreSpecificheIrap) e le denominazioni dei quadri dalle istruzioni;
+     * riscrive campi-, xml- e quadri-IRA-<anno>.csv.
+     *
+     * @param array{modello: string, anno: int, url: string, provvedimento: string, istruzioni: ?string, schema: ?string} $specifica
+     */
+    private function aggiornaSpecificheIrap(array $specifica): array
+    {
+        if (($specifica['schema'] ?? null) === null) {
+            throw new \UnexpectedValueException('specifiche.csv: manca l\'indirizzo dell\'archivio degli schemi XSD IRAP (colonna schema)');
+        }
+        if (trim((string) shell_exec('command -v bsdtar')) === '') {
+            throw new \RuntimeException('bsdtar non disponibile: installare libarchive-tools (vedi Dockerfile)');
+        }
+        $nome = $specifica['modello'] . '-' . $specifica['anno'];
+        $temporanea = sys_get_temp_dir() . '/specifiche-irap-' . bin2hex(random_bytes(4));
+        mkdir($temporanea);
+        try {
+            file_put_contents($temporanea . '/specifiche.pdf', $this->scarica($specifica['url']));
+            $testo = (string) shell_exec('pdftotext -enc UTF-8 -layout ' . escapeshellarg($temporanea . '/specifiche.pdf') . ' - 2>/dev/null');
+            file_put_contents($temporanea . '/schemi.rar', $this->scarica($specifica['schema'], 'Rar!'));
+            exec(sprintf('bsdtar -xf %s -C %s 2>&1', escapeshellarg($temporanea . '/schemi.rar'), escapeshellarg($temporanea)), $uscita, $esito);
+            if ($esito !== 0) {
+                throw new \RuntimeException('Archivio degli schemi XSD non estratto: ' . implode(' ', $uscita));
+            }
+            $titoli = [];
+            if (($specifica['istruzioni'] ?? null) !== null) {
+                file_put_contents($temporanea . '/istruzioni.pdf', $this->scarica($specifica['istruzioni']));
+                $titoli = self::leggiTitoliIstruzioni((string) shell_exec('pdftotext -enc UTF-8 -layout ' . escapeshellarg($temporanea . '/istruzioni.pdf') . ' - 2>/dev/null'));
+            }
+            // schemi tra le sorgenti, al posto dei precedenti
+            $destinazione = $this->cartella . 'xsd-' . $nome;
+            if (is_dir($destinazione)) {
+                foreach (array_reverse(self::trova($destinazione, '/./', true)) as $elemento) {
+                    is_dir($elemento) ? @rmdir($elemento) : @unlink($elemento);
+                }
+            } else {
+                mkdir($destinazione);
+            }
+            foreach (self::trova($temporanea, '/\.xsd$/i') as $xsd) {
+                $relativo = substr($xsd, strlen($temporanea) + 1);
+                $relativo = preg_replace('#^xsd/#', '', $relativo);
+                if (is_dir(dirname($destinazione . '/' . $relativo)) === false) {
+                    mkdir(dirname($destinazione . '/' . $relativo), 0777, true);
+                }
+                copy($xsd, $destinazione . '/' . $relativo);
+            }
+        } finally {
+            foreach (array_reverse(self::trova($temporanea, '/./', true)) as $elemento) {
+                is_dir($elemento) ? @rmdir($elemento) : @unlink($elemento);
+            }
+            @rmdir($temporanea);
+        }
+        $lettore = new LettoreSpecificheIrap();
+        $campi = $lettore->leggi($testo, new SchemaXsd($destinazione), self::NAMESPACE_IRAP);
+        if (count($campi) < 500) {
+            throw new \UnexpectedValueException(sprintf('Specifiche IRAP %d: trovati solo %d campi, impaginazione del PDF cambiata?', $specifica['anno'], count($campi)));
+        }
+        ksort($campi);
+        $quadri = array_intersect_key($titoli, array_flip(array_unique(array_map(fn(string $codice) => substr($codice, 0, 2), array_keys($campi)))));
+        ksort($quadri);
+        $this->scriviCsv('campi-' . $nome . '.csv', TabelleDichiarativi::COLONNE_CAMPI, array_map(fn(string $codice, array $campo) => [$codice, $campo['formato'], $campo['descrizione']], array_keys($campi), $campi));
+        $this->scriviCsv('xml-' . $nome . '.csv', ['codice', 'percorso'], array_map(fn(string $codice, array $campo) => [$codice, $campo['percorso']], array_keys($campi), $campi));
+        $this->scriviCsv('quadri-' . $nome . '.csv', TabelleDichiarativi::COLONNE_QUADRI, array_map(fn(string $quadro, string $denominazione) => [$quadro, $denominazione], array_keys($quadri), $quadri));
+        return [
+            'campi' => count($campi),
+            'senzaFormato' => array_map(fn(array $codice) => $codice[1] . ' (' . $codice[0] . ', non nello schema)', $lettore->getNonTrovati()),
+            'quadri' => count($quadri),
+        ];
+    }
+
+    /**
+     * Denominazioni dei quadri dall'indice delle istruzioni ("N. QUADRO XX -
+     * TITOLO", "N – QUADRO XX – TITOLO" o "CN. QUADRO XX" con il titolo
+     * sulla riga successiva, con un'altra riga se il titolo continua), in minuscolo con l'iniziale maiuscola; restano
+     * maiuscole le sigle (parole fino a tre lettere che non sono
+     * preposizioni, articoli o negazioni).
+     *
+     * @return array<string, string> sigla => denominazione
+     */
+    public static function leggiTitoliIstruzioni(string $testo): array
+    {
+        $righe = explode("\n", $testo);
+        $quadri = [];
+        $continua = fn(string $riga) => ($riga !== '') && (mb_strtoupper($riga) === $riga) && (preg_match('/^(\d|C\d|QUADRO)/u', $riga) !== 1);
+        foreach ($righe as $indice => $riga) {
+            if (preg_match('/^\s*(?:C?\d+\s*[.–-]\s+)?QUADRO\s+([A-Z][A-Z0-9])\s*(?:[-–]\s*(.+?))?\s*$/u', $riga, $parti) !== 1) {
+                continue;
+            }
+            // titolo sulla stessa riga o, senza (istruzioni del modello CNM: "C1. QUADRO NF"), sulla riga successiva
+            $titolo = $parti[2] ?? '';
+            $successiva = $indice + 1;
+            if ($titolo === '') {
+                $titolo = trim($righe[$successiva] ?? '');
+                $successiva++;
+                if ($continua($titolo) === false) {
+                    continue;
+                }
+            }
+            $seguente = trim($righe[$successiva] ?? '');
+            if ($continua($seguente)) {
+                $titolo .= ' ' . $seguente;
+            }
+            $quadri[$parti[1]] ??= self::comeFrase($titolo);
+        }
+        return $quadri;
+    }
+
+    private static function comeFrase(string $titolo): string
+    {
+        $minuscole = ['A', 'AD', 'AI', 'AL', 'ALLA', 'ALLE', 'AGLI', 'CON', 'DA', 'DAI', 'DAL', 'DALLA', 'DEI', 'DEL', 'DELLA', 'DELLE', 'DEGLI', 'DELL', 'DI', 'E', 'ED', 'GLI', 'I', 'IL', 'IN', 'LA', 'LE', 'NEI', 'NEL', 'NELLA', 'O', 'PER', 'SU', 'SUI', 'SUL', 'TRA', 'UN', 'UNA', 'NON', 'ALTRE', 'ALTRI', 'SPESE', 'RISULTATO', 'REDDITI', 'REDDITO', 'CREDITI', 'BASE', 'ELENCO', 'USCITA', 'VALORI', 'FONTE', 'ALCUNE', 'DATI', 'ART', 'CUI', 'DE'];
+        $parole = preg_split('/(\s+)/u', preg_replace('/\s+/u', ' ', trim($titolo)), -1, PREG_SPLIT_NO_EMPTY);
+        foreach ($parole as $posizione => $parola) {
+            $nuda = preg_replace('/[^\p{L}]/u', '', $parola);
+            $sigla = ($nuda !== '') && (mb_strlen($nuda) <= 3) && (in_array(str_replace(['’', "'"], '', $nuda), $minuscole, true) === false) && (preg_match("/[’']/u", $parola) !== 1);
+            $parole[$posizione] = $sigla ? $parola : mb_strtolower($parola);
+        }
+        // sigle fiscali sempre maiuscole, anche dopo l'apostrofo ("dell'IRES")
+        $frase = preg_replace_callback('/(?<=^|[\s’\'(])(tuir|ires|irap|iva|ivie|ivafe|cfc|ace)(?=$|[\s,.)])/u', fn(array $sigla) => mb_strtoupper($sigla[1]), implode(' ', $parole));
+        return mb_strtoupper(mb_substr($frase, 0, 1)) . mb_substr($frase, 1);
     }
 
     /**

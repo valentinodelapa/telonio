@@ -4,6 +4,7 @@ namespace Dichiarativi\Application\Services\Telematico;
 
 use Dichiarativi\Application\Entities\Dichiarazione;
 use Dichiarativi\Application\Enumerations\FormatoCampo;
+use Dichiarativi\Application\Enumerations\ModelloDichiarativo;
 use Dichiarativi\Application\Services\Isa\PropostaIsa;
 use Dichiarativi\Application\Services\QuadriDichiarazione;
 use SismaFramework\Orm\HelperClasses\DataMapper;
@@ -16,7 +17,8 @@ use SismaFramework\Orm\HelperClasses\DataMapper;
  * - testa comune (108 caratteri): tipo record, codice fiscale, progressivo
  *   modulo, spazi dell'utente, codice fiscale di chi assevera, codice
  *   attività, anno del modello, progressivo, modello di dichiarazione (1
- *   Redditi PF quadro RE, 2 quadro RF, 3 quadro RG) e codice dell'ISA;
+ *   Redditi PF quadro RE, 2 quadro RF, 3 quadro RG, 4-6 lo stesso per
+ *   Redditi SP, 7 Redditi SC) e codice dell'ISA;
  * - record P: cognome e nome (o denominazione) e identificativo del
  *   produttore del software;
  * - record Q: coppie codice campo (8) e valore (18), 68 per record, in
@@ -32,6 +34,19 @@ class GeneratoreIsa
     public const COPPIE_Q = 68;
     /** Modello di dichiarazione della testa per quadro contabile di Redditi PF */
     public const MODELLI_DICHIARAZIONE = ['RE' => 1, 'RF' => 2, 'RG' => 3];
+
+    /**
+     * Modello di dichiarazione della testa dei record ISA: 1-3 Redditi PF
+     * (quadro RE, RF, RG), 4-6 Redditi SP, 7 Redditi SC.
+     */
+    public static function getModelloDichiarazione(ModelloDichiarativo $modello, string $quadro): int
+    {
+        return match ($modello) {
+            ModelloDichiarativo::redditiSp => self::MODELLI_DICHIARAZIONE[$quadro] + 3,
+            ModelloDichiarativo::redditiSc => 7,
+            default => self::MODELLI_DICHIARAZIONE[$quadro],
+        };
+    }
 
     public function __construct(private DataMapper $dataMapper = new DataMapper())
     {
@@ -54,7 +69,7 @@ class GeneratoreIsa
         $soggetto = $dichiarazione->soggetto;
         $codiceAttivita = (string) $quadri->get('Y0100101', 1);
         $testa = 'X' . str_pad(strtoupper((string) $soggetto->codiceFiscale), 16) . '00000001' . str_repeat(' ', 3 + 25 + 8 + 12 + 16)
-                . str_pad($codiceAttivita, 6) . $dichiarazione->getAnnoModello() . '01' . sprintf('%02d', self::MODELLI_DICHIARAZIONE[$quadroRedditi]) . str_pad((string) $dichiarazione->isa, 5);
+                . str_pad($codiceAttivita, 6) . $dichiarazione->getAnnoModello() . '01' . sprintf('%02d', self::getModelloDichiarazione($dichiarazione->dichiarazioneRedditi?->modello ?? ModelloDichiarativo::redditiPf, $quadroRedditi)) . str_pad((string) $dichiarazione->isa, 5);
         $record = fn(string $tipo, string $corpo) => str_pad($tipo . substr($testa, 1) . $corpo, 1876) . str_repeat(' ', 21) . "A\r\n";
 
         $persona = $soggetto->isPersonaFisica();

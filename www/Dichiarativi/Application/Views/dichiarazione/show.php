@@ -165,7 +165,7 @@ require Layout::percorso('header');
                 <li class="list-group-item"><?= Html::e($campi['intermediario']) ?>: <?= $dichiarazione->intermediario === null ? '-' : Html::e($dichiarazione->intermediario->getEtichetta()) . '<div class="text-body-secondary">' . Html::e(($dichiarazione->impegno?->getLabel() ?? '') . ' · ') . Html::data($dichiarazione->dataImpegno) . '</div>' ?></li>
                 <li class="list-group-item"><?= Html::e($campi['vistoProfessionista']) ?>: <?= $dichiarazione->vistoProfessionista !== null ? Html::e($dichiarazione->vistoProfessionista->nominativo . ' · ' . $dichiarazione->vistoProfessionista->codiceFiscale)
                         : ($dichiarazione->vistoCaf !== null ? Html::e($dichiarazione->vistoCaf->nominativo . ' · ' . ($dichiarazione->vistoResponsabileCaf?->nominativo ?? '')) : ($dichiarazione->esoneroVisto ? Html::e($campi['esoneroVisto']) : '-')) ?></li>
-                <?php if ($redditi): ?>
+                <?php if ($dichiarazione->modello === \Dichiarativi\Application\Enumerations\ModelloDichiarativo::redditiPf): ?>
                     <li class="list-group-item"><?= Html::e($campi['ottoPerMille']) ?>: <?= Html::e($dichiarazione->ottoPerMille === null ? '-' : $dichiarazione->ottoPerMille->getLabel() . ($dichiarazione->finalitaStato !== null ? ' (' . (\Dichiarativi\Application\Enumerations\OttoPerMille::getFinalitaStato()[$dichiarazione->finalitaStato] ?? '') . ')' : '')) ?></li>
                     <li class="list-group-item"><?= Html::e($campi['cinquePerMille']) ?>: <?= Html::e($dichiarazione->cinquePerMille === null ? '-' : $dichiarazione->cinquePerMille->getLabel() . ($dichiarazione->beneficiarioCinquePerMille !== null ? ' · ' . $dichiarazione->beneficiarioCinquePerMille : '')) ?></li>
                     <li class="list-group-item"><?= Html::e($campi['duePerMille']) ?>: <?= Html::e($dichiarazione->duePerMille === null ? '-' : ((\Dichiarativi\Application\Services\Redditi\PartitiDuePerMille::getPartiti($dichiarazione->anno)[$dichiarazione->duePerMille] ?? '') . ' (' . $dichiarazione->duePerMille . ')')) ?></li>
@@ -175,7 +175,7 @@ require Layout::percorso('header');
         </div>
         <?php endif; ?>
 
-        <?php if ($redditi): ?>
+        <?php if ($redditi && !in_array($dichiarazione->modello, [\Dichiarativi\Application\Enumerations\ModelloDichiarativo::consolidato, \Dichiarativi\Application\Enumerations\ModelloDichiarativo::irap], true)): ?>
         <div class="card shadow-sm mt-3">
             <div class="card-header bg-white fw-semibold"><?= Html::e($titoloModelliIsa) ?></div>
             <ul class="list-group list-group-flush small">
@@ -199,7 +199,7 @@ require Layout::percorso('header');
         </div>
         <?php endif; ?>
 
-        <?php if (($redditi === false) && ($isa === false)): ?>
+        <?php if ((($redditi === false) && ($isa === false)) || in_array($dichiarazione->modello, [\Dichiarativi\Application\Enumerations\ModelloDichiarativo::redditiSc, \Dichiarativi\Application\Enumerations\ModelloDichiarativo::consolidato, \Dichiarativi\Application\Enumerations\ModelloDichiarativo::irap], true)): ?>
         <div class="card shadow-sm mt-3">
             <div class="card-header bg-white d-flex align-items-center gap-2">
                 <span class="fw-semibold me-auto"><?= Html::e($titoloOrganoControllo) ?></span>
