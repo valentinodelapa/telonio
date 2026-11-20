@@ -8,6 +8,7 @@ use Anagrafica\Application\Enumerations\RuoloLegame;
 use Anagrafica\Application\Enumerations\TipoOpzioneTassazione;
 use Anagrafica\Application\Fixtures\ContoCorrenteAlfaFixture;
 use Anagrafica\Application\Fixtures\SoggettoAlfaFixture;
+use Contabilita\Application\Entities\ContrattoLeasing;
 use Contabilita\Application\Entities\RegistrazioneContabile;
 use Contabilita\Application\Entities\RigaContabile;
 use Contabilita\Application\Enumerations\CausaleContabile;
@@ -91,6 +92,19 @@ class RedditiSocieta2025Fixture extends BaseFixture
         // costi indeducibili ai fini IRAP (variazione IRAP dei conti del piano): compenso dell'amministratore (IC43) e IMU dell'ufficio (IC46)
         $this->registraCosto($alfa, '22.01.0009', "Compenso dell'amministratore 2025", 6000.0);
         $this->registraCosto($alfa, '27.01.0006', "IMU 2025 dell'ufficio", 800.0);
+        // autovettura in leasing dal 1° luglio 2024 (quattro anni): quota interessi nel rigo IC44, costo della concedente nel prospetto di comodo
+        $leasing = new ContrattoLeasing($this->dataMapper);
+        $leasing->studio = $alfa->studio;
+        $leasing->soggetto = $alfa;
+        $leasing->descrizione = 'Autovettura aziendale';
+        $leasing->concedente = 'Leasing Lombarda S.p.A.';
+        $leasing->numeroContratto = 'LL-2024-0456';
+        $leasing->dataInizio = new SismaDate('2024-07-01');
+        $leasing->dataFine = new SismaDate('2028-06-30');
+        $leasing->costoConcedente = 30000.0;
+        $leasing->totaleCanoni = 33000.0;
+        $leasing->prezzoRiscatto = 300.0;
+        $this->dataMapper->save($leasing);
         $redditiAlfa = $this->crea($alfa, ModelloDichiarativo::redditiSc, true);
         $societa->proponi($redditiAlfa);
         $versamenti->registraVersamenti($redditiAlfa, new QuadriDichiarazione($redditiAlfa, $this->dataMapper));

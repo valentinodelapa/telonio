@@ -5,15 +5,18 @@ namespace Contabilita\Application\Controllers;
 use Anagrafica\Application\Entities\Soggetto;
 use Contabilita\Application\BaseClasses\ContabilitaController;
 use Contabilita\Application\Entities\Cespite;
+use Contabilita\Application\Entities\ContrattoLeasing;
 use Contabilita\Application\Entities\RegistrazioneContabile;
 use Contabilita\Application\Enumerations\CausaleContabile;
 use Contabilita\Application\Enumerations\NaturaConto;
 use Contabilita\Application\Forms\CespiteForm;
 use Contabilita\Application\Models\CespiteModel;
 use Contabilita\Application\Models\ContoModel;
+use Contabilita\Application\Models\ContrattoLeasingModel;
 use Contabilita\Application\Models\RegistrazioneContabileModel;
 use Contabilita\Application\Models\RigaContabileModel;
 use Contabilita\Application\Services\Ammortamenti;
+use Contabilita\Application\Services\Leasing;
 use SismaFramework\Core\HttpClasses\Request;
 use SismaFramework\Core\HttpClasses\Response;
 
@@ -53,6 +56,10 @@ class CespiteController extends ContabilitaController
         $this->vars['totaleQuote'] = round(array_sum(array_map(fn(array $voce) => $voce['voce']['quota'] ?? 0.0, $cespiti)), 2);
         $this->vars['scrittura'] = $esercizio === null ? null : (new RegistrazioneContabileModel($this->dataMapper))->getGenerata($soggetto, Ammortamenti::ORIGINE, Ammortamenti::getRiferimento($esercizio->anno));
         $this->vars['acquistiSenzaCespite'] = $esercizio === null ? [] : $this->getAcquistiSenzaCespite($soggetto, $esercizio, $cespiti);
+        $annoLeasing = $esercizio?->anno ?? (int) date('Y');
+        $this->vars['contrattiLeasing'] = array_map(fn(ContrattoLeasing $contratto) => ['contratto' => $contratto, 'interessi' => Leasing::getQuotaInteressi($contratto, $annoLeasing)],
+                (new ContrattoLeasingModel($this->dataMapper))->getElenco($soggetto));
+        $this->vars['annoLeasing'] = $annoLeasing;
         $this->vars['sezioneAzienda'] = 'cespiti';
         $this->vars['pageTitle'] = $stampa ? 'Registro dei beni ammortizzabili ' . ($esercizio?->getEtichetta() ?? '') : $soggetto->nominativo . ' · Cespiti';
         $this->impostaBriciole($soggetto, null, 'Cespiti');
@@ -167,6 +174,7 @@ class CespiteController extends ContabilitaController
         }
         $this->vars['cespite'] = $cespite;
         $this->vars['scelteConti'] = $scelte;
+        $this->vars['immobili'] = ContrattoLeasingController::getImmobili($this->dataMapper, $soggetto);
         $this->vars['pageTitle'] = $titolo;
         $this->impostaBriciole($soggetto, null, $titolo, ['Cespiti' => '/cespite/index/soggetto/' . $soggetto->id]);
         return $this->render->generateView('cespite/form', $this->vars, $form->getResponseType());

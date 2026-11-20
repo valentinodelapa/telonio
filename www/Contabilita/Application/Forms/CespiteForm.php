@@ -58,6 +58,7 @@ class CespiteForm extends BaseForm
                 ->addFilterFieldMode('esercizioFondoIniziale', FilterType::isInteger, [], true)
                 ->addFilterFieldMode('dataDismissione', FilterType::isDate, [], true)
                 ->addFilterFieldMode('prezzoDismissione', FilterType::isNumeric, [], true)
+                ->addFilterFieldMode('immobile', FilterType::isEntity, [], true)
                 ->addFilterFieldMode('note', FilterType::isMaxLimitString, [255], true);
     }
 

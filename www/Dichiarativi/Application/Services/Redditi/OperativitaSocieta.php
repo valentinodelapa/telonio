@@ -7,7 +7,12 @@ use Anagrafica\Application\Enumerations\RegimeFiscale;
 use Anagrafica\Application\Models\DatiFiscaliModel;
 use Contabilita\Application\Entities\Cespite;
 use Contabilita\Application\Enumerations\VoceCee;
+use Anagrafica\Application\Entities\Immobile;
+use Anagrafica\Application\Enumerations\CategoriaCatastale;
+use Anagrafica\Application\Models\DatiCatastaliModel;
 use Contabilita\Application\Models\CespiteModel;
+use Contabilita\Application\Models\ContrattoLeasingModel;
+use Contabilita\Application\Services\Leasing;
 use Contabilita\Application\Models\EsercizioContabileModel;
 use Contabilita\Application\Models\RigaContabileModel;
 use Contabilita\Application\Services\ChiusuraEsercizio;
@@ -152,7 +157,7 @@ class OperativitaSocieta
             $quadri->proponi($campi['totaleRettifiche'], null);
             $quadri->proponi($campi['redditoMinimo'], null);
         }
-        $this->avvisi[] = 'Quadro RS, società di comodo: fabbricati dai cespiti tutti tra gli immobili (spostare a mano quelli A/10, abitativi, nei comuni sotto i 1.000 abitanti, e gli impianti fotovoltaici); beni in locazione finanziaria e cause di esclusione o disapplicazione da indicare a mano.';
+        $this->avvisi[] = 'Quadro RS, società di comodo: fabbricati dei cespiti e dei contratti di leasing per categoria catastale dell\'immobile collegato (A/10 tra gli uffici, abitazioni acquisite nel triennio tra gli abitativi); spostare a mano quelli nei comuni sotto i 1.000 abitanti e gli impianti fotovoltaici; cause di esclusione o disapplicazione a mano.';
         return $this->avvisi;
     }
 
@@ -166,18 +171,45 @@ class OperativitaSocieta
     private function getValoriBeni(Soggetto $soggetto, array $anni): array
     {
         $valori = [];
+        $ultimo = end($anni);
         foreach ((new CespiteModel($this->dataMapper))->getElenco($soggetto) as $cespite) {
             $voce = $cespite->contoCespite->voceCee;
             if (in_array($voce, [VoceCee::attivoBI6, VoceCee::attivoBII5], true)) {
                 continue;
             }
-            $tipo = $voce === VoceCee::attivoBII1 ? 'immobili' : 'altre';
+            $tipo = $this->getTipoBene($cespite->immobile, ($voce === VoceCee::attivoBII1) || ($cespite->immobile !== null), (int) $cespite->dataAcquisto->format('Y'), $ultimo);
             $costo = $cespite->limiteCostoFiscale === null ? $cespite->costo : min($cespite->costo, $cespite->limiteCostoFiscale);
             foreach ($anni as $anno) {
                 $valori[$tipo][$anno] = ($valori[$tipo][$anno] ?? 0.0) + $costo * self::getQuotaPossesso($cespite, $anno);
             }
         }
+        // beni in locazione finanziaria: costo sostenuto dalla concedente per il periodo del contratto
+        foreach ((new ContrattoLeasingModel($this->dataMapper))->getElenco($soggetto) as $contratto) {
+            $tipo = $this->getTipoBene($contratto->immobile, $contratto->beneImmobile || ($contratto->immobile !== null), (int) $contratto->dataInizio->format('Y'), $ultimo);
+            foreach ($anni as $anno) {
+                $valori[$tipo][$anno] = ($valori[$tipo][$anno] ?? 0.0) + $contratto->costoConcedente * Leasing::getQuotaPossesso($contratto, $anno);
+            }
+        }
         return $valori;
+    }
+
+    /**
+     * Riga del prospetto per il bene: immobili A/10 (uffici), abitazioni
+     * acquisite nell'esercizio o nei due precedenti (abitativi), altri
+     * fabbricati (immobili, categoria catastale alla fine dell'anno
+     * dall'Anagrafica), altri beni (altre immobilizzazioni).
+     */
+    private function getTipoBene(?Immobile $immobile, bool $fabbricato, int $annoAcquisto, int $anno): string
+    {
+        if ($fabbricato === false) {
+            return 'altre';
+        }
+        $categoria = $immobile === null ? null : (new DatiCatastaliModel($this->dataMapper))->getVigenteAl($immobile, new \DateTimeImmutable($anno . '-12-31'))?->categoria;
+        return match (true) {
+            $categoria === CategoriaCatastale::a10 => 'uffici',
+            ($categoria?->isAbitativa() === true) && ($annoAcquisto >= $anno - 2) => 'abitativi',
+            default => 'immobili',
+        };
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace Contabilita\Application\Entities;
 
+use Anagrafica\Application\Entities\Immobile;
 use Anagrafica\Application\Entities\Soggetto;
 use SismaFramework\Orm\BaseClasses\BaseEntity;
 use SismaFramework\Orm\CustomTypes\SismaDate;
@@ -48,6 +49,8 @@ class Cespite extends BaseEntity
     protected ?int $esercizioFondoIniziale = null;
     protected ?RegistrazioneContabile $registrazioneAcquisto = null;
     protected ?SismaDate $dataDismissione = null;
+    /** fabbricato: immobile dell'Anagrafica (categoria catastale per il prospetto delle società di comodo) */
+    protected ?Immobile $immobile = null;
     protected ?float $prezzoDismissione = null;
     protected ?string $note = null;
 

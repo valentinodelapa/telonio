@@ -775,6 +775,7 @@ CREATE TABLE IF NOT EXISTS `cespite` (
   `data_dismissione` DATE NULL,
   `prezzo_dismissione` DECIMAL(15,2) NULL,
   `note` VARCHAR(255) NULL,
+  `immobile_id` INT UNSIGNED NULL COMMENT 'Fabbricato: immobile dell''Anagrafica (categoria catastale per le società di comodo)',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_cespite_codice` (`soggetto_id`, `codice`),
   KEY `idx_cespite_studio` (`studio_id`),
@@ -783,9 +784,34 @@ CREATE TABLE IF NOT EXISTS `cespite` (
   CONSTRAINT `fk_cespite_conto_cespite` FOREIGN KEY (`conto_cespite_id`) REFERENCES `conto` (`id`),
   CONSTRAINT `fk_cespite_conto_fondo` FOREIGN KEY (`conto_fondo_id`) REFERENCES `conto` (`id`),
   CONSTRAINT `fk_cespite_conto_ammortamento` FOREIGN KEY (`conto_ammortamento_id`) REFERENCES `conto` (`id`),
-  CONSTRAINT `fk_cespite_registrazione` FOREIGN KEY (`registrazione_acquisto_id`) REFERENCES `registrazione_contabile` (`id`) ON DELETE SET NULL
+  CONSTRAINT `fk_cespite_registrazione` FOREIGN KEY (`registrazione_acquisto_id`) REFERENCES `registrazione_contabile` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `fk_cespite_immobile` FOREIGN KEY (`immobile_id`) REFERENCES `immobile` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Registro dei beni ammortizzabili (art. 16 D.P.R. 600/1973)';
+
+CREATE TABLE IF NOT EXISTS `contratto_leasing` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `studio_id` INT UNSIGNED NOT NULL,
+  `soggetto_id` INT UNSIGNED NOT NULL,
+  `descrizione` VARCHAR(255) NOT NULL,
+  `concedente` VARCHAR(100) NULL,
+  `numero_contratto` VARCHAR(40) NULL,
+  `data_inizio` DATE NOT NULL,
+  `data_fine` DATE NOT NULL,
+  `data_riscatto` DATE NULL COMMENT 'Riscatto o fine anticipata',
+  `costo_concedente` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+  `totale_canoni` DECIMAL(15,2) NOT NULL DEFAULT 0.00 COMMENT 'Canoni complessivi, compreso il maxicanone',
+  `prezzo_riscatto` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+  `bene_immobile` TINYINT(1) NOT NULL DEFAULT 0,
+  `immobile_id` INT UNSIGNED NULL COMMENT 'Immobile dell''Anagrafica (categoria catastale)',
+  `note` VARCHAR(255) NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_contratto_leasing_soggetto` (`soggetto_id`, `data_inizio`),
+  CONSTRAINT `fk_contratto_leasing_studio` FOREIGN KEY (`studio_id`) REFERENCES `studio` (`id`),
+  CONSTRAINT `fk_contratto_leasing_soggetto` FOREIGN KEY (`soggetto_id`) REFERENCES `soggetto` (`id`),
+  CONSTRAINT `fk_contratto_leasing_immobile` FOREIGN KEY (`immobile_id`) REFERENCES `immobile` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Contratti di locazione finanziaria: quota interessi (D.M. 24 aprile 1998) e valore dei beni per le società di comodo';
 
 CREATE TABLE IF NOT EXISTS `rateo_risconto` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,

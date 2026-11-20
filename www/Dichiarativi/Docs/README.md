@@ -1157,18 +1157,21 @@ Quadro RS proposto dalla contabilità:
 - **Società di comodo** (`OperativitaSocieta`, art. 30 L. 724/1994; righi
   RS11-RS20 di SP, RS116-RS125 di SC), se non c'è a mano una causa di
   esclusione o di disapplicazione: valori dei beni dal registro dei
-  cespiti (costo, ragguagliato ai giorni di possesso; fabbricati tra gli
-  immobili, gli altri beni tra le altre immobilizzazioni, escluse quelle
-  in corso e gli acconti) con la media del triennio e, se la società non
+  cespiti (costo, ragguagliato ai giorni di possesso; fabbricati per
+  categoria catastale dell'immobile collegato: A/10 tra gli uffici,
+  abitazioni acquisite nel triennio tra gli abitativi, gli altri tra gli
+  immobili; gli altri beni tra le altre immobilizzazioni, escluse quelle
+  in corso e gli acconti) e dai contratti di leasing (costo della
+  concedente per il periodo del contratto) con la media del triennio e, se la società non
   è operativa, il valore dell'esercizio; titoli e crediti non commerciali dai saldi delle voci
   B.III e C.III; ricavi effettivi come media delle voci A1, A2, A3 e A5
   degli esercizi in contabilità; ricavi e reddito presunti con le
   percentuali delle specifiche. "Casi particolari" 1 senza beni nel
   triennio, 2 senza beni nell'ultimo esercizio. Se la società non è
   operativa: reddito minimo, con le agevolazioni inserite a mano. Restano
-  a mano la distinzione degli immobili A/10, abitativi e nei piccoli
-  comuni, i beni in leasing e il confronto del reddito minimo con quello
-  dichiarato.
+  a mano gli immobili nei comuni sotto i 1.000 abitanti (la popolazione
+  dei comuni non è in Anagrafica), gli impianti fotovoltaici e il
+  confronto del reddito minimo con quello dichiarato.
 - **Crediti d'imposta, quadro RU sezione I** (`CreditiImpostaRu`, anche
   per Redditi PF): un modulo per credito, con il codice della tabella
   ufficiale e i codici tributo F24 delle istruzioni
@@ -1305,7 +1308,8 @@ XSD (verificato nei test).
   dal conto economico per competenza (voci A1-A5; B6, B7, B8, B10 a e b,
   B11, B14), variazioni dai conti con la variazione IRAP del piano dei
   conti (`Contabilita`, `RighiIrap`: righi IC43-IC49 e coppie dei righi
-  IC51 e IC57), le altre a mano, con i totali; valore della produzione
+  IC51 e IC57) e quota interessi dei contratti di leasing nel rigo IC44
+  (`Contabilita`, `Leasing`), le altre a mano, con i totali; valore della produzione
   lorda e netta.
 - **Quadro IP** (società di persone, art. 5-bis): ricavi meno costi di
   materie e merci, servizi, ammortamenti e canoni, per cassa in

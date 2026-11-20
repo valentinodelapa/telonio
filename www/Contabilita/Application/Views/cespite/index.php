@@ -66,4 +66,31 @@ require __DIR__ . '/../commonParts/navAzienda.php';
         </div>
     <?php endif; ?>
 </div>
+<div class="card shadow-sm mb-3">
+    <div class="card-header bg-white fw-semibold d-flex align-items-center">
+        <span class="me-auto"><?= Html::e($sezioneLeasing) ?></span>
+        <a href="/contratto-leasing/create/soggetto/<?= Html::e($soggetto->id) ?>" class="btn btn-sm btn-outline-primary"><i class="bi bi-plus-lg me-1"></i><?= Html::e($nuovoLeasing) ?></a>
+    </div>
+    <?php if (count($contrattiLeasing) === 0): ?>
+        <div class="card-body small text-body-secondary"><?= Html::e($nessunLeasing) ?></div>
+    <?php else: ?>
+        <div class="table-responsive">
+            <table class="table table-sm table-hover mb-0 align-middle small">
+                <thead class="table-light"><tr><th><?= Html::e($campi['descrizione']) ?></th><th><?= Html::e($campi['dataInizioLeasing']) ?></th><th><?= Html::e($campi['dataFineLeasing']) ?></th><th class="text-end"><?= Html::e($campi['costoConcedente']) ?></th><th class="text-end"><?= Html::e($quotaInteressi) ?> <?= Html::e($annoLeasing) ?></th></tr></thead>
+                <tbody>
+                    <?php foreach ($contrattiLeasing as ['contratto' => $contratto, 'interessi' => $interessi]): ?>
+                        <tr>
+                            <td><a href="/contratto-leasing/update/contratto/<?= Html::e($contratto->id) ?>"><?= Html::e($contratto->descrizione) ?></a><?php if ($contratto->concedente !== null): ?><div class="text-body-secondary"><?= Html::e($contratto->concedente) ?></div><?php endif; ?></td>
+                            <td class="text-nowrap"><?= Html::data($contratto->dataInizio) ?></td>
+                            <td class="text-nowrap"><?= Html::data($contratto->getDataTermine()) ?></td>
+                            <td class="text-end"><?= Html::e(Importo::euro($contratto->costoConcedente)) ?></td>
+                            <td class="text-end"><?= Html::e(Importo::euro($interessi)) ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    <?php endif; ?>
+    <div class="card-footer bg-white small text-body-secondary"><?= Html::e($aiutoSezioneLeasing) ?></div>
+</div>
 <?php require Layout::percorso('footer'); ?>

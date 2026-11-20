@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.35.0-alpha] - 2026-11-20 - Immobili dei Cespiti e Contratti di Leasing
+
+Versioni dei moduli: `Dichiarativi` 0.16.0 (richiede `Anagrafica` 0.15.0, `Deleghe` 0.5.0 e `Contabilita` 0.15.0), `Contabilita` 0.15.0; gli altri invariati.
+
+**Aggiornamento**: `aggiorna.sh` (cioè `sisma aggiorna-database`) esegue `Contabilita/Database/aggiornamento-0.15.sql` (nuova colonna `immobile_id` in `cespite`, nuova tabella `contratto_leasing`; idempotente). Nessun passo manuale.
+
+### ✨ Nuove Funzionalità
+
+#### `Contabilita` 0.15.0 — immobili dei cespiti e contratti di leasing
+
+- **Immobile del cespite**: per i fabbricati si sceglie l'immobile dell'Anagrafica posseduto dall'azienda, con la sua categoria catastale.
+- **Contratti di leasing** nella pagina dei cespiti: concedente, durata, riscatto, costo sostenuto dalla concedente, canoni complessivi (compreso il maxicanone), prezzo di riscatto, bene immobile e immobile dell'Anagrafica.
+  - Quota interessi dei canoni di ciascun anno con il metodo forfetario del D.M. 24 aprile 1998: canoni più riscatto meno costo della concedente, ripartiti per giorni.
+
+#### `Dichiarativi` 0.16.0 — fabbricati e leasing nelle società di comodo e nell'IRAP
+
+- **Prospetto delle società di comodo** (quadro RS di Redditi SP e SC):
+  - fabbricati dei cespiti per categoria catastale dell'immobile collegato: uffici A/10 nel rigo RS14 (RS119 di SC), abitazioni acquisite nell'esercizio o nei due precedenti nel rigo RS15 (RS120), gli altri tra gli immobili;
+  - beni in leasing con il costo della concedente per il periodo del contratto, classificati allo stesso modo (gli altri beni tra le altre immobilizzazioni).
+- **Rigo IC44 del modello IRAP**: quota interessi dei canoni dei contratti di leasing dell'anno, sommata alle variazioni dei conti.
+- **Dati demo**: autovettura in leasing di Alfa Consulting dal luglio 2024 (quota interessi 2025 di 824 euro nel rigo IC44, costo della concedente nel prospetto delle società di comodo).
+
 ## [0.34.0-alpha] - 2026-11-20 - Codici delle Aliquote IRAP e Variazioni IRAP dei Conti
 
 Versioni dei moduli: `Dichiarativi` 0.15.0 (richiede `Anagrafica` 0.15.0, `Deleghe` 0.5.0 e `Contabilita` 0.14.0), `Contabilita` 0.14.0; gli altri invariati.

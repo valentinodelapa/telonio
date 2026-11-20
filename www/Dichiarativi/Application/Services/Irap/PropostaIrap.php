@@ -6,7 +6,9 @@ use Anagrafica\Application\Entities\Soggetto;
 use Anagrafica\Application\Enumerations\RegimeFiscale;
 use Anagrafica\Application\Enumerations\TipoSoggetto;
 use Anagrafica\Application\Models\DatiFiscaliModel;
+use Contabilita\Application\Models\ContrattoLeasingModel;
 use Contabilita\Application\Services\ComponentiReddito;
+use Contabilita\Application\Services\Leasing;
 use Dichiarativi\Application\Entities\Dichiarazione;
 use Dichiarativi\Application\Enumerations\ModelloDichiarativo;
 use Dichiarativi\Application\Models\DichiarazioneModel;
@@ -96,7 +98,19 @@ class PropostaIrap
             }
             return (int) round($totale);
         };
-        $netto = $persone ? $this->proponiIp($quadri, $voce) : $this->proponiIc($quadri, $voce, $componenti->getPerRigoIrap());
+        $variazioni = $persone ? [] : $componenti->getPerRigoIrap();
+        if ($persone === false) {
+            // quota interessi dei canoni di leasing (metodo forfetario del D.M. 24 aprile 1998): rigo IC44
+            $interessi = 0.0;
+            foreach ((new ContrattoLeasingModel($this->dataMapper))->getElenco($soggetto) as $contratto) {
+                $interessi += Leasing::getQuotaInteressi($contratto, $anno);
+            }
+            if ($interessi > 0) {
+                $variazioni['IC44'] = ($variazioni['IC44'] ?? 0.0) + $interessi;
+                $this->avvisi[] = sprintf('Rigo IC44: quota interessi dei canoni dei contratti di leasing (%s euro, metodo forfetario del D.M. 24 aprile 1998), dall\'archivio dei contratti della contabilità.', number_format($interessi, 0, ',', '.'));
+            }
+        }
+        $netto = $persone ? $this->proponiIp($quadri, $voce) : $this->proponiIc($quadri, $voce, $variazioni);
         $this->proponiIr($quadri, $dichiarazione, $netto, $dati?->soggettoIsa ?? false, AliquoteIrap::getCategoria($dati?->codiceAteco?->codice));
         array_push($this->avvisi, ...array_values($componenti->getAvvisi()));
         array_push($this->avvisi, ...$quadri->getDifferenzeManuali());

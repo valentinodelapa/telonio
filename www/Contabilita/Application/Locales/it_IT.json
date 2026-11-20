@@ -157,6 +157,16 @@
                 "esercizioFondoIniziale": "Alla fine dell'esercizio",
                 "dataDismissione": "Data di dismissione",
                 "prezzoDismissione": "Prezzo di cessione",
+                "concedente": "Società concedente",
+                "numeroContratto": "Numero del contratto",
+                "dataInizioLeasing": "Inizio del contratto",
+                "dataFineLeasing": "Scadenza",
+                "dataRiscatto": "Riscatto o fine anticipata",
+                "costoConcedente": "Costo sostenuto dalla concedente",
+                "totaleCanoni": "Canoni complessivi (con il maxicanone)",
+                "prezzoRiscatto": "Prezzo di riscatto",
+                "beneImmobile": "Bene immobile",
+                "immobileAnagrafica": "Immobile (Anagrafica)",
                 "competenzaDal": "Competenza dal",
                 "competenzaAl": "Competenza al",
                 "registratoNellEsercizio": "Costo o ricavo già registrato nell'esercizio (risconto); se si registra nell'esercizio successivo è un rateo",
@@ -686,7 +696,24 @@
                 "aiutoPercentualeFiscale": "Se il coefficiente civilistico (vita utile) supera quello tabellare: l'eccedenza si recupera negli esercizi successivi.",
                 "aiutoDeducibile": "20 per le autovetture (art. 164 TUIR; dal 2027 art. 168 D.Lgs. 117/2026), 80 per la telefonia (art. 102, c. 9; dal 2027 art. 111, c. 14), altrimenti 100.",
                 "aiutoLimite": "18.075,99 euro per le autovetture (25.822,84 per gli agenti).",
-                "quotaDeducibile": "Deducibile"
+                "quotaDeducibile": "Deducibile",
+                "nessunImmobile": "— Nessuno —",
+                "aiutoImmobileCespite": "Per i fabbricati: l'immobile dell'Anagrafica posseduto dall'azienda. La categoria catastale distingue nel prospetto delle società di comodo gli uffici (A/10) e le abitazioni acquistate nel triennio.",
+                "sezioneLeasing": "Contratti di leasing",
+                "nuovoLeasing": "Nuovo contratto",
+                "nessunLeasing": "Nessun contratto di leasing.",
+                "quotaInteressi": "Quota interessi dell'anno",
+                "aiutoSezioneLeasing": "Quota interessi con il metodo forfetario del D.M. 24 aprile 1998 (canoni complessivi più riscatto meno costo della concedente, per giorni): indeducibile ai fini IRAP (rigo IC44). Il costo della concedente è il valore del bene nel prospetto delle società di comodo."
+            }
+        },
+        "contrattoLeasing": {
+            "common": {
+                "aiutoLeasing": "Contratto di locazione finanziaria dell'azienda: i dati del contratto servono per la quota interessi dei canoni (metodo forfetario del D.M. 24 aprile 1998, rigo IC44 del modello IRAP) e per il valore del bene nel prospetto delle società di comodo.",
+                "aiutoRiscatto": "Se il bene è riscattato o il contratto si chiude prima della scadenza.",
+                "aiutoCanoni": "Somma di tutti i canoni del contratto, compreso il maxicanone iniziale, senza IVA.",
+                "nessunImmobile": "— Nessuno —",
+                "aiutoImmobile": "Per i fabbricati: l'immobile dell'Anagrafica, per la categoria catastale (uffici A/10, abitazioni).",
+                "confermaEliminaLeasing": "Eliminare il contratto di leasing?"
             }
         },
         "chiusura": {

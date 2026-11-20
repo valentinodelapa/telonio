@@ -26,6 +26,7 @@ require Layout::percorso('header');
             <?= Campo::data('dataAcquisto', $campi['dataAcquisto'], $formEntity, $errors, ['richiesto' => true, 'colonna' => 'col-md-3']) ?>
             <?= Campo::data('dataEntrataFunzione', $campi['dataEntrataFunzione'], $formEntity, $errors, ['colonna' => 'col-md-3', 'aiuto' => $aiutoEntrataFunzione]) ?>
             <?= Campo::testo('costo', $campi['costo'], $formEntity, $errors, ['richiesto' => true, 'colonna' => 'col-md-3', 'attributi' => 'inputmode="decimal"']) ?>
+            <?= Campo::selezione('immobile', $campi['immobileAnagrafica'], $formEntity, $errors, $immobili, ['colonna' => 'col-md-6', 'vuota' => $nessunImmobile, 'aiuto' => $aiutoImmobileCespite]) ?>
             <?= Campo::testo('percentuale', $campi['percentualeAmmortamento'], $formEntity, $errors, ['richiesto' => true, 'colonna' => 'col-md-3', 'attributi' => 'inputmode="decimal"', 'aiuto' => $aiutoPercentuale]) ?>
             <?= Campo::spunta('riduzionePrimoEsercizio', $campi['riduzionePrimoEsercizio'], $formEntity, $errors, ['colonna' => 'col-md-6']) ?>
             <?= Campo::spunta('deduzioneIntegrale', $campi['deduzioneIntegrale'], $formEntity, $errors, ['colonna' => 'col-md-6']) ?>

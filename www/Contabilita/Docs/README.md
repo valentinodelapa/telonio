@@ -512,6 +512,22 @@ F14 campo 4 per le società di persone). `ComponentiReddito::getPerRigoIsa`
 dà i componenti per rigo con lo stesso criterio e la parte deducibile; i
 campi "di cui" sono compresi anche nel rigo.
 
+### Immobili dei cespiti e contratti di leasing
+
+Il cespite di un fabbricato può indicare l'immobile dell'Anagrafica
+posseduto dall'azienda: la categoria catastale distingue nel prospetto
+delle società di comodo gli uffici (A/10) e le abitazioni.
+
+I contratti di locazione finanziaria (`ContrattoLeasing`, nella pagina dei
+cespiti) hanno durata, riscatto, costo sostenuto dalla concedente, canoni
+complessivi con il maxicanone, prezzo di riscatto e, per i fabbricati,
+l'immobile. `Leasing::getQuotaInteressi` calcola la quota interessi
+dell'anno con il metodo forfetario del D.M. 24 aprile 1998 ((canoni +
+riscatto - costo della concedente) / giorni di durata × giorni del
+contratto nell'anno): `Dichiarativi` la propone nel rigo IC44 del modello
+IRAP. Il costo della concedente, per il periodo del contratto, è il
+valore del bene nel prospetto delle società di comodo.
+
 ### Variazioni IRAP
 
 Ogni conto economico può indicare anche la variazione del valore della
