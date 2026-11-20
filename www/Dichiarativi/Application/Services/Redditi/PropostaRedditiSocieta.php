@@ -41,7 +41,8 @@ use SismaFramework\Orm\HelperClasses\DataMapper;
  * legami dell'Anagrafica) di Redditi SP.
  *
  * Quadro RN di Redditi SC (determinazione dell'IRES): reddito (RN1) o
- * perdita (RN2), perdite pregresse inserite a mano nel rigo RN4 (col. 1
+ * perdita (RN2), perdite pregresse nel rigo RN4 dai residui dell'anno
+ * prima o dall'archivio delle perdite pregresse (RiportoPerdite; col. 1
  * in misura limitata all'80 per cento del reddito, col. 2 in misura
  * piena, totale col. 4), perdita residua RN5, reddito imponibile RN6
  * (col. 2 e 11), IRES al 24 per cento (RN8), imposta RN9 e netta RN11,
@@ -82,6 +83,12 @@ class PropostaRedditiSocieta
     /** @var string[] */
     private array $avvisi = [];
 
+    /** @var array{limitata: int, piena: int, fonte: string}|null perdite residue alla fine dell'anno prima (RiportoPerdite) */
+    private ?array $residui = null;
+
+    /** Primi tre periodi d'imposta dall'inizio dell'attività: perdite in misura piena (art. 84, c. 2, Tuir) */
+    private bool $primiTreAnni = false;
+
     public function __construct(private DataMapper $dataMapper = new DataMapper())
     {
 
@@ -120,6 +127,8 @@ class PropostaRedditiSocieta
                 $this->avvisi[] = sprintf('Quadro RS, rigo %s: proposto il codice 1 (documenti rilevanti conservati in modalità elettronica, ad esempio le fatture elettroniche); indica 2 se nell\'anno non è stato conservato elettronicamente alcun documento.', str_replace('RS0', 'RS', $rigo));
             }
         }
+        $this->residui = $dichiarazione->modello === ModelloDichiarativo::redditiSc ? (new RiportoPerdite($this->dataMapper))->getResidui($soggetto, $anno, $dichiarazione->modello) : null;
+        $this->primiTreAnni = ($dati?->dataInizioAttivita !== null) && ($anno - (int) $dati->dataInizioAttivita->format('Y') <= 2);
         $opzione = $dichiarazione->modello === ModelloDichiarativo::redditiSc ? (new OpzioneTassazioneModel($this->dataMapper))->getVigente($soggetto, $anno) : null;
         if ($opzione?->tipoOpzione === TipoOpzioneTassazione::consolidatoNazionale) {
             $this->proponiConsolidato($quadri, $opzione);
@@ -399,8 +408,11 @@ class PropostaRedditiSocieta
         $quadri->proponi('GN001003', $reddito > 0 ? $reddito - $quadri->getImporto('GN001002') : null);
         $quadri->proponi('GN002001', $reddito < 0 ? -$reddito : null);
         $positivo = $quadri->getImporto('GN001003') + $quadri->getImporto('GN003003');
+        // perdite anteriori al consolidato: restano della società (prospetto RS44-RS45), la perdita dell'anno va alla consolidante
+        $this->proponiRiportoPerdite($quadri, $positivo, 'GN004001', 'GN004002');
         $perdite = $positivo > 0 ? min($positivo, $quadri->getImporto('GN004002') + $quadri->getImporto('GN004003') + min($quadri->getImporto('GN004001'), (int) floor($positivo * 0.8))) : 0;
         $quadri->proponi('GN004004', $perdite ?: null);
+        $this->proponiProspettoPerdite($quadri, 'GN004001', 'GN004002', 0);
         $saldo = $positivo - $quadri->getImporto('GN002001') - $perdite;
         $quadri->proponi('GN005003', $saldo < 0 ? -$saldo : null);
         $quadri->proponi('GN006002', $saldo > 0 ? $saldo : null);
@@ -408,13 +420,13 @@ class PropostaRedditiSocieta
         $quadri->proponi('GN006006', $imponibile ?: null);
         $ritenute = (int) round((new PartiteAperte($this->dataMapper))->getRitenute($opzione->soggetto, (int) $quadri->getDichiarazione()->anno));
         $quadri->proponi('GN019001', $ritenute ?: null);
-        $this->avvisi[] = sprintf('Consolidato nazionale con %s: quadro GN al posto del quadro RN; reddito complessivo netto (GN6) da comunicare alla consolidante, che liquida l\'IRES del gruppo nel modello CNM. Perdite anteriori al consolidato (GN4) da indicare a mano.', $opzione->consolidante?->nominativo ?? 'la consolidante');
+        $this->avvisi[] = sprintf('Consolidato nazionale con %s: quadro GN al posto del quadro RN; reddito complessivo netto (GN6) da comunicare alla consolidante, che liquida l\'IRES del gruppo nel modello CNM. Perdite anteriori al consolidato (GN4) dai residui dell\'anno prima o dall\'archivio delle perdite pregresse.', $opzione->consolidante?->nominativo ?? 'la consolidante');
     }
 
     /**
      * Quadro TN di Redditi SC (società trasparente, artt. 115 e 116 Tuir):
      * tipo di trasparenza, reddito (TN1) o perdita da attribuire (TN2),
-     * perdite degli esercizi anteriori all'opzione inserite a mano (TN3),
+     * perdite degli esercizi anteriori all'opzione dai residui (TN3),
      * reddito (TN4, col. 2) e reddito imponibile da imputare ai soci (col. 6), ritenute
      * (TN15). La società non liquida l'IRES: le quote vanno ai soci (quadro
      * RF delle società socie, righi RH5 e RH6 dei soci persone fisiche).
@@ -427,8 +439,11 @@ class PropostaRedditiSocieta
         $quadri->proponi('TN002002', $reddito < 0 ? -$reddito : null);
         $quadri->proponi('TN002004', $reddito < 0 ? max(0, -$reddito - $quadri->getImporto('TN002001')) ?: null : null);
         $positivo = $quadri->getImporto('TN001003');
+        // perdite anteriori all'opzione: restano della società, la perdita dell'anno va ai soci
+        $this->proponiRiportoPerdite($quadri, $positivo, 'TN003001', 'TN003002');
         $perdite = $positivo > 0 ? min($positivo, $quadri->getImporto('TN003002') + $quadri->getImporto('TN003003') + min($quadri->getImporto('TN003001'), (int) floor($positivo * 0.8))) : 0;
         $quadri->proponi('TN003004', $perdite ?: null);
+        $this->proponiProspettoPerdite($quadri, 'TN003001', 'TN003002', 0);
         $quadri->proponi('TN004002', ($positivo - $perdite) > 0 ? $positivo - $perdite : null);
         // reddito imponibile: col. 2 - col. 3 - col. 4 - col. 5 + RJ22 col. 1 + RS543 col. 3 (istruzioni del rigo TN4)
         $imponibile = $quadri->getImporto('TN004002') - $quadri->getImporto('TN004003') - $quadri->getImporto('TN004004') - $quadri->getImporto('TN004005')
@@ -437,7 +452,7 @@ class PropostaRedditiSocieta
         $ritenute = (int) round((new PartiteAperte($this->dataMapper))->getRitenute($opzione->soggetto, (int) $quadri->getDichiarazione()->anno));
         $quadri->proponi('TN015001', $ritenute ?: null);
         $this->proponiImputazioneTrasparenza($quadri, $opzione->soggetto, (int) $quadri->getDichiarazione()->anno);
-        $this->avvisi[] = 'Trasparenza fiscale (' . $opzione->tipoOpzione->getLabel() . '): quadro TN al posto del quadro RN; il reddito imponibile (TN4) è imputato ai soci per le quote dei legami di socio. Perdite anteriori all\'opzione (TN3) da indicare a mano.';
+        $this->avvisi[] = 'Trasparenza fiscale (' . $opzione->tipoOpzione->getLabel() . '): quadro TN al posto del quadro RN; il reddito imponibile (TN4) è imputato ai soci per le quote dei legami di socio. Perdite anteriori all\'opzione (TN3) dai residui dell\'anno prima o dall\'archivio delle perdite pregresse.';
     }
 
     /**
@@ -485,6 +500,51 @@ class PropostaRedditiSocieta
     }
 
     /**
+     * Perdite dei periodi precedenti utilizzate nel rigo RN4 (o GN4, TN3):
+     * dai residui della dichiarazione dell'anno prima o dell'archivio delle
+     * perdite pregresse, prima quelle in misura limitata fino all'80 per
+     * cento del reddito, poi quelle in misura piena (come Redditi PF,
+     * PropostaImpresa::utilizzaPerdite). Senza residui noti restano quelle
+     * indicate a mano.
+     */
+    private function proponiRiportoPerdite(QuadriDichiarazione $quadri, int $reddito, string $campoLimitata, string $campoPiena): void
+    {
+        if ($this->residui === null) {
+            if ($quadri->getImporto($campoLimitata) + $quadri->getImporto($campoPiena) > 0) {
+                $this->avvisi[] = 'Perdite pregresse indicate a mano: senza la dichiarazione Redditi SC dell\'anno prima nella suite né l\'archivio delle perdite pregresse del contribuente, compila a mano anche i residui del prospetto RS44-RS45 (colonna 6).';
+            }
+            return;
+        }
+        $utilizzo = PropostaImpresa::utilizzaPerdite($reddito, $this->residui, $this->primiTreAnni);
+        $quadri->proponi($campoLimitata, $utilizzo['limitata'] ?: null);
+        $quadri->proponi($campoPiena, $utilizzo['piena'] ?: null);
+        $this->avvisi[] = sprintf('Perdite pregresse dalla %s: %s euro in misura limitata e %s in misura piena; utilizzate %s e %s.', $this->residui['fonte'],
+                number_format($this->residui['limitata'], 0, ',', '.'), number_format($this->residui['piena'], 0, ',', '.'),
+                number_format($quadri->getImporto($campoLimitata), 0, ',', '.'), number_format($quadri->getImporto($campoPiena), 0, ',', '.'));
+    }
+
+    /**
+     * Prospetto delle perdite non compensate di Redditi SC (righi RS44 e
+     * RS45): perdita dell'anno (colonna 2, in misura piena nei primi tre
+     * periodi d'imposta) e residui (colonna 6) = residui dell'anno prima -
+     * perdite utilizzate + perdita dell'anno. Per le società in consolidato
+     * o trasparenti la perdita dell'anno va alla consolidante o ai soci.
+     */
+    private function proponiProspettoPerdite(QuadriDichiarazione $quadri, string $campoLimitata, string $campoPiena, int $perditaAnno): void
+    {
+        $limitataAnno = $this->primiTreAnni ? 0 : $perditaAnno;
+        $pienaAnno = $this->primiTreAnni ? $perditaAnno : 0;
+        $quadri->proponi('RS044002', $limitataAnno ?: null);
+        $quadri->proponi('RS045002', $pienaAnno ?: null);
+        $manuali = ($this->residui === null) && ($quadri->getImporto($campoLimitata) + $quadri->getImporto($campoPiena) > 0);
+        if ($manuali) {
+            return;
+        }
+        $quadri->proponi('RS044006', (($this->residui['limitata'] ?? 0) - $quadri->getImporto($campoLimitata) + $limitataAnno) ?: null);
+        $quadri->proponi('RS045006', (($this->residui['piena'] ?? 0) - $quadri->getImporto($campoPiena) + $pienaAnno) ?: null);
+    }
+
+    /**
      * Quadro RN e rigo RX1 di Redditi SC (istruzioni del quadro RN, par. 6.1).
      */
     private function proponiIres(QuadriDichiarazione $quadri, Dichiarazione $dichiarazione, bool $isa): void
@@ -493,10 +553,12 @@ class PropostaRedditiSocieta
         $quadri->proponi('RN001003', $reddito > 0 ? $reddito - $quadri->getImporto('RN001002') : null);
         $quadri->proponi('RN002001', $reddito < 0 ? -$reddito : null);
         $positivo = $quadri->getImporto('RN001003') + $quadri->getImporto('RN003003');
+        $this->proponiRiportoPerdite($quadri, $positivo, 'RN004001', 'RN004002');
         $perdite = $positivo > 0 ? min($positivo, $quadri->getImporto('RN004002') + $quadri->getImporto('RN004003') + min($quadri->getImporto('RN004001'), (int) floor($positivo * 0.8))) : 0;
         $quadri->proponi('RN004004', $perdite ?: null);
         $saldo = $positivo - $quadri->getImporto('RN002001') - $perdite;
         $quadri->proponi('RN005003', $saldo < 0 ? -$saldo : null);
+        $this->proponiProspettoPerdite($quadri, 'RN004001', 'RN004002', $quadri->getImporto('RN005003'));
         $imponibileLordo = max(0, $saldo);
         $quadri->proponi('RN006002', $imponibileLordo ?: null);
         $imponibile = max(0, $imponibileLordo - $quadri->getImporto('RN006005') - $quadri->getImporto('RN006006') - $quadri->getImporto('RN006010'));

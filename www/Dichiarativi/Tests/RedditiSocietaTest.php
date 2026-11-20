@@ -59,6 +59,39 @@ class RedditiSocietaTest extends DichiarativiTestCase
         $this->assertNull($quadri->get('RX001001'));
     }
 
+    public function testRiportoDellePerdite(): void
+    {
+        // residui dell'anno prima (dichiarazione o archivio): 60.000 in misura limitata e 5.000 in misura piena
+        $proposta = new PropostaRedditiSocieta($this->dataMapper);
+        (new \ReflectionProperty(PropostaRedditiSocieta::class, 'residui'))->setValue($proposta, ['limitata' => 60000, 'piena' => 5000, 'fonte' => 'prova']);
+        $metodo = new \ReflectionMethod(PropostaRedditiSocieta::class, 'proponiIres');
+        $quadri = $this->creaRedditiSc();
+        $quadri->imposta('RF063001', 50000);
+        $metodo->invoke($proposta, $quadri, $quadri->getDichiarazione(), false);
+        // limitata fino all'80 per cento del reddito (40.000), piena sul resto (5.000)
+        $this->assertSame(40000, $quadri->getImporto('RN004001'));
+        $this->assertSame(5000, $quadri->getImporto('RN004002'));
+        $this->assertSame(45000, $quadri->getImporto('RN004004'));
+        $this->assertSame(5000, $quadri->getImporto('RN006011'));
+        // residui per l'anno dopo nel prospetto RS44-RS45, colonna 6
+        $this->assertSame(20000, $quadri->getImporto('RS044006'));
+        $this->assertNull($quadri->get('RS045006'));
+        // perdita dell'anno: nessun utilizzo, si somma ai residui (misura limitata dopo i primi tre periodi d'imposta)
+        $quadri = $this->creaRedditiSc();
+        $quadri->imposta('RF063001', -8000);
+        $metodo->invoke($proposta, $quadri, $quadri->getDichiarazione(), false);
+        $this->assertNull($quadri->get('RN004001'));
+        $this->assertSame(8000, $quadri->getImporto('RS044002'));
+        $this->assertSame(68000, $quadri->getImporto('RS044006'));
+        $this->assertSame(5000, $quadri->getImporto('RS045006'));
+        // primi tre periodi d'imposta: la perdita dell'anno è in misura piena
+        (new \ReflectionProperty(PropostaRedditiSocieta::class, 'primiTreAnni'))->setValue($proposta, true);
+        $metodo->invoke($proposta, $quadri, $quadri->getDichiarazione(), false);
+        $this->assertNull($quadri->get('RS044002'));
+        $this->assertSame(8000, $quadri->getImporto('RS045002'));
+        $this->assertSame(13000, $quadri->getImporto('RS045006'));
+    }
+
     public function testConsolidatoETrasparenza(): void
     {
         $consolidante = new \Anagrafica\Application\Entities\Soggetto($this->dataMapper);

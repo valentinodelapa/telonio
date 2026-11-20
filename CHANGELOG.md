@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.32.0-alpha] - 2026-11-20 - Riporto delle Perdite Fiscali
+
+Versioni dei moduli: `Dichiarativi` 0.13.0 (richiede `Anagrafica` 0.15.0 e `Contabilita` 0.13.0); gli altri invariati.
+
+**Aggiornamento**: `aggiorna.sh` (cioè `sisma aggiorna-database`) esegue `Dichiarativi/Database/aggiornamento-0.13.sql` (nuova tabella `perdita_pregressa`, idempotente). Nessun passo manuale.
+
+### ✨ Nuove Funzionalità
+
+#### `Dichiarativi` 0.13.0 — riporto delle perdite fiscali
+
+- **Archivio delle perdite pregresse** nella scheda del contribuente: perdite non compensate residue alla fine di un anno, in misura limitata (art. 84, comma 1, Tuir) e piena (comma 2), d'impresa o del consolidato nazionale per la consolidante. Serve il primo anno in cui la dichiarazione dell'anno prima non è nella suite; dagli anni successivi i residui vengono dalla dichiarazione dell'anno prima.
+- **Redditi SC**: perdite pregresse proposte nel rigo RN4 (prima quelle in misura limitata fino all'80% del reddito, poi quelle in misura piena, come in Redditi PF), o nei righi GN4 e TN3 per le perdite anteriori al consolidato o alla trasparenza.
+  - Prospetto delle perdite non compensate (righi RS44 e RS45): perdita dell'anno (in misura piena nei primi tre periodi d'imposta) e residui per l'anno dopo.
+- **Modello CNM**: perdite del consolidato dei periodi precedenti nel rigo CN3 dal modello CNM dell'anno prima o dall'archivio; rigo CS1 con la perdita del gruppo dell'anno e i residui.
+- **Redditi PF**: senza la dichiarazione dell'anno prima nella suite, le perdite residue vengono dall'archivio delle perdite pregresse.
+- **Dati demo**: perdite residue a fine 2024 di Alfa Consulting (3.000 euro) e del consolidato Verde (10.000 euro) nell'archivio, riportate nelle dichiarazioni 2025.
+
 ## [0.31.0-alpha] - 2026-11-20 - Redditi delle Società, Consolidato e IRAP
 
 Versioni dei moduli: `Dichiarativi` 0.12.0 (richiede `Anagrafica` 0.15.0 e `Contabilita` 0.13.0), `Anagrafica` 0.15.0; gli altri invariati.

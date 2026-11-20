@@ -284,4 +284,37 @@ require Layout::percorso('header');
     <?php endif; ?>
     <div class="card-footer bg-white small text-body-secondary"><?= Html::e($aiutoGaranzie) ?></div>
 </div>
+
+<div class="card shadow-sm mt-3">
+    <div class="card-header bg-white fw-semibold d-flex align-items-center">
+        <span class="me-auto"><?= Html::e($sezionePerdite) ?></span>
+        <a href="/perdita-pregressa/create/soggetto/<?= Html::e($soggetto->id) ?>/anno/<?= Html::e($anno) ?>" class="btn btn-sm btn-outline-primary"><i class="bi bi-plus-lg me-1"></i><?= Html::e($azioni['aggiungi']) ?></a>
+    </div>
+    <?php if (count($perdite) === 0): ?>
+        <div class="card-body small text-body-secondary"><?= Html::e($nessunaPerdita) ?></div>
+    <?php else: ?>
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead class="table-light">
+                    <tr><th><?= Html::e($campi['annoPerdite']) ?></th><th><?= Html::e($campi['tipoPerdita']) ?></th><th class="text-end"><?= Html::e($campi['perditeLimitate']) ?></th><th class="text-end"><?= Html::e($campi['perditePiene']) ?></th><th></th></tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($perdite as $perdita): ?>
+                        <tr>
+                            <td><?= Html::e($perdita->anno) ?></td>
+                            <td class="small"><?= Html::e($perdita->tipo->getLabel()) ?></td>
+                            <td class="text-end text-nowrap"><?= Html::e(Importo::euro($perdita->limitata)) ?></td>
+                            <td class="text-end text-nowrap"><?= Html::e(Importo::euro($perdita->piena)) ?></td>
+                            <td class="text-end text-nowrap">
+                                <a href="/perdita-pregressa/update/perdita/<?= Html::e($perdita->id) ?>/anno/<?= Html::e($anno) ?>" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+                                <form method="post" action="/perdita-pregressa/delete/perdita/<?= Html::e($perdita->id) ?>/anno/<?= Html::e($anno) ?>" class="d-inline" data-conferma="<?= Html::e($confermaEliminaPerdita) ?>"><?= $campoCsrf ?><button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    <?php endif; ?>
+    <div class="card-footer bg-white small text-body-secondary"><?= Html::e($aiutoPerdite) ?></div>
+</div>
 <?php require Layout::percorso('footer'); ?>

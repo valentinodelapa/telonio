@@ -27,7 +27,8 @@ use SismaFramework\Orm\HelperClasses\DataMapper;
  * inserite a mano.
  *
  * Quadro CN (determinazione dell'IRES del gruppo): reddito (CN1) o perdita
- * (CN2), perdite di periodi precedenti del consolidato inserite a mano
+ * (CN2), perdite di periodi precedenti del consolidato dai residui del
+ * modello CNM dell'anno prima o dall'archivio delle perdite pregresse
  * (CN3, col. 1 limitata all'80 per cento, col. 2 piena), reddito
  * imponibile CN4, IRES al 24 per cento (CN5), imposta netta CN7, ritenute
  * delle società del gruppo (GN19) in CN11, IRES dovuta CN13, eccedenza
@@ -38,7 +39,7 @@ use SismaFramework\Orm\HelperClasses\DataMapper;
 class PropostaConsolidato
 {
 
-    public const QUADRI = ['NF', 'CN'];
+    public const QUADRI = ['NF', 'CN', 'CS'];
     private const RIGHI_NF = 6;
 
     /** @var string[] */
@@ -159,8 +160,30 @@ class PropostaConsolidato
         $quadri->proponi('CN001002', $globale > 0 ? $globale : null);
         $quadri->proponi('CN002001', $globale < 0 ? -$globale : null);
         $positivo = max(0, $globale);
+        // perdite del consolidato dei periodi precedenti: residui del rigo CS1 del CNM dell'anno prima o dell'archivio delle perdite pregresse
+        $residui = (new RiportoPerdite($this->dataMapper))->getResidui($dichiarazione->soggetto, $dichiarazione->anno, ModelloDichiarativo::consolidato);
+        if ($residui !== null) {
+            $utilizzo = PropostaImpresa::utilizzaPerdite($positivo, $residui, false);
+            $quadri->proponi('CN003001', $utilizzo['limitata'] ?: null);
+            $quadri->proponi('CN003002', $utilizzo['piena'] ?: null);
+            $this->avvisi[] = sprintf('Perdite del consolidato dalla %s: %s euro in misura limitata e %s in misura piena.', $residui['fonte'],
+                    number_format($residui['limitata'], 0, ',', '.'), number_format($residui['piena'], 0, ',', '.'));
+        }
         $perdite = $positivo > 0 ? min($positivo, $quadri->getImporto('CN003002') + min($quadri->getImporto('CN003001'), (int) floor($positivo * 0.8))) : 0;
         $quadri->proponi('CN003003', $perdite ?: null);
+        // prospetto delle perdite non compensate (rigo CS1): perdita del gruppo dell'anno in misura limitata (la natura piena dipende dalla società che
+        // l'ha prodotta: da spostare a mano nelle colonne 3 e 4) e residui
+        $perditaAnno = $quadri->getImporto('CN002001');
+        $quadri->proponi('CS001001', $perditaAnno ?: null);
+        if (($residui !== null) || ($quadri->getImporto('CN003001') + $quadri->getImporto('CN003002') === 0)) {
+            $quadri->proponi('CS001002', (($residui['limitata'] ?? 0) - $quadri->getImporto('CN003001') + $quadri->getImporto('CS001001')) ?: null);
+            $quadri->proponi('CS001004', (($residui['piena'] ?? 0) - $quadri->getImporto('CN003002') + $quadri->getImporto('CS001003')) ?: null);
+        } else {
+            $this->avvisi[] = 'Perdite del consolidato indicate a mano nel rigo CN3: senza il modello CNM dell\'anno prima nella suite né l\'archivio delle perdite pregresse della consolidante, compila a mano anche i residui del rigo CS1 (colonne 2 e 4).';
+        }
+        if ($perditaAnno > 0) {
+            $this->avvisi[] = 'Rigo CS1: perdita del consolidato dell\'anno proposta in misura limitata; se prodotta da società nei primi tre periodi d\'imposta spostala a mano nella colonna 3 (misura piena).';
+        }
         $reddito = $positivo - $perdite;
         $quadri->proponi('CN004001', $reddito ?: null);
         $imponibile = max(0, $reddito - $quadri->getImporto('CN004002') - $quadri->getImporto('CN004003'));

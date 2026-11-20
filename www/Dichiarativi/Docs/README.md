@@ -850,6 +850,14 @@ tabella del modello, `Services\Redditi\PartitiDuePerMille`).
 
 ### Archivi
 
+- **Perdite pregresse** (scheda del contribuente, sezione delle
+  dichiarazioni): perdite non compensate residue alla fine di un anno, in
+  misura limitata (art. 84, c. 1) e piena (c. 2), d'impresa o del
+  consolidato nazionale per la consolidante. Servono solo il primo anno,
+  quando la dichiarazione dell'anno prima non è nella suite: poi
+  `RiportoPerdite` prende i residui dalla dichiarazione dell'anno prima
+  (Redditi PF righi RS12 e RS13, Redditi SC righi RS44 e RS45 col. 6,
+  CNM rigo CS1 col. 2 e 4). Valgono anche per Redditi SC e CNM;
 - **Contratti di locazione** (Anagrafica, scheda dell'immobile): tipo
   (canone libero, equo canone, concordato, Abruzzo, locazione breve,
   affitto di terreni), date, canone annuo e variazioni (ISTAT,
@@ -1178,6 +1186,18 @@ presentazione, se l'attività del quadro RE, RF o RG ha un ISA e non c'è
 causa di esclusione o è la 7 o la 14 (che richiedono comunque il modello).
 
 ### Proposta dalla contabilità (`PropostaRedditiSocieta`)
+
+- **Perdite pregresse** (`RiportoPerdite`): residui della dichiarazione
+  Redditi SC dell'anno prima o dell'archivio delle perdite pregresse,
+  usati come in Redditi PF (prima quelli in misura limitata fino all'80%
+  del reddito, poi quelli in misura piena) nel rigo RN4, o GN4 e TN3 per le
+  perdite anteriori al consolidato o alla trasparenza; prospetto RS44-RS45
+  con la perdita dell'anno (col. 2, in misura piena nei primi tre periodi
+  d'imposta; per consolidate e trasparenti va alla consolidante o ai soci)
+  e i residui per l'anno dopo (col. 6). Nel modello CNM: rigo CN3 dai
+  residui del rigo CS1 del CNM dell'anno prima o dell'archivio (tipo
+  consolidato) e rigo CS1 con la perdita del gruppo dell'anno (in misura
+  limitata, con un avviso) e i residui.
 
 - **Quadro RF** (contabilità ordinaria, per competenza): utile o perdita,
   imposte sul reddito dell'esercizio (voce E.20) e costi deducibili in
@@ -1535,7 +1555,7 @@ dei moduli devono essere dello stesso studio.
 - **Redditi PF**: righi da inserire a mano senza proposta dagli archivi
   (RM51-RM54, RM91, RL17, CR16);
 - **società**: stampa sul modello ufficiale dei modelli SP, SC, CNM e
-  IRAP; prospetti del quadro RS (perdite), quadri RV, RQ, RU, GC, NI, PN e
+  IRAP; quadri RV, RQ, RU, GC, NI, PN e
   consolidato mondiale a mano; aliquote IRAP regionali diverse
   dall'ordinaria a mano; modello Redditi ENC e IRAP degli enti;
 - calcolo automatico di rimanenze e servizi non utilizzati nella rettifica per

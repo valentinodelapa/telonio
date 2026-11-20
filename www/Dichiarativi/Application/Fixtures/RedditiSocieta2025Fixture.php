@@ -10,8 +10,10 @@ use Anagrafica\Application\Fixtures\SoggettoAlfaFixture;
 use Anagrafica\Application\Fixtures\SoggettoBianchiFixture;
 use Deleghe\Application\Fixtures\IntermediarioStudioFixture;
 use Dichiarativi\Application\Entities\Dichiarazione;
+use Dichiarativi\Application\Entities\PerditaPregressa;
 use Dichiarativi\Application\Enumerations\CanoneRai;
 use Dichiarativi\Application\Enumerations\ModelloDichiarativo;
+use Dichiarativi\Application\Enumerations\TipoPerdita;
 use Dichiarativi\Application\HelperClasses\AziendaDemo;
 use Dichiarativi\Application\Models\DichiarazioneModel;
 use Dichiarativi\Application\Services\Frontespizio;
@@ -65,6 +67,8 @@ class RedditiSocieta2025Fixture extends BaseFixture
 
         // Alfa Consulting: IRES e IRAP
         $alfa = $this->getEntityByFixtureName(SoggettoAlfaFixture::class);
+        // perdite residue a fine 2024 (dichiarazione 2025 fuori dalla suite): riportate nel rigo RN4 e nel prospetto RS44
+        $this->perdite($alfa, 2024, TipoPerdita::impresa, 3000, 0, 'Prospetto RS44 del modello Redditi SC 2025');
         $redditiAlfa = $this->crea($alfa, ModelloDichiarativo::redditiSc, true);
         $societa->proponi($redditiAlfa);
         $versamenti->registraVersamenti($redditiAlfa, new QuadriDichiarazione($redditiAlfa, $this->dataMapper));
@@ -82,6 +86,8 @@ class RedditiSocieta2025Fixture extends BaseFixture
             $societa->proponi($redditiMembro);
             $this->irap($membro);
         }
+        // perdite del consolidato residue a fine 2024 (primo anno del consolidato, modello CNM 2025 fuori dalla suite)
+        $this->perdite($holding, 2024, TipoPerdita::consolidato, 10000, 0, 'Rigo CS1 del modello CNM 2025');
         $consolidato = $this->crea($holding, ModelloDichiarativo::consolidato);
         (new PropostaConsolidato($this->dataMapper))->proponi($consolidato);
         $versamenti->registraVersamenti($consolidato, new QuadriDichiarazione($consolidato, $this->dataMapper));
@@ -130,6 +136,19 @@ class RedditiSocieta2025Fixture extends BaseFixture
         $irap = $this->crea($soggetto, ModelloDichiarativo::irap);
         (new PropostaIrap($this->dataMapper))->proponi($irap);
         (new VersamentiRedditi($this->dataMapper))->registraVersamenti($irap, new QuadriDichiarazione($irap, $this->dataMapper));
+    }
+
+    private function perdite(Soggetto $soggetto, int $anno, TipoPerdita $tipo, int $limitata, int $piena, string $note): void
+    {
+        $perdita = new PerditaPregressa($this->dataMapper);
+        $perdita->studio = $soggetto->studio;
+        $perdita->soggetto = $soggetto;
+        $perdita->anno = $anno;
+        $perdita->tipo = $tipo;
+        $perdita->limitata = $limitata;
+        $perdita->piena = $piena;
+        $perdita->note = $note;
+        $this->dataMapper->save($perdita);
     }
 
     private function opzione(Soggetto $soggetto, TipoOpzioneTassazione $tipo, int $inizio, ?Soggetto $consolidante): void

@@ -116,6 +116,10 @@
                 "paesePrivilegiato": "Partecipazione in un Paese a regime fiscale privilegiato (RT16)",
                 "anteriore2025": "Cripto-attività detenute dal 2024 o prima (franchigia di 2.000 euro)",
                 "note": "Note",
+                "annoPerdite": "Perdite residue alla fine dell'anno",
+                "tipoPerdita": "Tipo",
+                "perditeLimitate": "In misura limitata (art. 84, c. 1)",
+                "perditePiene": "In misura piena (art. 84, c. 2)",
                 "revocaCpb": "Revoca delle adesioni al concordato preventivo biennale con la dichiarazione"
             },
             "azioni": {
@@ -185,6 +189,10 @@
                 "svincolata": "Svincolata",
                 "confermaEliminaGaranzia": "Eliminare la garanzia?",
                 "aiutoGaranzie": "Le scadenze delle garanzie compaiono nello scadenzario dello studio (art. 38-bis, c. 5).",
+                "sezionePerdite": "Perdite pregresse",
+                "nessunaPerdita": "Nessuna perdita in archivio.",
+                "confermaEliminaPerdita": "Eliminare le perdite dell'archivio?",
+                "aiutoPerdite": "Servono solo il primo anno: le perdite residue alla fine dell'anno prima, se la dichiarazione di quell'anno non è nella suite. Dagli anni successivi il riporto viene dalla dichiarazione dell'anno prima (Redditi PF, SC e modello CNM).",
                 "sezioneCertificazioni": "Certificazioni Uniche",
                 "nessunaCertificazione": "Nessuna Certificazione Unica per l'anno.",
                 "redditiCertificati": "Redditi",
@@ -291,6 +299,13 @@
                 "aiutoOmessoIsa": "Soggetti ISA senza causa di esclusione che non allegano il modello ISA (si crea dalla sezione \"Modelli ISA\" della scheda). La spunta barra nel file la casella di omessa presentazione (campi 179 e 180 del record B), che consente la trasmissione senza il modello; se la casella è barrata senza che ricorrano questi casi, la dichiarazione è scartata.",
                 "aiutoCanoneRai": "Casella obbligatoria del frontespizio di Redditi SP e SC: apparecchi radio (1) o radiotelevisivi (2) detenuti in esercizi pubblici, in locali aperti al pubblico o impiegati a scopo di lucro, oppure nessun apparecchio (3). Con i codici 1 e 2 si compila il prospetto del canone nel quadro RS (righi RS47 di SP, RS111 e RS112 di SC).",
                 "aiutoRevocaCpb": "Casella \"Comunicazione CPB\" con il codice 3: la dichiarazione revoca le adesioni al concordato 2026-2027 già comunicate (entro i termini dell'adesione). Una nuova adesione si comunica con il quadro P del modello ISA allegato. Per la revoca senza la dichiarazione c'è il file con invio autonomo nella scheda del modello ISA."
+            }
+        },
+        "perditaPregressa": {
+            "form": {
+                "aiutoPerditePregresse": "Perdite non compensate residue alla fine dell'anno, come nel prospetto delle perdite della dichiarazione di quell'anno (Redditi PF righi RS12 e RS13, Redditi SC righi RS44 e RS45, colonna 6, modello CNM rigo CS1, colonne 2 e 4). Si usano per la dichiarazione dell'anno dopo, se quella dell'anno è fuori dalla suite.",
+                "aiutoPerditeLimitate": "Utilizzabili fino all'80% del reddito di ciascun anno.",
+                "aiutoPerditePiene": "Perdite dei primi tre periodi d'imposta, utilizzabili per l'intero reddito."
             }
         },
         "attoAccertamento": {

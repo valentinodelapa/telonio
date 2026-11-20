@@ -10,6 +10,7 @@ use Dichiarativi\Application\Entities\Dichiarazione;
 use Dichiarativi\Application\Enumerations\ModelloDichiarativo;
 use Dichiarativi\Application\Models\AttivitaEsteraModel;
 use Dichiarativi\Application\Models\AttoAccertamentoModel;
+use Dichiarativi\Application\Models\PerditaPregressaModel;
 use Dichiarativi\Application\Models\CertificazioneAutonomoModel;
 use Dichiarativi\Application\Models\CertificazioneUnicaModel;
 use Dichiarativi\Application\Models\CessioneFinanziariaModel;
@@ -106,6 +107,7 @@ class ContribuenteDichiarativiController extends DichiarativiController
             }
         }
         $this->vars['garanzie'] = (new GaranziaRimborsoModel($this->dataMapper))->getElenco($soggetto);
+        $this->vars['perdite'] = (new PerditaPregressaModel($this->dataMapper))->getElenco($soggetto);
         $this->vars['pageTitle'] = $soggetto->nominativo . ' · dichiarazioni anno ' . $anno;
         $this->impostaBricioleContribuente($soggetto, $anno);
         return $this->render->generateView('contribuenteDichiarativi/show', $this->vars);

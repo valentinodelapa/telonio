@@ -47,7 +47,8 @@ use SismaFramework\Orm\HelperClasses\DataMapper;
  *   (art. 1, comma 64, L. 190/2014; circolare 10/E del 2016, par. 4.4);
  * - perdite d'impresa degli anni precedenti (righi RG35 e RF100) dal
  *   prospetto delle perdite non compensate (righi RS12 e RS13, col. 2) della
- *   dichiarazione dell'anno prima nella suite: prima quelle in misura
+ *   dichiarazione dell'anno prima nella suite (o dall'archivio delle perdite
+ *   pregresse il primo anno): prima quelle in misura
  *   limitata, fino all'80 per cento del reddito, poi quelle in misura piena
  *   sul reddito che resta (art. 8, comma 3, e art. 84 Tuir); residui e
  *   perdita dell'anno nel prospetto RS12-RS13 (misura piena nei primi tre
@@ -534,7 +535,8 @@ class PropostaImpresa
 
     /**
      * Perdite residue (righi RS12 e RS13, col. 2) della dichiarazione Redditi
-     * dell'anno prima nella suite; null se non c'è.
+     * dell'anno prima nella suite o, se non c'è, dall'archivio delle perdite
+     * pregresse (RiportoPerdite); null se non ci sono né l'una né l'altro.
      *
      * @return array{limitata: int, piena: int}|null
      */
@@ -542,7 +544,9 @@ class PropostaImpresa
     {
         $precedente = (new DichiarazioneModel($this->dataMapper))->getPerModello($soggetto, ModelloDichiarativo::redditiPf, $anno - 1);
         if ($precedente === null) {
-            return null;
+            // primo anno nella suite: residui dall'archivio delle perdite pregresse, se indicati
+            $archivio = (new RiportoPerdite($this->dataMapper))->getResidui($soggetto, $anno, ModelloDichiarativo::redditiPf);
+            return $archivio === null ? null : ['limitata' => $archivio['limitata'], 'piena' => $archivio['piena'], 'lavoroAutonomo' => 0, 'vantaggio' => 0];
         }
         $quadri = new QuadriDichiarazione($precedente, $this->dataMapper);
         return ['limitata' => $quadri->getImporto('RS012002', 1), 'piena' => $quadri->getImporto('RS013002', 1), 'lavoroAutonomo' => $quadri->getImporto('RS010001', 1),
