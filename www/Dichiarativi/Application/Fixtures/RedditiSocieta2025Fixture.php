@@ -6,7 +6,15 @@ use Anagrafica\Application\Entities\OpzioneTassazione;
 use Anagrafica\Application\Entities\Soggetto;
 use Anagrafica\Application\Enumerations\RuoloLegame;
 use Anagrafica\Application\Enumerations\TipoOpzioneTassazione;
+use Anagrafica\Application\Fixtures\ContoCorrenteAlfaFixture;
 use Anagrafica\Application\Fixtures\SoggettoAlfaFixture;
+use Deleghe\Application\Entities\Credito;
+use Deleghe\Application\Entities\Delega;
+use Deleghe\Application\Entities\Versamento;
+use Deleghe\Application\Enumerations\SezioneCodiceTributo;
+use Deleghe\Application\Enumerations\SezioneF24;
+use Deleghe\Application\Enumerations\StatoDelega;
+use Deleghe\Application\Models\CodiceTributoModel;
 use Anagrafica\Application\Fixtures\SoggettoBianchiFixture;
 use Deleghe\Application\Fixtures\IntermediarioStudioFixture;
 use Dichiarativi\Application\Entities\Dichiarazione;
@@ -24,6 +32,7 @@ use Dichiarativi\Application\Services\Redditi\PropostaRedditi;
 use Dichiarativi\Application\Services\Redditi\PropostaRedditiSocieta;
 use Dichiarativi\Application\Services\Redditi\VersamentiRedditi;
 use SismaFramework\Core\BaseClasses\BaseFixture;
+use SismaFramework\Orm\CustomTypes\SismaDate;
 use Telonio\Application\Fixtures\StudioFixture;
 
 /**
@@ -48,6 +57,7 @@ class RedditiSocieta2025Fixture extends BaseFixture
     protected function setDependencies(): void
     {
         $this->addDependency(SoggettoAlfaFixture::class)
+                ->addDependency(ContoCorrenteAlfaFixture::class)
                 ->addDependency(SoggettoBianchiFixture::class)
                 ->addDependency(OperazioniAlfa2025Fixture::class)
                 ->addDependency(LiquidazioniAlfa2025Fixture::class)
@@ -69,6 +79,7 @@ class RedditiSocieta2025Fixture extends BaseFixture
         $alfa = $this->getEntityByFixtureName(SoggettoAlfaFixture::class);
         // perdite residue a fine 2024 (dichiarazione 2025 fuori dalla suite): riportate nel rigo RN4 e nel prospetto RS44
         $this->perdite($alfa, 2024, TipoPerdita::impresa, 3000, 0, 'Prospetto RS44 del modello Redditi SC 2025');
+        $this->creditoArtBonus($alfa);
         $redditiAlfa = $this->crea($alfa, ModelloDichiarativo::redditiSc, true);
         $societa->proponi($redditiAlfa);
         $versamenti->registraVersamenti($redditiAlfa, new QuadriDichiarazione($redditiAlfa, $this->dataMapper));
@@ -136,6 +147,52 @@ class RedditiSocieta2025Fixture extends BaseFixture
         $irap = $this->crea($soggetto, ModelloDichiarativo::irap);
         (new PropostaIrap($this->dataMapper))->proponi($irap);
         (new VersamentiRedditi($this->dataMapper))->registraVersamenti($irap, new QuadriDichiarazione($irap, $this->dataMapper));
+    }
+
+    /**
+     * Credito d'imposta Art-Bonus (codice credito A3, codice tributo 6842)
+     * maturato nel 2024 per 3.000 euro, in archivio in Deleghe, compensato
+     * per 1.000 euro con la delega di giugno 2025 delle ritenute: nel quadro
+     * RU residuo iniziale 3.000, utilizzo 1.000, residuo 2.000.
+     */
+    private function creditoArtBonus(Soggetto $alfa): void
+    {
+        $codici = new CodiceTributoModel($this->dataMapper);
+        $credito = new Credito($this->dataMapper);
+        $credito->studio = $alfa->studio;
+        $credito->soggetto = $alfa;
+        $credito->sezione = SezioneF24::erario;
+        $credito->codiceTributo = $codici->getByCodice(SezioneCodiceTributo::erario, '6842');
+        $credito->annoRiferimento = 2024;
+        $credito->importo = 3000.00;
+        $credito->utilizzabileDal = new SismaDate('2025-01-01');
+        $credito->descrizione = 'Credito Art-Bonus (erogazione liberale del 2024)';
+        $this->dataMapper->save($credito);
+        $delega = new Delega($this->dataMapper);
+        $delega->studio = $alfa->studio;
+        $delega->soggetto = $alfa;
+        $delega->contoAddebito = $this->getEntityByFixtureName(ContoCorrenteAlfaFixture::class);
+        $delega->scadenza = new SismaDate('2025-06-16');
+        $delega->descrizione = 'Ritenute di maggio 2025 con il credito Art-Bonus';
+        $delega->stato = StatoDelega::quietanzata;
+        $delega->dataQuietanza = new SismaDate('2025-06-16');
+        $this->dataMapper->save($delega);
+        foreach ([['1040', '0005', 1500.00, 0.0, null], ['6842', null, 0.0, 1000.00, $credito]] as $ordine => [$tributo, $rateazione, $debito, $importoCredito, $collegato]) {
+            $riga = new Versamento($this->dataMapper);
+            $riga->delega = $delega;
+            $riga->studio = $alfa->studio;
+            $riga->soggetto = $alfa;
+            $riga->scadenza = $delega->scadenza;
+            $riga->sezione = SezioneF24::erario;
+            $riga->ordine = $ordine + 1;
+            $riga->codiceTributo = $codici->getByCodice(SezioneCodiceTributo::erario, $tributo);
+            $riga->rateazione = $rateazione;
+            $riga->annoRiferimento = $tributo === '6842' ? 2024 : 2025;
+            $riga->importoDebito = $debito;
+            $riga->importoCredito = $importoCredito;
+            $riga->credito = $collegato;
+            $this->dataMapper->save($riga);
+        }
     }
 
     private function perdite(Soggetto $soggetto, int $anno, TipoPerdita $tipo, int $limitata, int $piena, string $note): void

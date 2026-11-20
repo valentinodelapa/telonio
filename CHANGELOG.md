@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.33.0-alpha] - 2026-11-20 - Crediti d'Imposta del Quadro RU
+
+Versioni dei moduli: `Dichiarativi` 0.14.0 (richiede `Anagrafica` 0.15.0, `Deleghe` 0.5.0 e `Contabilita` 0.13.0); gli altri invariati.
+
+**Aggiornamento**: nessuna modifica al database; `aggiorna.sh` aggiorna il codice. Nessun passo manuale.
+
+### ✨ Nuove Funzionalità
+
+#### `Dichiarativi` 0.14.0 — crediti d'imposta del quadro RU
+
+- **Quadro RU, sezione I, di Redditi PF, SP e SC** proposto dagli archivi di `Deleghe`, un modulo per credito d'imposta:
+  - codice credito dalla tabella ufficiale dei crediti, con i codici tributo F24 ricavati dalle istruzioni di ciascun credito (`Database/sorgenti/crediti-RU-2026.csv`: 246 codici, 38 con il codice tributo);
+  - credito spettante nell'anno (RU5): crediti in archivio in `Deleghe` con il codice tributo del credito e l'anno di riferimento;
+  - credito utilizzato in compensazione (RU6): righe a credito delle deleghe dell'anno con il codice tributo;
+  - residuo della dichiarazione precedente (RU2): rigo RU12 della dichiarazione dell'anno prima nella suite o, il primo anno, crediti in archivio degli anni precedenti al netto delle compensazioni;
+  - residuo da riportare (RU12) con la formula dei controlli, anche per i moduli compilati a mano.
+- Restano a mano gli utilizzi in dichiarazione (RU7), le cessioni, le sezioni II e III e i crediti senza codice tributo nelle istruzioni.
+- **Dati demo**: credito Art-Bonus di Alfa Consulting (codice A3, tributo 6842) maturato nel 2024 per 3.000 euro e compensato per 1.000 euro con la delega di giugno 2025.
+
 ## [0.32.0-alpha] - 2026-11-20 - Riporto delle Perdite Fiscali
 
 Versioni dei moduli: `Dichiarativi` 0.13.0 (richiede `Anagrafica` 0.15.0 e `Contabilita` 0.13.0); gli altri invariati.

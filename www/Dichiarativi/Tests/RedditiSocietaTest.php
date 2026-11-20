@@ -6,6 +6,7 @@ use Dichiarativi\Application\Enumerations\CanoneRai;
 use Dichiarativi\Application\Enumerations\ModelloDichiarativo;
 use Dichiarativi\Application\Services\QuadriDichiarazione;
 use Dichiarativi\Application\Services\Redditi\ControlliRedditi;
+use Dichiarativi\Application\Services\Redditi\CreditiImpostaRu;
 use Dichiarativi\Application\Services\Redditi\OperativitaSocieta;
 use Dichiarativi\Application\Services\Redditi\PropostaRedditiSocieta;
 use Dichiarativi\Application\Services\Telematico\GeneratoreRedditi;
@@ -90,6 +91,27 @@ class RedditiSocietaTest extends DichiarativiTestCase
         $this->assertNull($quadri->get('RS044002'));
         $this->assertSame(8000, $quadri->getImporto('RS045002'));
         $this->assertSame(13000, $quadri->getImporto('RS045006'));
+    }
+
+    public function testCreditiDImpostaDelQuadroRu(): void
+    {
+        // tabella ufficiale dei crediti con i codici tributo F24 dalle istruzioni
+        $crediti = new CreditiImpostaRu($this->dataMapper);
+        $tabella = $crediti->getTabella(2026);
+        $this->assertSame(['6936', '7077'], $tabella['2L']['tributi']);
+        $this->assertSame([], $tabella['99']['tributi']);
+        $this->assertSame('T6', $crediti->getCreditiPerTributo(2026)['7072']);
+        // modulo compilato a mano: residuo RU12 = residuo precedente + spettante - utilizzi in F24 e in dichiarazione
+        $quadri = $this->creaRedditiSc();
+        $quadri->usaModulo(2);
+        $quadri->imposta('RU001001', '2L');
+        $quadri->imposta('RU002001', 10000);
+        $quadri->imposta('RU005003', 2000);
+        $quadri->imposta('RU006001', 3000);
+        $quadri->imposta('RU007005', 500);
+        $crediti->proponi($quadri, $quadri->getDichiarazione());
+        $this->assertSame(8500, $quadri->getImporto('RU012002', 2));
+        $this->assertNull($quadri->get('RU001001', 1));
     }
 
     public function testConsolidatoETrasparenza(): void

@@ -1169,6 +1169,17 @@ Quadro RS proposto dalla contabilità:
   a mano la distinzione degli immobili A/10, abitativi e nei piccoli
   comuni, i beni in leasing e il confronto del reddito minimo con quello
   dichiarato.
+- **Crediti d'imposta, quadro RU sezione I** (`CreditiImpostaRu`, anche
+  per Redditi PF): un modulo per credito, con il codice della tabella
+  ufficiale e i codici tributo F24 delle istruzioni
+  (`Database/sorgenti/crediti-RU-2026.csv`, ricavata dalla tabella dei
+  crediti del software di controllo e dalle istruzioni SC, SP e PF;
+  da rifare con i modelli di ogni anno). Credito spettante (RU5) dai
+  crediti in archivio in `Deleghe` dell'anno, utilizzi in compensazione
+  (RU6) dalle righe a credito delle deleghe dell'anno, residuo
+  precedente (RU2) dal rigo RU12 dell'anno prima o, il primo anno,
+  dall'archivio al netto delle compensazioni, residuo (RU12) con la
+  formula delle specifiche. A mano RU7, cessioni, sezioni II e III.
 - **Ricavi** (RS107 di SC, art. 85, c. 1, lett. a e b): voce A1 del
   conto economico, o la casella dell'assenza di ricavi.
 - **Conservazione dei documenti rilevanti** (RS40 di SP, RS104 di SC):
@@ -1555,7 +1566,7 @@ dei moduli devono essere dello stesso studio.
 - **Redditi PF**: righi da inserire a mano senza proposta dagli archivi
   (RM51-RM54, RM91, RL17, CR16);
 - **società**: stampa sul modello ufficiale dei modelli SP, SC, CNM e
-  IRAP; quadri RV, RQ, RU, GC, NI, PN e
+  IRAP; quadri RV, RQ, GC, NI, PN, sezioni II e III del quadro RU e
   consolidato mondiale a mano; aliquote IRAP regionali diverse
   dall'ordinaria a mano; modello Redditi ENC e IRAP degli enti;
 - calcolo automatico di rimanenze e servizi non utilizzati nella rettifica per

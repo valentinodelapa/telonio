@@ -140,6 +140,8 @@ class PropostaRedditiSocieta
             $this->proponiImputazione($quadri, $soggetto, $anno);
             $this->proponiSoci($quadri, $soggetto, $anno);
         }
+        // quadro RU, crediti d'imposta delle imprese dagli archivi di Deleghe
+        array_push($this->avvisi, ...(new CreditiImpostaRu($this->dataMapper))->proponi($quadri, $dichiarazione));
         array_push($this->avvisi, ...$quadri->getDifferenzeManuali());
         if ($salva) {
             $quadri->salva();

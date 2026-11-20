@@ -93,6 +93,8 @@ class PropostaRedditi
         $crediti->proponiCrediti($quadri, $soggetto, $anno);
         array_push($this->avvisi, ...$crediti->getAvvisi());
         array_push($this->avvisi, ...(new PropostaIrpef($this->dataMapper))->proponi($dichiarazione, $quadri, $bonus));
+        // quadro RU, crediti d'imposta delle imprese dagli archivi di Deleghe
+        array_push($this->avvisi, ...(new CreditiImpostaRu($this->dataMapper))->proponi($quadri, $dichiarazione));
         $quadri->usaModulo(1);
 
         array_push($this->avvisi, ...$quadri->getDifferenzeManuali());
