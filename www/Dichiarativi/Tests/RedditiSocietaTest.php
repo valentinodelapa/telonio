@@ -263,6 +263,29 @@ class RedditiSocietaTest extends DichiarativiTestCase
         $this->assertNull($quadri->get('RS116008'));
     }
 
+    public function testFrontespizioDelleSocietaPerLaStampa(): void
+    {
+        $quadri = $this->creaRedditiSc();
+        $quadri->imposta('RF004001', 1000);
+        $quadri->imposta('GN000002', '09222330301');
+        $dichiarazione = $quadri->getDichiarazione();
+        $dichiarazione->canoneRai = CanoneRai::nessunApparecchio;
+        $valori = (new \Dichiarativi\Application\Services\Stampa\DatiFrontespizioStampa($this->dataMapper))->getValori($dichiarazione, $quadri);
+        // periodo d'imposta solare senza esercizio contabile, stato 1 e situazione 6, natura giuridica, canone RAI, quadri e consolidato
+        $this->assertSame(['01', '01', '2025', '31', '12', '2025'], [$valori['#periodoDalGiorno'], $valori['#periodoDalMese'], $valori['#periodoDalAnno'],
+            $valori['#periodoAlGiorno'], $valori['#periodoAlMese'], $valori['#periodoAlAnno']]);
+        $this->assertSame(['1', '6', '02', '3'], [$valori['#stato'], $valori['#situazione'], $valori['#naturaGiuridica'], $valori['#canoneRai']]);
+        $this->assertSame('X', $valori['#quadroRF']);
+        $this->assertSame('X', $valori['#consolidato']);
+        $this->assertArrayNotHasKey('#trasparenza', $valori);
+        // modello CNM: casella del consolidato nazionale, senza stato e situazione
+        $dichiarazione->modello = ModelloDichiarativo::consolidato;
+        $valori = (new \Dichiarativi\Application\Services\Stampa\DatiFrontespizioStampa($this->dataMapper))->getValori($dichiarazione, $this->creaRedditiSc());
+        $this->assertSame('X', $valori['#consolidato']);
+        $this->assertArrayNotHasKey('#stato', $valori);
+        $this->assertArrayNotHasKey('#situazione', $valori);
+    }
+
     public function testControlliDelFrontespizioDelleSocieta(): void
     {
         $quadri = $this->creaRedditiSc();

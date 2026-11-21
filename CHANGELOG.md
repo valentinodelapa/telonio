@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.36.0-alpha] - 2026-11-21 - Stampa sul Modello Ufficiale dei Modelli delle Società
+
+Versioni dei moduli: `Dichiarativi` 0.17.0 (richiede `Anagrafica` 0.15.0, `Deleghe` 0.5.0 e `Contabilita` 0.15.0); gli altri invariati.
+
+**Aggiornamento**: nessuna modifica al database; `aggiorna.sh` aggiorna il codice e i modelli in PDF del modulo. Nessun passo manuale.
+
+### ✨ Nuove Funzionalità
+
+#### `Dichiarativi` 0.17.0 — stampa sul modello ufficiale di Redditi SP e SC, CNM e IRAP
+
+- **Stampa sul modello ufficiale** ("Modello ufficiale (PDF)" nella scheda della dichiarazione) anche per Redditi SP 2026, Redditi SC 2026, Consolidato nazionale e mondiale 2026 e IRAP 2026, come per Redditi PF e IVA: i valori nelle caselle dei fascicoli dell'Agenzia delle Entrate, una copia della pagina per modulo, in fondo l'elenco dei campi senza casella.
+  - Posizioni lette dai modelli con `sisma modelli-dichiarativi`: Redditi SP 3.470 campi su 3.984, Redditi SC 5.286 su 5.973, CNM 1.477 su 1.731, IRAP 857 su 888 (gli altri nell'elenco finale).
+  - Frontespizi rilevati a mano: denominazione, codice fiscale e partita IVA nelle celle, periodo d'imposta, stato, natura giuridica e situazione, rappresentante con i dati di nascita, canone RAI, caselle del modello ISA, della comunicazione del concordato, del consolidato e della trasparenza, quadri compilati, organo di controllo (SC, CNM, IRAP), visto e impegno alla presentazione; nell'IRAP anche regione e modello Redditi.
+  - Caselle d'intestazione dei quadri proposti: codice fiscale della consolidante (GN), tipo di trasparenza (TN), codice identificativo del soggetto (IC).
+
+### 🐛 Correzioni
+
+#### `Dichiarativi` 0.17.0
+
+- **Stampa sul modello ufficiale**: i codici di una o due cifre nelle caselle strette (meno di 24 punti) sono centrati; prima, con il margine dei testi, comparivano i puntini al posto del valore.
+
 ## [0.35.0-alpha] - 2026-11-20 - Immobili dei Cespiti e Contratti di Leasing
 
 Versioni dei moduli: `Dichiarativi` 0.16.0 (richiede `Anagrafica` 0.15.0, `Deleghe` 0.5.0 e `Contabilita` 0.15.0), `Contabilita` 0.15.0; gli altri invariati.

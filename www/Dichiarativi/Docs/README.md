@@ -155,7 +155,13 @@ lette o corrette, passano poi dalla rifinitura sulla pagina
 del ",00" stampato o, nei modelli con i centesimi, la virgola e le due
 celle dei centesimi; le caselle divise da tacche verticali regolari
 prendono i bordi delle celle. Campi collocati: Redditi PF 2026 4.228 su
-4.605, IVA 2026 1.057 su 1.144, IVA TR 356 su 413; gli altri vanno nell'elenco finale. Il modello si sceglie
+4.605, IVA 2026 1.057 su 1.144, IVA TR 356 su 413, Redditi SP 2026
+3.470 su 3.984, Redditi SC 2026 5.286 su 5.973, CNM 2026 1.477 su
+1.731, IRAP 2026 857 su 888; gli altri vanno nell'elenco finale. I
+frontespizi delle società (Redditi SP e SC, CNM, IRAP) hanno i dati del
+record B o del frontespizio XML (`DatiFrontespizioStampa`: periodo,
+stato e situazione, rappresentante, canone RAI, caselle ISA, CPB,
+consolidato e trasparenza, organo di controllo, regione dell'IRAP). Il modello si sceglie
 dall'anno della dichiarazione (`getAnnoModello`): per gli anni senza
 fascicoli il pulsante non compare.
 
@@ -1575,8 +1581,7 @@ dei moduli devono essere dello stesso studio.
   fiscale;
 - **Redditi PF**: righi da inserire a mano senza proposta dagli archivi
   (RM51-RM54, RM91, RL17, CR16);
-- **società**: stampa sul modello ufficiale dei modelli SP, SC, CNM e
-  IRAP; quadri RV, RQ, GC, NI, PN, sezioni II e III del quadro RU e
+- **società**: quadri RV, RQ, GC, NI, PN, sezioni II e III del quadro RU e
   consolidato mondiale a mano; codice delle aliquote IRAP agevolate o di
   settore e variazioni IRAP non legate a un conto a mano; modello Redditi
   ENC e IRAP degli enti;

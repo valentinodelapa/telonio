@@ -199,7 +199,8 @@ class PdfDichiarazione
             $corpo -= 0.5;
             $pdf->SetFontSize($corpo);
         }
-        if ($casella) {
+        if ($casella || ($campo['larghezza'] < 24)) {
+            // caselle barrate e caselle strette (codici di una o due cifre): al centro, senza il margine dei testi
             $pdf->Text($campo['x'] + (($campo['larghezza'] - $pdf->GetStringWidth($testo)) / 2), $campo['y'] + ($campo['altezza'] / 2) + ($corpo * 0.35), $testo);
         } elseif ($campo['destra']) {
             $pdf->Text($campo['x'] + $campo['larghezza'] - $pdf->GetStringWidth($testo) - 1.5, $base, $testo);

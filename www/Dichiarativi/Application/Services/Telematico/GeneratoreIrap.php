@@ -54,7 +54,7 @@ class GeneratoreIrap
         17 => 'TOSCANA', 18 => 'TRENTO', 19 => 'UMBRIA', 20 => "VALLE D'AOSTA", 21 => 'VENETO'];
 
     /** Modello Redditi per quadro del valore della produzione */
-    private const MODELLI_REDDITI = ['IP' => 1, 'IC' => 2, 'IE' => 3, 'IK' => 4];
+    public const MODELLI_REDDITI = ['IP' => 1, 'IC' => 2, 'IE' => 3, 'IK' => 4];
 
     public function __construct(private DataMapper $dataMapper = new DataMapper(), private string $cartella = TabelleDichiarativi::CARTELLA)
     {
