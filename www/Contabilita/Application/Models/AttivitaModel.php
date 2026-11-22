@@ -3,17 +3,17 @@
 namespace Contabilita\Application\Models;
 
 use Anagrafica\Application\Entities\Soggetto;
-use Contabilita\Application\Entities\AttivitaIva;
+use Contabilita\Application\Entities\Attivita;
 use SismaFramework\Orm\ExtendedClasses\DependentModel;
 use SismaFramework\Orm\HelperClasses\Query;
 
-class AttivitaIvaModel extends DependentModel
+class AttivitaModel extends DependentModel
 {
 
     #[\Override]
     protected function getEntityName(): string
     {
-        return AttivitaIva::class;
+        return Attivita::class;
     }
 
     #[\Override]
@@ -23,7 +23,7 @@ class AttivitaIvaModel extends DependentModel
     }
 
     /**
-     * @return AttivitaIva[] per numero
+     * @return Attivita[] per numero
      */
     public function getElenco(Soggetto $soggetto): array
     {
@@ -37,11 +37,11 @@ class AttivitaIvaModel extends DependentModel
     /**
      * Attività separate dell'anno (vuoto con la contabilità unificata).
      *
-     * @return AttivitaIva[] per numero
+     * @return Attivita[] per numero
      */
     public function getAttiveNel(Soggetto $soggetto, int $anno): array
     {
-        return array_filter($this->getElenco($soggetto), fn(AttivitaIva $attivita) => $attivita->isAttivaNel($anno));
+        return array_filter($this->getElenco($soggetto), fn(Attivita $attivita) => $attivita->isAttivaNel($anno));
     }
 
     public function getProssimoNumero(Soggetto $soggetto): int

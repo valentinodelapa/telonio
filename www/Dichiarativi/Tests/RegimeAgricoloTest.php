@@ -418,7 +418,7 @@ class RegimeAgricoloTest extends DichiarativiTestCase
 
     public function testOpzioniDelleAttivitaSeparate(): void
     {
-        $attivita = new \Contabilita\Application\Entities\AttivitaIva($this->dataMapper);
+        $attivita = new \Contabilita\Application\Entities\Attivita($this->dataMapper);
         $attivita->descrizione = 'Agriturismo';
         $attivita->opzioneOrdinaria = RegimeDetrazioneIva::agriturismo;
         $attivita->opzioneDal = 2023;

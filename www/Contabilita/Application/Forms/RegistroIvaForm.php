@@ -40,7 +40,7 @@ class RegistroIvaForm extends BaseForm
         $this->addFilterFieldMode('descrizione', FilterType::isLimitString, [2, 100])
                 ->addFilterFieldMode('attivo', FilterType::isBoolean)
                 ->addFilterFieldMode('unitaLocale', FilterType::isEntity, [], true)
-                ->addFilterFieldMode('attivitaIva', FilterType::isEntity, [], true);
+                ->addFilterFieldMode('attivita', FilterType::isEntity, [], true);
     }
 
     #[\Override]

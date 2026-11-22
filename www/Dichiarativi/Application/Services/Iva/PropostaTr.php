@@ -147,7 +147,8 @@ class PropostaTr
                 if (($codice->natura !== null) || ($codice->aliquota <= 0)) {
                     continue;
                 }
-                $detraibile = $riga->imponibile * $riga->detraibilita / 100;
+                // percentuale di detraibilità e, per gli enti non commerciali, quota dell'attività commerciale (art. 19-ter)
+                $detraibile = $riga->imponibile * $riga->detraibilita / 100 * ($riga->quotaCommerciale ?? 1.0);
                 $this->accumula($passive, $codice->aliquota, $detraibile);
                 $impostaPassive += $riga->getImpostaDetraibile();
                 $indetraibile += $riga->imponibile - $detraibile;

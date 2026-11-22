@@ -2,7 +2,7 @@
 
 namespace Dichiarativi\Application\Services\Telematico;
 
-use Contabilita\Application\Models\AttivitaIvaModel;
+use Contabilita\Application\Models\AttivitaModel;
 use Contabilita\Application\Models\GruppoIvaModel;
 use Contabilita\Application\Services\RegimeIva;
 use Deleghe\Application\Services\DatiContribuente;
@@ -82,7 +82,7 @@ class GeneratoreTr
                 ->imposta('correttiva', (int) ($dichiarazione->tipologia === TipologiaDichiarazione::correttiva))
                 ->imposta('modificaIstanza', (int) ($dichiarazione->tipologia === TipologiaDichiarazione::integrativa))
                 ->imposta('partitaIva', (new ControlliIva($this->dataMapper))->getPartitaIva($dichiarazione))
-                ->imposta('contabilitaSeparate', (int) (count((new AttivitaIvaModel($this->dataMapper))->getAttiveNel($soggetto, $dichiarazione->anno)) > 0))
+                ->imposta('contabilitaSeparate', (int) (count((new AttivitaModel($this->dataMapper))->getAttiveNel($soggetto, $dichiarazione->anno)) > 0))
                 ->imposta('controllante', (int) ((new GruppoIvaModel($this->dataMapper))->getPerControllante($soggetto, $dichiarazione->anno) !== null))
                 ->imposta('codiceAttivita', str_replace('.', '', (string) $datiFiscali?->codiceAteco?->codice))
                 ->imposta('anno', $dichiarazione->anno)

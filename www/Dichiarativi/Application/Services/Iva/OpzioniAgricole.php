@@ -5,7 +5,7 @@ namespace Dichiarativi\Application\Services\Iva;
 use Anagrafica\Application\Entities\DatiFiscali;
 use Anagrafica\Application\Entities\Soggetto;
 use Anagrafica\Application\Enumerations\RegimeDetrazioneIva;
-use Contabilita\Application\Entities\AttivitaIva;
+use Contabilita\Application\Entities\Attivita;
 use Contabilita\Application\Services\AttivitaSeparate;
 use Contabilita\Application\Services\EsoneroAgricolo;
 use Contabilita\Application\Services\RegimeIva;
@@ -85,7 +85,7 @@ class OpzioniAgricole
     /**
      * @return array{caselle: string[], avvisi: string[]}
      */
-    public static function calcolaAttivita(AttivitaIva $attivita, int $anno): array
+    public static function calcolaAttivita(Attivita $attivita, int $anno): array
     {
         $esito = ['caselle' => [], 'avvisi' => []];
         $caselle = $attivita->opzioneOrdinaria?->getCaselleOpzione();

@@ -5,7 +5,7 @@ namespace Contabilita\Application\Services;
 use Contabilita\Application\Services\PlafondEsportatori;
 use Anagrafica\Application\Entities\Soggetto;
 use Anagrafica\Application\Enumerations\PeriodicitaIva;
-use Contabilita\Application\Entities\AttivitaIva;
+use Contabilita\Application\Entities\Attivita;
 use Contabilita\Application\Entities\LiquidazioneAttivita;
 use Contabilita\Application\Entities\LiquidazioneIva;
 use Contabilita\Application\Entities\RegistrazioneContabile;
@@ -133,7 +133,7 @@ class ElaborazioneLiquidazione
     /**
      * Attività separate trimestrali di un'azienda che liquida mensilmente.
      *
-     * @return AttivitaIva[]
+     * @return Attivita[]
      */
     public function getAttivitaTrimestrali(Soggetto $soggetto, int $anno): array
     {
@@ -144,7 +144,7 @@ class ElaborazioneLiquidazione
             return [];
         }
         $azienda = $regime->getPeriodicitaAzienda($soggetto, $anno);
-        return array_filter($attivita, fn(AttivitaIva $singola) => $separate->getPeriodicita($singola, $azienda) === PeriodicitaIva::trimestrale);
+        return array_filter($attivita, fn(Attivita $singola) => $separate->getPeriodicita($singola, $azienda) === PeriodicitaIva::trimestrale);
     }
 
     private function elaboraPeriodo(Soggetto $soggetto, int $anno, PeriodicitaIva $periodicita, int $periodo, bool $separato, bool $anticipaTrimestre, float $creditoAnnoPrecedente,
@@ -315,7 +315,7 @@ class ElaborazioneLiquidazione
             $risultato = $calcolo->calcola($soggetto, $dal, $al, $singola);
             $ventilata = ($ventilazioneAttivita !== null) && ($ventilazioneAttivita->id === $singola->id) ? $ventilazione->calcola($soggetto, $dal, $al)->imposta : 0.0;
             $dettaglio = new LiquidazioneAttivita($this->dataMapper);
-            $dettaglio->attivitaIva = $singola;
+            $dettaglio->attivita = $singola;
             $dettaglio->periodicita = $periodicita;
             $dettaglio->periodo = $periodo;
             $dettaglio->ivaVentilata = $ventilata;

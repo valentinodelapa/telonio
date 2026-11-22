@@ -25,7 +25,7 @@ require Layout::percorso('header');
             <?= Campo::spunta('attivo', $campi['attivo'], $formEntity, $errors, ['colonna' => 'col-md-2']) ?>
             <?= Campo::selezione('unitaLocale', $campi['unitaLocale'], $formEntity, $errors, $unitaLocali, ['colonna' => 'col-md-8', 'vuota' => '—', 'aiuto' => $aiutoUnitaLocale]) ?>
             <?php if (count($attivitaSeparate) > 0): ?>
-                <?= Campo::selezione('attivitaIva', $campi['attivitaIva'], $formEntity, $errors, $attivitaSeparate, ['colonna' => 'col-md-8', 'vuota' => $registroPromiscuo, 'aiuto' => $aiutoAttivita]) ?>
+                <?= Campo::selezione('attivita', $campi['attivita'], $formEntity, $errors, $attivitaSeparate, ['colonna' => 'col-md-8', 'vuota' => $registroPromiscuo, 'aiuto' => $aiutoAttivita]) ?>
             <?php endif; ?>
         </div>
     </div>

@@ -3,7 +3,7 @@
 namespace Dichiarativi\Tests;
 
 use Anagrafica\Application\Enumerations\PeriodicitaIva;
-use Contabilita\Application\Entities\AttivitaIva;
+use Contabilita\Application\Entities\Attivita;
 use Contabilita\Application\Entities\GruppoIva;
 use Contabilita\Application\Entities\LiquidazioneIva;
 use Contabilita\Application\Entities\RegistroIva;
@@ -108,27 +108,27 @@ class AttivitaSeparateEGruppoIvaTest extends DichiarativiTestCase
 
     public function testModuliDelleAttivitaSeparate(): void
     {
-        $ingrosso = new AttivitaIva($this->dataMapper);
+        $ingrosso = new Attivita($this->dataMapper);
         $ingrosso->id = 1;
         $ingrosso->soggetto = $this->azienda;
         $ingrosso->numero = 1;
         $ingrosso->descrizione = 'Ingrosso';
         $ingrosso->dalAnno = 2025;
-        $negozio = new AttivitaIva($this->dataMapper);
+        $negozio = new Attivita($this->dataMapper);
         $negozio->id = 2;
         $negozio->soggetto = $this->azienda;
         $negozio->numero = 2;
         $negozio->descrizione = 'Negozio';
         $negozio->dalAnno = 2025;
-        $this->registri['V']->attivitaIva = $ingrosso;
-        $this->registri['A']->attivitaIva = $ingrosso;
+        $this->registri['V']->attivita = $ingrosso;
+        $this->registri['A']->attivita = $ingrosso;
         $venditeNegozio = new RegistroIva($this->dataMapper);
         $venditeNegozio->id = 21;
         $venditeNegozio->soggetto = $this->azienda;
         $venditeNegozio->tipo = TipoRegistroIva::vendite;
         $venditeNegozio->sezionale = 'NG';
         $venditeNegozio->descrizione = 'Negozio';
-        $venditeNegozio->attivitaIva = $negozio;
+        $venditeNegozio->attivita = $negozio;
         $promiscui = new RegistroIva($this->dataMapper);
         $promiscui->id = 22;
         $promiscui->soggetto = $this->azienda;
@@ -151,7 +151,7 @@ class AttivitaSeparateEGruppoIvaTest extends DichiarativiTestCase
             }
             $tabelle = [
                 'dati_fiscali' => [$this->creaDatiFiscali()],
-                'attivita_iva' => [$ingrosso, $negozio],
+                'attivita' => [$ingrosso, $negozio],
                 'riga_iva' => [$this->creaRigaIva('22', 10000.0, 1, null, $vendita), $this->creaRigaIva('22', 3000.0, 1, null, $scontrino), $rigaAffitto],
             ];
             return new TestResultSet(preg_match('/FROM `([a-z_]+)`/', $cmd, $tabella) === 1 ? ($tabelle[$tabella[1]] ?? []) : []);
@@ -159,7 +159,7 @@ class AttivitaSeparateEGruppoIvaTest extends DichiarativiTestCase
         $modulo = new ModuloDichiarazione($this->dataMapper);
         $modulo->numero = 2;
         $modulo->tipo = TipoModulo::attivitaSeparata;
-        $modulo->attivitaIva = $negozio;
+        $modulo->attivita = $negozio;
         $quadri = $this->creaQuadri();
         (new PropostaIva($this->dataMapper))->proponi($this->creaDichiarazione(), $quadri, [$modulo]);
         // operazioni dei registri dell'attività e quota dell'acquisto promiscuo

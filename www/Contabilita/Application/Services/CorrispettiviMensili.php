@@ -165,7 +165,7 @@ class CorrispettiviMensili
             $righeIva[] = $riga;
         }
         $righe = (new PropostaRighe($this->dataMapper))->proponi($piano, $registrazione, $righeIva);
-        $errori = (new ControlloRegistrazione())->verifica($piano, $registrazione, $righeIva, $righe);
+        $errori = (new ControlloRegistrazione(new AttivitaSoggetto($this->dataMapper)))->verifica($piano, $registrazione, $righeIva, $righe);
         if (count($errori) > 0) {
             throw new \DomainException(implode(' ', $errori));
         }

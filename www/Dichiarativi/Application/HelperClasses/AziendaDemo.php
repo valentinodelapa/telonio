@@ -19,7 +19,7 @@ use Anagrafica\Application\Models\CodiceAtecoModel;
 use Anagrafica\Application\Models\ComuneModel;
 use Anagrafica\Application\Models\DatiFiscaliModel;
 use Anagrafica\Application\Models\NazioneModel;
-use Contabilita\Application\Entities\AttivitaIva;
+use Contabilita\Application\Entities\Attivita;
 use Contabilita\Application\Entities\Controparte;
 use Contabilita\Application\Entities\EsercizioContabile;
 use Contabilita\Application\Entities\RegistroIva;
@@ -298,9 +298,9 @@ class AziendaDemo
     /**
      * Attività con contabilità separata dell'azienda.
      */
-    public function attivita(Soggetto $soggetto, int $numero, string $descrizione, string $ateco, ?PeriodicitaIva $periodicita, int $dal): AttivitaIva
+    public function attivita(Soggetto $soggetto, int $numero, string $descrizione, string $ateco, ?PeriodicitaIva $periodicita, int $dal): Attivita
     {
-        $attivita = new AttivitaIva($this->dataMapper);
+        $attivita = new Attivita($this->dataMapper);
         $attivita->studio = $soggetto->studio;
         $attivita->soggetto = $soggetto;
         $attivita->numero = $numero;
@@ -315,10 +315,10 @@ class AziendaDemo
     /**
      * Assegna il registro (principale o sezionale) a un'attività.
      */
-    public function assegnaRegistro(Soggetto $soggetto, TipoRegistroIva $tipo, string $sezionale, ?AttivitaIva $attivita): RegistroIva
+    public function assegnaRegistro(Soggetto $soggetto, TipoRegistroIva $tipo, string $sezionale, ?Attivita $attivita): RegistroIva
     {
         $registro = (new RegistroIvaModel($this->dataMapper))->getRegistro($soggetto, $tipo, $sezionale);
-        $registro->attivitaIva = $attivita;
+        $registro->attivita = $attivita;
         $this->dataMapper->save($registro);
         return $registro;
     }

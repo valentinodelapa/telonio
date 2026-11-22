@@ -3,7 +3,7 @@
 namespace Contabilita\Application\Models;
 
 use Anagrafica\Application\Entities\Soggetto;
-use Contabilita\Application\Entities\AttivitaIva;
+use Contabilita\Application\Entities\Attivita;
 use Contabilita\Application\Entities\ProrataIva;
 use SismaFramework\Orm\ExtendedClasses\DependentModel;
 use SismaFramework\Orm\HelperClasses\Query;
@@ -26,8 +26,8 @@ class ProrataIvaModel extends DependentModel
     /**
      * Pro-rata dell'azienda o, con le attività separate, dell'attività.
      */
-    public function getPerAnno(Soggetto $soggetto, int $anno, ?AttivitaIva $attivita = null): ?ProrataIva
+    public function getPerAnno(Soggetto $soggetto, int $anno, ?Attivita $attivita = null): ?ProrataIva
     {
-        return $this->getBySoggettoAndAnnoAndAttivitaIva($soggetto, $anno, $attivita)[0] ?? null;
+        return $this->getBySoggettoAndAnnoAndAttivita($soggetto, $anno, $attivita)[0] ?? null;
     }
 }

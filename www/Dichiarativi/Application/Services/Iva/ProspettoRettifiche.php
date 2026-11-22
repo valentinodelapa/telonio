@@ -3,7 +3,7 @@
 namespace Dichiarativi\Application\Services\Iva;
 
 use Anagrafica\Application\Entities\Soggetto;
-use Contabilita\Application\Entities\AttivitaIva;
+use Contabilita\Application\Entities\Attivita;
 use Contabilita\Application\Entities\RigaIva;
 use Contabilita\Application\Enumerations\TipoRegistroIva;
 use Contabilita\Application\Enumerations\VoceCee;
@@ -68,7 +68,7 @@ class ProspettoRettifiche
      *
      * @return array{totale: int, beni: array<int, array{riga: RigaIva, descrizione: string, anno: int, imposta: float, importo: float, escluso: bool}>}
      */
-    public function getProposta(Soggetto $soggetto, int $anno, ?AttivitaIva $attivita = null): array
+    public function getProposta(Soggetto $soggetto, int $anno, ?Attivita $attivita = null): array
     {
         $proposta = ['totale' => 0, 'beni' => []];
         $separate = new AttivitaSeparate($this->dataMapper);
@@ -124,9 +124,9 @@ class ProspettoRettifiche
         return $proposta;
     }
 
-    private static function isRilevante(RigaIva $riga, ?AttivitaIva $attivita): bool
+    private static function isRilevante(RigaIva $riga, ?Attivita $attivita): bool
     {
         return ($riga->registroIva->tipo === TipoRegistroIva::acquisti) && $riga->isBeneAmmortizzabile() && (abs($riga->imponibile) > self::COSTO_MINIMO)
-                && (($attivita === null) || ($riga->registroIva->attivitaIva === null) || ($riga->registroIva->attivitaIva->id === $attivita->id));
+                && (($attivita === null) || ($riga->registroIva->attivita === null) || ($riga->registroIva->attivita->id === $attivita->id));
     }
 }

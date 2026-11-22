@@ -46,6 +46,15 @@ class RigaIva extends BaseEntity
     /** Coefficiente di ammortamento oltre il 25%: non ammortizzabile per la rettifica della detrazione (art. 19-bis2, c. 5) */
     protected bool $coefficienteElevato = false;
     protected ?string $ripartizione = null;
+
+    /**
+     * Enti non commerciali: quota dell'acquisto imputabile all'attività
+     * commerciale (da 0 a 1; null = per intero), calcolata al salvataggio
+     * dall'attività del registro o dalle quote della riga (art. 19-ter
+     * D.P.R. 633/1972, criteri oggettivi): l'IVA della parte istituzionale
+     * non è detraibile.
+     */
+    protected ?float $quotaCommerciale = null;
     protected ?Conto $conto = null;
 
     #[\Override]
@@ -65,7 +74,7 @@ class RigaIva extends BaseEntity
      */
     public function getImpostaDetraibile(): float
     {
-        return round($this->imposta * $this->detraibilita / 100, 2);
+        return round($this->imposta * $this->detraibilita / 100 * ($this->quotaCommerciale ?? 1.0), 2);
     }
 
     public function getImpostaIndetraibile(): float

@@ -22,7 +22,15 @@ use Contabilita\Application\Entities\RegistrazioneContabile;
 use Contabilita\Application\Entities\RigaContabile;
 use Contabilita\Application\Enumerations\CausaleContabile;
 use Contabilita\Application\Enumerations\CausaleCu;
-use Contabilita\Application\Enumerations\DestinazioneConto;
+use Contabilita\Application\Entities\Attivita;
+use Contabilita\Application\Enumerations\NaturaAttivita;
+use Contabilita\Application\Enumerations\TipoRegistroIva;
+use Contabilita\Application\Services\ElaborazioneLiquidazione;
+use Contabilita\Application\Services\PeriodiIva;
+use Contabilita\Application\Services\RegistrazioneDocumentoIva;
+use Anagrafica\Application\Enumerations\PeriodicitaIva;
+use Dichiarativi\Application\Services\Iva\PropostaIva;
+use Dichiarativi\Application\Services\Iva\VersamentiIva;
 use Contabilita\Application\Enumerations\FunzioneConto;
 use Contabilita\Application\Enumerations\LivelloConto;
 use Contabilita\Application\Enumerations\NaturaConto;
@@ -48,23 +56,27 @@ use Telonio\Application\HelperClasses\CodiceFiscale;
 
 /**
  * Ente non commerciale demo: Associazione Culturale Orizzonti di Bologna,
- * contabilità semplificata con l'attività commerciale separata per conti
- * (destinazione dei conti) e Redditi ENC 2026 e IRAP 2026 proposti.
+ * contabilità semplificata con due attività (Attivita): commerciale (corsi
+ * di fotografia) e istituzionale; IVA trimestrale con le liquidazioni e il
+ * modello IVA 2026, Redditi ENC 2026 e IRAP 2026 proposti.
  *
  * Nel 2025:
- * - attività commerciale: corsi a pagamento (30.000 euro, esenti IVA) con
- *   un docente occasionale (causale CU "M", 8.000 euro con la ritenuta del
- *   20 per cento);
+ * - attività commerciale: corsi a pagamento (due fatture da 15.000 euro più
+ *   IVA, incassate) con un docente occasionale (causale CU "M", 8.000 euro
+ *   con la ritenuta del 20 per cento) e il materiale per i corsi (1.000 euro
+ *   più IVA, registro degli acquisti dell'attività);
  * - attività istituzionale: quote associative (20.000 euro), la segretaria
  *   dipendente (18.000 euro) e il relatore occasionale di una conferenza
  *   (2.000 euro con la ritenuta);
- * - energia elettrica della sede (5.000 euro) promiscua: deducibile al 60
- *   per cento (30.000 di ricavi commerciali su 50.000 di ricavi e
- *   proventi, art. 144, c. 4, TUIR).
+ * - energia elettrica della sede comune alle due attività (5.000 euro più
+ *   IVA, sezionale degli acquisti comuni): 60 per cento all'attività
+ *   commerciale per l'IVA (detraibili 660 euro, art. 19-ter D.P.R.
+ *   633/1972) e per i redditi; i 440 euro di IVA indetraibile sono costo.
  *
- * Redditi ENC: quadro RG 30.000 - 8.000 - 3.000 = 19.000, IRES 4.560.
- * IRAP, quadro IE: sezione I 18.000 + 2.000, sezione II 19.000, ulteriore
- * deduzione di 8.000 euro, valore netto 31.000.
+ * Redditi ENC: quadro RG 30.000 - 1.000 - 3.264 - 8.000 = 17.736, IRES
+ * 4.257. IRAP, quadro IE: sezione I 18.000 + 2.000, sezione II 17.736,
+ * ulteriore deduzione di 8.000 euro, valore netto 29.736. IVA dovuta per
+ * l'anno: 6.600 - 880 = 5.720.
  */
 class RedditiEnc2025Fixture extends BaseFixture
 {
@@ -85,20 +97,45 @@ class RedditiEnc2025Fixture extends BaseFixture
         $presidente = $demo->persona($studio, 'C081', CodiceFiscale::calcola('MORETTI', 'ELENA', 'F', new \DateTimeImmutable('1972-06-18'), 'A944'),
                 'MORETTI', 'ELENA', Sesso::femmina, '1972-06-18', 'A944', 'Presidente dell\'Associazione Culturale Orizzonti');
         $demo->legame($ente, $presidente, RuoloLegame::legaleRappresentante, '2015-02-01');
-        $demo->apriContabilita($ente, 2025);
+        $esercizio = $demo->apriContabilita($ente, 2025);
+        $commerciale = $demo->attivita($ente, 1, 'Corsi di fotografia', '85.52.09', null, 2015);
+        $istituzionale = $this->attivitaIstituzionale($ente);
+        $demo->assegnaRegistro($ente, TipoRegistroIva::vendite, '', $commerciale);
+        $demo->assegnaRegistro($ente, TipoRegistroIva::acquisti, '', $commerciale);
+        $comuni = $demo->sezionale($ente, TipoRegistroIva::acquisti, 'CO', 'Acquisti comuni all\'attività commerciale e istituzionale', null);
         $piano = (new PianoContiModel($this->dataMapper))->getPerAzienda($ente);
-        $conti = $this->destinazioni($piano);
+        $conti = $this->attivitaConti($piano, $commerciale, $istituzionale);
         $banca = (new ContoModel($this->dataMapper))->getPerFunzione($piano, FunzioneConto::banca);
         $ritenute = (new ContoModel($this->dataMapper))->getPerFunzione($piano, FunzioneConto::ritenuteDaVersare);
+        // attività commerciale: fatture dei corsi incassate, materiale per i corsi pagato
+        $partecipanti = $demo->controparte($ente, 'Partecipanti ai corsi di fotografia', null, true, '20.01.0002');
+        foreach (['2025-03-31' => '1', '2025-10-31' => '2'] as $data => $numero) {
+            RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $partecipanti, CausaleContabile::fatturaVendita, $data, $numero, ['22' => 15000.0]);
+            RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $partecipanti, CausaleContabile::incasso, $data, null, [], ['totale' => 18300.0]);
+        }
+        $fornitore = $demo->controparte($ente, 'Foto Forniture S.r.l.', '09990030372', false, '21.01.0003');
+        RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $fornitore, CausaleContabile::fatturaAcquisto, '2025-04-10', 'FF/112', ['22' => 1000.0]);
+        RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $fornitore, CausaleContabile::pagamento, '2025-04-30', null, [], ['totale' => 1220.0]);
+        // energia elettrica della sede: acquisto comune, 60 per cento all'attività commerciale (criterio oggettivo: superficie dell'aula dei corsi)
+        $energia = $demo->controparte($ente, 'Energia Emilia S.p.A.', '09990040371', false, '22.01.0002');
+        RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $energia, CausaleContabile::fatturaAcquisto, '2025-06-30', 'EE/2025/6', ['22' => 5000.0],
+                ['registro' => $comuni, 'ripartizione' => [1 => 60.0, 2 => 40.0]]);
+        RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $energia, CausaleContabile::pagamento, '2025-07-15', null, [], ['totale' => 6100.0]);
+        // attività istituzionale (conti con l'attività istituzionale) e docente dei corsi (conto commerciale)
         $this->registra($ente, '2025-02-28', 'Quote associative 2025', null, [[$banca, 20000.0, 0.0], [$conti['quote'], 0.0, 20000.0]]);
-        $this->registra($ente, '2025-03-31', 'Corsi di fotografia, primo semestre', null, [[$banca, 15000.0, 0.0], [$conti['corsi'], 0.0, 15000.0]]);
-        $this->registra($ente, '2025-10-31', 'Corsi di fotografia, secondo semestre', null, [[$banca, 15000.0, 0.0], [$conti['corsi'], 0.0, 15000.0]]);
-        $this->registra($ente, '2025-06-30', 'Energia elettrica della sede', null, [[$conti['energia'], 5000.0, 0.0], [$banca, 0.0, 5000.0]]);
         $this->registra($ente, '2025-12-31', 'Retribuzioni della segretaria', null, [[$conti['salari'], 18000.0, 0.0], [$banca, 0.0, 18000.0]]);
         $relatore = $this->percipiente($ente, 'GALLI', 'ROBERTO', 'M', '1968-11-04', 'F205', $conti['occasionaliIstituzionali']);
         $this->registra($ente, '2025-05-10', 'Relazione alla conferenza annuale', $relatore, [[$conti['occasionaliIstituzionali'], 2000.0, 0.0], [$banca, 0.0, 1600.0], [$ritenute, 0.0, 400.0]]);
         $docente = $this->percipiente($ente, 'VITALI', 'CHIARA', 'F', '1990-03-22', 'A944', $conti['occasionaliCommerciali']);
         $this->registra($ente, '2025-11-15', 'Docenza dei corsi di fotografia', $docente, [[$conti['occasionaliCommerciali'], 8000.0, 0.0], [$banca, 0.0, 6400.0], [$ritenute, 0.0, 1600.0]]);
+        // liquidazioni IVA trimestrali e dichiarazione IVA 2026
+        $elaborazione = new ElaborazioneLiquidazione($this->dataMapper);
+        for ($periodo = 1; $periodo <= PeriodiIva::getNumeroPeriodi(PeriodicitaIva::trimestrale); $periodo++) {
+            $elaborazione->elabora($ente, 2025, $periodo, 0.0, false);
+        }
+        $iva = $this->crea($ente, ModelloDichiarativo::iva);
+        (new PropostaIva($this->dataMapper))->proponi($iva);
+        (new VersamentiIva($this->dataMapper))->registraSaldo($iva, new QuadriDichiarazione($iva, $this->dataMapper));
         $versamenti = new VersamentiRedditi($this->dataMapper);
         $redditi = $this->crea($ente, ModelloDichiarativo::redditiEnc);
         (new PropostaRedditiEnc($this->dataMapper))->proponi($redditi);
@@ -107,6 +144,19 @@ class RedditiEnc2025Fixture extends BaseFixture
         (new PropostaIrap($this->dataMapper))->proponi($irap);
         $versamenti->registraVersamenti($irap, new QuadriDichiarazione($irap, $this->dataMapper));
         $this->addEntity($redditi);
+    }
+
+    private function attivitaIstituzionale(Soggetto $ente): Attivita
+    {
+        $attivita = new Attivita($this->dataMapper);
+        $attivita->studio = $ente->studio;
+        $attivita->soggetto = $ente;
+        $attivita->numero = 2;
+        $attivita->descrizione = 'Attività culturale istituzionale';
+        $attivita->natura = NaturaAttivita::istituzionale;
+        $attivita->dalAnno = 2015;
+        $this->dataMapper->save($attivita);
+        return $attivita;
     }
 
     private function creaEnte($studio): Soggetto
@@ -129,6 +179,7 @@ class RedditiEnc2025Fixture extends BaseFixture
         $dati->partitaIva = '09990020589';
         $dati->codiceAteco = (new CodiceAtecoModel($this->dataMapper))->getByCodice(ClassificazioneAteco::ateco2025, '85.52.09');
         $dati->regimeFiscale = RegimeFiscale::semplificato;
+        $dati->periodicitaIva = PeriodicitaIva::trimestrale;
         $dati->enteNonCommerciale = true;
         $this->dataMapper->save($dati);
         $sede = new Indirizzo($this->dataMapper);
@@ -144,32 +195,32 @@ class RedditiEnc2025Fixture extends BaseFixture
     }
 
     /**
-     * Destinazione dei conti dell'ente: ricavi dei corsi e compensi dei
-     * docenti commerciali, quote associative (nuovo sottoconto), salari e
-     * compensi dei relatori (nuovo sottoconto) istituzionali, energia
-     * elettrica promiscua.
+     * Attività predefinita dei conti dell'ente: ricavi dei corsi, materiale
+     * e compensi dei docenti all'attività commerciale; quote associative e
+     * compensi dei relatori (nuovi sottoconti) e salari all'attività
+     * istituzionale; energia elettrica senza attività (righe comuni).
      *
      * @return array<string, Conto>
      */
-    private function destinazioni(PianoConti $piano): array
+    private function attivitaConti(PianoConti $piano, Attivita $commerciale, Attivita $istituzionale): array
     {
         $model = new ContoModel($this->dataMapper);
         $conti = [
             'corsi' => $model->getPerCodice($piano, '20.01.0002'),
+            'materiale' => $model->getPerCodice($piano, '21.01.0003'),
             'occasionaliCommerciali' => $model->getPerCodice($piano, '22.01.0010'),
-            'energia' => $model->getPerCodice($piano, '22.01.0002'),
             'salari' => $model->getPerCodice($piano, '24.01.0001'),
         ];
-        foreach (['corsi' => DestinazioneConto::commerciale, 'occasionaliCommerciali' => DestinazioneConto::commerciale, 'energia' => DestinazioneConto::promiscuo, 'salari' => DestinazioneConto::istituzionale] as $chiave => $destinazione) {
-            $conti[$chiave]->destinazione = $destinazione;
+        foreach (['corsi' => $commerciale, 'materiale' => $commerciale, 'occasionaliCommerciali' => $commerciale, 'salari' => $istituzionale] as $chiave => $attivita) {
+            $conti[$chiave]->attivita = $attivita;
             $this->dataMapper->save($conti[$chiave]);
         }
-        $conti['quote'] = $this->sottoconto($piano, '20.02', '20.02.0005', 'Quote associative', NaturaConto::ricavo, VoceCee::economicoA5);
-        $conti['occasionaliIstituzionali'] = $this->sottoconto($piano, '22.01', '22.01.0011', 'Compensi occasionali dell\'attività istituzionale', NaturaConto::costo, VoceCee::economicoB7);
+        $conti['quote'] = $this->sottoconto($piano, '20.02', '20.02.0005', 'Quote associative', NaturaConto::ricavo, VoceCee::economicoA5, $istituzionale);
+        $conti['occasionaliIstituzionali'] = $this->sottoconto($piano, '22.01', '22.01.0011', 'Compensi occasionali dell\'attività istituzionale', NaturaConto::costo, VoceCee::economicoB7, $istituzionale);
         return $conti;
     }
 
-    private function sottoconto(PianoConti $piano, string $superiore, string $codice, string $descrizione, NaturaConto $natura, VoceCee $voce): Conto
+    private function sottoconto(PianoConti $piano, string $superiore, string $codice, string $descrizione, NaturaConto $natura, VoceCee $voce, Attivita $attivita): Conto
     {
         $conto = new Conto($this->dataMapper);
         $conto->pianoConti = $piano;
@@ -179,7 +230,7 @@ class RedditiEnc2025Fixture extends BaseFixture
         $conto->livello = LivelloConto::sottoconto;
         $conto->natura = $natura;
         $conto->voceCee = $voce;
-        $conto->destinazione = DestinazioneConto::istituzionale;
+        $conto->attivita = $attivita;
         $this->dataMapper->save($conto);
         return $conto;
     }
@@ -238,7 +289,7 @@ class RedditiEnc2025Fixture extends BaseFixture
         $dichiarazione->soggetto = $ente;
         $dichiarazione->modello = $modello;
         $dichiarazione->anno = 2025;
-        if ($modello === ModelloDichiarativo::redditiEnc) {
+        if (in_array($modello, [ModelloDichiarativo::redditiEnc, ModelloDichiarativo::iva], true)) {
             $dichiarazione->canoneRai = CanoneRai::nessunApparecchio;
             $dichiarazione->omessoIsa = true;
         }

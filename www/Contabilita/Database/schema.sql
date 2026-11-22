@@ -33,6 +33,39 @@ CREATE TABLE IF NOT EXISTS `piano_conti` (
 COMMENT='Piani dei conti: modelli della suite e dello studio, piani delle aziende';
 
 -- -----------------------------------------------------
+-- Attività del soggetto: commerciali (con almeno due, contabilità separata
+-- dell'IVA, art. 36 D.P.R. 633/1972: ogni registro o sezionale IVA
+-- appartiene a un'attività; liquidazioni periodiche distinte, compensate
+-- nel periodo, con la periodicità propria dell'attività se la separazione
+-- è obbligatoria) e istituzionali degli enti non commerciali (art. 144
+-- TUIR, art. 19-ter D.P.R. 633/1972). Le righe contabili hanno l'attività
+-- o sono comuni.
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `attivita` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `studio_id` INT UNSIGNED NOT NULL,
+  `soggetto_id` INT UNSIGNED NOT NULL,
+  `numero` TINYINT UNSIGNED NOT NULL COMMENT 'Ordine dei moduli della dichiarazione IVA (1 = primo modulo)',
+  `descrizione` VARCHAR(100) NOT NULL,
+  `natura` CHAR(1) NOT NULL DEFAULT 'C' COMMENT 'C commerciale, I istituzionale (enti non commerciali)',
+  `codice_ateco_id` INT UNSIGNED NULL COMMENT 'Codice attività del rigo VA2 del modulo',
+  `periodicita` CHAR(1) NULL COMMENT 'M mensile, T trimestrale; NULL = periodicità dell''azienda',
+  `regime_detrazione_iva` CHAR(3) NULL COMMENT 'Regime speciale agricolo dell''attività (rigo VF30 del suo modulo)',
+  `opzione_ordinaria` CHAR(3) NULL COMMENT 'Regime agricolo a cui l''attività ha rinunciato per i modi ordinari (quadro VO)',
+  `opzione_dal` SMALLINT UNSIGNED NULL COMMENT 'Primo anno dell''opzione',
+  `opzione_al` SMALLINT UNSIGNED NULL COMMENT 'Ultimo anno dell''opzione, l''anno dopo è quello della revoca',
+  `dal_anno` SMALLINT UNSIGNED NOT NULL,
+  `al_anno` SMALLINT UNSIGNED NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_attivita` (`soggetto_id`, `numero`),
+  KEY `idx_attivita_studio` (`studio_id`),
+  CONSTRAINT `fk_attivita_studio` FOREIGN KEY (`studio_id`) REFERENCES `studio` (`id`),
+  CONSTRAINT `fk_attivita_soggetto` FOREIGN KEY (`soggetto_id`) REFERENCES `soggetto` (`id`),
+  CONSTRAINT `fk_attivita_ateco` FOREIGN KEY (`codice_ateco_id`) REFERENCES `codice_ateco` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Attività del soggetto (commerciali e istituzionali)';
+
+-- -----------------------------------------------------
 -- Conti su tre livelli: mastro (NN), conto (NN.NN), sottoconto
 -- (NN.NN.NNNN). Si registra solo sui sottoconti. La funzione indica i
 -- conti usati dalle proposte automatiche (clienti, fornitori, IVA, ...),
@@ -53,11 +86,12 @@ CREATE TABLE IF NOT EXISTS `conto` (
   `rigo_irap` VARCHAR(8) NULL COMMENT 'Variazione del valore della produzione del quadro IC del modello IRAP (es. IC43, IC46, IC51:99); NULL = nessuna',
   `percentuale_deducibile` DECIMAL(5,2) NULL COMMENT 'Percentuale deducibile del costo (es. 20 auto, 80 telefonia); NULL = interamente deducibile',
   `variazione_redditi` VARCHAR(10) NULL COMMENT 'Rigo della variazione in aumento del quadro RF per la parte indeducibile (RF16, RF18, RF31:99)',
-  `destinazione` CHAR(1) NULL COMMENT 'Enti non commerciali: C attività commerciale, I istituzionale, P promiscuo (art. 144 TUIR); NULL = commerciale',
+  `attivita_id` INT UNSIGNED NULL COMMENT 'Attività predefinita delle righe del conto (soggetti con più attività); NULL = righe comuni',
   `attivo` TINYINT(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_conto_codice` (`piano_conti_id`, `codice`),
   KEY `idx_conto_parent` (`parent_conto_id`),
+  CONSTRAINT `fk_conto_attivita` FOREIGN KEY (`attivita_id`) REFERENCES `attivita` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_conto_piano` FOREIGN KEY (`piano_conti_id`) REFERENCES `piano_conti` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_conto_parent` FOREIGN KEY (`parent_conto_id`) REFERENCES `conto` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=100000 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
@@ -107,35 +141,6 @@ CREATE TABLE IF NOT EXISTS `esercizio_contabile` (
   CONSTRAINT `fk_esercizio_contabile_soggetto` FOREIGN KEY (`soggetto_id`) REFERENCES `soggetto` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Esercizi contabili delle aziende';
-
--- -----------------------------------------------------
--- Attività con contabilità separata (art. 36 D.P.R. 633/1972): ogni
--- registro o sezionale IVA appartiene a un'attività; liquidazioni
--- periodiche distinte, compensate nel periodo, con la periodicità propria
--- dell'attività se la separazione è obbligatoria
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `attivita_iva` (
-  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `studio_id` INT UNSIGNED NOT NULL,
-  `soggetto_id` INT UNSIGNED NOT NULL,
-  `numero` TINYINT UNSIGNED NOT NULL COMMENT 'Ordine dei moduli della dichiarazione IVA (1 = primo modulo)',
-  `descrizione` VARCHAR(100) NOT NULL,
-  `codice_ateco_id` INT UNSIGNED NULL COMMENT 'Codice attività del rigo VA2 del modulo',
-  `periodicita` CHAR(1) NULL COMMENT 'M mensile, T trimestrale; NULL = periodicità dell''azienda',
-  `regime_detrazione_iva` CHAR(3) NULL COMMENT 'Regime speciale agricolo dell''attività (rigo VF30 del suo modulo)',
-  `opzione_ordinaria` CHAR(3) NULL COMMENT 'Regime agricolo a cui l''attività ha rinunciato per i modi ordinari (quadro VO)',
-  `opzione_dal` SMALLINT UNSIGNED NULL COMMENT 'Primo anno dell''opzione',
-  `opzione_al` SMALLINT UNSIGNED NULL COMMENT 'Ultimo anno dell''opzione, l''anno dopo è quello della revoca',
-  `dal_anno` SMALLINT UNSIGNED NOT NULL,
-  `al_anno` SMALLINT UNSIGNED NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uq_attivita_iva` (`soggetto_id`, `numero`),
-  KEY `idx_attivita_iva_studio` (`studio_id`),
-  CONSTRAINT `fk_attivita_iva_studio` FOREIGN KEY (`studio_id`) REFERENCES `studio` (`id`),
-  CONSTRAINT `fk_attivita_iva_soggetto` FOREIGN KEY (`soggetto_id`) REFERENCES `soggetto` (`id`),
-  CONSTRAINT `fk_attivita_iva_ateco` FOREIGN KEY (`codice_ateco_id`) REFERENCES `codice_ateco` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-COMMENT='Attività IVA con contabilità separata';
 
 -- -----------------------------------------------------
 -- IVA di gruppo (art. 73, c. 3, D.P.R. 633/1972; D.M. 13 dicembre 1979):
@@ -195,14 +200,14 @@ CREATE TABLE IF NOT EXISTS `registro_iva` (
   `descrizione` VARCHAR(100) NOT NULL,
   `attivo` TINYINT(1) NOT NULL DEFAULT 1,
   `unita_locale_id` INT UNSIGNED NULL COMMENT 'Sede operativa (Anagrafica) delle operazioni del registro: regione nel quadro VT',
-  `attivita_iva_id` INT UNSIGNED NULL COMMENT 'Attività con contabilità separata; NULL con attività separate = registro degli acquisti promiscui',
+  `attivita_id` INT UNSIGNED NULL COMMENT 'Attività con contabilità separata; NULL con attività separate = registro degli acquisti promiscui',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_registro_iva` (`soggetto_id`, `tipo`, `sezionale`),
   KEY `idx_registro_iva_studio` (`studio_id`),
   CONSTRAINT `fk_registro_iva_studio` FOREIGN KEY (`studio_id`) REFERENCES `studio` (`id`),
   CONSTRAINT `fk_registro_iva_soggetto` FOREIGN KEY (`soggetto_id`) REFERENCES `soggetto` (`id`),
   CONSTRAINT `fk_registro_iva_unita_locale` FOREIGN KEY (`unita_locale_id`) REFERENCES `indirizzo` (`id`) ON DELETE SET NULL,
-  CONSTRAINT `fk_registro_iva_attivita` FOREIGN KEY (`attivita_iva_id`) REFERENCES `attivita_iva` (`id`) ON DELETE SET NULL
+  CONSTRAINT `fk_registro_iva_attivita` FOREIGN KEY (`attivita_id`) REFERENCES `attivita` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Registri IVA e sezionali delle aziende';
 
@@ -305,12 +310,15 @@ CREATE TABLE IF NOT EXISTS `riga_contabile` (
   `dare` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
   `avere` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
   `descrizione` VARCHAR(255) NULL,
+  `attivita_id` INT UNSIGNED NULL COMMENT 'Attività della riga; NULL = comune a più attività (o soggetto con un''attività sola)',
+  `ripartizione` VARCHAR(255) NULL COMMENT 'Righe comuni: numero attività e percentuale (es. 1:60;2:40)',
   PRIMARY KEY (`id`),
   KEY `idx_riga_contabile_registrazione` (`registrazione_contabile_id`, `ordine`),
   KEY `idx_riga_contabile_conto` (`conto_id`, `data_registrazione`),
   KEY `idx_riga_contabile_soggetto` (`soggetto_id`, `data_registrazione`),
   CONSTRAINT `fk_riga_contabile_registrazione` FOREIGN KEY (`registrazione_contabile_id`) REFERENCES `registrazione_contabile` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_riga_contabile_soggetto` FOREIGN KEY (`soggetto_id`) REFERENCES `soggetto` (`id`),
+  CONSTRAINT `fk_riga_contabile_attivita` FOREIGN KEY (`attivita_id`) REFERENCES `attivita` (`id`),
   CONSTRAINT `fk_riga_contabile_conto` FOREIGN KEY (`conto_id`) REFERENCES `conto` (`id`),
   CONSTRAINT `fk_riga_contabile_controparte` FOREIGN KEY (`controparte_id`) REFERENCES `controparte` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
@@ -408,7 +416,8 @@ CREATE TABLE IF NOT EXISTS `riga_iva` (
   `operazione_diversa` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Acquisti in regime agricolo destinati alle operazioni diverse (art. 34, c. 5)',
   `coefficiente_elevato` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Coefficiente di ammortamento oltre il 25%: non ammortizzabile per la rettifica della detrazione (art. 19-bis2, c. 5)',
   `aliquota_teorica` DECIMAL(5,2) NULL COMMENT 'Acquisti con dichiarazione d''intento: aliquota dell''IVA non assolta (VF35)',
-  `ripartizione` VARCHAR(255) NULL COMMENT 'Acquisti promiscui tra attività separate: numero attività e percentuale (es. 1:60;2:40)',
+  `ripartizione` VARCHAR(255) NULL COMMENT 'Acquisti promiscui tra le attività (separate o commerciale e istituzionale): numero attività e percentuale (es. 1:60;2:40)',
+  `quota_commerciale` DECIMAL(9,6) NULL COMMENT 'Enti non commerciali: quota imputabile all''attività commerciale (IVA detraibile, art. 19-ter); NULL = per intero',
   PRIMARY KEY (`id`),
   KEY `idx_riga_iva_registrazione` (`registrazione_contabile_id`, `ordine`),
   KEY `idx_riga_iva_soggetto` (`soggetto_id`, `data_competenza_iva`),
@@ -495,7 +504,7 @@ COMMENT='Liquidazioni periodiche IVA';
 CREATE TABLE IF NOT EXISTS `liquidazione_attivita` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `liquidazione_iva_id` INT UNSIGNED NOT NULL,
-  `attivita_iva_id` INT UNSIGNED NOT NULL,
+  `attivita_id` INT UNSIGNED NOT NULL,
   `periodicita` CHAR(1) NOT NULL,
   `periodo` TINYINT UNSIGNED NOT NULL COMMENT 'Mese o trimestre dell''attività',
   `iva_esigibile` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
@@ -504,9 +513,9 @@ CREATE TABLE IF NOT EXISTS `liquidazione_attivita` (
   `percentuale_detrazione` TINYINT UNSIGNED NOT NULL DEFAULT 100,
   `interessi` DECIMAL(15,2) NOT NULL DEFAULT 0.00 COMMENT 'Attività trimestrali: 1% dell''IVA dovuta del trimestre',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uq_liquidazione_attivita` (`liquidazione_iva_id`, `attivita_iva_id`),
+  UNIQUE KEY `uq_liquidazione_attivita` (`liquidazione_iva_id`, `attivita_id`),
   CONSTRAINT `fk_liquidazione_attivita_liquidazione` FOREIGN KEY (`liquidazione_iva_id`) REFERENCES `liquidazione_iva` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_liquidazione_attivita_attivita` FOREIGN KEY (`attivita_iva_id`) REFERENCES `attivita_iva` (`id`)
+  CONSTRAINT `fk_liquidazione_attivita_attivita` FOREIGN KEY (`attivita_id`) REFERENCES `attivita` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Liquidazioni periodiche per attività separata';
 
@@ -545,7 +554,6 @@ CREATE TABLE IF NOT EXISTS `liquidazione_gruppo_iva` (
   CONSTRAINT `fk_liquidazione_gruppo_iva_gruppo` FOREIGN KEY (`gruppo_iva_id`) REFERENCES `gruppo_iva` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Liquidazioni periodiche del gruppo IVA';
-
 
 CREATE TABLE IF NOT EXISTS `acconto_iva` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -713,12 +721,12 @@ CREATE TABLE IF NOT EXISTS `prorata_iva` (
   `percentuale` TINYINT UNSIGNED NOT NULL DEFAULT 100 COMMENT 'Percentuale di detrazione (0-100, arrotondata all''unità)',
   `origine` VARCHAR(30) NULL COMMENT 'Modulo che l''ha proposta (Dichiarativi), NULL se inserita a mano',
   `note` VARCHAR(255) NULL,
-  `attivita_iva_id` INT UNSIGNED NULL COMMENT 'Attività con contabilità separata (pro-rata per attività)',
+  `attivita_id` INT UNSIGNED NULL COMMENT 'Attività con contabilità separata (pro-rata per attività)',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uq_prorata_iva` (`soggetto_id`, `anno`, `attivita_iva_id`),
+  UNIQUE KEY `uq_prorata_iva` (`soggetto_id`, `anno`, `attivita_id`),
   CONSTRAINT `fk_prorata_iva_studio` FOREIGN KEY (`studio_id`) REFERENCES `studio` (`id`),
   CONSTRAINT `fk_prorata_iva_soggetto` FOREIGN KEY (`soggetto_id`) REFERENCES `soggetto` (`id`),
-  CONSTRAINT `fk_prorata_iva_attivita` FOREIGN KEY (`attivita_iva_id`) REFERENCES `attivita_iva` (`id`)
+  CONSTRAINT `fk_prorata_iva_attivita` FOREIGN KEY (`attivita_id`) REFERENCES `attivita` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Pro-rata di detrazione provvisorio per azienda e anno';
 

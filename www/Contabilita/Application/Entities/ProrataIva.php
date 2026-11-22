@@ -25,7 +25,7 @@ class ProrataIva extends BaseEntity
     protected int $percentuale = 100;
     protected ?string $origine = null;
     protected ?string $note = null;
-    protected ?AttivitaIva $attivitaIva = null;
+    protected ?Attivita $attivita = null;
 
     #[\Override]
     protected function setEncryptedProperties(): void

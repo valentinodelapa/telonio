@@ -318,7 +318,7 @@ class PreparazioneLipe
                 $dal = PeriodiIva::getInizio($dettaglio->periodicita, $liquidazione->anno, $dettaglio->periodo);
                 $al = PeriodiIva::getFine($dettaglio->periodicita, $liquidazione->anno, $dettaglio->periodo);
                 foreach ((new RigaIvaModel($this->dataMapper))->getPerPeriodo($liquidazione->soggetto, $dal, $al) as $riga) {
-                    $quota = $separate->getQuote($riga, $liquidazione->soggetto, $liquidazione->anno)[$dettaglio->attivitaIva->numero] ?? 0.0;
+                    $quota = $separate->getQuote($riga, $liquidazione->soggetto, $liquidazione->anno)[$dettaglio->attivita->numero] ?? 0.0;
                     if ($riga->registroIva->tipo === TipoRegistroIva::acquisti) {
                         $passive += $riga->imponibile * $quota;
                     } elseif ((($riga->registroIva->tipo === TipoRegistroIva::corrispettivi) && $riga->codiceIva->ventilazione) === false) {

@@ -17,7 +17,7 @@ class LiquidazioneAttivita extends BaseEntity
 
     protected int $id;
     protected LiquidazioneIva $liquidazioneIva;
-    protected AttivitaIva $attivitaIva;
+    protected Attivita $attivita;
     protected PeriodicitaIva $periodicita;
     protected int $periodo;
     protected float $ivaEsigibile = 0.0;

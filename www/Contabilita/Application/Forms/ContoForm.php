@@ -6,7 +6,6 @@ use Contabilita\Application\Services\RighiIrap;
 use Contabilita\Application\Services\RighiIsa;
 use Contabilita\Application\Services\RighiRedditi;
 use Contabilita\Application\Entities\Conto;
-use Contabilita\Application\Enumerations\DestinazioneConto;
 use Contabilita\Application\Enumerations\LivelloConto;
 use Contabilita\Application\Enumerations\NaturaConto;
 use Contabilita\Application\Models\ContoModel;
@@ -58,7 +57,7 @@ class ContoForm extends BaseForm
                 ->addFilterFieldMode('rigoIrap', FilterType::isMaxLimitString, [8], true)
                 ->addFilterFieldMode('percentualeDeducibile', FilterType::isNumeric, [], true)
                 ->addFilterFieldMode('variazioneRedditi', FilterType::isMaxLimitString, [10], true)
-                ->addFilterFieldMode('destinazione', FilterType::isEnumeration, [], true)
+                ->addFilterFieldMode('attivita', FilterType::isEntity, [], true)
                 ->addFilterFieldMode('attivo', FilterType::isBoolean);
     }
 
@@ -95,13 +94,9 @@ class ContoForm extends BaseForm
             $valido = false;
         }
         $natura = $this->entityData->natura ?? null;
-        $destinazione = $this->entityData->destinazione ?? null;
-        if (($destinazione instanceof DestinazioneConto) && ($natura instanceof NaturaConto) && ($natura->isEconomico() === false)) {
-            $this->formFilterError->destinazioneCustomMessage = 'La destinazione riguarda i conti di costo e di ricavo.';
-            $valido = false;
-        }
-        if (($destinazione === DestinazioneConto::promiscuo) && ($natura === NaturaConto::ricavo)) {
-            $this->formFilterError->destinazioneCustomMessage = "I ricavi sono dell'attività commerciale o di quella istituzionale: promiscui sono solo i costi.";
+        $attivita = $this->entityData->attivita ?? null;
+        if (($attivita !== null) && ($natura instanceof NaturaConto) && ($natura->isEconomico() === false)) {
+            $this->formFilterError->attivitaCustomMessage = "L'attività predefinita riguarda i conti di costo e di ricavo.";
             $valido = false;
         }
         if (($percentuale !== null) && ($natura instanceof NaturaConto) && (in_array($natura, [NaturaConto::costo, NaturaConto::ricavo], true) === false)) {

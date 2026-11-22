@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.39.0-alpha] - 2026-11-22 - Attività del Soggetto come Dimensione della Contabilità
+
+Versioni dei moduli: `Contabilita` 0.18.0, `Dichiarativi` 0.20.0 (richiede `Anagrafica` 0.15.0, `Deleghe` 0.5.0 e `Contabilita` 0.18.0); gli altri invariati.
+
+**Aggiornamento**: `aggiorna.sh` (cioè `sisma aggiorna-database`) esegue `Contabilita/Database/aggiornamento-0.18.sql` e `Dichiarativi/Database/aggiornamento-0.20.sql` (idempotenti). Le attività con contabilità separata (tabella `attivita_iva`) diventano le attività del soggetto (tabella `attivita`, con la natura commerciale). Per gli enti che avevano marcato i conti con la destinazione della 0.38.0 lo script crea le attività commerciale e istituzionale e dà ai conti l'attività predefinita: i conti promiscui diventano comuni. Poi elimina la colonna `conto.destinazione` e assegna alle righe già registrate l'attività del registro IVA o del conto. Nessun passo manuale; le dichiarazioni e le liquidazioni degli enti già elaborate vanno riproposte.
+
+### 🔧 Modifiche
+
+#### `Contabilita` 0.18.0 — attività del soggetto come dimensione unica della contabilità
+
+- **Attività del soggetto** al posto delle attività IVA con contabilità separata e della destinazione dei conti, che diventano due casi dello stesso concetto. Ogni attività ha la **natura** commerciale o istituzionale, e quella istituzionale è ammessa solo per gli enti non commerciali. La contabilità separata dell'IVA (art. 36 D.P.R. 633/1972) c'è quando le attività commerciali sono almeno due.
+- **Attività sulla riga di prima nota**. La riga di costo o ricavo ha la propria attività oppure è comune a più attività. In assenza di scelta riceve l'attività del registro IVA o quella predefinita del conto, che sostituisce la destinazione. In prima nota la si sceglie riga per riga, anche come "comune"; i ricavi non possono essere comuni.
+- **Ripartizione delle righe comuni con il criterio di ciascuna imposta**:
+  - **IVA degli enti non commerciali**: detrazione solo per la quota commerciale degli acquisti, con criteri oggettivi (art. 19-ter D.P.R. 633/1972). Gli acquisti comuni richiedono le quote nella riga IVA, altrimenti la registrazione non si salva. La parte istituzionale dell'IVA va a costo.
+  - **Imposte sui redditi**: le quote della riga, o in mancanza il rapporto tra i ricavi commerciali e il totale dei ricavi e proventi (art. 144, c. 4, TUIR).
+
+#### `Dichiarativi` 0.20.0
+
+- **Modello IVA e IVA TR**: la parte istituzionale degli acquisti degli enti va tra gli acquisti con imposta indetraibile (rigo VF21). I moduli per attività riguardano solo le attività commerciali.
+- **Redditi ENC e IRAP (quadro IE)**: attività commerciale e istituzionale prese dalle righe contabili invece che dai conti.
+- **Dati demo**: l'Associazione Culturale Orizzonti ha le attività commerciale e istituzionale e acquisti con IVA (commerciali e comuni con le quote), con liquidazioni trimestrali e modello IVA 2026.
+
+#### SismaFramework 12.17.0
+
+- **Framework aggiornato** da 12.14.0 a 12.17.0.
+- **Bootstrap del progetto** (deprecazione della 12.16.0): il nuovo `Config/bootstrap.php` carica `Config/configFramework.php` e `vendor/autoload.php`, e `Public/index.php` include il bootstrap al posto dei due file. Il comando `sisma` usa lo stesso bootstrap e non mostra più l'avviso di deprecazione per il caricamento diretto di `configFramework.php`.
+- **Costanti `MINIMUM_*_PHP_VERSION`** rimosse da `Config/configFramework.php`: dalla 12.15.1 il framework le ignora e legge la versione minima di PHP dal proprio `composer.json`.
+
 ## [0.38.0-alpha] - 2026-11-22 - Redditi Enti non Commerciali e IRAP degli Enti
 
 Versioni dei moduli: `Dichiarativi` 0.19.0 (richiede `Anagrafica` 0.15.0, `Deleghe` 0.5.0 e `Contabilita` 0.17.0), `Contabilita` 0.17.0; gli altri invariati.

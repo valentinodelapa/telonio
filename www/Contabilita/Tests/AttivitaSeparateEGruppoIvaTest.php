@@ -5,7 +5,7 @@ namespace Contabilita\Tests;
 use Anagrafica\Application\Entities\DatiFiscali;
 use Anagrafica\Application\Enumerations\PeriodicitaIva;
 use Anagrafica\Application\Enumerations\RegimeFiscale;
-use Contabilita\Application\Entities\AttivitaIva;
+use Contabilita\Application\Entities\Attivita;
 use Contabilita\Application\Entities\GruppoIva;
 use Contabilita\Application\Entities\LiquidazioneGruppoIva;
 use Contabilita\Application\Entities\LiquidazioneIva;
@@ -40,9 +40,9 @@ class AttivitaSeparateEGruppoIvaTest extends ContabilitaTestCase
         return $dati;
     }
 
-    private function attivita(int $id, int $numero, ?PeriodicitaIva $periodicita = null): AttivitaIva
+    private function attivita(int $id, int $numero, ?PeriodicitaIva $periodicita = null): Attivita
     {
-        $attivita = new AttivitaIva($this->dataMapper);
+        $attivita = new Attivita($this->dataMapper);
         $attivita->id = $id;
         $attivita->studio = $this->studioPredefinito;
         $attivita->soggetto = $this->azienda;
@@ -53,7 +53,7 @@ class AttivitaSeparateEGruppoIvaTest extends ContabilitaTestCase
         return $attivita;
     }
 
-    private function registro(int $id, TipoRegistroIva $tipo, string $sezionale, ?AttivitaIva $attivita): RegistroIva
+    private function registro(int $id, TipoRegistroIva $tipo, string $sezionale, ?Attivita $attivita): RegistroIva
     {
         $registro = new RegistroIva($this->dataMapper);
         $registro->id = $id;
@@ -62,7 +62,7 @@ class AttivitaSeparateEGruppoIvaTest extends ContabilitaTestCase
         $registro->tipo = $tipo;
         $registro->sezionale = $sezionale;
         $registro->descrizione = 'Registro ' . $sezionale;
-        $registro->attivitaIva = $attivita;
+        $registro->attivita = $attivita;
         return $registro;
     }
 
@@ -83,8 +83,8 @@ class AttivitaSeparateEGruppoIvaTest extends ContabilitaTestCase
         $ingrosso = $this->attivita(1, 1);
         $negozio = $this->attivita(2, 2, PeriodicitaIva::trimestrale);
         $promiscui = $this->registro(20, TipoRegistroIva::acquisti, 'PR', null);
-        $this->registri['V']->attivitaIva = $ingrosso;
-        $this->registri['A']->attivitaIva = $ingrosso;
+        $this->registri['V']->attivita = $ingrosso;
+        $this->registri['A']->attivita = $ingrosso;
         $venditeNegozio = $this->registro(21, TipoRegistroIva::vendite, 'NG', $negozio);
         $vendita = $this->creaRegistrazione(CausaleContabile::fatturaVendita, null, '2026-03-10');
         $vendita->id = 1;
@@ -106,7 +106,7 @@ class AttivitaSeparateEGruppoIvaTest extends ContabilitaTestCase
         $tributo->sezione = SezioneCodiceTributo::erario;
         $tributo->codice = '6003';
         $tributo->descrizione = 'IVA marzo';
-        $this->rispondiConti(['riga_iva' => $righe, 'attivita_iva' => [$ingrosso, $negozio], 'dati_fiscali' => [$this->creaDatiFiscali()], 'codice_tributo' => [$tributo]]);
+        $this->rispondiConti(['riga_iva' => $righe, 'attivita' => [$ingrosso, $negozio], 'dati_fiscali' => [$this->creaDatiFiscali()], 'codice_tributo' => [$tributo]]);
         $calcolo = new CalcoloLiquidazioneIva($this->dataMapper);
         $risultato = $calcolo->calcola($this->azienda, new SismaDate('2026-03-01'), new SismaDate('2026-03-31'), $ingrosso);
         // 22% di 2.000 a debito, 70% dell'IVA dell'affitto in detrazione; l'acquisto non ripartito è escluso con l'avviso

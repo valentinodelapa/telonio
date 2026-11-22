@@ -3,7 +3,7 @@
 namespace Dichiarativi\Application\Entities;
 
 use Anagrafica\Application\Entities\Soggetto;
-use Contabilita\Application\Entities\AttivitaIva;
+use Contabilita\Application\Entities\Attivita;
 use Dichiarativi\Application\Enumerations\TipoModulo;
 use SismaFramework\Orm\BaseClasses\BaseEntity;
 use SismaFramework\Orm\CustomTypes\SismaDate;
@@ -27,7 +27,7 @@ class ModuloDichiarazione extends BaseEntity
     protected ?Soggetto $soggettoFonte = null;
     protected ?SismaDate $dataOperazione = null;
     protected ?string $descrizione = null;
-    protected ?AttivitaIva $attivitaIva = null;
+    protected ?Attivita $attivita = null;
 
     #[\Override]
     protected function setEncryptedProperties(): void
@@ -43,6 +43,6 @@ class ModuloDichiarazione extends BaseEntity
 
     public function getEtichetta(): string
     {
-        return 'Modulo ' . $this->numero . ' · ' . ($this->descrizione ?? $this->attivitaIva?->getEtichetta() ?? $this->soggettoFonte?->nominativo ?? $this->tipo->getLabel());
+        return 'Modulo ' . $this->numero . ' · ' . ($this->descrizione ?? $this->attivita?->getEtichetta() ?? $this->soggettoFonte?->nominativo ?? $this->tipo->getLabel());
     }
 }

@@ -5,15 +5,19 @@ namespace Contabilita\Application\Services;
 use Anagrafica\Application\Entities\Soggetto;
 use Anagrafica\Application\Enumerations\PeriodicitaIva;
 use Anagrafica\Application\Enumerations\RegimeDetrazioneIva;
-use Contabilita\Application\Entities\AttivitaIva;
+use Contabilita\Application\Entities\Attivita;
 use Contabilita\Application\Entities\RigaIva;
 use Contabilita\Application\Enumerations\TipoRegistroIva;
-use Contabilita\Application\Models\AttivitaIvaModel;
+use Contabilita\Application\Models\AttivitaModel;
 use Contabilita\Application\Models\RegistroIvaModel;
 use SismaFramework\Orm\HelperClasses\DataMapper;
 
 /**
- * Attività con contabilità separata (art. 36 D.P.R. 633/1972): ogni
+ * Attività con contabilità separata dell'IVA (art. 36 D.P.R. 633/1972):
+ * le attività commerciali del soggetto, se sono almeno due (le attività
+ * istituzionali degli enti non commerciali sono fuori dal campo dell'IVA:
+ * la loro parte degli acquisti è indetraibile, RigaIva::quotaCommerciale,
+ * Services\AttivitaSoggetto). Ogni
  * registro o sezionale IVA appartiene a un'attività; le righe dei
  * registri degli acquisti senza attività (acquisti promiscui) si
  * ripartiscono tra le attività con le quote della riga (criteri
@@ -30,7 +34,7 @@ use SismaFramework\Orm\HelperClasses\DataMapper;
 class AttivitaSeparate
 {
 
-    /** @var array<string, AttivitaIva[]> */
+    /** @var array<string, Attivita[]> */
     private array $attivita = [];
 
     public function __construct(private DataMapper $dataMapper = new DataMapper())
@@ -39,11 +43,25 @@ class AttivitaSeparate
     }
 
     /**
-     * @return AttivitaIva[] per numero (vuoto con la contabilità unificata)
+     * Attività commerciali separate dell'anno, se sono almeno due.
+     *
+     * @return Attivita[] per numero (vuoto con la contabilità unificata)
      */
     public function getAttivita(Soggetto $soggetto, int $anno): array
     {
-        return $this->attivita[$soggetto->id . '|' . $anno] ??= (new AttivitaIvaModel($this->dataMapper))->getAttiveNel($soggetto, $anno);
+        return $this->attivita[$soggetto->id . '|' . $anno] ??= self::getSeparate((new AttivitaModel($this->dataMapper))->getAttiveNel($soggetto, $anno));
+    }
+
+    /**
+     * Attività commerciali tra quelle indicate, se sono almeno due.
+     *
+     * @param Attivita[] $attivita per numero
+     * @return Attivita[] per numero
+     */
+    public static function getSeparate(array $attivita): array
+    {
+        $commerciali = array_filter($attivita, fn(Attivita $voce) => $voce->isCommerciale());
+        return count($commerciali) >= 2 ? $commerciali : [];
     }
 
     public function isSeparata(Soggetto $soggetto, int $anno): bool
@@ -51,7 +69,7 @@ class AttivitaSeparate
         return count($this->getAttivita($soggetto, $anno)) > 0;
     }
 
-    public function getPeriodicita(AttivitaIva $attivita, PeriodicitaIva $periodicitaAzienda): PeriodicitaIva
+    public function getPeriodicita(Attivita $attivita, PeriodicitaIva $periodicitaAzienda): PeriodicitaIva
     {
         return $attivita->periodicita ?? $periodicitaAzienda;
     }
@@ -59,7 +77,7 @@ class AttivitaSeparate
     /**
      * Regime speciale agricolo dell'attività o, senza, dell'azienda.
      */
-    public function getRegimeDetrazione(Soggetto $soggetto, int $anno, ?AttivitaIva $attivita = null): ?RegimeDetrazioneIva
+    public function getRegimeDetrazione(Soggetto $soggetto, int $anno, ?Attivita $attivita = null): ?RegimeDetrazioneIva
     {
         return $attivita?->regimeDetrazioneIva ?? (new RegimeIva($this->dataMapper))->getDatiFiscali($soggetto, $anno)?->regimeDetrazioneIva;
     }
@@ -76,7 +94,7 @@ class AttivitaSeparate
         if (count((new RegimeIva($this->dataMapper))->getDatiFiscali($soggetto, $anno)?->getOpzioniOrdinarie() ?? []) > 0) {
             return true;
         }
-        return count(array_filter($this->getAttivita($soggetto, $anno), fn(AttivitaIva $attivita) => $attivita->isOpzioneAttivaNel($anno))) > 0;
+        return count(array_filter($this->getAttivita($soggetto, $anno), fn(Attivita $attivita) => $attivita->isOpzioneAttivaNel($anno))) > 0;
     }
 
     public function hasCompensazione(Soggetto $soggetto, int $anno): bool
@@ -101,7 +119,7 @@ class AttivitaSeparate
         if (count($attivita) === 0) {
             return [0 => 1.0];
         }
-        $propria = $riga->registroIva->attivitaIva;
+        $propria = $riga->registroIva->attivita;
         if (($propria !== null) && isset($attivita[$propria->numero])) {
             return [$propria->numero => 1.0];
         }
@@ -114,6 +132,13 @@ class AttivitaSeparate
                 $quote[$numero] = $percentuale / 100;
             }
         }
+        // enti non commerciali: la parte istituzionale è già esclusa dalla detrazione (quota commerciale della riga), le quote delle attività commerciali si riportano a 1
+        if (($riga->quotaCommerciale !== null) && ($riga->quotaCommerciale > 0) && (abs(array_sum($quote) - $riga->quotaCommerciale) < 0.0001)) {
+            return array_map(fn(float $quota) => $quota / $riga->quotaCommerciale, $quote);
+        }
+        if ($riga->quotaCommerciale === 0.0) {
+            return [array_key_first($attivita) => 1.0];
+        }
         return abs(array_sum($quote) - 1) < 0.0001 ? $quote : [];
     }
 
@@ -121,12 +146,12 @@ class AttivitaSeparate
      * Attività a cui va la ventilazione dei corrispettivi: quella del
      * registro dei corrispettivi (la prima se nessuno è assegnato).
      */
-    public function getAttivitaVentilazione(Soggetto $soggetto, int $anno): ?AttivitaIva
+    public function getAttivitaVentilazione(Soggetto $soggetto, int $anno): ?Attivita
     {
         $attivita = $this->getAttivita($soggetto, $anno);
         foreach ((new RegistroIvaModel($this->dataMapper))->getPerTipo($soggetto, TipoRegistroIva::corrispettivi) as $registro) {
-            if (($registro->attivitaIva !== null) && isset($attivita[$registro->attivitaIva->numero])) {
-                return $attivita[$registro->attivitaIva->numero];
+            if (($registro->attivita !== null) && isset($attivita[$registro->attivita->numero])) {
+                return $attivita[$registro->attivita->numero];
             }
         }
         return count($attivita) === 0 ? null : $attivita[array_key_first($attivita)];

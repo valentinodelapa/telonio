@@ -64,17 +64,17 @@ esistente:
    `riga_iva.natura_inversione`, `riga_iva.qualifica`,
    `riga_iva.aliquota_teorica`, `riga_iva.ripartizione`,
    `registrazione_contabile.importazione`, `registro_iva.unita_locale_id`,
-   `registro_iva.attivita_iva_id`, `liquidazione_iva.trimestre_anticipato`,
+   `registro_iva.attivita_id`, `liquidazione_iva.trimestre_anticipato`,
    `liquidazione_iva.trimestre_separato`, `liquidazione_iva.credito_trimestrale`,
    `liquidazione_iva.gruppo_iva_id`, `acconto_iva.gruppo_iva_id`,
    `comunicazione_lipe.gruppo_iva_id`, `modulo_lipe.liquidazione_gruppo_iva_id`,
-   tabelle `prorata_iva`, `attivita_iva`, `gruppo_iva` e
+   tabelle `prorata_iva`, `attivita`, `gruppo_iva` e
    `liquidazione_gruppo_iva`; `liquidazione_attivita` e
    `partecipante_gruppo_iva` le crea `schema.sql`; per quelli della versione
    0.3 `Contabilita/Database/aggiornamento-0.4.sql`: tabella
    `credito_trimestrale_iva`, con i crediti già annotati sulle liquidazioni,
    colonne `riga_iva.percentuale_compensazione`, `riga_iva.operazione_diversa`,
-   `attivita_iva.regime_detrazione_iva`)
+   `attivita.regime_detrazione_iva`)
 2. `Contabilita/Database/dati-riferimento.sql` (piano dei conti standard e
    codici IVA della suite, generato da `sisma tabelle-contabilita --sql`)
 
@@ -134,18 +134,18 @@ Le fixture (`sisma fixtures`) coprono tutte le funzioni del modulo:
 | Entità | Contenuto |
 |---|---|
 | `PianoConti` | piano modello della suite (senza studio né soggetto, id sotto 1000), modello dello studio (con lo studio) o piano dell'azienda (con il soggetto, uno per azienda), con il modello da cui è copiato |
-| `Conto` | mastro (`NN`), conto (`NN.NN`) o sottoconto (`NN.NN.NNNN`) con il conto superiore (`parentConto`, entità autoreferenziata del framework), natura, funzione nelle proposte e voce CEE |
+| `Conto` | mastro (`NN`), conto (`NN.NN`) o sottoconto (`NN.NN.NNNN`) con il conto superiore (`parentConto`, entità autoreferenziata del framework), natura, funzione nelle proposte, voce CEE e attività predefinita delle righe |
 | `CodiceIva` | aliquota o natura (N1-N7), detraibilità proposta, integrazione dell'imposta (inversione contabile) o corrispettivi da ventilare; della suite (id sotto 1000) o dello studio |
 | `EsercizioContabile` | esercizio dell'azienda per anno di chiusura, con le date e lo stato chiuso |
 | `RegistroIva` | registro vendite, acquisti o corrispettivi dell'azienda, principale o sezionale, con l'eventuale unità locale (sede operativa dell'Anagrafica) delle sue operazioni e l'attività separata a cui appartiene |
-| `AttivitaIva` | attività con contabilità separata (art. 36): numero (ordine dei moduli della dichiarazione IVA), codice ATECO, periodicità propria, anni |
+| `Attivita` | attività del soggetto con la natura commerciale o istituzionale (enti non commerciali); con almeno due commerciali, contabilità separata dell'IVA (art. 36): numero (ordine dei moduli della dichiarazione IVA), codice ATECO, periodicità propria, anni |
 | `LiquidazioneAttivita` | liquidazione di un'attività separata compresa nella liquidazione dell'azienda: periodo dell'attività, IVA esigibile e detraibile, pro-rata, interessi |
 | `GruppoIva` | opzione della controllante per la liquidazione IVA di gruppo (art. 73, c. 3), dal primo anno fino alla revoca, con il soggetto che possiede la maggioranza della controllante (VG1) |
 | `PartecipanteGruppoIva` | controllata del gruppo: anno di ingresso e di uscita, cessazione del controllo in corso d'anno, possesso (data, percentuale, detentore), sola catena di controllo |
 | `LiquidazioneGruppoIva` | liquidazione periodica del gruppo: debiti, crediti e interessi trasferiti, riporti, credito di gruppo dell'anno precedente, acconto, dovuto o credito |
 | `Controparte` | cliente o fornitore dell'azienda con dati fiscali, sede, recapiti per la fatturazione, pubblica amministrazione (scissione dei pagamenti), sottoconti del partitario, costo o ricavo e codice IVA abituali |
 | `RegistrazioneContabile` | registrazione di prima nota: numero nell'esercizio, causale, documento, controparte e, per i documenti IVA, registro, protocollo, data di competenza ed esigibilità, imposta di bollo virtuale delle fatture emesse; origine e riferimento per le registrazioni generate |
-| `RigaContabile` | riga in partita doppia sul sottoconto, con la controparte delle righe del partitario |
+| `RigaContabile` | riga in partita doppia sul sottoconto, con la controparte delle righe del partitario e l'attività (o comune, con le eventuali quote) |
 | `Partita` | partita del partitario: controparte e sottoconto, registrazione che la apre, tipo (documento, insoluto con il documento riaperto, acconto, nota di credito da abbinare), documento, scadenza e importo |
 | `Abbinamento` | chiusura di una partita da parte di una registrazione: data, importo, modo (incasso o pagamento, ritenuta, compensazione, nota di credito, acconto, abbuono o perdita), partita collegata (acconto o nota usati) e flag "automatico" della migrazione |
 | `RigaIva` | riga del registro: codice IVA, imponibile e imposta con il segno del documento, detraibilità, acquisto per rivendita (ventilazione) e di altri prodotti, qualifica, aliquota teorica, ripartizione degli acquisti promiscui tra le attività, contropartita |
@@ -233,21 +233,48 @@ criterio e la parte deducibile) per voce del conto economico CEE dei
 conti, per i righi del quadro F del modello ISA che distinguono i costi
 per natura (servizi, godimento di beni di terzi, oneri diversi...).
 
-### Enti non commerciali: attività commerciale e istituzionale
+### Attività del soggetto
 
-Gli enti non commerciali tengono un'unica contabilità con l'attività
-commerciale separata per conti (art. 144, c. 2, TUIR): la **destinazione**
-del conto economico (`Enumerations\DestinazioneConto`) è commerciale,
-istituzionale o promiscua; i conti senza destinazione (le imprese non la
-indicano) sono commerciali, e i sottoconti nuovi ereditano quella del
-conto superiore. `ComponentiReddito` considera, per cassa e per
-competenza, solo i conti commerciali e la quota dei costi promiscui pari
-al rapporto tra i ricavi dei conti commerciali e il totale dei ricavi e
-proventi dello stesso calcolo (art. 144, c. 4, TUIR; `getQuotaPromiscui`,
-`calcolaQuotaPromiscui`); i ricavi non possono essere promiscui. I conti
-istituzionali e la parte non commerciale dei promiscui sono in
-`getPerVoceCeeIstituzionale`, per voce CEE (base retributiva IRAP
-dell'attività istituzionale nel modulo Dichiarativi).
+Le **attività** del soggetto (`Entities\Attivita`, nella pagina dei
+registri IVA) sono la dimensione unica con cui la contabilità separa le
+operazioni per l'IVA, le imposte sui redditi, l'IRAP e gli ISA: un
+soggetto senza attività ne ha una sola implicita. Ogni attività ha la
+**natura** (`Enumerations\NaturaAttivita`): commerciale (con almeno due
+attività commerciali è la contabilità separata dell'IVA, art. 36 D.P.R.
+633/1972, vedi sotto) o istituzionale, propria degli enti non commerciali
+(art. 144, c. 2, TUIR e art. 19-ter D.P.R. 633/1972: fuori dal campo
+dell'IVA e dal reddito d'impresa).
+
+Ogni **riga contabile** di costo o ricavo ha l'attività o è **comune** a
+più attività (`Services\AttivitaSoggetto`). Al salvataggio la riga riceve
+l'attività del registro IVA della registrazione o, in mancanza, l'attività
+predefinita del conto (campo della scheda del conto, ereditato dai
+sottoconti nuovi); in prima nota la si sceglie riga per riga, anche come
+"comune" (la riga non riceve proposte). I ricavi non possono essere
+comuni. Le righe comuni hanno facoltativamente le quote per attività
+(criteri oggettivi), copiate dalla riga IVA dello stesso conto.
+
+Le righe comuni si ripartiscono con il criterio di ciascuna imposta:
+
+- **IVA** degli enti non commerciali: detrazione solo per la quota
+  dell'acquisto imputabile all'attività commerciale, determinata con
+  criteri oggettivi coerenti con la natura dei beni e servizi (art.
+  19-ter D.P.R. 633/1972 nel testo vigente dal 13 dicembre 2025 al 31
+  dicembre 2026; dal 2027 Testo unico IVA). L'acquisto nel registro di
+  un'attività è commerciale o istituzionale per intero; quello di un
+  registro senza attività (acquisti comuni) richiede le quote della riga
+  IVA, altrimenti la registrazione non si salva. La quota commerciale
+  (`RigaIva::quotaCommerciale`) riduce l'imposta detraibile: la parte
+  istituzionale va a costo e nel modello IVA tra gli acquisti con imposta
+  indetraibile (rigo VF21);
+- **imposte sui redditi** (`ComponentiReddito`, per cassa e per
+  competenza): righe commerciali per intero, istituzionali escluse, comuni
+  con le quote o, senza, con il rapporto tra i ricavi commerciali e il
+  totale dei ricavi e proventi dello stesso calcolo (art. 144, c. 4, TUIR;
+  `getFattore`, `getQuotaPromiscui`, `calcolaQuotaPromiscui`); le righe
+  istituzionali e la parte non commerciale delle comuni sono in
+  `getPerVoceCeeIstituzionale`, per voce CEE (base retributiva IRAP
+  dell'attività istituzionale nel modulo Dichiarativi).
 `BeniStrumentali` ricava dal registro dei cespiti il valore dei beni
 strumentali dell'anno (costo ragguagliato ai giorni di possesso, senza
 immobili e avviamento, con le riduzioni delle istruzioni ISA) e le quote
@@ -684,8 +711,10 @@ Altri dati delle registrazioni IVA usati dalla dichiarazione annuale:
 
 ## Attività con contabilità separata
 
-Le attività gestite con contabilità separata per obbligo o per opzione
-(art. 36 D.P.R. 633/1972; `AttivitaIva`, nella pagina dei registri) hanno
+Le attività commerciali gestite con contabilità separata per obbligo o
+per opzione (art. 36 D.P.R. 633/1972; `Attivita`, nella pagina dei
+registri; almeno due attività commerciali: l'attività istituzionale degli
+enti non commerciali non è un'attività separata dell'IVA) hanno
 ciascuna i propri registri e sezionali: ogni registro appartiene a
 un'attività e un registro degli acquisti senza attività raccoglie gli
 acquisti promiscui, ripartiti riga per riga con le percentuali delle

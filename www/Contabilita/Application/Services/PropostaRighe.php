@@ -57,6 +57,8 @@ class PropostaRighe
     {
         $this->piano = $piano;
         $this->righe = [];
+        // enti non commerciali: l'IVA della parte istituzionale degli acquisti non è detraibile e va a costo
+        (new AttivitaSoggetto($this->dataMapper))->applicaQuotaCommerciale($registrazione, $righeIva);
         $controparte = $registrazione->controparte;
         $partitario = new Partitario($this->dataMapper);
         $causale = $registrazione->causale;

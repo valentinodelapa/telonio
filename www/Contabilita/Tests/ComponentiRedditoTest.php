@@ -2,11 +2,12 @@
 
 namespace Contabilita\Tests;
 
+use Contabilita\Application\Entities\Attivita;
 use Contabilita\Application\Entities\Conto;
 use Contabilita\Application\Entities\RegistrazioneContabile;
 use Contabilita\Application\Entities\RigaContabile;
 use Contabilita\Application\Enumerations\CausaleContabile;
-use Contabilita\Application\Enumerations\DestinazioneConto;
+use Contabilita\Application\Enumerations\NaturaAttivita;
 use Contabilita\Application\Enumerations\NaturaConto;
 use Contabilita\Application\Enumerations\FunzioneConto;
 use Contabilita\Application\Enumerations\VoceCee;
@@ -124,12 +125,26 @@ class ComponentiRedditoTest extends ContabilitaTestCase
         $this->assertEquals(['RF18' => 60.0, 'RF55:99' => 200.0], $servizio->perCompetenza($this->azienda, 2025)['variazioni']);
     }
 
-    public function testDestinazioneDeiContiDellEnteNonCommerciale(): void
+    private function attivita(int $id, int $numero, NaturaAttivita $natura): Attivita
     {
+        $attivita = new Attivita($this->dataMapper);
+        $attivita->id = $id;
+        $attivita->studio = $this->azienda->studio;
+        $attivita->soggetto = $this->azienda;
+        $attivita->numero = $numero;
+        $attivita->descrizione = $natura->getLabel();
+        $attivita->natura = $natura;
+        $attivita->dalAnno = 2020;
+        return $attivita;
+    }
+
+    public function testAttivitaDelleRigheDellEnteNonCommerciale(): void
+    {
+        $commerciale = $this->attivita(301, 1, NaturaAttivita::commerciale);
+        $istituzionale = $this->attivita(302, 2, NaturaAttivita::istituzionale);
         $banca = $this->conti[FunzioneConto::banca->value];
         $ricavi = $this->conti[FunzioneConto::ricavi->value];
         $ricavi->voceCee = VoceCee::economicoA1;
-        $ricavi->destinazione = DestinazioneConto::commerciale;
         $quote = new Conto($this->dataMapper);
         $quote->id = 200001;
         $quote->pianoConti = $this->piano;
@@ -137,24 +152,28 @@ class ComponentiRedditoTest extends ContabilitaTestCase
         $quote->descrizione = 'Quote associative';
         $quote->natura = NaturaConto::ricavo;
         $quote->voceCee = VoceCee::economicoA5;
-        $quote->destinazione = DestinazioneConto::istituzionale;
         $consulenze = $this->conti['22.01.0001'];
         $consulenze->voceCee = VoceCee::economicoB7;
-        $consulenze->destinazione = DestinazioneConto::promiscuo;
         $acquisti = $this->conti[FunzioneConto::costi->value];
         $acquisti->voceCee = VoceCee::economicoB6;
-        $acquisti->destinazione = DestinazioneConto::istituzionale;
-        $righe = array_merge(
-                $this->registra(CausaleContabile::giroconto, '2025-03-10', [[$banca, 6000, 0], [$ricavi, 0, 6000]], false),
-                $this->registra(CausaleContabile::giroconto, '2025-03-11', [[$banca, 4000, 0], [$quote, 0, 4000]], false),
-                $this->registra(CausaleContabile::giroconto, '2025-05-05', [[$consulenze, 1000, 0], [$banca, 0, 1000]], false),
-                $this->registra(CausaleContabile::giroconto, '2025-05-06', [[$acquisti, 500, 0], [$banca, 0, 500]], false),
-        );
+        $ricaviCommerciali = $this->registra(CausaleContabile::giroconto, '2025-03-10', [[$banca, 6000, 0], [$ricavi, 0, 6000]], false);
+        $quoteAssociative = $this->registra(CausaleContabile::giroconto, '2025-03-11', [[$banca, 4000, 0], [$quote, 0, 4000]], false);
+        $comune = $this->registra(CausaleContabile::giroconto, '2025-05-05', [[$consulenze, 1000, 0], [$banca, 0, 1000]], false);
+        $costoIstituzionale = $this->registra(CausaleContabile::giroconto, '2025-05-06', [[$acquisti, 500, 0], [$banca, 0, 500]], false);
+        $ricaviCommerciali[1]->attivita = $commerciale;
+        $quoteAssociative[1]->attivita = $istituzionale;
+        $costoIstituzionale[0]->attivita = $istituzionale;
+        $righe = array_merge($ricaviCommerciali, $quoteAssociative, $comune, $costoIstituzionale);
         $servizio = new ComponentiReddito($this->dataMapper);
-        $this->testAdapter->impostaSelectCallback(fn(string $cmd) => new TestResultSet(preg_match('/FROM\W+esercizio_contabile\W/', $cmd) === 1 ? [] : $righe));
-        // promiscui al 60 per cento (6.000 di ricavi commerciali su 10.000 di ricavi e proventi), istituzionali esclusi
+        $this->testAdapter->impostaSelectCallback(fn(string $cmd) => new TestResultSet(match (true) {
+            preg_match('/FROM\W+esercizio_contabile\W/', $cmd) === 1 => [],
+            preg_match('/FROM\W+attivita\W/', $cmd) === 1 => [$commerciale, $istituzionale],
+            default => $righe,
+        }));
+        // riga comune senza quote al 60 per cento (6.000 di ricavi commerciali su 10.000 di ricavi e proventi), istituzionali esclusi
         $this->assertSame(['ricavi' => 6000.0, 'costi' => 600.0, 'utile' => 5400.0, 'variazioni' => []], $servizio->perCompetenza($this->azienda, 2025));
         $this->assertSame(0.6, $servizio->getQuotaPromiscui());
+        $this->assertSame(0.6, $servizio->getFattore($comune[0]));
         $this->assertSame(['E.A.1' => 6000.0, 'E.B.7' => 600.0], $servizio->getPerVoceCee());
         $this->assertEquals(['E.A.5' => 4000.0, 'E.B.7' => 400.0, 'E.B.6' => 500.0], $servizio->getPerVoceCeeIstituzionale());
         // per cassa (quadro RG) lo stesso criterio
@@ -163,9 +182,18 @@ class ComponentiRedditoTest extends ContabilitaTestCase
         $this->assertSame(6000.0, $componenti['RG2']);
         $this->assertSame(600.0, $componenti['RG22:99']);
         $this->assertSame(0.0, $componenti['RG5'] ?? 0.0);
-        // senza destinazioni (imprese) nessuna quota
-        foreach ([$ricavi, $quote, $consulenze, $acquisti] as $conto) {
-            $conto->destinazione = null;
+        // riga comune con le quote (criteri oggettivi): 30 per cento all'attività commerciale
+        $comune[0]->ripartizione = '1:30;2:70';
+        $this->testAdapter->impostaSelectCallback(fn(string $cmd) => new TestResultSet(match (true) {
+            preg_match('/FROM\W+esercizio_contabile\W/', $cmd) === 1 => [],
+            preg_match('/FROM\W+attivita\W/', $cmd) === 1 => [$commerciale, $istituzionale],
+            default => $righe,
+        }));
+        $this->assertSame(300.0, $servizio->perCompetenza($this->azienda, 2025)['costi']);
+        // senza attività (imprese) nessuna quota
+        foreach ($righe as $riga) {
+            $riga->attivita = null;
+            $riga->ripartizione = null;
         }
         $this->testAdapter->impostaSelectCallback(fn(string $cmd) => new TestResultSet(preg_match('/FROM\W+esercizio_contabile\W/', $cmd) === 1 ? [] : $righe));
         $this->assertSame(10000.0, $servizio->perCompetenza($this->azienda, 2025)['ricavi']);

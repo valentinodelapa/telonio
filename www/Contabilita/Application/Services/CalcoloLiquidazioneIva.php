@@ -4,7 +4,7 @@ namespace Contabilita\Application\Services;
 
 use Anagrafica\Application\Entities\Soggetto;
 use Anagrafica\Application\Enumerations\RegimeDetrazioneIva;
-use Contabilita\Application\Entities\AttivitaIva;
+use Contabilita\Application\Entities\Attivita;
 use Contabilita\Application\Entities\RigaIva;
 use Contabilita\Application\Enumerations\EsigibilitaIva;
 use Contabilita\Application\Enumerations\QualificaOperazione;
@@ -53,7 +53,7 @@ class CalcoloLiquidazioneIva
 
     }
 
-    public function calcola(Soggetto $soggetto, SismaDate $dal, SismaDate $al, ?AttivitaIva $attivita = null): RisultatoLiquidazione
+    public function calcola(Soggetto $soggetto, SismaDate $dal, SismaDate $al, ?Attivita $attivita = null): RisultatoLiquidazione
     {
         $risultato = new RisultatoLiquidazione();
         $nonRipartite = [];

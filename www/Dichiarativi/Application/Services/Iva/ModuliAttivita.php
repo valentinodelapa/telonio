@@ -38,8 +38,8 @@ class ModuliAttivita
         $moduli = (new ModuloDichiarazioneModel($this->dataMapper))->getModuli($dichiarazione);
         $collegati = $altri = [];
         foreach ($moduli as $modulo) {
-            if ($modulo->attivitaIva !== null) {
-                $collegati[$modulo->attivitaIva->id] = $modulo;
+            if ($modulo->attivita !== null) {
+                $collegati[$modulo->attivita->id] = $modulo;
             } else {
                 $altri[] = $modulo;
             }
@@ -52,7 +52,7 @@ class ModuliAttivita
                 $modulo = new ModuloDichiarazione($this->dataMapper);
                 $modulo->dichiarazione = $dichiarazione;
                 $modulo->tipo = TipoModulo::attivitaSeparata;
-                $modulo->attivitaIva = $singola;
+                $modulo->attivita = $singola;
                 $modulo->numero = 0;
             }
             $nuovi[$indice + 2] = $modulo;

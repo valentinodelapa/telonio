@@ -99,7 +99,8 @@
                 "aliquotaTeorica": "Aliq. teor.",
                 "importazione": "Importazione (documento doganale)",
                 "unitaLocale": "Unità locale (luogo di esercizio)",
-                "attivitaIva": "Attività",
+                "attivita": "Attività",
+                "naturaAttivita": "Natura",
                 "numeroAttivita": "Numero (ordine dei moduli)",
                 "codiceAteco": "Codice ATECO 2025",
                 "periodicitaAttivita": "Periodicità dell'attività",
@@ -175,7 +176,7 @@
                 "limiteCostoFiscale": "Costo fiscale massimo",
                 "rigoIsa": "Rigo del quadro F dei modelli ISA",
                 "rigoIrap": "Variazione del valore della produzione IRAP (quadro IC)",
-                "destinazione": "Destinazione (enti non commerciali)"
+                "attivitaConto": "Attività predefinita delle righe"
             },
             "azioni": {
                 "salva": "Salva",
@@ -250,7 +251,10 @@
             "corrispettiviMese": "Corrispettivi del mese",
             "periodicitaAzienda": "Periodicità dell'azienda",
             "registroPromiscuo": "Acquisti promiscui (ripartiti tra le attività)",
-            "aiutoRipartizione": "Acquisti promiscui: percentuale attribuita all'attività",
+            "aiutoRipartizione": "Acquisti promiscui (comuni a più attività): percentuale attribuita all'attività, con criteri oggettivi",
+            "attivitaAutomatica": "Dal registro o dal conto",
+            "attivitaComuneRiga": "Comune a più attività",
+            "aiutoAttivitaRiga": "Attività della riga: proposta dal registro IVA o dall'attività predefinita del conto; comune per i costi di più attività (per i redditi degli enti si ripartiscono con il rapporto tra i ricavi commerciali e il totale dei ricavi e proventi, art. 144, c. 4, TUIR; per l'IVA degli acquisti degli enti indicare le quote nella riga IVA, art. 19-ter D.P.R. 633/1972). I ricavi hanno sempre l'attività.",
             "trasferitaAlGruppo": "Risultato trasferito alla liquidazione IVA di gruppo della controllante %s: nessun versamento della società.",
             "gruppoBadge": "gruppo"
         },
@@ -304,8 +308,8 @@
                 "aiuto": "Il codice indica il livello: NN mastro, NN.NN conto, NN.NN.NNNN sottoconto (si registra solo sui sottoconti). La funzione indica il conto alle proposte automatiche della prima nota; la voce CEE lo raccorda allo schema di bilancio.",
                 "rigoDallaVoce": "Dalla voce di bilancio",
                 "nessunaVariazioneIrap": "Nessuna variazione",
-                "destinazioneCommerciale": "Attività commerciale (imprese)",
-                "aiutoDestinazione": "Per gli enti non commerciali, che tengono un'unica contabilità con l'attività commerciale separata per conti (art. 144 del TUIR): i conti dell'attività istituzionale non concorrono al reddito d'impresa né alla base IRAP dell'attività commerciale; i costi promiscui sono deducibili per la parte corrispondente al rapporto tra i ricavi commerciali e il totale dei ricavi e proventi. Le imprese lasciano il campo vuoto.",
+                "attivitaComune": "Nessuna: righe comuni a più attività",
+                "aiutoAttivitaConto": "Per le aziende con più attività (attività separate dell'IVA, attività commerciale e istituzionale degli enti non commerciali): attività proposta alle righe registrate sul conto, modificabile in prima nota. Senza attività le righe sono comuni e si ripartiscono con il criterio di ciascuna imposta (per i redditi degli enti il rapporto tra i ricavi commerciali e il totale dei ricavi e proventi, art. 144, c. 4, TUIR).",
                 "aiutoRigoIrap": "Per le società di capitali (quadro IC del modello IRAP): i costi e i ricavi del conto nell'anno sono indeducibili (variazioni in aumento) o non imponibili (variazioni in diminuzione) ai fini IRAP. Per esempio i compensi agli amministratori non professionisti e ai collaboratori coordinati e continuativi (rigo IC43) e l'IMU (rigo IC46).",
                 "aiutoPercentualeDeducibile": "Per i costi deducibili in parte (es. 20 per le auto, 80 per la telefonia) o i ricavi imponibili in parte; vuota se interamente deducibile o imponibile. Nei quadri RG ed RE conta solo la parte deducibile o imponibile.",
                 "variazioneAltre": "RF31 o RF55 codice 99 (altre variazioni)",
@@ -418,10 +422,10 @@
                 "principale": "principale",
                 "stampaMese": "Stampa del mese",
                 "corrispettiviMese": "Corrispettivi del mese",
-                "titoloAttivita": "Attività con contabilità separata (art. 36)",
-                "aiutoAttivitaSeparate": "Ogni registro o sezionale appartiene a un'attività; liquidazioni distinte e compensate nel periodo, un modulo della dichiarazione IVA per attività.",
+                "titoloAttivita": "Attività",
+                "aiutoAttivitaSeparate": "Attività commerciali (con almeno due, contabilità separata dell'IVA: ogni registro o sezionale appartiene a un'attività, liquidazioni distinte e compensate nel periodo, un modulo della dichiarazione IVA per attività) e istituzionale degli enti non commerciali; l'attività si indica sui registri, sui conti (attività predefinita) e sulle righe di prima nota.",
                 "nuovaAttivita": "Nuova attività",
-                "contabilitaUnificata": "Contabilità unificata: nessuna attività separata."
+                "contabilitaUnificata": "Un'attività sola: nessuna attività indicata."
             },
             "form": {
                 "aiuto": "Tipo e sezionale non si modificano dopo la creazione.",
@@ -596,9 +600,10 @@
                 "confermaAnnulla": "Annullare la stampa definitiva? Le pagine già stampate andranno distrutte."
             }
         },
-        "attivitaIva": {
+        "attivita": {
             "form": {
-                "aiuto": "Attività gestita con contabilità separata per obbligo di legge o per opzione (art. 36 D.P.R. 633/1972; dal 2027 art. 63 D.Lgs. 10/2026). Il numero dà l'ordine dei moduli della dichiarazione IVA.",
+                "aiuto": "Attività del soggetto: con almeno due attività commerciali è la contabilità separata dell'IVA per obbligo di legge o per opzione (art. 36 D.P.R. 633/1972; dal 2027 art. 63 D.Lgs. 10/2026) e il numero dà l'ordine dei moduli della dichiarazione IVA. Gli enti non commerciali hanno anche l'attività istituzionale (art. 144 TUIR, art. 19-ter D.P.R. 633/1972). Le righe di prima nota hanno l'attività o sono comuni.",
+                "aiutoNatura": "Commerciale: operazioni IVA e reddito d'impresa. Istituzionale (solo enti non commerciali): fuori dal campo dell'IVA, IVA degli acquisti indetraibile, costi fuori dal reddito d'impresa, retribuzioni nella base retributiva IRAP.",
                 "aiutoAteco": "Codice del rigo VA2 del modulo dell'attività.",
                 "aiutoPeriodicita": "Solo se la separazione è obbligatoria e il volume d'affari dell'attività ne determina una diversa da quella dell'azienda: le attività trimestrali si liquidano nel mese di fine trimestre (liquidazione anticipata)."
             }

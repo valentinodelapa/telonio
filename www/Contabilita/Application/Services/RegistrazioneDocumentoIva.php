@@ -78,7 +78,7 @@ final class RegistrazioneDocumentoIva
         }
         $piano = (new PianoContiModel($dataMapper))->getPerAzienda($soggetto);
         $righe = (new PropostaRighe($dataMapper))->proponi($piano, $registrazione, $righeIva);
-        $errori = (new ControlloRegistrazione())->verifica($piano, $registrazione, $righeIva, $righe);
+        $errori = (new ControlloRegistrazione(new AttivitaSoggetto($dataMapper)))->verifica($piano, $registrazione, $righeIva, $righe);
         if (count($errori) > 0) {
             throw new \DomainException('Registrazione non valida: ' . implode(' ', $errori));
         }

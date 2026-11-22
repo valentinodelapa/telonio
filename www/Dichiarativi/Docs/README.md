@@ -1293,11 +1293,15 @@ IRES premiale; impegno nelle posizioni di Redditi SC). I modelli ISA
 allegati hanno il codice modello 8, 9 o 10 (quadro RE, RF o RG, specifiche
 ISA 2026).
 
-L'attività commerciale si ricava dalla contabilità dell'ente con la
-destinazione dei conti (`Contabilita`, `DestinazioneConto`): concorrono i
-conti commerciali e la quota dei costi promiscui pari al rapporto tra i
-ricavi commerciali e il totale dei ricavi e proventi (art. 144, c. 4,
-TUIR), indicata tra gli avvisi della proposta.
+L'attività commerciale si ricava dalla contabilità dell'ente con le
+attività delle righe (`Contabilita`, `Attivita`: attività commerciale e
+istituzionale): concorrono le righe commerciali e la parte commerciale
+delle righe comuni, con le quote o con il rapporto tra i ricavi
+commerciali e il totale dei ricavi e proventi (art. 144, c. 4, TUIR),
+indicato tra gli avvisi della proposta. Per l'IVA degli acquisti comuni
+contano le quote della riga IVA (art. 19-ter D.P.R. 633/1972): la parte
+istituzionale è indetraibile nelle liquidazioni e nel modello IVA (rigo
+VF21).
 
 ### Proposta (`Redditi\PropostaRedditiEnc`)
 
@@ -1382,10 +1386,11 @@ XSD (verificato nei test).
 - **Quadro IE** (enti non commerciali): sezione I, attività istituzionale
   con il metodo retributivo (art. 10, c. 1): retribuzioni della voce B9a e
   compensi di lavoro autonomo occasionale ai percipienti con la causale CU
-  "M", dei conti istituzionali e della parte non commerciale dei costi
-  promiscui (tutta la contabilità per gli enti senza partita IVA; redditi
-  assimilati del rigo IE2 a mano); sezione II, attività commerciale (art.
-  5) dalle voci CEE dei conti commerciali, con le variazioni dei conti del
+  "M", delle righe dell'attività istituzionale e della parte non
+  commerciale delle righe comuni (tutta la contabilità per gli enti senza
+  partita IVA; redditi assimilati del rigo IE2 a mano); sezione II,
+  attività commerciale (art. 5) dalle voci CEE delle righe commerciali e
+  della parte commerciale delle comuni, con le variazioni dei conti del
   piano nei righi corrispondenti (IC43-IC48 nei righi IE20-IE25, altre
   variazioni nei righi IE26 e IE30); sezione III per i regimi forfetari
   (reddito forfetario dal rigo RG31 della dichiarazione Redditi ENC,
@@ -1530,13 +1535,16 @@ dichiarazioni non hanno versamenti né crediti propri.
   certificazioni e modello 770/2026
   con i righi ST di maggio e ottobre;
 - **ente non commerciale 2026** (`RedditiEnc2025Fixture`): Associazione
-  Culturale Orizzonti di Bologna in contabilità semplificata con la
-  destinazione dei conti: corsi a pagamento (30.000 euro) e docente
-  occasionale (8.000) dell'attività commerciale, quote associative
-  (20.000), segretaria dipendente (18.000) e relatore occasionale (2.000)
-  di quella istituzionale, energia elettrica promiscua (5.000, deducibile
-  al 60 per cento); Redditi ENC con il quadro RG (19.000 euro), l'IRES e il
-  quadro RO della presidente, IRAP con il quadro IE (sezioni I, II e VI);
+  Culturale Orizzonti di Bologna in contabilità semplificata con le
+  attività commerciale e istituzionale: fatture dei corsi (30.000 euro più
+  IVA), materiale per i corsi (1.000 più IVA) e docente occasionale (8.000)
+  dell'attività commerciale; quote associative (20.000), segretaria
+  dipendente (18.000) e relatore occasionale (2.000) di quella
+  istituzionale; energia elettrica comune (5.000 più IVA nel sezionale degli
+  acquisti comuni, 60 per cento all'attività commerciale: IVA detraibile
+  660 euro, 440 a costo); liquidazioni trimestrali e modello IVA 2026,
+  Redditi ENC con il quadro RG (17.736 euro), l'IRES e il quadro RO della
+  presidente, IRAP con il quadro IE (sezioni I, II e VI);
 - **modelli Redditi PF 2026**: Mario Rossi (dipendente con la CU, casa di
   Massimeno locata con il box pertinenza e la cedolare al 21 per cento,
   aggiornamento ISTAT, coniuge e due figli nei legami familiari con il

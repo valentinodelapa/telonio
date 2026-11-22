@@ -150,7 +150,7 @@ require Layout::percorso('header');
         <div class="card-header bg-white"><span class="fw-semibold"><?= Html::e($righe) ?></span> <span class="small text-body-secondary ms-2"><?= Html::e($aiutoRighe) ?></span></div>
         <div class="table-responsive">
             <table class="table table-sm mb-0 align-middle" data-righe>
-                <thead class="table-light"><tr><th style="min-width: 18rem"><?= Html::e($campi['conto']) ?></th><th style="min-width: 12rem"><?= Html::e($campi['controparte']) ?></th><th class="text-end"><?= Html::e($campi['dare']) ?></th><th class="text-end"><?= Html::e($campi['avere']) ?></th><th><?= Html::e($campi['descrizione']) ?></th></tr></thead>
+                <thead class="table-light"><tr><th style="min-width: 18rem"><?= Html::e($campi['conto']) ?></th><th style="min-width: 12rem"><?= Html::e($campi['controparte']) ?></th><th class="text-end"><?= Html::e($campi['dare']) ?></th><th class="text-end"><?= Html::e($campi['avere']) ?></th><th><?= Html::e($campi['descrizione']) ?></th><?php if (count($attivitaRighe) > 0): ?><th title="<?= Html::e($aiutoAttivitaRiga) ?>"><?= Html::e($campi['attivita']) ?></th><?php endif; ?></tr></thead>
                 <tbody>
                     <?php foreach ($datiRighe as $indice => $riga): ?>
                         <?php $prefisso = 'righe[' . $indice . ']'; ?>
@@ -160,11 +160,16 @@ require Layout::percorso('header');
                             <td style="width: 9rem"><input type="text" class="form-control form-control-sm text-end" name="<?= Html::e($prefisso) ?>[dare]" value="<?= Html::e($riga['dare'] ?? '') ?>" inputmode="decimal" data-dare></td>
                             <td style="width: 9rem"><input type="text" class="form-control form-control-sm text-end" name="<?= Html::e($prefisso) ?>[avere]" value="<?= Html::e($riga['avere'] ?? '') ?>" inputmode="decimal" data-avere></td>
                             <td><input type="text" class="form-control form-control-sm" name="<?= Html::e($prefisso) ?>[descrizione]" value="<?= Html::e($riga['descrizione'] ?? '') ?>" maxlength="255"></td>
+                            <?php if (count($attivitaRighe) > 0): ?>
+                                <td style="width: 12rem"><select class="form-select form-select-sm" name="<?= Html::e($prefisso) ?>[attivita]" aria-label="<?= Html::e($campi['attivita']) ?>">
+                                    <?php foreach (['' => $attivitaAutomatica, 'comune' => $attivitaComuneRiga] + $attivitaRighe as $valore => $etichetta): ?><option value="<?= Html::e($valore) ?>" <?= ($riga['attivita'] ?? '') === (string) $valore ? 'selected' : '' ?>><?= Html::e($etichetta) ?></option><?php endforeach; ?>
+                                </select></td>
+                            <?php endif; ?>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
                 <tfoot class="table-light">
-                    <tr><th class="text-end" colspan="2"><?= Html::e($totale) ?> · <span class="fw-normal"><?= Html::e($differenza) ?>:</span> <span data-differenza>0,00</span></th><th class="text-end" data-totale-dare>0,00</th><th class="text-end" data-totale-avere>0,00</th><th></th></tr>
+                    <tr><th class="text-end" colspan="2"><?= Html::e($totale) ?> · <span class="fw-normal"><?= Html::e($differenza) ?>:</span> <span data-differenza>0,00</span></th><th class="text-end" data-totale-dare>0,00</th><th class="text-end" data-totale-avere>0,00</th><th></th><?php if (count($attivitaRighe) > 0): ?><th></th><?php endif; ?></tr>
                 </tfoot>
             </table>
         </div>

@@ -19,6 +19,7 @@ require Layout::percorso('header');
         <div class="card-body row g-3">
             <?= Campo::testo('numero', $campi['numeroAttivita'], $formEntity, $errors, ['richiesto' => true, 'colonna' => 'col-md-2', 'tipo' => 'number', 'attributi' => 'min="1" max="99"']) ?>
             <?= Campo::testo('descrizione', $campi['descrizione'], $formEntity, $errors, ['richiesto' => true, 'colonna' => 'col-md-6', 'attributi' => 'maxlength="100"']) ?>
+            <?= Campo::selezioneEnum('natura', $campi['naturaAttivita'], $formEntity, $errors, $nature, ['richiesto' => true, 'colonna' => 'col-md-4', 'aiuto' => $aiutoNatura]) ?>
             <div class="col-md-4">
                 <label class="form-label" for="ateco"><?= Html::e($campi['codiceAteco']) ?></label>
                 <input type="text" class="form-control font-monospace" id="ateco" name="ateco" value="<?= Html::e($codiceAteco) ?>" placeholder="86.22.03" maxlength="8">
@@ -36,6 +37,6 @@ require Layout::percorso('header');
     <?php require __DIR__ . '/../commonParts/pulsantiForm.php'; ?>
 </form>
 <?php if (isset($attivita->id)): ?>
-    <form method="post" action="/attivita-iva/delete/attivita/<?= Html::e($attivita->id) ?>" class="mt-3" data-conferma="<?= Html::e($confermaElimina) ?>"><?= $campoCsrf ?><button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash me-1"></i><?= Html::e($azioni['elimina']) ?></button></form>
+    <form method="post" action="/attivita/delete/attivita/<?= Html::e($attivita->id) ?>" class="mt-3" data-conferma="<?= Html::e($confermaElimina) ?>"><?= $campoCsrf ?><button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash me-1"></i><?= Html::e($azioni['elimina']) ?></button></form>
 <?php endif; ?>
 <?php require Layout::percorso('footer'); ?>

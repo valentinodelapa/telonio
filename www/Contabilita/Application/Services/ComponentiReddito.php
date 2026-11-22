@@ -9,7 +9,7 @@ use Contabilita\Application\Entities\Conto;
 use Contabilita\Application\Entities\Partita;
 use Contabilita\Application\Entities\RigaContabile;
 use Contabilita\Application\Enumerations\CausaleContabile;
-use Contabilita\Application\Enumerations\DestinazioneConto;
+use Contabilita\Application\Models\AttivitaModel;
 use Contabilita\Application\Enumerations\NaturaConto;
 use Contabilita\Application\Enumerations\TipoChiusura;
 use Contabilita\Application\Enumerations\TipoPartita;
@@ -46,11 +46,12 @@ use SismaFramework\Orm\HelperClasses\DataMapper;
  * mancanza, in quello proposto dalla voce di conto economico
  * (RighiRedditi); i ricavi sono positivi, i costi positivi.
  *
- * Enti non commerciali (destinazione dei conti, art. 144 TUIR): concorrono
- * solo i conti dell'attività commerciale (o senza destinazione) e la quota
- * dei costi promiscui pari al rapporto tra i ricavi dei conti commerciali e
- * il totale dei ricavi e proventi dello stesso calcolo; il resto (conti
- * istituzionali e parte istituzionale dei promiscui) è nelle voci CEE
+ * Enti non commerciali (attività delle righe, art. 144 TUIR; Attivita):
+ * concorrono le righe dell'attività commerciale, la parte commerciale delle
+ * righe comuni con le quote (criteri oggettivi) e, per le righe comuni senza
+ * quote, la parte pari al rapporto tra i ricavi commerciali e il totale dei
+ * ricavi e proventi dello stesso calcolo (art. 144, c. 4); il resto (righe
+ * istituzionali e parte istituzionale delle comuni) è nelle voci CEE
  * dell'attività istituzionale (base retributiva IRAP degli enti).
  */
 class ComponentiReddito
@@ -77,8 +78,11 @@ class ComponentiReddito
     /** @var array<string, float> voci CEE dei conti istituzionali e parte istituzionale dei promiscui */
     private array $perVoceIstituzionale = [];
 
-    /** Quota commerciale dei costi promiscui dell'ultimo calcolo, null se nessun conto ha una destinazione */
+    /** Quota commerciale delle righe comuni senza quote dell'ultimo calcolo (art. 144, c. 4, TUIR), null senza righe dell'attività istituzionale */
     private ?float $quotaPromiscui = null;
+
+    /** @var array<int, array<int, \Contabilita\Application\Entities\Attivita>> attività per soggetto e numero (quote delle righe comuni) */
+    private array $elencoAttivita = [];
 
     public function __construct(private DataMapper $dataMapper = new DataMapper())
     {
@@ -147,7 +151,7 @@ class ComponentiReddito
 
     /**
      * Quota commerciale dei costi promiscui dell'ultimo calcolo (da 0 a 1),
-     * null se nessun conto movimentato ha una destinazione (imprese).
+     * null se nessuna riga del calcolo è dell'attività istituzionale (imprese).
      */
     public function getQuotaPromiscui(): ?float
     {
@@ -165,22 +169,50 @@ class ComponentiReddito
     }
 
     /**
-     * Parte del conto che concorre all'attività commerciale: 1 per i conti
-     * commerciali o senza destinazione, 0 per gli istituzionali, la quota
-     * dei promiscui.
+     * Parte della riga che concorre all'attività commerciale (dopo un
+     * calcolo per cassa o per competenza): 1 per le righe commerciali, 0 per
+     * le istituzionali; per le righe comuni la somma delle quote delle
+     * attività commerciali o, senza quote, il rapporto dell'art. 144, c. 4.
      */
-    private function getFattore(Conto $conto): float
+    public function getFattore(RigaContabile $riga): float
     {
-        return match ($conto->destinazione) {
-            null, DestinazioneConto::commerciale => 1.0,
-            DestinazioneConto::istituzionale => 0.0,
-            DestinazioneConto::promiscuo => $this->quotaPromiscui ?? 1.0,
-        };
+        if ($riga->attivita !== null) {
+            return $riga->attivita->isCommerciale() ? 1.0 : 0.0;
+        }
+        $quote = $riga->getRipartizione();
+        if (count($quote) > 0) {
+            $elenco = $this->getElencoAttivita($riga->soggetto);
+            $quota = 0.0;
+            foreach ($quote as $numero => $percentuale) {
+                if ((isset($elenco[$numero]) === false) || $elenco[$numero]->isCommerciale()) {
+                    $quota += $percentuale / 100;
+                }
+            }
+            return min(1.0, $quota);
+        }
+        return $this->quotaPromiscui ?? 1.0;
     }
 
     /**
-     * Quota dei promiscui dalle righe del calcolo (riga, frazione
-     * dell'anno), solo se qualche conto economico ha una destinazione.
+     * Parte del conto senza righe (variazioni dei cespiti): dall'attività
+     * predefinita del conto, altrimenti come le righe comuni.
+     */
+    private function getFattoreConto(Conto $conto): float
+    {
+        return $conto->attivita === null ? ($this->quotaPromiscui ?? 1.0) : ($conto->attivita->isCommerciale() ? 1.0 : 0.0);
+    }
+
+    /**
+     * @return array<int, \Contabilita\Application\Entities\Attivita> per numero
+     */
+    private function getElencoAttivita(Soggetto $soggetto): array
+    {
+        return $this->elencoAttivita[$soggetto->id] ??= (new AttivitaModel($this->dataMapper))->getElenco($soggetto);
+    }
+
+    /**
+     * Quota delle righe comuni dalle righe del calcolo (riga, frazione
+     * dell'anno), solo se qualche riga è dell'attività istituzionale.
      *
      * @param array<array{0: RigaContabile, 1: float}> $righe
      */
@@ -189,18 +221,19 @@ class ComponentiReddito
         $this->quotaPromiscui = null;
         $this->perVoceIstituzionale = [];
         $commerciali = $totali = 0.0;
-        $destinazioni = false;
+        $istituzionale = false;
         foreach ($righe as [$riga, $frazione]) {
-            $destinazioni = $destinazioni || ($riga->conto->natura->isEconomico() && ($riga->conto->destinazione !== null));
+            $istituzionale = $istituzionale || ($riga->conto->natura->isEconomico() && ($riga->attivita !== null) && ($riga->attivita->isCommerciale() === false));
             if ($riga->conto->natura === NaturaConto::ricavo) {
                 $importo = ($riga->avere - $riga->dare) * $frazione;
                 $totali += $importo;
-                if (in_array($riga->conto->destinazione, [null, DestinazioneConto::commerciale], true)) {
+                // i ricavi non sono comuni: senza attività sono dell'attività commerciale (imprese)
+                if (($riga->attivita === null) || $riga->attivita->isCommerciale()) {
                     $commerciali += $importo;
                 }
             }
         }
-        if ($destinazioni) {
+        if ($istituzionale) {
             $this->quotaPromiscui = self::calcolaQuotaPromiscui($commerciali, $totali);
         }
     }
@@ -363,7 +396,7 @@ class ComponentiReddito
         if ($esercizio !== null) {
             foreach ((new Ammortamenti($this->dataMapper))->getVariazioni($soggetto, $esercizio)['conti'] as ['conto' => $conto, 'importo' => $importo]) {
                 $rigo = $conto->rigoRedditi ?? RighiRedditi::getPredefinito($conto->voceCee, $professionista);
-                $importo *= $this->getFattore($conto);
+                $importo *= $this->getFattoreConto($conto);
                 if (($rigo !== null) && isset($componenti[$rigo])) {
                     $componenti[$rigo] -= $importo;
                     if ($rigo !== RighiRedditi::ESCLUSO) {
@@ -408,7 +441,7 @@ class ComponentiReddito
                         fn(RigaContabile $riga) => $riga->registrazioneContabile->origine !== ChiusuraEsercizio::ORIGINE));
         $this->impostaQuotaPromiscui(array_map(fn(RigaContabile $riga) => [$riga, 1.0], $righe));
         foreach ($righe as $riga) {
-            $fattore = $this->getFattore($riga->conto);
+            $fattore = $this->getFattore($riga);
             if (in_array($riga->conto->natura, [NaturaConto::ricavo, NaturaConto::costo], true) && ($riga->conto->voceCee !== null)) {
                 $importo = ($riga->conto->natura === NaturaConto::ricavo ? $riga->avere - $riga->dare : $riga->dare - $riga->avere) * ($riga->conto->percentualeDeducibile ?? 100.0) / 100;
                 $voce = $riga->conto->voceCee->value;
@@ -472,7 +505,7 @@ class ComponentiReddito
             $importo *= $conto->percentualeDeducibile / 100;
         }
         // enti non commerciali: solo la parte dell'attività commerciale
-        $fattore = $this->getFattore($conto);
+        $fattore = $this->getFattore($riga);
         if (($fattore < 1) && ($conto->voceCee !== null) && ($rigo !== RighiRedditi::ESCLUSO)) {
             $this->perVoceIstituzionale[$conto->voceCee->value] = ($this->perVoceIstituzionale[$conto->voceCee->value] ?? 0.0) + $importo * (1 - $fattore);
         }

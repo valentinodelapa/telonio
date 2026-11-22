@@ -143,12 +143,12 @@ CREATE TABLE IF NOT EXISTS `modulo_dichiarazione` (
   `soggetto_fonte_id` INT UNSIGNED NULL COMMENT 'Soggetto dalla cui contabilità si propone il modulo',
   `descrizione` VARCHAR(255) NULL,
   `data_operazione` DATE NULL COMMENT 'Data di efficacia dell''operazione straordinaria: si propongono le operazioni precedenti',
-  `attivita_iva_id` INT UNSIGNED NULL COMMENT 'Attività con contabilità separata (Contabilita) di cui il modulo riepiloga le operazioni',
+  `attivita_id` INT UNSIGNED NULL COMMENT 'Attività con contabilità separata (Contabilita) di cui il modulo riepiloga le operazioni',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_modulo_dichiarazione` (`dichiarazione_id`, `numero`),
   CONSTRAINT `fk_modulo_dichiarazione` FOREIGN KEY (`dichiarazione_id`) REFERENCES `dichiarazione` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_modulo_dichiarazione_fonte` FOREIGN KEY (`soggetto_fonte_id`) REFERENCES `soggetto` (`id`),
-  CONSTRAINT `fk_modulo_dichiarazione_attivita` FOREIGN KEY (`attivita_iva_id`) REFERENCES `attivita_iva` (`id`) ON DELETE CASCADE
+  CONSTRAINT `fk_modulo_dichiarazione_attivita` FOREIGN KEY (`attivita_id`) REFERENCES `attivita` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Moduli della dichiarazione oltre al primo';
 

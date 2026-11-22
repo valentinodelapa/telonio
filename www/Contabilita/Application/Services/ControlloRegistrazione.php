@@ -15,10 +15,17 @@ use Contabilita\Application\Enumerations\TipoRegistroIva;
  * data compresa, controparte e documento richiesti dalla causale, registro
  * IVA del tipo della causale, coerenza delle righe IVA (codici, imposta,
  * totale del documento) e quadratura delle righe in partita doppia su
- * sottoconti del piano dell'azienda.
+ * sottoconti del piano dell'azienda; con le attività del soggetto
+ * (AttivitaSoggetto) anche l'attività delle righe e le quote degli acquisti
+ * comuni degli enti non commerciali.
  */
 class ControlloRegistrazione
 {
+
+    public function __construct(private ?AttivitaSoggetto $attivita = null)
+    {
+
+    }
 
     /** Differenza ammessa tra imposta indicata e calcolata (arrotondamenti del documento). */
     public const TOLLERANZA_IMPOSTA = 1.00;
@@ -55,6 +62,11 @@ class ControlloRegistrazione
         $erroreRighe = $this->verificaRighe($piano, $righe);
         if ($erroreRighe !== null) {
             $errori['righe'] = $erroreRighe;
+        } elseif ($this->attivita !== null) {
+            $erroriAttivita = $this->attivita->verifica($registrazione, $righeIva, $righe);
+            if (count($erroriAttivita) > 0) {
+                $errori['righe'] = implode(' ', $erroriAttivita);
+            }
         }
         return $errori;
     }

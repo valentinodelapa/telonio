@@ -51,6 +51,8 @@ class SalvataggioRegistrazione
      */
     public function salva(RegistrazioneContabile $registrazione, array $righeIva, array $righe, ?string $chiaveProtocollo = null, ?FatturaElettronica $fattura = null, ?array $abbinamenti = null): RegistrazioneContabile
     {
+        // attività delle righe (proposta dal registro IVA o dal conto) e quota commerciale degli acquisti degli enti
+        (new AttivitaSoggetto($this->dataMapper))->applica($registrazione, $righeIva, $righe);
         $blocco = (new StampeDefinitive($this->dataMapper))->getBlocco($registrazione, $righeIva);
         if ($blocco !== null) {
             throw new \DomainException($blocco);

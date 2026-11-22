@@ -6,11 +6,11 @@ use Anagrafica\Application\Entities\Soggetto;
 use Anagrafica\Application\Enumerations\TipoIndirizzo;
 use Anagrafica\Application\Models\IndirizzoModel;
 use Contabilita\Application\BaseClasses\ContabilitaController;
-use Contabilita\Application\Entities\AttivitaIva;
+use Contabilita\Application\Entities\Attivita;
 use Contabilita\Application\Entities\RegistroIva;
 use Contabilita\Application\Enumerations\TipoRegistroIva;
 use Contabilita\Application\Forms\RegistroIvaForm;
-use Contabilita\Application\Models\AttivitaIvaModel;
+use Contabilita\Application\Models\AttivitaModel;
 use Contabilita\Application\Models\RegistrazioneContabileModel;
 use Contabilita\Application\Models\RegistroIvaModel;
 use Contabilita\Application\Models\StampaDefinitivaModel;
@@ -31,7 +31,7 @@ class RegistroIvaController extends ContabilitaController
         }
         $this->getEsercizio($soggetto, 0);
         $this->vars['registri'] = iterator_to_array((new RegistroIvaModel($this->dataMapper))->getElenco($soggetto), false);
-        $this->vars['attivitaSeparate'] = (new AttivitaIvaModel($this->dataMapper))->getElenco($soggetto);
+        $this->vars['attivitaSeparate'] = (new AttivitaModel($this->dataMapper))->getElenco($soggetto);
         $this->vars['mesi'] = ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'];
         $this->vars['sezioneAzienda'] = 'registri';
         $this->vars['pageTitle'] = $soggetto->nominativo . ' · Registri IVA';
@@ -97,8 +97,8 @@ class RegistroIvaController extends ContabilitaController
             if (($registro->unitaLocale !== null) && ($registro->unitaLocale->soggetto->id !== $soggetto->id)) {
                 $registro->unitaLocale = null;
             }
-            if (($registro->attivitaIva !== null) && ($registro->attivitaIva->soggetto->id !== $soggetto->id)) {
-                $registro->attivitaIva = null;
+            if (($registro->attivita !== null) && ($registro->attivita->soggetto->id !== $soggetto->id)) {
+                $registro->attivita = null;
             }
             $this->dataMapper->save($registro);
             $this->aggiungiMessaggio('Registro salvato.');
@@ -115,7 +115,7 @@ class RegistroIvaController extends ContabilitaController
             }
         }
         $this->vars['attivitaSeparate'] = [];
-        foreach ((new AttivitaIvaModel($this->dataMapper))->getElenco($soggetto) as $attivita) {
+        foreach ((new AttivitaModel($this->dataMapper))->getElenco($soggetto) as $attivita) {
             $this->vars['attivitaSeparate'][$attivita->id] = $attivita->getEtichetta() . ($attivita->alAnno === null ? '' : ' (fino al ' . $attivita->alAnno . ')');
         }
         $this->vars['pageTitle'] = $titolo;

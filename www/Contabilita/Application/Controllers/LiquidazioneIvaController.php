@@ -207,7 +207,7 @@ class LiquidazioneIvaController extends ContabilitaController
             $prorata->soggetto = $soggetto;
             $prorata->anno = $anno;
             $prorata->percentuale = (int) $testo;
-            $prorata->attivitaIva = $attivita;
+            $prorata->attivita = $attivita;
             $prorata->origine = null;
             $this->dataMapper->save($prorata);
             $this->aggiungiMessaggio(sprintf('Pro-rata provvisorio %d: %d%%. Rielaborare le liquidazioni già elaborate per applicarlo.', $anno, $prorata->percentuale));

@@ -57,10 +57,10 @@ class DichiarazioneIvaGialli2025Fixture extends BaseFixture
         $demo->assegnaRegistro($gialli, TipoRegistroIva::acquisti, '', $ingrosso);
         $demo->assegnaRegistro($gialli, TipoRegistroIva::corrispettivi, '', $negozio);
         $venditeNegozio = $demo->sezionale($gialli, TipoRegistroIva::vendite, 'NG', 'Fatture del negozio', null);
-        $venditeNegozio->attivitaIva = $negozio;
+        $venditeNegozio->attivita = $negozio;
         $this->dataMapper->save($venditeNegozio);
         $acquistiNegozio = $demo->sezionale($gialli, TipoRegistroIva::acquisti, 'NG', 'Acquisti del negozio', null);
-        $acquistiNegozio->attivitaIva = $negozio;
+        $acquistiNegozio->attivita = $negozio;
         $this->dataMapper->save($acquistiNegozio);
         $promiscui = $demo->sezionale($gialli, TipoRegistroIva::acquisti, 'PR', 'Acquisti promiscui', null);
         $imprese = $demo->controparte($gialli, 'Costruzioni Bergamasche S.p.A.', '09666770707', true);

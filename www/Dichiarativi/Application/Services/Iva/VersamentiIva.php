@@ -2,7 +2,7 @@
 
 namespace Dichiarativi\Application\Services\Iva;
 
-use Contabilita\Application\Entities\AttivitaIva;
+use Contabilita\Application\Entities\Attivita;
 use Contabilita\Application\Entities\LiquidazioneIva;
 use Contabilita\Application\Entities\ProrataIva;
 use Contabilita\Application\Models\ProrataIvaModel;
@@ -253,8 +253,8 @@ class VersamentiIva
         }
         $avvisi = $this->registraProrataModulo($dichiarazione, $quadri, 1, reset($attivita));
         foreach ((new ModuloDichiarazioneModel($this->dataMapper))->getModuli($dichiarazione) as $modulo) {
-            if ($modulo->attivitaIva !== null) {
-                array_push($avvisi, ...$this->registraProrataModulo($dichiarazione, $quadri, $modulo->numero, $modulo->attivitaIva));
+            if ($modulo->attivita !== null) {
+                array_push($avvisi, ...$this->registraProrataModulo($dichiarazione, $quadri, $modulo->numero, $modulo->attivita));
             }
         }
         return $avvisi;
@@ -263,7 +263,7 @@ class VersamentiIva
     /**
      * @return string[]
      */
-    private function registraProrataModulo(Dichiarazione $dichiarazione, QuadriDichiarazione $quadri, int $numero, ?AttivitaIva $attivita): array
+    private function registraProrataModulo(Dichiarazione $dichiarazione, QuadriDichiarazione $quadri, int $numero, ?Attivita $attivita): array
     {
         $model = new ProrataIvaModel($this->dataMapper);
         $anno = $dichiarazione->anno + 1;
@@ -285,7 +285,7 @@ class VersamentiIva
         $prorata->studio = $dichiarazione->studio;
         $prorata->soggetto = $dichiarazione->soggetto;
         $prorata->anno = $anno;
-        $prorata->attivitaIva = $attivita;
+        $prorata->attivita = $attivita;
         $prorata->percentuale = $percentuale;
         $prorata->origine = Dichiarazione::ORIGINE;
         $prorata->note = 'Percentuale di detrazione della dichiarazione IVA ' . $dichiarazione->getAnnoModello();

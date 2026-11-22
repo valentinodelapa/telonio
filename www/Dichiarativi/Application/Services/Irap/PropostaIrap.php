@@ -43,8 +43,8 @@ use SismaFramework\Orm\HelperClasses\DataMapper;
  * Enti non commerciali, quadro IE: sezione I (attività istituzionale,
  * metodo retributivo dell'art. 10, c. 1: retribuzioni della voce B9a e
  * compensi di lavoro autonomo occasionale ai percipienti con la causale CU
- * "M", dei conti istituzionali e della parte non commerciale dei costi
- * promiscui; per gli enti senza partita IVA tutta la contabilità; redditi
+ * "M", delle righe dell'attività istituzionale e della parte non
+ * commerciale delle righe comuni; per gli enti senza partita IVA tutta la contabilità; redditi
  * assimilati del rigo IE2 a mano), sezione II (attività commerciale in
  * contabilità ordinaria o semplificata, art. 5: voci CEE dei conti
  * commerciali e variazioni dei conti, come il quadro IC), sezione III
@@ -209,7 +209,7 @@ class PropostaIrap
         $istituzionale = $commerciale ? $componenti->getPerVoceCeeIstituzionale() : $componenti->getPerVoceCee();
         $retribuzioni = (int) round(array_sum(array_filter($istituzionale, fn(string $codice) => ($codice === 'E.B.9.a') || str_starts_with($codice, 'E.B.9.a.'), ARRAY_FILTER_USE_KEY)));
         $quadri->proponi('IE001001', $retribuzioni ?: null);
-        $quadri->proponi('IE003001', ((int) round($this->getCompensiOccasionali($soggetto, $anno, $componenti->getQuotaPromiscui(), $commerciale === false))) ?: null);
+        $quadri->proponi('IE003001', ((int) round($this->getCompensiOccasionali($soggetto, $anno, $componenti, $commerciale === false))) ?: null);
         $quadri->proponi('IE004001', ($quadri->getImporto('IE001001') + $quadri->getImporto('IE002001') + $quadri->getImporto('IE003001')) ?: null);
         $forfetario = in_array($dati->regimeFiscale, [RegimeFiscale::forfetarioEnc, RegimeFiscale::associazioniSportive], true);
         if ($commerciale && $forfetario) {
@@ -240,7 +240,7 @@ class PropostaIrap
         $netto = max(0, $base - $ulteriore);
         $quadri->proponi('IE061001', $netto ?: null);
         $this->avvisi[] = sprintf('Quadro IE, sezione I (attività istituzionale): retribuzioni della voce B9a e compensi di lavoro autonomo occasionale (causale CU "M") %s; i redditi assimilati a quelli di lavoro dipendente (collaborazioni coordinate e continuative, rigo IE2) si indicano a mano.',
-                $commerciale ? 'dei conti istituzionali e della parte non commerciale dei costi promiscui' : 'di tutta la contabilità (ente senza partita IVA)');
+                $commerciale ? 'delle righe dell\'attività istituzionale e della parte non commerciale delle righe comuni' : 'di tutta la contabilità (ente senza partita IVA)');
         if ($personale > 0) {
             $this->avvisi[] = sprintf('Quadro IE: deduzione del costo del personale dipendente dell\'attività commerciale (rigo IE57) proposta per l\'intero costo (voce B9, %s euro): spetta per i lavoratori a tempo indeterminato.', number_format($personale, 0, ',', '.'));
         }
@@ -249,7 +249,7 @@ class PropostaIrap
 
     /**
      * Quadro IE, sezione II (attività commerciale, art. 5): componenti del
-     * conto economico dei conti commerciali, variazioni dei conti (righi
+     * conto economico delle righe commerciali, variazioni dei conti (righi
      * del quadro IC nei corrispondenti del quadro IE) e valore IE32.
      */
     private function proponiIeCommerciale(QuadriDichiarazione $quadri, \Closure $voce, array $variazioni): void
@@ -291,7 +291,7 @@ class PropostaIrap
         $quadri->proponi('IE031001', $diminuzioni ?: null);
         $valore = $totalePositivi + $aumenti - $totaleNegativi - $diminuzioni;
         $quadri->proponi('IE032001', $valore ?: null);
-        $this->avvisi[] = 'Quadro IE, sezione II (attività commerciale): componenti dal conto economico per competenza dei conti dell\'attività commerciale e quota dei promiscui; variazioni dai conti con la variazione IRAP, le altre a mano.';
+        $this->avvisi[] = 'Quadro IE, sezione II (attività commerciale): componenti dal conto economico per competenza delle righe dell\'attività commerciale e parte commerciale delle righe comuni; variazioni dai conti con la variazione IRAP, le altre a mano.';
     }
 
     /**
@@ -317,11 +317,12 @@ class PropostaIrap
     /**
      * Compensi di lavoro autonomo occasionale (art. 67, c. 1, lett. l, TUIR)
      * dell'attività istituzionale dell'anno: costi registrati con una
-     * controparte di causale CU "M" sui conti istituzionali per intero e sui
-     * promiscui per la parte non commerciale (1 - quota commerciale); i
-     * conti commerciali non concorrono.
+     * controparte di causale CU "M", per la parte non commerciale della riga
+     * (righe istituzionali per intero, righe comuni per la parte non
+     * commerciale, ComponentiReddito::getFattore); le righe commerciali non
+     * concorrono.
      */
-    private function getCompensiOccasionali(Soggetto $soggetto, int $anno, ?float $quotaPromiscui, bool $tuttoIstituzionale): float
+    private function getCompensiOccasionali(Soggetto $soggetto, int $anno, ComponentiReddito $componenti, bool $tuttoIstituzionale): float
     {
         $totale = 0.0;
         $movimenti = (new \Contabilita\Application\Models\RigaContabileModel($this->dataMapper))->getMovimenti($soggetto, null, new SismaDate($anno . '-01-01'), new SismaDate($anno . '-12-31'));
@@ -329,13 +330,8 @@ class PropostaIrap
             if (($riga->conto->natura !== \Contabilita\Application\Enumerations\NaturaConto::costo) || ($riga->registrazioneContabile->controparte?->causaleCu !== \Contabilita\Application\Enumerations\CausaleCu::occasionale)) {
                 continue;
             }
-            // ente senza attività commerciale (senza partita IVA): tutti i conti sono istituzionali
-            $parte = match (true) {
-                $tuttoIstituzionale => 1.0,
-                $riga->conto->destinazione === \Contabilita\Application\Enumerations\DestinazioneConto::istituzionale => 1.0,
-                $riga->conto->destinazione === \Contabilita\Application\Enumerations\DestinazioneConto::promiscuo => 1.0 - ($quotaPromiscui ?? 1.0),
-                default => 0.0,
-            };
+            // ente senza attività commerciale (senza partita IVA): tutte le righe sono istituzionali; altrimenti la parte non commerciale della riga
+            $parte = $tuttoIstituzionale ? 1.0 : 1.0 - $componenti->getFattore($riga);
             $totale += ($riga->dare - $riga->avere) * $parte;
         }
         return $totale;

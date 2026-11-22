@@ -112,7 +112,7 @@ class DichiarazioneIvaAgricoltura2025Fixture extends BaseFixture
             $attivita->regimeDetrazioneIva = $regime;
             $this->dataMapper->save($attivita);
             $registro = $demo->sezionale($tenuta, TipoRegistroIva::vendite, $sezionale, $descrizione, null);
-            $registro->attivitaIva = $attivita;
+            $registro->attivita = $attivita;
             $this->dataMapper->save($registro);
             RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $cliente, $vendita, '2025-08-20', $sezionale . '/1', [$codice => $importo], ['registro' => $registro]);
         }
@@ -178,7 +178,7 @@ class DichiarazioneIvaAgricoltura2025Fixture extends BaseFixture
         $ospitalita->opzioneDal = 2025;
         $this->dataMapper->save($ospitalita);
         $registroOspitalita = $demo->sezionale($querce, TipoRegistroIva::vendite, 'AT', 'Agriturismo', null);
-        $registroOspitalita->attivitaIva = $ospitalita;
+        $registroOspitalita->attivita = $ospitalita;
         $this->dataMapper->save($registroOspitalita);
         $ospiti = $demo->controparte($querce, 'Viaggi Berici S.r.l.', '07000440409', true);
         RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $ospiti, $vendita, '2025-06-12', '1', ['22' => 3000.0], ['percentualeCompensazione' => 12.3]);

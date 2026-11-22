@@ -9,7 +9,6 @@ use Anagrafica\Application\Entities\Soggetto;
 use Contabilita\Application\BaseClasses\ContabilitaController;
 use Contabilita\Application\Entities\Conto;
 use Contabilita\Application\Entities\PianoConti;
-use Contabilita\Application\Enumerations\DestinazioneConto;
 use Contabilita\Application\Enumerations\FunzioneConto;
 use Contabilita\Application\Enumerations\LivelloConto;
 use Contabilita\Application\Enumerations\NaturaConto;
@@ -48,7 +47,7 @@ class ContoController extends ContabilitaController
             $conto->rigoIrap = $superiore->rigoIrap;
             $conto->percentualeDeducibile = $superiore->percentualeDeducibile;
             $conto->variazioneRedditi = $superiore->variazioneRedditi;
-            $conto->destinazione = $superiore->destinazione;
+            $conto->attivita = $superiore->attivita;
         }
         return $this->gestisci($request, $conto, 'Nuovo conto');
     }
@@ -100,6 +99,10 @@ class ContoController extends ContabilitaController
         $piano = $conto->pianoConti;
         if ($this->isInvioValido($request, $form)) {
             $conto = $form->resolveEntity();
+            // attività predefinita solo dell'azienda del piano
+            if (($conto->attivita !== null) && (($piano->soggetto === null) || ($conto->attivita->soggetto->id !== $piano->soggetto->id))) {
+                $conto->attivita = null;
+            }
             if (isset($conto->id) === false) {
                 $conto->livello = LivelloConto::daCodice($conto->codice);
                 $codicePadre = LivelloConto::codicePadre($conto->codice);
@@ -117,7 +120,16 @@ class ContoController extends ContabilitaController
         $this->vars['righiRedditi'] = RighiRedditi::getRighi();
         $this->vars['righiIsa'] = RighiIsa::getRighi();
         $this->vars['righiIrap'] = RighiIrap::getRighi();
-        $this->vars['destinazioni'] = DestinazioneConto::cases();
+        // attività predefinita delle righe: solo per i piani delle aziende con più attività
+        $this->vars['attivitaConto'] = [];
+        if ($piano->soggetto !== null) {
+            $elenco = (new \Contabilita\Application\Models\AttivitaModel($this->dataMapper))->getElenco($piano->soggetto);
+            if (count($elenco) > 1) {
+                foreach ($elenco as $attivita) {
+                    $this->vars['attivitaConto'][$attivita->id] = $attivita->getEtichetta() . ' (' . mb_strtolower($attivita->natura->getLabel()) . ')';
+                }
+            }
+        }
         $this->vars['variazioniRedditi'] = RighiRedditi::VARIAZIONI;
         $this->vars['vociCee'] = VoceCee::perSezione();
         $this->vars['pageTitle'] = $titolo;

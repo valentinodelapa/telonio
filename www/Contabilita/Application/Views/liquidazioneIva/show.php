@@ -25,10 +25,10 @@ require __DIR__ . '/../commonParts/navAzienda.php';
                 <div class="card-header bg-white fw-semibold"><?= Html::e($titoloAttivita) ?></div>
                 <div class="table-responsive">
                     <table class="table table-sm mb-0">
-                        <thead class="table-light"><tr><th><?= Html::e($campi['attivitaIva']) ?></th><th><?= Html::e($campi['periodo']) ?></th><th class="text-end"><?= Html::e($campi['ivaEsigibile']) ?></th><th class="text-end"><?= Html::e($campi['ivaDetraibile']) ?></th><th class="text-end"><?= Html::e($campi['interessi']) ?></th></tr></thead>
+                        <thead class="table-light"><tr><th><?= Html::e($campi['attivita']) ?></th><th><?= Html::e($campi['periodo']) ?></th><th class="text-end"><?= Html::e($campi['ivaEsigibile']) ?></th><th class="text-end"><?= Html::e($campi['ivaDetraibile']) ?></th><th class="text-end"><?= Html::e($campi['interessi']) ?></th></tr></thead>
                         <tbody>
                             <?php foreach ($dettagliAttivita as $dettaglio): ?>
-                                <tr><td><?= Html::e($dettaglio->attivitaIva->getEtichetta()) ?></td><td class="small"><?= Html::e($dettaglio->getDescrizionePeriodo($liquidazione->anno)) ?><?= $dettaglio->percentualeDetrazione < 100 ? ' · pro-rata ' . Html::e($dettaglio->percentualeDetrazione) . '%' : '' ?></td><td class="text-end"><?= Html::e(Importo::euro($dettaglio->ivaEsigibile)) ?></td><td class="text-end"><?= Html::e(Importo::euro($dettaglio->ivaDetraibile)) ?></td><td class="text-end"><?= Html::e(Importo::euro($dettaglio->interessi, true)) ?></td></tr>
+                                <tr><td><?= Html::e($dettaglio->attivita->getEtichetta()) ?></td><td class="small"><?= Html::e($dettaglio->getDescrizionePeriodo($liquidazione->anno)) ?><?= $dettaglio->percentualeDetrazione < 100 ? ' · pro-rata ' . Html::e($dettaglio->percentualeDetrazione) . '%' : '' ?></td><td class="text-end"><?= Html::e(Importo::euro($dettaglio->ivaEsigibile)) ?></td><td class="text-end"><?= Html::e(Importo::euro($dettaglio->ivaDetraibile)) ?></td><td class="text-end"><?= Html::e(Importo::euro($dettaglio->interessi, true)) ?></td></tr>
                             <?php endforeach; ?>
                         </tbody>
                     </table>

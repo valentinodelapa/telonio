@@ -2,7 +2,7 @@
 
 namespace Contabilita\Application\Models;
 
-use Contabilita\Application\Entities\AttivitaIva;
+use Contabilita\Application\Entities\Attivita;
 use Contabilita\Application\Entities\LiquidazioneAttivita;
 use Contabilita\Application\Entities\LiquidazioneIva;
 use SismaFramework\Orm\ExtendedClasses\DependentModel;
@@ -30,7 +30,7 @@ class LiquidazioneAttivitaModel extends DependentModel
     {
         $elenco = [];
         foreach ($this->getByLiquidazioneIva($liquidazione) as $dettaglio) {
-            $elenco[$dettaglio->attivitaIva->numero] = $dettaglio;
+            $elenco[$dettaglio->attivita->numero] = $dettaglio;
         }
         ksort($elenco);
         return $elenco;
@@ -39,8 +39,8 @@ class LiquidazioneAttivitaModel extends DependentModel
     /**
      * @return LiquidazioneAttivita[]
      */
-    public function getPerAttivita(AttivitaIva $attivita): array
+    public function getPerAttivita(Attivita $attivita): array
     {
-        return iterator_to_array($this->getByAttivitaIva($attivita), false);
+        return iterator_to_array($this->getByAttivita($attivita), false);
     }
 }

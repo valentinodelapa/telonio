@@ -9,7 +9,7 @@ use Contabilita\Application\Enumerations\ImpegnoPresentazione;
 use Deleghe\Application\Models\IntermediarioModel;
 use Deleghe\Application\Models\VersamentoModel;
 use Deleghe\Application\Services\ArchivioVersamenti;
-use Contabilita\Application\Entities\AttivitaIva;
+use Contabilita\Application\Entities\Attivita;
 use Contabilita\Application\Services\AttivitaSeparate;
 use Dichiarativi\Application\BaseClasses\DichiarativiController;
 use Dichiarativi\Application\Entities\Dichiarazione;
@@ -494,7 +494,7 @@ class DichiarazioneController extends DichiarativiController
     /**
      * Attività separata del modulo: la prima è il modulo 1.
      */
-    private function getAttivitaModulo(Dichiarazione $dichiarazione, int $modulo): ?AttivitaIva
+    private function getAttivitaModulo(Dichiarazione $dichiarazione, int $modulo): ?Attivita
     {
         if ($modulo === 1) {
             $attivita = (new AttivitaSeparate($this->dataMapper))->getAttivita($dichiarazione->soggetto, $dichiarazione->anno);
@@ -502,7 +502,7 @@ class DichiarazioneController extends DichiarativiController
         }
         foreach ((new ModuloDichiarazioneModel($this->dataMapper))->getModuli($dichiarazione) as $moduloDichiarazione) {
             if ($moduloDichiarazione->numero === $modulo) {
-                return $moduloDichiarazione->attivitaIva;
+                return $moduloDichiarazione->attivita;
             }
         }
         return null;
@@ -951,7 +951,7 @@ class DichiarazioneController extends DichiarativiController
         }
         $moduli = (new ModuloDichiarazioneModel($this->dataMapper))->getModuli($dichiarazione);
         foreach ($moduli as $modulo) {
-            if (($modulo->numero === $numero) && ($modulo->attivitaIva !== null)) {
+            if (($modulo->numero === $numero) && ($modulo->attivita !== null)) {
                 $this->aggiungiMessaggio('Il modulo dell\'attività separata segue le attività della Contabilità: indicare lì l\'ultimo anno dell\'attività.', 'warning');
                 return $this->vaiAllaDichiarazione($dichiarazione);
             }

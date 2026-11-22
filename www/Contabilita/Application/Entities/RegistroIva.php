@@ -26,7 +26,7 @@ class RegistroIva extends ReferencedEntity
     protected string $descrizione;
     protected bool $attivo = true;
     protected ?Indirizzo $unitaLocale = null;
-    protected ?AttivitaIva $attivitaIva = null;
+    protected ?Attivita $attivita = null;
 
     #[\Override]
     protected function setEncryptedProperties(): void

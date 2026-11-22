@@ -2,21 +2,22 @@
 
 namespace Contabilita\Application\Forms;
 
-use Contabilita\Application\Entities\AttivitaIva;
+use Contabilita\Application\Entities\Attivita;
+use Contabilita\Application\Enumerations\NaturaAttivita;
 use SismaFramework\Core\BaseClasses\BaseForm;
 use SismaFramework\Core\Enumerations\FilterType;
 
 /**
- * Attività con contabilità separata; studio, soggetto e codice ATECO
- * (dal codice digitato) sono impostati dal controller.
+ * Attività del soggetto (commerciale o istituzionale); studio, soggetto e
+ * codice ATECO (dal codice digitato) sono impostati dal controller.
  */
-class AttivitaIvaForm extends BaseForm
+class AttivitaForm extends BaseForm
 {
 
     #[\Override]
     protected static function getEntityName(): string
     {
-        return AttivitaIva::class;
+        return Attivita::class;
     }
 
     #[\Override]
@@ -30,6 +31,7 @@ class AttivitaIvaForm extends BaseForm
     {
         $this->addFilterFieldMode('numero', FilterType::isInteger)
                 ->addFilterFieldMode('descrizione', FilterType::isLimitString, [2, 100])
+                ->addFilterFieldMode('natura', FilterType::isEnumeration)
                 ->addFilterFieldMode('periodicita', FilterType::isEnumeration, [], true)
                 ->addFilterFieldMode('regimeDetrazioneIva', FilterType::isEnumeration, [], true)
                 ->addFilterFieldMode('opzioneOrdinaria', FilterType::isEnumeration, [], true)
@@ -54,6 +56,11 @@ class AttivitaIvaForm extends BaseForm
         }
         if (($this->entityData->alAnno !== null) && ($this->entityData->alAnno < $this->entityData->dalAnno)) {
             $this->formFilterError->alAnnoCustomMessage = 'L\'ultimo anno non può precedere il primo.';
+            return false;
+        }
+        // l'attività istituzionale è fuori dal campo dell'IVA: niente periodicità, regimi speciali e opzioni
+        if (($this->entityData->natura === NaturaAttivita::istituzionale) && (($this->entityData->periodicita !== null) || ($this->entityData->regimeDetrazioneIva !== null) || ($this->entityData->opzioneOrdinaria !== null))) {
+            $this->formFilterError->naturaCustomMessage = "L'attività istituzionale è fuori dal campo dell'IVA: lasciare vuoti periodicità, regime speciale e opzione.";
             return false;
         }
         return $this->verificaOpzione();

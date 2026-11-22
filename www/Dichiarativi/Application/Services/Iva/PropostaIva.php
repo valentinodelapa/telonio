@@ -11,7 +11,7 @@ use Anagrafica\Application\Enumerations\TipoIndirizzo;
 use Anagrafica\Application\Models\DatiFiscaliModel;
 use Anagrafica\Application\Models\IndirizzoModel;
 use Contabilita\Application\Entities\AccontoIva;
-use Contabilita\Application\Entities\AttivitaIva;
+use Contabilita\Application\Entities\Attivita;
 use Contabilita\Application\Entities\ComunicazioneLipe;
 use Contabilita\Application\Entities\LiquidazioneIva;
 use Contabilita\Application\Entities\RigaIva;
@@ -190,10 +190,10 @@ class PropostaIva
         $this->debitoQuartoTrimestre = $this->getDebitoQuartoTrimestre($dichiarazione, $attivita);
         $elenco = [1 => ['tipo' => TipoModulo::principale, 'fonte' => $dichiarazione->soggetto, 'operazione' => null, 'attivita' => count($attivita) === 0 ? null : reset($attivita)]];
         foreach ($moduli as $modulo) {
-            $elenco[$modulo->numero] = ['tipo' => $modulo->tipo, 'fonte' => $modulo->attivitaIva !== null ? $dichiarazione->soggetto : ($modulo->tipo->hasFonte() ? $modulo->soggettoFonte : null),
-                'operazione' => $modulo->dataOperazione, 'attivita' => $modulo->attivitaIva];
+            $elenco[$modulo->numero] = ['tipo' => $modulo->tipo, 'fonte' => $modulo->attivita !== null ? $dichiarazione->soggetto : ($modulo->tipo->hasFonte() ? $modulo->soggettoFonte : null),
+                'operazione' => $modulo->dataOperazione, 'attivita' => $modulo->attivita];
         }
-        if ((count($attivita) > 1) && (count(array_filter($moduli, fn(ModuloDichiarazione $modulo) => $modulo->attivitaIva !== null)) !== count($attivita) - 1)) {
+        if ((count($attivita) > 1) && (count(array_filter($moduli, fn(ModuloDichiarazione $modulo) => $modulo->attivita !== null)) !== count($attivita) - 1)) {
             $this->avvisa('Attività separate: i moduli non corrispondono alle attività della Contabilità, riproporre la dichiarazione per crearli.');
         }
         ksort($elenco);
@@ -240,7 +240,7 @@ class PropostaIva
      * IVA dovuta del quarto trimestre, che si versa con la dichiarazione
      * con gli interessi dell'1% (rigo VL36).
      *
-     * @param AttivitaIva[] $attivita
+     * @param Attivita[] $attivita
      */
     private function getDebitoQuartoTrimestre(Dichiarazione $dichiarazione, array $attivita): float
     {
@@ -274,7 +274,7 @@ class PropostaIva
      * @param RigaIva[] $righe
      * @return RigaIva[]
      */
-    private function getRigheAttivita(array $righe, Soggetto $soggetto, int $anno, AttivitaIva $attivita, bool $primoModulo, string $etichetta): array
+    private function getRigheAttivita(array $righe, Soggetto $soggetto, int $anno, Attivita $attivita, bool $primoModulo, string $etichetta): array
     {
         $separate = new AttivitaSeparate($this->dataMapper);
         $proprie = $nonRipartite = [];
@@ -305,7 +305,7 @@ class PropostaIva
      * Quadri VA, VE, VF, VJ, VH e VL del modulo corrente dalla contabilità
      * del soggetto.
      */
-    private function proponiDaContabilita(QuadriDichiarazione $quadri, Dichiarazione $dichiarazione, Soggetto $soggetto, TipoModulo $tipo, string $etichetta, ?SismaDate $operazione = null, ?AttivitaIva $attivita = null): void
+    private function proponiDaContabilita(QuadriDichiarazione $quadri, Dichiarazione $dichiarazione, Soggetto $soggetto, TipoModulo $tipo, string $etichetta, ?SismaDate $operazione = null, ?Attivita $attivita = null): void
     {
         $anno = $dichiarazione->anno;
         $regime = new RegimeIva($this->dataMapper);
@@ -395,7 +395,7 @@ class PropostaIva
      * @param RigaIva[] $righe
      * @return array{0: array<int, float>, 1: array<int, array{riga: RigaIva, quota: float}>}
      */
-    private function getSospese(Soggetto $soggetto, int $anno, SismaDate $fine, array $righe, ?AttivitaIva $attivita, string $etichetta): array
+    private function getSospese(Soggetto $soggetto, int $anno, SismaDate $fine, array $righe, ?Attivita $attivita, string $etichetta): array
     {
         $sospesa = new IvaSospesa($this->dataMapper);
         $maturate = [];
@@ -633,7 +633,8 @@ class PropostaIva
                     $altre['VF019002'] = ($altre['VF019002'] ?? 0) + $riga->imponibile;
                 }
             } else {
-                $detraibile = $riga->imponibile * $riga->detraibilita / 100;
+                // parte detraibile dell'imponibile: percentuale di detraibilità e, per gli enti non commerciali, quota dell'attività commerciale (art. 19-ter)
+                $detraibile = $riga->imponibile * $riga->detraibilita / 100 * ($riga->quotaCommerciale ?? 1.0);
                 // acquisti per cassa: nei righi VF1-VF13 la quota detraibile nell'anno, il resto nel VF23
                 $quota = IvaSospesa::isSospesa($riga->registrazioneContabile) ? ($maturate[$riga->registrazioneContabile->id] ?? 0.0) : 1.0;
                 if ($quota < 1) {
@@ -647,11 +648,11 @@ class PropostaIva
                 if ($connessa) {
                     $altre['VF018001'] = ($altre['VF018001'] ?? 0) + $riga->imponibile;
                 } else {
-                    if (($riga->detraibilita > 0) && ($quota > 0)) {
+                    if (($detraibile != 0) && ($quota > 0)) {
                         $this->accumula($imponibili, $codice->aliquota, $detraibile * $quota);
                         $impostaRegistri += $riga->getImpostaDetraibile() * $quota;
                     }
-                    if ($riga->detraibilita < 100) {
+                    if (abs($riga->imponibile - $detraibile) >= 0.005) {
                         $altre['VF021001'] = ($altre['VF021001'] ?? 0) + $riga->imponibile - $detraibile;
                     }
                 }
@@ -677,10 +678,10 @@ class PropostaIva
         }
         // acquisti per cassa degli anni precedenti divenuti detraibili nell'anno: righi VF1-VF13 e VF24
         foreach ($precedenti as ['riga' => $riga, 'quota' => $quota]) {
-            if (($riga->registroIva->tipo !== TipoRegistroIva::acquisti) || ($riga->codiceIva->natura !== null) || ($riga->detraibilita <= 0)) {
+            if (($riga->registroIva->tipo !== TipoRegistroIva::acquisti) || ($riga->codiceIva->natura !== null) || ($riga->detraibilita <= 0) || ($riga->quotaCommerciale === 0.0)) {
                 continue;
             }
-            $detraibile = round($riga->imponibile * $riga->detraibilita / 100 * $quota, 2);
+            $detraibile = round($riga->imponibile * $riga->detraibilita / 100 * ($riga->quotaCommerciale ?? 1.0) * $quota, 2);
             $this->accumula($imponibili, $riga->codiceIva->aliquota, $detraibile);
             $impostaRegistri += $riga->getImpostaDetraibile() * $quota;
             $altre['VF024001'] = ($altre['VF024001'] ?? 0) + $detraibile;
@@ -763,7 +764,7 @@ class PropostaIva
      * Rigo VF70 dal prospetto D, se compilato; senza prospetto il rigo resta
      * da indicare a mano e il cambio di regime è segnalato con la proposta.
      */
-    private function proponiRettifiche(QuadriDichiarazione $quadri, Dichiarazione $dichiarazione, int $modulo, ?AttivitaIva $attivita, string $etichetta): void
+    private function proponiRettifiche(QuadriDichiarazione $quadri, Dichiarazione $dichiarazione, int $modulo, ?Attivita $attivita, string $etichetta): void
     {
         if (isset($dichiarazione->id) === false) {
             return;

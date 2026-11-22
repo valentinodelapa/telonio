@@ -22,9 +22,9 @@ use SismaFramework\Orm\HelperClasses\DataMapper;
 /**
  * Proposta del modello Redditi Enti non commerciali ed equiparati 2026
  * (istruzioni e specifiche tecniche Redditi ENC 2026): reddito
- * dell'attività commerciale dalla contabilità dell'ente, con i soli conti
- * commerciali e la quota dei costi promiscui (art. 144 TUIR,
- * Contabilita\Services\ComponentiReddito), e IRES.
+ * dell'attività commerciale dalla contabilità dell'ente, con le righe
+ * dell'attività commerciale e la parte commerciale delle righe comuni (art.
+ * 144 TUIR, Contabilita\Services\ComponentiReddito), e IRES.
  *
  * - Quadro RF (contabilità ordinaria): come Redditi SC e SP
  *   (PropostaRedditiSocieta::proponiRf), perdite pregresse RF64 a mano e
@@ -261,10 +261,10 @@ class PropostaRedditiEnc
     {
         $quota = $componenti->getQuotaPromiscui();
         if ($quota === null) {
-            $this->avvisi[] = 'Nessun conto della contabilità ha la destinazione (attività commerciale, istituzionale o promiscua): tutti i conti sono considerati dell\'attività commerciale.';
+            $this->avvisi[] = 'Nessuna riga della contabilità è dell\'attività istituzionale: indica le attività dell\'ente (pagina dei registri IVA) e l\'attività dei conti o delle righe; senza, tutte le righe sono dell\'attività commerciale.';
             return;
         }
-        $this->avvisi[] = sprintf('Costi promiscui deducibili al %s per cento (rapporto tra i ricavi commerciali e il totale dei ricavi e proventi, art. 144, c. 4, TUIR).', number_format($quota * 100, 2, ',', '.'));
+        $this->avvisi[] = sprintf('Righe comuni senza quote deducibili al %s per cento (rapporto tra i ricavi commerciali e il totale dei ricavi e proventi, art. 144, c. 4, TUIR).', number_format($quota * 100, 2, ',', '.'));
     }
 
     /**
