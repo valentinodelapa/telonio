@@ -61,6 +61,11 @@ use Dichiarativi\Application\Services\QuadriDichiarazione;
 use Dichiarativi\Application\Services\Telematico\GeneratoreIva;
 use Dichiarativi\Application\Services\Stampa\PdfDichiarazione;
 use Dichiarativi\Application\Services\Telematico\GeneratoreTr;
+use Dichiarativi\Application\Services\Telematico\GeneratoreSostituti;
+use Dichiarativi\Application\Services\Sostituti\ControlliSostituti;
+use Dichiarativi\Application\Services\Sostituti\Proposta770;
+use Dichiarativi\Application\Services\Sostituti\PropostaCu;
+use Telonio\Application\HelperClasses\CodiceFiscale;
 use Dichiarativi\Application\Services\Telematico\GeneratoreIrap;
 use Dichiarativi\Application\Services\Telematico\GeneratoreRedditi;
 use SismaFramework\Core\HttpClasses\Request;
@@ -322,7 +327,7 @@ class DichiarazioneController extends DichiarativiController
         $this->vars['avvertenze'] = $controlli->getAvvertenze($quadri, $dichiarazione);
         $this->vars['versamenti'] = iterator_to_array((new VersamentoModel($this->dataMapper))->getGenerati($dichiarazione->soggetto, Dichiarazione::ORIGINE, $dichiarazione->getRiferimento()), false);
         $this->vars['credito'] = match (true) {
-            $dichiarazione->modello->isRedditi() => null,
+            $dichiarazione->modello->isRedditi(), $dichiarazione->modello->isSostituti() => null,
             $dichiarazione->modello->isTrimestrale() => (new VersamentiTr($this->dataMapper))->getCredito($dichiarazione),
             default => (new VersamentiIva($this->dataMapper))->getCredito($dichiarazione),
         };
@@ -331,6 +336,8 @@ class DichiarazioneController extends DichiarativiController
             $dichiarazione->modello->isRedditiSocieta() => PropostaRedditiSocieta::getRiepilogo($quadri),
             $dichiarazione->modello === ModelloDichiarativo::consolidato => PropostaConsolidato::getRiepilogo($quadri),
             $dichiarazione->modello === ModelloDichiarativo::irap => PropostaIrap::getRiepilogo($quadri),
+            $dichiarazione->modello === ModelloDichiarativo::certificazioneUnica => PropostaCu::getRiepilogo($quadri),
+            $dichiarazione->modello === ModelloDichiarativo::modello770 => Proposta770::getRiepilogo($quadri),
             default => [],
         };
         // IRAP: codici aliquota della regione del rigo IR1 (tabella del Dipartimento delle Finanze)
@@ -587,6 +594,10 @@ class DichiarazioneController extends DichiarativiController
             return $bloccata;
         }
         $this->verificaCsrf($request);
+        if ($dichiarazione->modello->isSostituti()) {
+            $this->aggiungiMessaggio('Le ritenute si versano mese per mese dalla Contabilità (ritenute operate, codice tributo 1040): la dichiarazione non ha versamenti propri.', 'warning');
+            return $this->vaiAllaDichiarazione($dichiarazione);
+        }
         if ($dichiarazione->modello === ModelloDichiarativo::redditiSp) {
             $this->aggiungiMessaggio('Redditi SP: la società non versa imposte sul reddito (imputato ai soci); le imposte sostitutive del quadro RQ si registrano in Deleghe.', 'warning');
             return $this->vaiAllaDichiarazione($dichiarazione);
@@ -659,7 +670,7 @@ class DichiarazioneController extends DichiarativiController
             $dichiarazione->stato = $stato;
             $this->dataMapper->save($dichiarazione);
             $messaggi = match (true) {
-                $dichiarazione->modello === ModelloDichiarativo::redditiSp => [],
+                $dichiarazione->modello === ModelloDichiarativo::redditiSp, $dichiarazione->modello->isSostituti() => [],
                 $dichiarazione->modello->isRedditi() => (new VersamentiRedditi($this->dataMapper))->registraCrediti($dichiarazione, $quadri),
                 $dichiarazione->modello->isTrimestrale() => (new VersamentiTr($this->dataMapper))->registraCredito($dichiarazione, $quadri),
                 default => array_merge($servizio->registraCredito($dichiarazione, $quadri), $servizio->registraProrata($dichiarazione, $quadri)),
@@ -670,7 +681,7 @@ class DichiarazioneController extends DichiarativiController
             $dichiarazione->stato = $stato;
             $this->dataMapper->save($dichiarazione);
             $messaggi = match (true) {
-                $dichiarazione->modello === ModelloDichiarativo::redditiSp => [],
+                $dichiarazione->modello === ModelloDichiarativo::redditiSp, $dichiarazione->modello->isSostituti() => [],
                 $dichiarazione->modello->isRedditi() => (new VersamentiRedditi($this->dataMapper))->annullaCrediti($dichiarazione),
                 $dichiarazione->modello->isTrimestrale() => (new VersamentiTr($this->dataMapper))->annullaCredito($dichiarazione),
                 default => $servizio->annullaCredito($dichiarazione),
@@ -693,7 +704,7 @@ class DichiarazioneController extends DichiarativiController
         $primaTransazione = $this->dataMapper->startTransaction();
         $esito = (new ArchivioVersamenti($this->dataMapper))->registra($soggetto, Dichiarazione::ORIGINE, $dichiarazione->getRiferimento(), []);
         $messaggi = match (true) {
-            $dichiarazione->modello === ModelloDichiarativo::redditiSp => [],
+            $dichiarazione->modello === ModelloDichiarativo::redditiSp, $dichiarazione->modello->isSostituti() => [],
             $dichiarazione->modello->isRedditi() => (new VersamentiRedditi($this->dataMapper))->annullaCrediti($dichiarazione),
             $dichiarazione->modello->isTrimestrale() => (new VersamentiTr($this->dataMapper))->annullaCredito($dichiarazione),
             default => (new VersamentiIva($this->dataMapper))->annullaCredito($dichiarazione),
@@ -724,6 +735,7 @@ class DichiarazioneController extends DichiarativiController
                 $dichiarazione->modello === ModelloDichiarativo::irap => (new GeneratoreIrap($this->dataMapper))->genera($dichiarazione),
                 $dichiarazione->modello->isRedditi() => (new GeneratoreRedditi($this->dataMapper))->genera($dichiarazione),
                 $dichiarazione->modello->isTrimestrale() => (new GeneratoreTr($this->dataMapper))->genera($dichiarazione),
+                $dichiarazione->modello->isSostituti() => (new GeneratoreSostituti($this->dataMapper))->genera($dichiarazione),
                 default => (new GeneratoreIva($this->dataMapper))->genera($dichiarazione),
             };
         } catch (\InvalidArgumentException | \LengthException $errore) {
@@ -735,6 +747,7 @@ class DichiarazioneController extends DichiarativiController
             $dichiarazione->modello === ModelloDichiarativo::irap => GeneratoreIrap::getNomeFile($dichiarazione),
             $dichiarazione->modello->isRedditi() => GeneratoreRedditi::getNomeFile($dichiarazione),
             $dichiarazione->modello->isTrimestrale() => GeneratoreTr::getNomeFile($dichiarazione),
+            $dichiarazione->modello->isSostituti() => GeneratoreSostituti::getNomeFile($dichiarazione),
             default => GeneratoreIva::getNomeFile($dichiarazione),
         };
         return $this->render->generateData('dichiarazione/scarica', $this->vars);
@@ -798,6 +811,10 @@ class DichiarazioneController extends DichiarativiController
             (new PropostaIrap($this->dataMapper))->proponi($dichiarazione);
         } elseif ($dichiarazione->modello === ModelloDichiarativo::isa) {
             (new PropostaIsa($this->dataMapper))->proponi($dichiarazione);
+        } elseif ($dichiarazione->modello === ModelloDichiarativo::certificazioneUnica) {
+            (new PropostaCu($this->dataMapper))->proponi($dichiarazione);
+        } elseif ($dichiarazione->modello === ModelloDichiarativo::modello770) {
+            (new Proposta770($this->dataMapper))->proponi($dichiarazione);
         }
     }
 
@@ -813,7 +830,7 @@ class DichiarazioneController extends DichiarativiController
         $predefiniti = match (true) {
             // modello ISA: i quadri presenti nel modello dell'ISA
             $dichiarazione->modello === ModelloDichiarativo::isa => array_values(array_intersect($dichiarazione->modello->getQuadri(), array_unique(array_map(fn($campo) => $campo->quadro, $quadri->getCatalogo())))),
-            ($modulo === 1) || $dichiarazione->modello->isTrimestrale() => $dichiarazione->modello->getQuadri(),
+            ($modulo === 1) || $dichiarazione->modello->isTrimestrale() || $dichiarazione->modello->isSostituti() => $dichiarazione->modello->getQuadri(),
             $dichiarazione->modello->isRedditi() => [],
             default => array_diff($dichiarazione->modello->getQuadri(), PropostaIva::QUADRI_PRIMO_MODULO, ['VH']),
         };
@@ -857,6 +874,9 @@ class DichiarazioneController extends DichiarativiController
         if (($bloccata = $this->verificaModificabile($dichiarazione)) !== null) {
             return $bloccata;
         }
+        if ($dichiarazione->modello === ModelloDichiarativo::certificazioneUnica) {
+            return $this->aggiungiCertificazione($request, $dichiarazione);
+        }
         $tipo = TipoModulo::tryFrom((string) ($request->input['tipo'] ?? ''));
         $fonte = ctype_digit((string) ($request->input['soggettoFonte'] ?? '')) ? (new SoggettoModel($this->dataMapper))->getEntityById((int) $request->input['soggettoFonte']) : null;
         if (($tipo === null) || ($tipo === TipoModulo::principale) || (($fonte !== null) && ($fonte->studio->id !== $this->studio->id))) {
@@ -883,6 +903,35 @@ class DichiarazioneController extends DichiarativiController
         $this->dataMapper->commitTransaction($primaTransazione);
         $this->aggiungiMessaggio($modulo->getEtichetta() . ' aggiunto' . ($modulo->soggettoFonte === null ? ': compilarne i quadri.' : ' e proposto dalla contabilità del soggetto.'));
         return $this->vaiAllaDichiarazione($dichiarazione, '', $modulo->numero);
+    }
+
+    /**
+     * Certificazione Unica: aggiunge la certificazione di un percipiente
+     * (es. compensi senza ritenuta del regime forfetario) con il codice
+     * fiscale inserito a mano; gli altri dati si compilano nei quadri.
+     */
+    private function aggiungiCertificazione(Request $request, Dichiarazione $dichiarazione): Response
+    {
+        $codiceFiscale = CodiceFiscale::normalizza((string) ($request->input['codiceFiscale'] ?? ''));
+        if ((CodiceFiscale::isValidoPersonaFisica($codiceFiscale) || CodiceFiscale::isValidoNumerico($codiceFiscale)) === false) {
+            $this->aggiungiMessaggio('Codice fiscale del percipiente non valido.', 'danger');
+            return $this->vaiAllaDichiarazione($dichiarazione);
+        }
+        $quadri = new QuadriDichiarazione($dichiarazione, $this->dataMapper);
+        foreach ($quadri->getModuli() as $numero) {
+            if ($quadri->get('DA002001', $numero) === $codiceFiscale) {
+                $this->aggiungiMessaggio('Il percipiente ha già la certificazione ' . $numero . '.', 'warning');
+                return $this->vaiAllaDichiarazione($dichiarazione, 'DA', $numero);
+            }
+        }
+        $numero = max([0, ...$quadri->getModuli()]) + 1;
+        $quadri->usaModulo($numero)->imposta('DA002001', $codiceFiscale);
+        $primaTransazione = $this->dataMapper->startTransaction();
+        $quadri->salva();
+        $this->proponiQuadri($dichiarazione);
+        $this->dataMapper->commitTransaction($primaTransazione);
+        $this->aggiungiMessaggio('Certificazione ' . $numero . ' aggiunta: compilarne i dati del percipiente (DA) e i compensi (AU).');
+        return $this->vaiAllaDichiarazione($dichiarazione, 'DA', $numero);
     }
 
     /**
@@ -1013,6 +1062,16 @@ class DichiarazioneController extends DichiarativiController
      */
     private function getModuli(Dichiarazione $dichiarazione, ?QuadriDichiarazione $quadri = null): array
     {
+        if ($dichiarazione->modello === ModelloDichiarativo::certificazioneUnica) {
+            // una certificazione per percipiente, con il codice fiscale e il cognome
+            $quadri ??= new QuadriDichiarazione($dichiarazione, $this->dataMapper);
+            $moduli = [];
+            foreach ($quadri->getModuli() ?: [1] as $numero) {
+                $nominativo = trim($quadri->get('DA002002', $numero) . ' ' . $quadri->get('DA002003', $numero));
+                $moduli[$numero] = 'Certificazione ' . $numero . ($nominativo === '' ? '' : ' · ' . $nominativo);
+            }
+            return $moduli;
+        }
         $moduli = [1 => 'Modulo 1 · ' . TipoModulo::principale->getLabel()];
         foreach ((new ModuloDichiarazioneModel($this->dataMapper))->getModuli($dichiarazione) as $modulo) {
             $moduli[$modulo->numero] = $modulo->getEtichetta();
@@ -1030,9 +1089,10 @@ class DichiarazioneController extends DichiarativiController
     /**
      * Controlli del modello della dichiarazione.
      */
-    private function getControlli(Dichiarazione $dichiarazione): ControlliIva|ControlliTr|ControlliRedditi|ControlliIsa
+    private function getControlli(Dichiarazione $dichiarazione): ControlliIva|ControlliTr|ControlliRedditi|ControlliIsa|ControlliSostituti
     {
         return match (true) {
+            $dichiarazione->modello->isSostituti() => new ControlliSostituti($this->dataMapper),
             $dichiarazione->modello === ModelloDichiarativo::isa => new ControlliIsa($this->dataMapper),
             $dichiarazione->modello->isRedditi() => new ControlliRedditi($this->dataMapper),
             $dichiarazione->modello->isTrimestrale() => new ControlliTr($this->dataMapper),

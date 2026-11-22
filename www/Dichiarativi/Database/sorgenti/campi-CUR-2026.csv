@@ -1,0 +1,969 @@
+codice;formato;descrizione
+AU001001;AN;Causale
+AU001002;DA;Anno
+AU001003;CB;Anticipazione
+AU001004;VP;"Ammontare lordo corrisposto"
+AU001005;VP;"Somme non soggette a ritenuta per regime convenzionale"
+AU001006;NP;Codice
+AU001007;VP;"Altre somme non soggette a"
+AU001008;VP;"ritenuta Imponibile"
+AU001009;VP;"Ritenute a titolo di acconto"
+AU001010;VP;"Ritenute a titolo di imposta"
+AU001011;VP;"Ritenute sospese"
+AU001012;VP;"Addizionale regionale a titolo di acconto"
+AU001013;VP;"Addizionale regionale a titolo di imposta"
+AU001014;VP;"Addizionale regionale sospesa"
+AU001015;VP;"Addizionale comunale a titolo di acconto"
+AU001016;VP;"Addizionale comunale a titolo di imposta"
+AU001017;VP;"Addizionale comunale sospesa"
+AU001018;VP;"Imponibile anni precedenti"
+AU001019;VP;"Ritenute operate anni precedenti"
+AU001020;VP;"Spese rimborsate"
+AU001022;VP;"Somme Restituite al netto della ritenuta subita"
+AU001029;CN;"Codice Fiscale Ente Previdenziale"
+AU001030;AN;"Denominazione Ente"
+AU001031;AN;"Previdenziale Tipo di rapporto"
+AU001032;AN;"Codice Azienda"
+AU001033;AN;Categoria
+AU001034;VN;"Contributi previdenziali a carico del soggetto erogante"
+AU001035;VN;"Contributi previdenziali a carico del percipiente"
+AU001036;CB;"Altri Contributi"
+AU001037;VN;"Importo altri contributi"
+AU001038;VN;"Contributi dovuti"
+AU001039;VN;"Contributi versati"
+AU001040;VN;"Importo franchigia utilizzata"
+AU001041;VP;"Somme corrisposte prima della data del fallimento"
+AU001042;VP;"Somme corrisposte dal curatore/commissario"
+AU001052;CF;"Codice Fiscale"
+AU001053;VP;Imponibile
+AU001054;VP;"Ritenute a titolo di acconto"
+AU001055;VP;"Ritenute a titolo d'imposta"
+AU001056;VP;"Ritenute sospese"
+AU001057;VP;"Addizionale regionale a titolo d'acconto"
+AU001058;VP;"Addizionale regionale a titolo d'imposta"
+AU001059;VP;"Addizionale regionale sospesa"
+AU001060;VP;"Addizionale comunale a titolo d'acconto"
+AU001061;VP;"Addizionale comunale a titolo d'imposta"
+AU001062;VP;"Addizionale comunale sospesa"
+AU001071;CF;"Casi particolari operazioni straordinari - Codice Fiscale sezione lavoro autonomo e redditi diversi"
+AU001072;CF;"Casi particolari operazioni straordinari - Codice Fiscale sezionepignoramento presso terzi"
+AU001073;CF;"Casi particolari operazioni straordinari - Codice Fiscale sezioneindennità di esproprio"
+AU001101;CF;"Codice Fiscale debitore"
+AU001102;VP;"principale Somme erogate"
+AU001103;VP;"Ritenute operate"
+AU001104;VP;"Somme erogate non tassate"
+AU001105;CF;"Codice Fiscale debitore principale"
+AU001106;VP;"Somme erogate"
+AU001107;VP;"Ritenute operate"
+AU001108;VP;"Somme erogate non tassate"
+AU001131;VP;"Indennità di espropro e risarcimento del danno -"
+AU001132;VP;"Somme corrisposte Indennità di espropro e risarcimento del danno -"
+AU001133;VP;"Ritenute operate Altre indennità ed interessi -"
+AU001134;VP;"Somme corrisposte Altre indennità ed interessi - Ritenute operate"
+AU001135;VP;"Indennità di espropro e risarcimento del danno -"
+AU001136;VP;"Somme corrisposte Indennità di espropro e risarcimento del danno -"
+AU001137;VP;"Ritenute operate Altre indennità ed interessi - Somme corrisposte"
+AU001138;VP;"Altre indennità ed interessi - Ritenute operate"
+CT001001;CF;"Codice fiscale del sostituto"
+CT001002;AN;"Numero di cellulare del sostituto"
+CT001003;AN;"Indirizzo di posta elettronica del sostituto"
+CT002001;CB;"Casella Fisconline"
+CT002002;AN;"Codice Sede Entratel del Sostituto"
+CT003001;CF;"Codice fiscale dell'intermediario incaricato"
+CT003002;AN;"Codice sede Entratel incaricato"
+CT003003;AN;"Cellulare dell'intermediario"
+CT003004;AN;"Indirizzo di posta elettronica dell'intermediario"
+CT003005;CB;"Firma del sostituto"
+DA001001;CF;"Codice fiscale"
+DA001002;AN;"Cognome o denominazione"
+DA001003;AN;Nome
+DA001004;AN;"Comune di Residenza"
+DA001005;PR;"Provincia di Residenza (sigla)"
+DA001006;AN;CAP
+DA001007;AN;Indirizzo
+DA001008;AN;Telefono/Fax
+DA001009;AN;"Indirizzo di posta elettronica del sostituto"
+DA001010;AN;"Codice Attività"
+DA001011;AN;"Codice Sede"
+DA001012;CN;"Codice fiscale del nuovo sostituto che trasmette per conto del sostituto cessato comunicazioni di annullamento o di sostituzione"
+DA002001;CF;"Codice fiscale"
+DA002002;AN;Cognome
+DA002003;AN;Nome
+DA002004;AN;Sesso
+DA002005;DT;"Data di nascita"
+DA002006;AN;"Comune (o Stato estero) di nascita"
+DA002007;PN;"Provincia di nascita (sigla)"
+DA002008;AN;"Categorie particolari"
+DA002009;NP;"Eventi eccezionali"
+DA002010;N1;"Casi di esclusione dalla precompilata"
+DA002011;N3;"Codice Stato Estero"
+DA002020;AN;Comune
+DA002021;PR;"Provincia (sigla)"
+DA002022;AN;"Codice comune"
+DA002024;AN;Comune
+DA002025;PR;"Provincia (sigla)"
+DA002026;AN;"Codice comune"
+DA002030;CF;"Dati relativi al rappresentante"
+DA002040;AN;"Codice di identificazione fiscale estero"
+DA002041;AN;"Località di residenza estera"
+DA002042;CB;"Luogo di attinenza"
+DA002043;AN;"Via e numero civico"
+DA002044;CB;"Non Residenti Shumacker"
+DA002045;N3;"Codice stato estero"
+DA002046;CB;Frontaliere
+DA003001;DT;"Data Firma Sostituto d'imposta"
+DA003002;CB;Firma
+DB001001;VP;"Configurazione Valori ammessi MODUL CONTROLLI o O Dati fiscali SEZIONE REDDITI dipendente e SI"
+DB001002;VP;"dipendente e SI"
+DB001003;VP;SI
+DB001004;VP;SI
+DB001005;VP;"corrisposti dal SI"
+DB001006;N3;"per i quali spettano Vale da 1 a 365 SI La somma"
+DB001007;N3;"per i quali spettano Vale da 1 a 365 SI - non è compilata 1/1/2025"
+DB001008;DT;"DB001007 di Lavoro SI 35"
+DB001009;DT;"Rapporto di SI IL campo DB001009"
+DB001010;CB;SI
+DB001011;N1;"Vale 1 o 2 o 3 o 4 SI Se risultano condizioni: (DB001008); (DB001010) 1/1/2025"
+DB001012;VP;"DB001007 Data Inizio in franchi SI"
+DB001013;VP;"agli addetti alle SI"
+DB001021;VP;"SEZIONE RITENUTE SI Se non è barrata DB001361"
+DB001022;VP;"DB001003 all'Irpef SI Se non è barrata DB001361"
+DB001023;VP;"DB001003 2024 trattenuta SI"
+DB001024;VP;"2025 rapporti SI"
+DB001025;VP;"all'Irpef - Saldo SI 36"
+DB001026;VP;"all'Irpef - SI Se non è barrata DB001361 DB001026"
+DB001027;VP;"DB001003 all'Irpef - Saldo SI"
+DB001028;VP;"all'Irpef - SI"
+DB001029;VP;"all'Irpef - SI Se non è barrata DB001361"
+DB001030;VP;"DB001003 sospese SI"
+DB001031;VP;"all'Irpef SI"
+DB001032;VP;"sospesa per SI"
+DB001033;VP;"all'Irpef SI"
+DB001034;VP;"all'Irpef SI"
+DB001035;VP;"all'Irpef SI"
+DB001036;VP;"all'Irpef SI"
+DB001051;AN;"Vale A, B, C, D, E, F SI"
+DB001052;CB;"diretta SI"
+DB001054;NP;"integrativo Vale 1, 2 o 3 SI"
+DB001055;NP;"rettificativo Vale 1, 2 o 3 SI"
+DB001061;VP;"- Trattenuto SI E' alternativo DB001064"
+DB001062;VP;"- Rimborsato SI E' alternativo DB001063"
+DB001063;VP;"- Non trattenuto SI Sono tra loro"
+DB001064;VP;"- Non rimborsato SI"
+DB001071;VP;"2024 - SI E' alternativo 37"
+DB001072;VP;"2024 - SI E' alternativo"
+DB001073;VP;"2024 - Non SI Sono tra loro"
+DB001074;VP;"2024 - Non SI"
+DB001075;N2;"2024 -Codice Vale da 1 a 21 SI"
+DB001081;VP;"Comunale 2024 - SI E' alternativo"
+DB001082;VP;"Comunale 2024 - SI E' alternativo"
+DB001083;VP;"Comunale 2024 - SI Sono tra loro"
+DB001084;VP;"Comunale 2024 - SI"
+DB001085;AN;"Comunale 2024 - SI Il campo deve"
+DB001091;VP;"730 2026. Secca Locazioni 2024 SI E' alternativo"
+DB001092;VP;"Secca Locazioni 2024 SI E' alternativo"
+DB001093;VP;"Secca Locazioni 2024 SI Sono tra loro"
+DB001094;VP;"Secca Locazioni 2024 SI"
+DB001101;VP;"Premi Risultato - SI"
+DB001102;VP;"Premi Risultato - SI"
+DB001111;VP;"Separata - SI"
+DB001112;VP;"Separata - Non SI"
+DB001121;VP;"Irpef trattenuto SI"
+DB001122;VP;"acconto Irpef SI"
+DB001123;CB;"acconto SI"
+DB001124;VP;"comunale SI"
+DB001125;AN;"SI Il campo deve"
+DB001126;VP;"730 2026. cedolare secca SI"
+DB001127;VP;"rata acconto SI"
+DB001128;CB;"acconto SI"
+DB001131;VP;SI
+DB001132;VP;"comunale SI"
+DB001133;VP;"secca sospesi SI 38"
+DB001141;VP;"- Erario SI"
+DB001142;VP;"- Regione SI"
+DB001143;VP;"- Comune SI"
+DB001151;VP;"- SI"
+DB001152;VP;"- SI"
+DB001153;VP;"- SI"
+DB001161;VP;"ASSISTENZA FISCALE SOSPESA SI"
+DB001162;VP;"all' Irpef SI"
+DB001163;VP;"comunale all' Irpef SI"
+DB001164;VP;"separata SI"
+DB001165;VP;SI
+DB001166;VP;"su locazioni SI ASSISTENZA FISCALE 730/2025 CONIUGE"
+DB001261;VP;"- Trattenuto SI E' alternativo DB001264"
+DB001262;VP;"- Rimborsato SI E' alternativo DB001263"
+DB001263;VP;"- Non trattenuto SI Sono tra loro"
+DB001264;VP;"- Non rimborsato SI"
+DB001271;VP;"2024 - SI E' alternativo"
+DB001272;VP;"2024 - SI E' alternativo"
+DB001273;VP;"2024 - Non SI Sono tra loro"
+DB001274;VP;"2024 - Non SI"
+DB001275;N2;"2024 -Codice Vale da 1 a 21 SI"
+DB001281;VP;"Comunale 2024 - SI E' alternativo"
+DB001282;VP;"Comunale 2024 - SI E' alternativo"
+DB001283;VP;"Comunale 2024 - SI Sono tra loro"
+DB001284;VP;"Comunale 2024 - SI"
+DB001285;AN;"Comunale 2024 - SI Il campo deve"
+DB001291;VP;"730 2026. Secca Locazioni 2024 SI E' alternativo 39"
+DB001292;VP;"Secca Locazioni 2024 SI E' alternativo"
+DB001293;VP;"Secca Locazioni 2024 SI Sono tra loro"
+DB001294;VP;"Secca Locazioni 2024 SI"
+DB001301;VP;"Premi Risultato - SI"
+DB001302;VP;"Premi Risultato - SI"
+DB001311;VP;"Separata - SI"
+DB001312;VP;"Separata - Non SI"
+DB001321;VP;"Irpef trattenuto SI"
+DB001322;VP;"acconto Irpef SI"
+DB001323;CB;"acconto SI"
+DB001324;VP;"comunale SI"
+DB001325;AN;"SI Il campo deve"
+DB001326;VP;"730 2026. cedolare secca SI"
+DB001327;VP;"rata acconto SI"
+DB001328;CB;"acconto SI"
+DB001331;VP;SI
+DB001332;VP;"comunale SI"
+DB001333;VP;"secca sospesi SI"
+DB001341;NP;"ONERI DETRAIBILI Vale da 1 a 18, da 20 I campi relativi 44, 45, 46, 47, 48, 51,52, 53, 54, 55, 56,"
+DB001342;VP;"57, 61, 62, 71, 76, 81, 94, 98 e 99"
+DB001343;NP;"Vale da 1 a 18, da 20 II campi relativi 44, 45, 46, 47, 48, 51,52, 53, 54, 55, 56,"
+DB001344;VP;"57, 61, 62, 71, 76, 81, 94, 98 e 99 40"
+DB001345;NP;"Vale da 1 a 18, da 20 I campi relativi 44, 45, 46, 47, 48, 51,52, 53, 54, 55, 56,"
+DB001346;VP;"57, 61, 62, 71, 76, 81, 94, 98 e 99"
+DB001347;NP;"Vale da 1 a 18, da 20 I campi relativi 44, 45, 46, 47, 48, 51,52, 53, 54, 55, 56,"
+DB001348;VP;"57, 61, 62, 71, 76, 81, 94, 98 e 99"
+DB001349;NP;"Vale da 1 a 18, da 20 I campi relativi 44, 45, 46, 47, 48, 51,52, 53, 54, 55, 56,"
+DB001350;VP;"57, 61, 62, 71, 76, 81, 94, 98 e 99"
+DB001351;NP;"Vale da 1 a 18, da 20 I campi relativi 44, 45, 46, 47, 48, 51,52, 53, 54, 55, 56,"
+DB001352;VP;"57, 61, 62, 71, 76, 81, 94, 98 e 99"
+DB001361;VP;"DETRAZIONI E CREDITI SI"
+DB001362;VP;"carichi di famiglia SI Può essere"
+DB001367;VP;"601 a 609) lavoro dipendente, SI DB001367"
+DB001368;VP;"SI Non può essere 1.000"
+DB001369;VP;"per oneri SI"
+DB001370;VP;"canoni di locazioni SI La somma DB001371"
+DB001371;VP;"essere > 2001 di locazione SI"
+DB001372;VP;"di locazione non SI"
+DB001373;VP;"di locazione SI 41"
+DB001374;VP;SI
+DB001375;VP;SI
+DB001376;VP;"per le imposte SI Se compilato"
+DB001377;N3;"DB001380 Deve essere uno di Il campo deve paesi e territori"
+DB001378;DA;"esteri"" pubblicata nelle istruzioni del modello Unico reddito estero Il campo non 2025."
+DB001379;VP;"DB001377 all'estero Il campo deve DB001377"
+DB001380;VP;definitiva
+DB001381;VP;"SEZIONE CREDITO IMPOSTA APE APE - Utilizzato SI"
+DB001382;VP;"APE - SI"
+DB001383;VP;"COMPARTO SICUREZZA SI"
+DB001384;VP;"SI La somma"
+DB001385;VP;"DB001384 fruita SI 42"
+DB001390;N1;"SEZIONE TRATTAMENTO INTEGRATIVO INTEGRATIVO - Vale 1 o 2 SI Campo Obbligatorio DB001001"
+DB001391;VP;"tutto o in parte parte INTEGRATIVO - SI Deve essere compilato."
+DB001392;VP;"1.200. INTEGRATIVO - SI DB001390"
+DB001393;VP;"1.200. INTEGRATIVO - SI Non può essere"
+DB001394;VP;"INTEGRATIVO - SI Non può essere"
+DB001395;VP;"INTEGRATIVO - SI Non può essere"
+DB001397;N1;"INTEGRATIVO Vale 1 o 2"
+DB001398;VP;INTEGRATIVO
+DB001399;VP;INTEGRATIVO
+DB001400;VP;INTEGRATIVO
+DB001403;CF;"INTEGRATIVO 43"
+DB001411;NP;"PREVIDENZA COMPLEMENTARE complementare Vale da 1 a 3 Il campo è DB001423"
+DB001412;VP;complementare
+DB001413;VP;complementare
+DB001415;DT;"al fondo"
+DB001416;VP;complementare
+DB001417;VP;"complementare Può essere"
+DB001418;VP;complementare
+DB001419;VP;complementare
+DB001420;NP;complementare
+DB001421;VP;"per SI"
+DB001422;VP;"per SI Non può essere"
+DB001423;VP;"1 per SI Non può essere"
+DB001424;CF;"1 del familiare a carico"
+DB001425;CF;"fondo - Codice"
+DB001426;CF;"fondo - Codice"
+DB001427;CF;"fondo - Codice"
+DB001431;VP;"ONERI DEDUCIBILI esclusi dai SI"
+DB001432;NP;"Vale 1, 2, 3, 4, 5, 6, I campi relativi"
+DB001433;VP;
+DB001434;NP;"Vale 1, 2, 3, 4, 5, 6, I campi relativi"
+DB001435;VP;
+DB001436;NP;"Vale 1, 2, 3, 4, 5, 6, I campi relativi"
+DB001437;VP;"assenti o presenti 44"
+DB001438;VP;"nell'anno SI"
+DB001439;VP;"precendente SI"
+DB001440;VP;"non dedotte dai SI"
+DB001441;VP;"a enti e casse SI"
+DB001442;VP;"a enti e casse SI"
+DB001443;CF;"degli enti o casse"
+DB001444;CB;"sanitarie SI"
+DB001449;VP;"ALTRI DATI SI"
+DB001451;VP;"- ritenute SI Può essere"
+DB001452;VP;"- Addizionale SI Può essere"
+DB001453;VP;"- Addizionale SI Può essere"
+DB001454;VP;"- Acconto SI Può essere"
+DB001455;VP;"- Con contratto a SI"
+DB001456;VP;"- Con contratto a SI"
+DB001457;VP;"non campione d'italia SI"
+DB001458;N3;"marittimi Vale da 1 a 365 SI"
+DB001459;VP;SI
+DB001461;N3;"Vale da 1 a 365 SI"
+DB001462;NP;"- Codice Vale 2, 4, 6, 8, 9, I campi relativi"
+DB001463;VP;"- Ammontare"
+DB001464;NP;"- Codice Vale 21, 22, 23, 24, I campi relativi"
+DB001465;VP;"- Ammontare"
+DB001466;DA;"Option - Anno SI Non può essere"
+DB001467;VP;"Option - eccedenza SI"
+DB001468;VP;"Option - Ritenute SI"
+DB001469;VP;"dal sostituto SI"
+DB001470;VP;"dal sostituto SI"
+DB001471;VP;"di conguaglio - SI 45"
+DB001472;CB;"ritenuta SI"
+DB001473;AN;"Vale A,B SI"
+DB001474;VP;"- Benefit base SI"
+DB001475;VP;"- con figli tra loro alternativi SI"
+DB001476;VP;"canoni e spese Non può essere"
+DB001477;VP;"al netto della SI"
+DB001478;VP;"NASPI SI"
+DB001479;VP;"speciale SI"
+DB001480;VP;"agli addetti alle Non può essere SI"
+DB001481;VP;"a ritenuta a titolo"
+DB001482;VP;"a ritenuta a titolo SI"
+DB001483;VP;"a ritenuta a titolo SI"
+DB001484;NP;"vale 2, 3, 4, 5"
+DB001485;VP;
+DB001486;AN;"Vale A, B, C, D"
+DB001487;VP;
+DB001488;VP;sospese
+DB001490;PC;
+DB001491;VP;
+DB001492;N3;"Vale da 1 a 365"
+DB001493;DT;Inizio
+DB001494;DT;"Fine Non può essere inizio"
+DB001495;CF;"del sostituto Se presente"
+DB001496;VP;"Lavori socialmente utili SI"
+DB001497;VP;SI
+DB001498;VP;"Irpef Può essere SI DB001497"
+DB001499;VP;"regionale all'irpef Può essere SI DB001497 46"
+DB001500;VP;"irpef sospese"
+DB001501;VP;regionale
+DB001511;VP;"arretrati per i quali è"
+DB001512;VP;"arretrati per i quali"
+DB001513;VP;operate
+DB001514;VP;sospese
+DB001515;VP;-
+DB001516;VP;"DB001511. - SI"
+DB001519;DA;"successione Deve essere SI"
+DB001520;VP;"per i quali è"
+DB001521;VP;"per i quali non è"
+DB001522;VP;
+DB001523;VP;
+DB001524;VP;"21, comma 4, del"
+DB001525;DA;"Deve essere"
+DB001526;CF;"del sostituto Se presente 47"
+DB001531;VP;"Redditi assoggettati a tassazione ordinaria già SI"
+DB001532;VP;"già SI"
+DB001533;VP;"già SI Non può essere"
+DB001534;VP;"già SI Non può essere"
+DB001535;VP;"già SI Non può essere"
+DB001536;VP;"già SI Non può essere"
+DB001537;CF;"Campo obbligatorio DB001570. 48"
+DB001538;NP;"Vale da 1 a 6, 8, 9 e 11"
+DB001539;VP;"già compreso"
+DB001540;VP;"già compreso"
+DB001541;VP;"già compreso"
+DB001542;VP;"già compreso"
+DB001543;VP;"già compreso"
+DB001544;VP;"già compreso"
+DB001545;VP;
+DB001546;VP;
+DB001547;VP;"Acconto 2025"
+DB001548;VP;"Saldo 2025"
+DB001549;VP;
+DB001550;VP;sospesa
+DB001551;VP;"in acconto"
+DB001552;VP;"a saldo"
+DB001553;NP;"- Codice Vale 2, 4, 6, 8, 9, I campi relativi"
+DB001554;VP;"- Ammontare"
+DB001555;NP;"- Codice Vale 21, 22, 23, 24, I campi relativi"
+DB001556;VP;"- Ammontare assenti o presenti"
+DB001557;VP;"SPORTIVO A"
+DB001558;VP;"SPORTIVO A"
+DB001559;VP;"SPORTIVO A"
+DB001560;VP;"SPORTIVO A"
+DB001561;N3;"LAVORO SPORTIVO - Non può essere"
+DB001562;DT;"LAVORO SPORTIVO - 49"
+DB001563;DT;"LAVORO SPORTIVO -"
+DB001564;CB;"LAVORO SPORTIVO -"
+DB001565;VP;"Lavori socialmente utili"
+DB001566;VP;
+DB001567;VP;Irpef
+DB001568;VP;"regionale all'irpef"
+DB001569;VP;"Irpef sospese"
+DB001570;VP;"regionale all'irpef 50"
+DB001571;N1;"Vale 1, 2 o 3 SI Il campo è DB001582."
+DB001572;VP;"DB001591. assoggettati ad SI Il campo DB001572 DB001591"
+DB001573;VP;"DB001573 determinato. DB001571 SI DB001571 DB001571 DB001573"
+DB001574;VP;"sottoforma di contributi SI La somma"
+DB001575;VP;"sottoforma di contributi SI"
+DB001576;VP;"SI Può essere"
+DB001577;VP;"sospesa SI 51"
+DB001578;VP;"assoggettato a SI Il campo DB001578 DB001591 DB001571"
+DB001579;VP;"DB001571 DB001571 DB001578 art.51, comma 4 del SI"
+DB001580;VP;"SI Non può essere"
+DB001581;VP;"in caso di figli SI Non può essere"
+DB001582;VP;"di riscatto di periodo SI"
+DB001591;N1;"Vale 1, 2 o 3 SI Il campo è DB001602. 52"
+DB001592;VP;"assoggettati ad SI Il campo DB001592 DB001571 DB001571"
+DB001593;VP;"DB001571 DB001573 SI"
+DB001594;VP;"sottoforma di contributi SI La somma"
+DB001595;VP;"sottoforma di contributi SI"
+DB001596;VP;"SI Può essere"
+DB001597;VP;"sospesa SI"
+DB001598;VP;"assoggettato a SI Il campo DB001598 DB001571 DB001571"
+DB001599;VP;"DB001571 DB001578 art.51, comma 4 del SI"
+DB001600;VP;"SI Non può essere"
+DB001601;VP;"in caso di figli SI Non può essere"
+DB001602;VP;"di riscatto di periodo SI 53"
+DB001611;VP;"ad imposta SI I campi DB001611"
+DB001612;VP;"a SI"
+DB001613;CF;"Il campo è DB001621."
+DB001614;N1;"Vale 1,2 o 3"
+DB001615;VP;"assoggettato ad"
+DB001616;VP;
+DB001617;VP;
+DB001618;VP;sospesa
+DB001619;VP;"assoggettato a"
+DB001620;VP;"art.51, comma 4 del"
+DB001631;VP;"BENEFIT RELATIVI AD ANNI PRECEDENTI forme pensionistiche SI"
+DB001632;VP;"sanitaria SI"
+DB001651;VP;"settore turistico SI"
+DB001652;VP;"ad imposta SI"
+DB001653;VP;SI
+DB001654;VP;"sospesa SI Non può essere"
+DB001655;VP;"ad imposta SI Non può essere"
+DB001656;VP;"ad imposta SI I campi DB001656"
+DB001657;VP;"a SI 54"
+DB001658;CF;"Il campo è DB001663."
+DB001659;VP;turistico
+DB001660;VP;"ad imposta"
+DB001661;VP;
+DB001662;VP;sospesa
+DB001663;VP;"ad imposta"
+DB001671;VP;SI
+DB001672;VP;SI
+DB001673;VP;"sospesa SI Non può essere"
+DB001674;VP;SI
+DB001675;VP;SI
+DB001676;VP;"sospesa SI Non può essere"
+DB001681;CF;SI
+DB001682;CB;SI
+DB001683;CB;"aventi carattere fisso e SI 55"
+DB001701;NP;Obbligatorio
+DB001702;NP;"Vale 7, 10, 12, 13, Il campo DB001702 48, 55, 57, 95, 96, 97"
+DB001703;NP;"Vale 3"
+DB001704;VP;Obbligatorio
+DB001705;CF;"del soggetto a cui si Il campo DB001705"
+DB001706;CB;"riferita al Il campo DB001706"
+DB001707;CF;"SEZIONE ALTRI SOSTITUTI"
+DB001708;NP;
+DB001709;NP;"Vale 7, 10, 12, 13, 48, 55, 57, 95, 96, 97"
+DB001710;NP;"Vale 3"
+DB001711;VP;59
+DB001712;CF;"del soggetto a cui si"
+DB001713;CB;"riferita al"
+DB001718;NP;"Vale 1 o 2 SI CU 2026:"
+DB001719;VP;"compilato. sono assenti compilati. Dipendente (art. 49 SI"
+DB001720;VP;"Dilettanti SI"
+DB001721;NP;"dipendente Vale da 1 a 365 SI"
+DB001722;DT;"di lavoro SI"
+DB001723;DT;"di lavoro SI Deve essere"
+DB001724;NP;"Vale 1 o 2 SI Vale: tutto o in parte parte 60"
+DB001725;VP;"SI Deve essere"
+DB001726;VP;"SI Non può essere"
+DB001727;VP;"entro SI"
+DB001728;VP;SI
+DB001731;NP;"Vale 1 o 2"
+DB001732;VP;"Dipendente (art. 49"
+DB001733;VP;Dilettanti
+DB001734;NP;dipendente
+DB001735;DT;"di lavoro"
+DB001736;DT;"di lavoro"
+DB001737;NP;"Vale 1 o 2"
+DB001738;VP;
+DB001739;VP;
+DB001740;VP;entro
+DB001741;CF;"sostituto TIPOLOGIE REDDITUALI"
+DB001751;NP;"Vale 1, 2, 3, 4, 5, 6, I campi relativi 14, 15, 16, 17, 18 presenti"
+DB001752;VP;
+DB001753;NP;"Vale 1, 2, 3, 4, 5, 6, I campi relativi 14, 15, 16, 17, 18 presenti"
+DB001754;VP;
+DB001755;NP;"Vale 1, 2, 3, 4, 5, 6, I campi relativi 12,14, 15, 16, 17, 18 presenti"
+DB001756;VP;61
+DB001761;VP;"dipendente e SI"
+DB001762;VP;"dipendente e SI"
+DB001763;VP;SI
+DB001764;VP;SI
+DB001765;VP;SI
+DB001766;VP;"corrisposti dal SI"
+DB001767;VP;"agli addetti alle SI"
+DB001771;VP;"dipendente e SI Non può essere"
+DB001772;VP;"dipendente e SI Non può essere"
+DB001773;VP;"SI Non può essere"
+DB001774;VP;"SI Non può essere"
+DB001775;VP;"corrisposti dal SI Non può essere"
+DB001776;VP;"agli addetti alle SI Non può essere"
+DB001781;VP;"REDDITI LAVORO SPORTIVO A TEMPO SI"
+DB001782;VP;"A TEMPO SI"
+DB001783;VP;"A TEMPO SI Non può essere 62"
+DB001784;VP;"A TEMPO SI"
+DB001785;VP;"A TEMPO SI"
+DB001786;VP;"A TEMPO SI Non può essere"
+DB001787;N3;"LAVORO SPORTIVO - SI Calcolare:"
+DB001788;DT;"LAVORO SPORTIVO - SI Il campo è"
+DB001789;DT;"LAVORO SPORTIVO - SI Il campo è DB001790."
+DB001790;CB;"di Inizio. LAVORO SPORTIVO - SI Può essere"
+DB001791;CF;"di conferma) figlio E' obbligatorio"
+DB001792;CF;"genitore/affidatario Può essere"
+DB001793;NP;"Vale da 1 a 12 La somma DB001794"
+DB001794;NP;"12 Vale da 1 a 12"
+DB001795;CF;"altro genitore Può essere"
+DB001796;CF;"figlio E' obbligatorio"
+DB001797;CF;"genitore/affidatario Può essere"
+DB001798;NP;"Vale da 1 a 12 La somma DB001799"
+DB001799;NP;"Vale da 1 a 12 12"
+DB001800;CF;"altro genitore Può essere"
+DB001801;CF;"figlio E' obbligatorio"
+DB001802;CF;"genitore/affidatario Può essere"
+DB001803;NP;"Vale da 1 a 12 La somma DB001804"
+DB001804;NP;"12 Vale da 1 a 12"
+DB001805;CF;"altro genitore Può essere 63"
+DB001A89;NP;"- anni"
+DB001B89;N2;"- mesi Vale da 1 a 11"
+DB601001;CB;"Il Dato è obbligatorio compilato."
+DB601005;CF;"Il codice Fiscale"
+DB601006;N2;"Vale da 1 a 12"
+DB602001;AN;"Vale F o D Il Dato è obbligatorio compilato."
+DB602005;CF;"Il codice Fiscale"
+DB602006;N2;"Vale da 1 a 12 Il Dato è obbligatorio compilato."
+DB602008;CB;"affidamento figli Deve essere 100 e ""C"""
+DB602010;N2;"figli età da 21 anni Vale da 1 a 12"
+DB602A07;PC;"detrazione spettante La compilazione"
+DB602B07;AN;"detrazione spettante Vale 'C' se"
+DB603001;AN;"Vale F o G o D o P Il Dato è obbligatorio compilato."
+DB603005;CF;"Il codice Fiscale"
+DB603006;N2;"Vale da 1 a 12 Il Dato è obbligatorio compilato."
+DB603008;CB;"a ""F"" o ""D"". affidamento figli Deve essere"
+DB603010;N2;"figli età da 21 anni Vale da 1 a 12"
+DB603A07;PC;"detrazione spettante La compilazione"
+DB603B07;AN;"detrazione spettante Vale 'C' se"
+DB604001;AN;"Vale F o G o D o P Il Dato è obbligatorio compilato."
+DB604005;CF;"Il codice Fiscale"
+DB604006;N2;"Vale da 1 a 12 Il Dato è obbligatorio compilato. 56"
+DB604008;CB;"a ""F"" o ""D"". affidamento figli Deve essere"
+DB604010;N2;"figli età da 21 anni Vale da 1 a 12"
+DB604A07;PC;"detrazione spettante La compilazione"
+DB604B07;AN;"detrazione spettante Vale 'C' se"
+DB605001;AN;"Vale F o G o D o P Il Dato è obbligatorio compilato."
+DB605005;CF;"Il codice Fiscale"
+DB605006;N2;"Vale da 1 a 12 Il Dato è obbligatorio compilato."
+DB605008;CB;"affidamento figli Deve essere"
+DB605010;N2;"figli età da 21 anni Vale da 1 a 12"
+DB605A07;PC;"detrazione spettante La compilazione"
+DB605B07;AN;"detrazione spettante Vale 'C' se"
+DB606001;AN;"Vale F o G o D o P Il Dato è obbligatorio compilato."
+DB606005;CF;"Il codice Fiscale"
+DB606006;N2;"Vale da 1 a 12 Il Dato è obbligatorio compilato."
+DB606008;CB;"affidamento figli Deve essere"
+DB606010;N2;"figli età da 21 anni Vale da 1 a 12"
+DB606A07;PC;"detrazione spettante La compilazione"
+DB606B07;AN;"detrazione spettante Vale 'C' se a ""F"" o ""D"". 57"
+DB607001;AN;"Vale F o G o D o P Il Dato è obbligatorio compilato."
+DB607005;CF;"Il codice Fiscale"
+DB607006;N2;"Vale da 1 a 12 Il Dato è obbligatorio compilato."
+DB607008;CB;"affidamento figli Deve essere"
+DB607010;N2;"figli età da 21 anni Vale da 1 a 12"
+DB607A07;PC;"detrazione spettante La compilazione"
+DB607B07;AN;"detrazione spettante Vale 'C' se"
+DB608001;AN;"Vale F o G o D o P Il Dato è obbligatorio compilato."
+DB608005;CF;
+DB608006;N2;"Vale da 1 a 12 Il Dato è obbligatorio compilato."
+DB608008;CB;"a ""F"" o ""D"". affidamento figli Deve essere"
+DB608010;N2;"figli età da 21 anni Vale da 1 a 12"
+DB608A07;PC;"detrazione spettante La compilazione"
+DB608B07;AN;"detrazione spettante Vale 'C' se"
+DB609001;AN;"Vale F o G o D o P Il Dato è obbligatorio compilato."
+DB609005;CF;"Il codice Fiscale"
+DB609006;N2;"Vale da 1 a 12 Il Dato è obbligatorio compilato."
+DB609008;CB;"a ""F"" o ""D"". affidamento figli Deve essere"
+DB609010;N2;"figli età da 21 anni Vale da 1 a 12"
+DB609A07;PC;"detrazione spettante La compilazione 58"
+DB609B07;AN;"detrazione spettante Vale 'C' se"
+DC001001;N10;
+DC001002;CB;"- INPS"
+DC001003;CB;"- ALTRO"
+DC001004;VP;
+DC001005;VP;IVS
+DC001006;VP;"del lavoratore"
+DC001007;CB;"è stata presentata la"
+DC001008;CB12;"è stata presentata la"
+DC001009;CN;
+DC001010;AN;
+DC001011;AN;
+DC001012;NP;"Vale 1, 2, 3,4 ,5"
+DC001014;NP;"prestazioni creditizie Vale 9"
+DC001015;NP;"Vale 8"
+DC001016;NP;"Vale 11"
+DC001017;DA;
+DC001018;VN;
+DC001019;VN;dovuti
+DC001020;VN;"a carico"
+DC001021;VN;
+DC001022;VN;
+DC001023;VN;"a carico lavoratore"
+DC001024;VN;
+DC001025;VN;dovuti
+DC001026;VN;"ulteriori elementi"
+DC001027;VN;"ulteriori elementi"
+DC001028;VN;Credito
+DC001029;VN;"Credito dovuti"
+DC001030;VN;"Credito trattenuti"
+DC001031;VN;
+DC001032;VN;dovuti
+DC001033;VN;"a carico del"
+DC001034;VN;
+DC001035;VN;dovuti
+DC001036;VN;"trattenuti a carico 64"
+DC001037;CB;"è stata presentata la"
+DC001038;CB12;"è stata presentata la"
+DC001039;CF;"soggetto denuncia"
+DC001040;CB12;"soggetto denuncia"
+DC001041;CF;conguaglio
+DC001042;VN;
+DC001043;CF;"per denuncia"
+DC001044;CB12;"per denuncia Sezione 3"
+DC001045;VN;sul
+DC001046;VN;
+DC001047;VN;"del lavoratore"
+DC001048;VN;
+DC001049;CB;"è stata presentata la"
+DC001050;CB12;"è stata presentata la"
+DC001051;AN;"Vale 1A, 1E, 1B, 1C, 1D, 02, 03, 04, 05, 06, 11, 14, 17, 18, 19, 20, M1"
+DC001052;CF;"PPAA/Azienda Sezione 3 - BIS"
+DC001053;VN;parasubordinati
+DC001054;VN;
+DC001055;VN;forfettarie
+DC001056;VN;
+DC001057;VN;
+DC001058;VN;
+DC001059;VN;del
+DC001060;VN;
+DC001061;CB;"è stata presentata la"
+DC001062;CB12;"è stata presentata la"
+DC001063;AN;"Vale D1, D2, D3, D4, D5, D6, D7"
+DC001064;AN;"Vale D1, D2, D3, D4, D5, D6, D7"
+DC001065;VN;"Sezione 3 - TER magistrati onorari"
+DC001066;VN;
+DC001067;VN;
+DC001068;VN;dovuti
+DC001069;VN;"del magistrato"
+DC001070;VN;65
+DC001071;CB;"è stata presentata la"
+DC001072;CB12;"è stata presentata la"
+DC001073;CB;Forense
+DC001074;AN;"Vale M1"
+DC001075;CF;"Amministrazione Sezione 4"
+DC001076;D6;"INPS Soci Cooperative Artigiane Il campo deve"
+DC001077;D6;"Il campo deve"
+DC001078;VN;
+DC001079;CN;"Sezione 5 Altri Enti Ente Previdenziale Il dato è obbligatorio"
+DC001080;AN;"Ente Previdenziale"
+DC001081;AN;
+DC001082;AN;"Vale A, B, C, D, E , F, G, H, I, L e M"
+DC001083;VN;
+DC001084;VN;
+DC001085;VN;"del lavoratore"
+DC001086;VN;
+DC001087;CB;
+DC001088;VN;"Dati assicurativi INAIL"
+DC001091;AN;"Vale B, C, D, E, G, H, L, M, N, P, Q, Z"
+DC001092;N11;territoriale
+DC001093;D4;
+DC001094;D4;
+DC001095;AN;.
+DC001096;CB;66
+DC001A13;NP;"Vale 6, 7"
+DC001B13;NP;"- codice fine Vale 1, 2, 3"
+DF001801;VP;"anticipazioni e Il campo è DF001802 DF001846 oppure"
+DF001802;VP;"DF001801 erogati in Obbligatorio"
+DF001803;VP;"DF001815. Il campo può"
+DF001804;VP;"operata nell'anno Il campo può"
+DF001805;VP;
+DF001806;VP;"in anni precedenti Il campo può"
+DF001807;VP;"precedenti sospese"
+DF001808;PC;"per le indennità Il campo può DF001801"
+DF001809;VP;"fino al 31/12/2000 e"
+DF001810;VP;"dal 01/01/2001 e"
+DF001811;VP;"fino al 31/12/2000 e"
+DF001812;VP;"dal 1/1/2001 al"
+DF001813;VP;"dal 01/01/2007 e 67"
+DF001814;DT;"Dati relativi al rapporto di lavoro di lavoro Il campo è"
+DF001815;DT;"rapporto di lavoro Il campo è"
+DF001816;VP;"Il dato non DF001839"
+DF001817;NP;"di lavoro"
+DF001818;CB;
+DF001819;CF;"(Codice record B."
+DF001823;PC;"DF001823 il campo è DF001A22 68"
+DF001824;VP;"nel 2025 Il campo è"
+DF001825;AN;"Vale A, B, C e M Il campo può"
+DF001826;NP;"DF001824 Vale 1, 2 o 3 Le colonne"
+DF001827;NP;"Vale 2 o 3 contemporaneamente"
+DF001828;VP;"precedenti Può essere DF001814"
+DF001829;DA;"erogazione Non può essere"
+DF001830;VP;"Altre indennità nel 2025 Il campo è DF001824"
+DF001831;AN;"DF001A20 Vale A, B, C, D, E e Il campo può"
+DF001832;VP;"precedenti Può essere DF001814"
+DF001833;DA;"erogazione Non può essere"
+DF001834;CF;"del sostituto Se presente DF001832 DF001828. 69"
+DF001838;PC;"DF001838 Il campo è DF001A37"
+DF001839;VP;"Il valore del DF001840"
+DF001840;VP;2025
+DF001841;AN;"Vale A, B, C, M, P Il campo può"
+DF001842;NP;"Vale 1, 2 o 3 Le colonne"
+DF001843;NP;"Vale 2 o 3 contemporaneamente"
+DF001844;VP;"il valore ""M"" anni precedenti Il campo può"
+DF001845;DA;"1/1/2025 erogazione Non può essere"
+DF001846;VP;"al fondo"
+DF001847;PC;"Il campo può"
+DF001848;VP;"dal fondo Il campo può DF001846 70"
+DF001849;VP;"Altre Indennità nel 2025"
+DF001850;AN;"Vale A, B, C, D, E , Il campo può"
+DF001851;VP;"DF001839 precedenti Il campo può 1/1/2025"
+DF001852;DA;"erogazione Non può essere"
+DF001853;CF;"del sostituto Se presente DF001840"
+DF001854;CB;TFR
+DF001855;CB;
+DF001856;CF;"del datore di lavoro che 71"
+DF001860;PC;"DF001860 Il campo è DF001A59"
+DF001861;VP;"Se il campo DF001862"
+DF001862;VP;2025
+DF001863;AN;"Vale A, B, C, M, P Il campo può"
+DF001864;NP;"Vale 1, 2 o 3 Le colonne"
+DF001865;NP;"Vale 2 o 3 contemporaneamente"
+DF001866;VP;"il valore ""M"" anni precedenti Il campo può 1/1/2025"
+DF001867;DA;"erogazione Non può essere"
+DF001868;VP;"al fondo"
+DF001869;VP;"Altre Indennità nel 2025"
+DF001870;AN;"Vale A, B, C, D, E, F, Il campo può DF001870"
+DF001871;VP;"DF001870 precedenti Il campo può"
+DF001872;DA;"1/1/2025 erogazione Non può essere"
+DF001873;CF;"del sostituto Se presente DF001862 72"
+DF001874;N1;"record B. Vale 1,2"
+DF001876;VP;"nel 2025 Il campo è"
+DF001877;AN;"DF001874 Vale A, B, C, D, E, I, Il campo può"
+DF001878;VP;"DF001876 precedenti Il campo può"
+DF001879;DA;"DF001874 erogazione Non può essere"
+DF001880;CF;"del sostituto"
+DF001881;NP;"istruzioni Vale 1, 2"
+DF001882;VP;"destinato al fondo Il campo può DF001877 73"
+DF001884;VP;"nel 2025 Il campo è"
+DF001885;AN;"Vale A, B, C, I, M Il campo può"
+DF001886;VP;"DF001884 precedenti Il campo può"
+DF001887;DA;"1/1/2025 erogazione Non può essere"
+DF001888;VP;"ad imposta"
+DF001889;CB;"vecchi fondi"
+DF001890;VP;"biennio Se presente,"
+DF001891;PC;"Se presente,"
+DF001892;VP;"cessati ante 1974 Può essere DF001815"
+DF001893;VP;"Il campo è DF001892."
+DF001894;VP;"Dati riepilogativi Il campo non"
+DF001895;CB;istruzioni
+DF001898;VP;"Il campo non 74"
+DF001899;VP;
+DF001900;VP;"Se il campo"
+DF001901;VP;"DF001899 DF001899"
+DF001902;VP;"al decreto 20/03/08"
+DF001903;VP;"in anni precedenti"
+DF001904;VP;"precedenti sospese"
+DF001905;VP;"nel 2025"
+DF001906;VP;sospese
+DF001907;VP;"ordinaria - Anno"
+DF001908;VP;"ordinaria - Anni"
+DF001909;VP;"- Ris.33/2003 Può essere"
+DF001910;VP;"DF001903 3 - Ritenute post"
+DF001911;VP;"già assoggettate ad"
+DF001912;AN;"DETASSAZIONE TFS vale A, B, C, D, E"
+DF001913;VP;
+DF001914;VP;"anni precedenti"
+DF001915;CF;"ART. 2122 CODICE CIVILE del dipendente Il campo è"
+DF001916;CF;"DF001881 dell'avente diritto Il campo è DF001814"
+DF001917;PC;"per le indennità Il campo è"
+DF001920;VP;"sulle rivalutazioni 75"
+DF001A20;NP;"Indennità equipollenti - Anni Obbligatorio"
+DF001A21;NP;"- Anni Il valore in"
+DF001A22;NP;"- Anni Il valore in"
+DF001A35;NP;"corrisposte nel 2025. TFR - Anni Obbligatorio"
+DF001A36;NP;"- Anni Il valore in"
+DF001A37;NP;"- Anni Il valore in"
+DF001A57;NP;"- Anni Obbligatorio"
+DF001A58;NP;"- Anni Il valore in"
+DF001A59;NP;"- Anni Il valore in"
+DF001A75;NP;"al Il campo è"
+DF001A83;NP;"1/1/2001 DF001815 è inferiore dal 1/1/2001 - Il campo è"
+DF001A96;PC;"Se il campo"
+DF001A97;PC;
+DF001B20;N2;"- Mesi Vale da 1 a 11 campo tra DF001830"
+DF001B21;N2;"- Mesi Vale da 1 a 11"
+DF001B22;N2;"- Mesi Vale da 1 a 11 superiore al"
+DF001B35;N2;"e DF001851. - Mesi Vale da 1 a 11"
+DF001B36;N2;"- Mesi Vale da 1 a 11 al valore in"
+DF001B37;N2;"- Mesi Vale da 1 a 11 superiore al"
+DF001B57;N2;"- Mesi campo tra Vale da 1 a 11 e DF001871."
+DF001B58;N2;"- Mesi Vale da 1 a 11 superiore al"
+DF001B59;N2;"- Mesi superiore al Vale da 1 a 11"
+DF001B75;N2;"al Vale da 1 a 11 DF001878."
+DF001B83;N2;"DF001886. dal 1/1/2001 - Vale da 1 a 11"
+DF001B96;AN;"vale A,B Il campo può"
+DF001B97;AN;"vale A,B Il campo può"
+DN001001;AN;"ANNOTAZIONI Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB,"
+DN001002;AN;"CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB,"
+DN001003;AN;"CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB,"
+DN001004;AN;"CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB,"
+DN001005;AN;"CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB, CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ 76"
+DN001006;AN;"Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB,"
+DN001007;AN;"CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB,"
+DN001008;AN;"CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB,"
+DN001009;AN;"CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB,"
+DN001010;AN;"CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB, CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ 77"
+DN001011;AN;"Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB,"
+DN001012;AN;"CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB,"
+DN001013;AN;"CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB,"
+DN001014;AN;"CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB,"
+DN001015;AN;"CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB, CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ 78"
+DN001016;AN;"Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB,"
+DN001017;AN;"CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB,"
+DN001018;AN;"CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB,"
+DN001019;AN;"CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB,"
+DN001020;AN;"CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB, CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ 79"
+DN001021;AN;"Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB,"
+DN001022;AN;"CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB,"
+DN001023;AN;"CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB,"
+DN001024;AN;"CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB,"
+DN001025;AN;"CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB, CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ 80"
+DN001026;AN;"Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB,"
+DN001027;AN;"CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB,"
+DN001028;AN;"CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB,"
+DN001029;AN;"CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB,"
+DN001030;AN;"CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB, CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ 81"
+DN001031;AN;"Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB,"
+DN001032;AN;"CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB,"
+DN001033;AN;"CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB,"
+DN001034;AN;"CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB,"
+DN001035;AN;"CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB, CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ 82"
+DN001036;AN;"Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB,"
+DN001037;AN;"CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB,"
+DN001038;AN;"CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB,"
+DN001039;AN;"CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB,"
+DN001040;AN;"CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB, CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ 83"
+DN001041;AN;"Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB,"
+DN001042;AN;"CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB,"
+DN001043;AN;"CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB,"
+DN001044;AN;"CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB,"
+DN001045;AN;"CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB, CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ 84"
+DN001046;AN;"Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB,"
+DN001047;AN;"CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB,"
+DN001048;AN;"CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB,"
+DN001049;AN;"CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB,"
+DN001050;AN;"CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB, CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ 85"
+DN001051;AN;"Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB,"
+DN001052;AN;"CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB,"
+DN001053;AN;"CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB,"
+DN001054;AN;"CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB,"
+DN001055;AN;"CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB, CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ 86"
+DN001056;AN;"Vale AA, AB, AC, I codici AA, BW, BZ, CA, CB, CC, CD, CE, CF, CG, CH, CL, CM, CN, CP, CQ, CR, CS, CT, CU, CV, GA, GB, GI, GL, ZZ 87"
+LB001001;NP;"di locazione"
+LB001002;CB;intera
+LB001003;CB;parziale
+LB001004;N4;
+LB001005;NP;contratto
+LB001006;AN;
+LB001007;PR;(sigla)
+LB001008;AN;
+LB001009;AN;"(via, piazza, ecc..)"
+LB001010;AN;
+LB001011;AN;
+LB001012;AN;
+LB001013;AN;
+LB001019;VP;
+LB001020;VP;operata
+LB001021;CB;"non proprietario"
+LB001022;AN;
+LB001101;NP;"di locazione"
+LB001102;CB;intera
+LB001103;CB;parziale
+LB001104;N4;
+LB001105;NP;contratto
+LB001106;AN;
+LB001107;PR;(sigla)
+LB001108;AN;
+LB001109;AN;"(via, piazza, ecc..)"
+LB001110;AN;
+LB001111;AN;
+LB001112;AN;
+LB001113;AN;
+LB001119;VP;
+LB001120;VP;operata
+LB001121;CB;"non proprietario"
+LB001122;AN;
+LB001201;NP;"di locazione"
+LB001202;CB;intera
+LB001203;CB;parziale
+LB001204;N4;
+LB001205;NP;contratto
+LB001206;AN;
+LB001207;PR;(sigla)
+LB001208;AN;
+LB001209;AN;"(via, piazza, ecc..)"
+LB001210;AN;
+LB001211;AN;
+LB001212;AN;
+LB001213;AN;
+LB001219;VP;
+LB001220;VP;operata
+LB001221;CB;"non proprietario"
+LB001222;AN;
+LB001301;NP;"di locazione"
+LB001302;CB;intera
+LB001303;CB;parziale
+LB001304;N4;
+LB001305;NP;contratto
+LB001306;AN;
+LB001307;PR;(sigla)
+LB001308;AN;
+LB001309;AN;"(via, piazza, ecc..)"
+LB001310;AN;
+LB001311;AN;
+LB001312;AN;
+LB001313;AN;
+LB001319;VP;
+LB001320;VP;operata
+LB001321;CB;"non proprietario"
+LB001322;AN;
+LB001401;NP;"di locazione"
+LB001402;CB;intera
+LB001403;CB;parziale
+LB001404;N4;
+LB001405;NP;contratto
+LB001406;AN;
+LB001407;PR;(sigla)
+LB001408;AN;
+LB001409;AN;"(via, piazza, ecc..)"
+LB001410;AN;
+LB001411;AN;
+LB001412;AN;
+LB001413;AN;
+LB001419;VP;
+LB001420;VP;operata
+LB001421;CB;"non proprietario"
+LB001422;AN;

@@ -25,6 +25,8 @@ enum ModelloDichiarativo: string
     case redditiSc = 'RSC';
     case consolidato = 'CNM';
     case irap = 'IRA';
+    case certificazioneUnica = 'CUR';
+    case modello770 = '770';
 
     public function getLabel(): string
     {
@@ -37,6 +39,8 @@ enum ModelloDichiarativo: string
             self::redditiSc => 'Redditi Società di capitali',
             self::consolidato => 'Consolidato nazionale e mondiale',
             self::irap => 'Imposta regionale sulle attività produttive',
+            self::certificazioneUnica => "Certificazione Unica (sostituto d'imposta)",
+            self::modello770 => "Dichiarazione dei sostituti d'imposta (770)",
         };
     }
 
@@ -51,6 +55,8 @@ enum ModelloDichiarativo: string
             self::redditiSc => 'Redditi SC',
             self::consolidato => 'CNM',
             self::irap => 'IRAP',
+            self::certificazioneUnica => 'CU',
+            self::modello770 => '770',
         };
     }
 
@@ -60,7 +66,17 @@ enum ModelloDichiarativo: string
      */
     public function isGestito(): bool
     {
-        return in_array($this, [self::iva, self::ivaTr, self::redditiPf, self::redditiSp, self::redditiSc, self::consolidato, self::irap], true);
+        return in_array($this, [self::iva, self::ivaTr, self::redditiPf, self::redditiSp, self::redditiSc, self::consolidato, self::irap, self::certificazioneUnica, self::modello770], true);
+    }
+
+    /**
+     * Modelli dei sostituti d'imposta (Certificazione Unica e 770): niente
+     * versamenti né crediti propri (le ritenute si versano mese per mese
+     * dalla Contabilità), fornitura a record A, B, D (H per la CU) e Z.
+     */
+    public function isSostituti(): bool
+    {
+        return in_array($this, [self::certificazioneUnica, self::modello770], true);
     }
 
     /**
@@ -126,6 +142,9 @@ enum ModelloDichiarativo: string
             // fornitura XML: nessun record a struttura variabile
             self::irap => '',
             self::isa => 'Q',
+            // CU: dati del percipiente nel record D, lavoro autonomo nel record H; 770: prospetti ST, SV, SX nel record D, SS nel record J
+            self::certificazioneUnica => 'H',
+            self::modello770 => 'D',
         };
     }
 
@@ -145,6 +164,9 @@ enum ModelloDichiarativo: string
             self::iva => '-04-30',
             self::redditiPf, self::isa, self::redditiSp, self::redditiSc, self::consolidato, self::irap => '-10-31',
             self::ivaTr => '-04-30',
+            // CU: 16 marzo, termine di consegna al percipiente e di invio (30 aprile per le sole certificazioni di lavoro autonomo abituale e provvigioni non occasionali, istruzioni CU 2026 par. 2.1); 770: 31 ottobre
+            self::certificazioneUnica => '-03-16',
+            self::modello770 => '-10-31',
         });
     }
 
@@ -166,6 +188,10 @@ enum ModelloDichiarativo: string
             // società di persone (IP), di capitali (IC), enti (IE), amministrazioni (IK), ripartizione e versamenti (IR), prospetti (IS)
             self::irap => ['IP', 'IC', 'IE', 'IK', 'IR', 'IS'],
             self::consolidato => ['NF', 'NX', 'NI', 'NR', 'NE', 'NC', 'MF', 'MX', 'MR', 'ME', 'MC', 'CC', 'CN', 'CK', 'CS'],
+            // CU: dati anagrafici del percipiente (DA), lavoro autonomo, provvigioni e redditi diversi (AU)
+            self::certificazioneUnica => ['DA', 'AU'],
+            // 770: versamenti delle ritenute (ST, SV), riepilogo dei crediti e delle compensazioni (SX), riepilogo dei dati (SS)
+            self::modello770 => ['ST', 'SV', 'SX', 'SS'],
             self::redditiSc => ['RA', 'RB', 'RF', 'RH', 'RI', 'RJ', 'RK', 'RL', 'RM', 'RN', 'RO', 'RQ', 'RS', 'RT', 'RU', 'RV', 'RX', 'RZ', 'AC', 'CE', 'CP', 'DI', 'FC', 'GC', 'GN', 'NI', 'OP', 'PN', 'TN', 'TR'],
         };
     }

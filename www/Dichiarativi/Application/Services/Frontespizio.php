@@ -3,9 +3,12 @@
 namespace Dichiarativi\Application\Services;
 
 use Anagrafica\Application\Entities\Soggetto;
+use Anagrafica\Application\Enumerations\ClassificazioneAteco;
 use Anagrafica\Application\Enumerations\NaturaGiuridica;
 use Anagrafica\Application\Enumerations\RuoloLegame;
 use Anagrafica\Application\Enumerations\TipoRecapito;
+use Anagrafica\Application\Models\CodiceAtecoModel;
+use Anagrafica\Application\Models\DatiFiscaliModel;
 use Anagrafica\Application\Models\LegameModel;
 use Anagrafica\Application\Models\RecapitoModel;
 use Contabilita\Application\Enumerations\CodiceCaricaIva;
@@ -144,5 +147,21 @@ class Frontespizio
             }
         }
         return ['telefono' => ($telefono === null) || (strlen($telefono) < 6) ? null : $telefono, 'email' => $email];
+    }
+
+    /**
+     * Codice attività ATECO 2025 (senza punti) richiesto dai modelli
+     * presentati dal 2026 (CU, 770): quello dei dati fiscali in vigore a
+     * fine anno o, se ancora nella classificazione 2022, la sottocategoria
+     * 2025 del raccordo ISTAT.
+     */
+    public function getCodiceAttivita2025(Soggetto $soggetto, int $anno): ?string
+    {
+        $dati = (new DatiFiscaliModel($this->dataMapper))->getVigenteAl($soggetto, new SismaDate($anno . '-12-31')) ?? (new RegimeIva($this->dataMapper))->getDatiFiscali($soggetto, $anno);
+        $codice = $dati?->codiceAteco;
+        if (($codice !== null) && ($codice->classificazione !== ClassificazioneAteco::ateco2025)) {
+            $codice = (new CodiceAtecoModel($this->dataMapper))->getRaccordo($codice);
+        }
+        return $codice === null ? null : str_replace('.', '', $codice->codice);
     }
 }

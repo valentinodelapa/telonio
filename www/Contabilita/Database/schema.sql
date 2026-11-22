@@ -236,6 +236,7 @@ CREATE TABLE IF NOT EXISTS `controparte` (
   `giorni_pagamento` VARCHAR(100) NULL COMMENT 'Termini di pagamento abituali: giorni dalla data del documento (30,60,90)',
   `fine_mese_pagamento` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Scadenze dei termini a fine mese',
   `modalita_pagamento` CHAR(4) NULL COMMENT 'Modalità di pagamento abituale (MP01-MP23)',
+  `causale_cu` VARCHAR(2) NULL COMMENT 'Causale dei compensi con ritenuta d''acconto (Certificazione Unica: A, M, Q...)',
   `note` TEXT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_controparte_soggetto` (`soggetto_id`, `denominazione`),

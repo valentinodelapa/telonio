@@ -1,0 +1,2407 @@
+codice;formato;descrizione
+DI001001;CF;"Valori ammessi fiscale"
+DI001002;AN;"Può assumere Se il rigo è compilato, uno dei seguenti tutte obbligatorie valori: A, B, C, D, E, F, I, J, K, L, M, N, P o Q"
+DI001003;DA;"d'imposta Vale da 2019 a 2023"
+DI001005;NP;credito
+DI002001;CF;fiscale
+DI002002;AN;
+DI002003;DA;d'imposta
+DI002005;NP;credito
+DI003001;CF;fiscale
+DI003002;AN;
+DI003003;DA;d'imposta
+DI003005;NP;credito
+DI004001;CF;fiscale
+DI004002;AN;
+DI004003;DA;d'imposta
+DI004005;NP;credito
+DI005001;CF;fiscale
+DI005002;AN;
+DI005003;DA;d'imposta
+DI005005;NP;credito
+DI006001;CF;fiscale
+DI006002;AN;
+DI006003;DA;d'imposta
+DI006005;NP;credito
+DI007001;CF;fiscale
+DI007002;AN;
+DI007003;DA;d'imposta
+DI007005;NP;credito
+DI008001;CF;fiscale
+DI008002;AN;
+DI008003;DA;d'imposta
+DI008005;NP;credito
+DI009001;CF;fiscale
+DI009002;AN;
+DI009003;DA;d'imposta
+DI009005;NP;credito
+DI010001;CF;fiscale
+DI010002;AN;
+DI010003;DA;d'imposta
+DI010005;NP;credito
+DI011001;CF;fiscale
+DI011002;AN;
+DI011003;DA;d'imposta
+DI011005;NP;credito
+DI012001;CF;fiscale
+DI012002;AN;
+DI012003;DA;d'imposta
+DI012005;NP;credito
+DI013001;CF;fiscale
+DI013002;AN;
+DI013003;DA;d'imposta
+DI013005;NP;"credito 58"
+DI014001;CF;"Valori ammessi fiscale"
+DI014002;AN;
+DI014003;DA;d'imposta
+DI014005;NP;credito
+DI015001;CF;fiscale
+DI015002;AN;
+DI015003;DA;d'imposta
+DI015005;NP;credito
+DI016001;CF;fiscale
+DI016002;AN;
+DI016003;DA;d'imposta
+DI016005;NP;credito
+DI017001;CF;fiscale
+DI017002;AN;
+DI017003;DA;d'imposta
+DI017005;NP;credito
+DI018001;CF;fiscale
+DI018002;AN;
+DI018003;DA;d'imposta
+DI018005;NP;credito
+DI019001;CF;fiscale
+DI019002;AN;
+DI019003;DA;d'imposta
+DI019005;NP;credito
+DI020001;CF;fiscale
+DI020002;AN;
+DI020003;DA;d'imposta
+DI020005;NP;"credito 59"
+SF001001;CF;"per l'identificazione della dichiarazione software (codice fiscale) Descrizione Valori Formato ammessi pubblici e privati Codice fiscale del sostituto di Se presente"
+SF002001;AN;"Casi di mandato fiduciario Vale A o B"
+SF003001;N5;"Codice ABI"
+SF003002;AN;"Codice identificativo internazionale"
+SF003003;AN;"Codice fiscale"
+SF003004;AN;"Denominazione Obbligatorio"
+SF003005;N3;"SF003002 Codice stato estero Tabella SG Obbligatorio 770/2026"
+SF004001;CF;"Elenco dei percipienti Dati del Percipiente Codice fiscale del percipiente Il campo"
+SF004002;AN;"SF004011 Cognome ovvero Denominazione Il campo"
+SF004003;AN;"Nome del percipiente (solo per le Il campo"
+SF004004;AN;"Sesso del percipiente Vale M o F Il campo"
+SF004005;DT;"Data di nascita del percipiente Il campo"
+SF004006;AN;"Comune (o Stato estero) di nascita Il campo"
+SF004007;PN;"Provincia di nascita del percipiente"
+SF004008;AN;"(sigla) Comune del domicilio fiscale del"
+SF004009;PE;"Provincia del domicilio fiscale del"
+SF004010;AN;"Via e numero civico del domicilio"
+SF004011;N3;"Codice stato estero Tabella SG Il campo"
+SF004012;AN;"Codice di identificazione estero"
+SF004013;AN;"Causale Vale A, B, C, D, E, F, G, H,I, J, L, M, N, P,"
+SF004014;VP;"Q, R, S, T, U, V, Y Ammontare lordo corrisposto"
+SF004015;VP;"Somme non soggette a ritenuta"
+SF004016;PC;Aliquota
+SF004017;VP;Ritenute
+SF004018;VP;"Ritenute sospese"
+SF004020;AN;"N. meccanismo transfrontaliero"
+SF004021;CF;"Dati del rappresentante della"
+SF004022;AN;"società estera - Codice fiscale Dati del rappresentante della Il campo"
+SF004023;AN;"Dati del rappresentante della"
+SF004024;AN;"Dati del rappresentante della Vale M o F"
+SF004025;DT;"Dati del rappresentante della"
+SF004026;AN;"Dati del rappresentante della"
+SF004027;PN;"Dati del rappresentante della società estera - Provincia di nascita"
+SF004028;AN;"(sigla) Dati del rappresentante della"
+SF004029;PE;"domicilio fiscale Dati del rappresentante della"
+SF004030;AN;"Dati del rappresentante della"
+SF004031;N3;"Dati del rappresentante della Tabella SG società estera - Codice stato estero delle istruzioni del mod."
+SF005001;CF;"770/2026 Codice fiscale del percipiente"
+SF005002;AN;"Cognome ovvero Denominazione"
+SF005003;AN;"del percipiente Nome del percipiente (solo per le"
+SF005004;AN;"persone fisiche) Sesso del percipiente"
+SF005005;DT;"Data di nascita del percipiente"
+SF005006;AN;"Comune (o Stato estero) di nascita"
+SF005007;PN;"del percipiente Provincia di nascita del percipiente"
+SF005008;AN;"(sigla) Comune del domicilio fiscale del"
+SF005009;PE;"percipiente Provincia del domicilio fiscale del"
+SF005010;AN;"percipiente (sigla) Via e numero civico del domicilio fiscale del percipiente"
+SF005011;N3;"Codice stato estero"
+SF005012;AN;"Codice di identificazione estero"
+SF005013;AN;Causale
+SF005014;VP;"Ammontare lordo corrisposto"
+SF005015;VP;"Somme non soggette a ritenuta"
+SF005016;PC;Aliquota
+SF005017;VP;Ritenute
+SF005018;VP;"Ritenute sospese"
+SF005020;AN;"N. meccanismo transfrontaliero"
+SF005021;CF;"Dati del rappresentante della"
+SF005022;AN;"società estera - Codice fiscale Dati del rappresentante della società estera - Cognome ovvero"
+SF005023;AN;"Denominazione Dati del rappresentante della società estera - Nome (solo per le"
+SF005024;AN;"persone fisiche) Dati del rappresentante della"
+SF005025;DT;"società estera - Sesso (M o F) Dati del rappresentante della"
+SF005026;AN;"società estera - Data di nascita Dati del rappresentante della società estera - Comune (o Stato"
+SF005027;PN;"estero) di nascita Dati del rappresentante della società estera - Provincia di nascita"
+SF005028;AN;"(sigla) Dati del rappresentante della società estera - Comune del"
+SF005029;PE;"domicilio fiscale Dati del rappresentante della"
+SF005030;AN;"società estera - Provincia (sigla) Dati del rappresentante della società estera - Via e numero civico"
+SF005031;N3;"Dati del rappresentante della società estera - Codice stato estero"
+SF006001;CF;"Codice fiscale del percipiente"
+SF006002;AN;"Cognome ovvero Denominazione"
+SF006003;AN;"del percipiente Nome del percipiente (solo per le"
+SF006004;AN;"persone fisiche) Sesso del percipiente"
+SF006005;DT;"Data di nascita del percipiente"
+SF006006;AN;"Comune (o Stato estero) di nascita"
+SF006007;PN;"del percipiente Provincia di nascita del percipiente"
+SF006008;AN;"(sigla) Comune del domicilio fiscale del"
+SF006009;PE;"percipiente Provincia del domicilio fiscale del"
+SF006010;AN;"percipiente (sigla) Via e numero civico del domicilio"
+SF006011;N3;"fiscale del percipiente Codice stato estero"
+SF006012;AN;"Codice di identificazione estero"
+SF006013;AN;Causale
+SF006014;VP;"Ammontare lordo corrisposto"
+SF006015;VP;"Somme non soggette a ritenuta"
+SF006016;PC;Aliquota
+SF006017;VP;Ritenute
+SF006018;VP;"Ritenute sospese"
+SF006020;AN;"N. meccanismo transfrontaliero"
+SF006021;CF;"Dati del rappresentante della"
+SF006022;AN;"società estera - Codice fiscale Dati del rappresentante della società estera - Cognome ovvero"
+SF006023;AN;"Denominazione Dati del rappresentante della società estera - Nome (solo per le persone fisiche)"
+SF006024;AN;"Dati del rappresentante della"
+SF006025;DT;"società estera - Sesso (M o F) Dati del rappresentante della"
+SF006026;AN;"società estera - Data di nascita Dati del rappresentante della società estera - Comune (o Stato"
+SF006027;PN;"estero) di nascita Dati del rappresentante della società estera - Provincia di nascita"
+SF006028;AN;"(sigla) Dati del rappresentante della società estera - Comune del"
+SF006029;PE;"domicilio fiscale Dati del rappresentante della"
+SF006030;AN;"società estera - Provincia (sigla) Dati del rappresentante della società estera - Via e numero civico"
+SF006031;N3;"Dati del rappresentante della società estera - Codice stato estero"
+SF007001;CF;"Codice fiscale del percipiente"
+SF007002;AN;"Cognome ovvero Denominazione"
+SF007003;AN;"del percipiente Nome del percipiente (solo per le"
+SF007004;AN;"persone fisiche) Sesso del percipiente"
+SF007005;DT;"Data di nascita del percipiente"
+SF007006;AN;"Comune (o Stato estero) di nascita"
+SF007007;PN;"del percipiente Provincia di nascita del percipiente"
+SF007008;AN;"(sigla) Comune del domicilio fiscale del"
+SF007009;PE;"percipiente Provincia del domicilio fiscale del"
+SF007010;AN;"percipiente (sigla) Via e numero civico del domicilio"
+SF007011;N3;"fiscale del percipiente Codice stato estero"
+SF007012;AN;"Codice di identificazione estero"
+SF007013;AN;Causale
+SF007014;VP;"Ammontare lordo corrisposto"
+SF007015;VP;"Somme non soggette a ritenuta"
+SF007016;PC;Aliquota
+SF007017;VP;Ritenute
+SF007018;VP;"Ritenute sospese"
+SF007020;AN;"N. meccanismo transfrontaliero"
+SF007021;CF;"Dati del rappresentante della"
+SF007022;AN;"società estera - Codice fiscale Dati del rappresentante della società estera - Cognome ovvero"
+SF007023;AN;"Denominazione Dati del rappresentante della società estera - Nome (solo per le"
+SF007024;AN;"persone fisiche) Dati del rappresentante della"
+SF007025;DT;"società estera - Sesso (M o F) Dati del rappresentante della"
+SF007026;AN;"società estera - Data di nascita Dati del rappresentante della società estera - Comune (o Stato"
+SF007027;PN;"estero) di nascita Dati del rappresentante della società estera - Provincia di nascita"
+SF007028;AN;"(sigla) Dati del rappresentante della società estera - Comune del"
+SF007029;PE;"domicilio fiscale Dati del rappresentante della"
+SF007030;AN;"società estera - Provincia (sigla) Dati del rappresentante della società estera - Via e numero civico"
+SF007031;N3;"Dati del rappresentante della società estera - Codice stato estero"
+SF008001;CF;"Codice fiscale del percipiente"
+SF008002;AN;"Cognome ovvero Denominazione"
+SF008003;AN;"del percipiente Nome del percipiente (solo per le"
+SF008004;AN;"persone fisiche) Sesso del percipiente"
+SF008005;DT;"Data di nascita del percipiente"
+SF008006;AN;"Comune (o Stato estero) di nascita"
+SF008007;PN;"del percipiente Provincia di nascita del percipiente"
+SF008008;AN;"(sigla) Comune del domicilio fiscale del"
+SF008009;PE;"percipiente Provincia del domicilio fiscale del"
+SF008010;AN;"percipiente (sigla) Via e numero civico del domicilio"
+SF008011;N3;"fiscale del percipiente Codice stato estero"
+SF008012;AN;"Codice di identificazione estero"
+SF008013;AN;Causale
+SF008014;VP;"Ammontare lordo corrisposto"
+SF008015;VP;"Somme non soggette a ritenuta"
+SF008016;PC;Aliquota
+SF008017;VP;Ritenute
+SF008018;VP;"Ritenute sospese"
+SF008020;AN;"N. meccanismo transfrontaliero"
+SF008021;CF;"Dati del rappresentante della"
+SF008022;AN;"società estera - Codice fiscale Dati del rappresentante della società estera - Cognome ovvero"
+SF008023;AN;"Denominazione Dati del rappresentante della società estera - Nome (solo per le"
+SF008024;AN;"persone fisiche) Dati del rappresentante della"
+SF008025;DT;"società estera - Sesso (M o F) Dati del rappresentante della"
+SF008026;AN;"società estera - Data di nascita Dati del rappresentante della società estera - Comune (o Stato"
+SF008027;PN;"estero) di nascita Dati del rappresentante della società estera - Provincia di nascita"
+SF008028;AN;"(sigla) Dati del rappresentante della società estera - Comune del"
+SF008029;PE;"domicilio fiscale Dati del rappresentante della"
+SF008030;AN;"società estera - Provincia (sigla) Dati del rappresentante della società estera - Via e numero civico"
+SF008031;N3;"Dati del rappresentante della società estera - Codice stato estero"
+SG001001;CF;"Codice fiscale del sostituto di Se presente"
+SG002001;CF;"Codice fiscale del percipiente Il campo"
+SG002002;AN;"Cognome ovvero Denominazione Il campo"
+SG002003;AN;"Nome del percipiente (solo per le Il campo"
+SG002004;AN;"Sesso del percipiente Vale M o F Il campo"
+SG002005;DT;"Data di nascita del percipiente Il campo"
+SG002006;AN;"Comune (o Stato estero) di nascita Il campo"
+SG002007;PN;"Provincia di nascita del percipiente"
+SG002008;AN;"(sigla) Comune del domicilio fiscale del percipiente"
+SG002009;PR;"Provincia del domicilio fiscale del"
+SG002010;AN;"percipiente (sigla) Via e numero civico del domicilio"
+SG002011;AN;"Causale Vale A , B, N Obbligatorio"
+SG002012;VP;"Somme corrisposte Obbligatorio"
+SG002013;VP;"Ammontare complessivo dei premi riscossi sui quali le ritenute sono"
+SG002014;PC;"state commisurate Aliquota"
+SG002015;VP;"Ritenute operate Il dato"
+SG003001;CF;"Codice fiscale del percipiente"
+SG003002;AN;"Cognome ovvero Denominazione"
+SG003003;AN;"del percipiente Nome del percipiente (solo per le"
+SG003004;AN;"persone fisiche) Sesso del percipiente"
+SG003005;DT;"Data di nascita del percipiente"
+SG003006;AN;"Comune (o Stato estero) di nascita"
+SG003007;PN;"del percipiente Provincia di nascita del percipiente"
+SG003008;AN;"(sigla) Comune del domicilio fiscale del"
+SG003009;PR;"percipiente Provincia del domicilio fiscale del"
+SG003010;AN;"percipiente (sigla) Via e numero civico del domicilio"
+SG003011;AN;"fiscale del percipiente Causale"
+SG003012;VP;"Somme corrisposte"
+SG003013;VP;"Ammontare complessivo dei premi riscossi sui quali le ritenute sono"
+SG003014;PC;"state commisurate Aliquota"
+SG003015;VP;"Ritenute operate"
+SG004001;CF;"Codice fiscale del percipiente"
+SG004002;AN;"Cognome ovvero Denominazione"
+SG004003;AN;"del percipiente Nome del percipiente (solo per le"
+SG004004;AN;"persone fisiche) Sesso del percipiente"
+SG004005;DT;"Data di nascita del percipiente"
+SG004006;AN;"Comune (o Stato estero) di nascita"
+SG004007;PN;"del percipiente Provincia di nascita del percipiente"
+SG004008;AN;"(sigla) Comune del domicilio fiscale del"
+SG004009;PR;"percipiente Provincia del domicilio fiscale del"
+SG004010;AN;"percipiente (sigla) Via e numero civico del domicilio"
+SG004011;AN;"fiscale del percipiente Causale"
+SG004012;VP;"Somme corrisposte"
+SG004013;VP;"Ammontare complessivo dei premi riscossi sui quali le ritenute sono"
+SG004014;PC;"state commisurate Aliquota"
+SG004015;VP;"Ritenute operate"
+SG005001;CF;"Codice fiscale del percipiente"
+SG005002;AN;"Cognome ovvero Denominazione"
+SG005003;AN;"del percipiente Nome del percipiente (solo per le"
+SG005004;AN;"persone fisiche) Sesso del percipiente"
+SG005005;DT;"Data di nascita del percipiente"
+SG005006;AN;"Comune (o Stato estero) di nascita"
+SG005007;PN;"del percipiente Provincia di nascita del percipiente"
+SG005008;AN;"(sigla) Comune del domicilio fiscale del"
+SG005009;PR;"percipiente Provincia del domicilio fiscale del"
+SG005010;AN;"percipiente (sigla) Via e numero civico del domicilio"
+SG005011;AN;"fiscale del percipiente Causale"
+SG005012;VP;"Somme corrisposte"
+SG005013;VP;"Ammontare complessivo dei premi riscossi sui quali le ritenute sono"
+SG005014;PC;"state commisurate Aliquota"
+SG005015;VP;"Ritenute operate"
+SG006001;CF;"Codice fiscale del percipiente"
+SG006002;AN;"Cognome ovvero Denominazione"
+SG006003;AN;"del percipiente Nome del percipiente (solo per le"
+SG006004;AN;"persone fisiche) Sesso del percipiente"
+SG006005;DT;"Data di nascita del percipiente"
+SG006006;AN;"Comune (o Stato estero) di nascita"
+SG006007;PN;"del percipiente Provincia di nascita del percipiente"
+SG006008;AN;"(sigla) Comune del domicilio fiscale del"
+SG006009;PR;"percipiente Provincia del domicilio fiscale del"
+SG006010;AN;"percipiente (sigla) Via e numero civico del domicilio"
+SG006011;AN;"fiscale del percipiente Causale"
+SG006012;VP;"Somme corrisposte"
+SG006013;VP;"Ammontare complessivo dei premi riscossi sui quali le ritenute sono"
+SG006014;PC;"state commisurate Aliquota"
+SG006015;VP;"Ritenute operate"
+SG007001;CF;"Codice fiscale del percipiente"
+SG007002;AN;"Cognome ovvero Denominazione"
+SG007003;AN;"del percipiente Nome del percipiente (solo per le"
+SG007004;AN;"persone fisiche) Sesso del percipiente"
+SG007005;DT;"Data di nascita del percipiente"
+SG007006;AN;"Comune (o Stato estero) di nascita"
+SG007007;PN;"del percipiente Provincia di nascita del percipiente"
+SG007008;AN;"(sigla) Comune del domicilio fiscale del"
+SG007009;PR;"percipiente Provincia del domicilio fiscale del"
+SG007010;AN;"percipiente (sigla) Via e numero civico del domicilio"
+SG007011;AN;"fiscale del percipiente Causale"
+SG007012;VP;"Somme corrisposte"
+SG007013;VP;"Ammontare complessivo dei premi riscossi sui quali le ritenute sono"
+SG007014;PC;"state commisurate Aliquota"
+SG007015;VP;"Ritenute operate"
+SG008001;CF;"Codice fiscale del percipiente"
+SG008002;AN;"Cognome ovvero Denominazione"
+SG008003;AN;"del percipiente Nome del percipiente (solo per le"
+SG008004;AN;"persone fisiche) Sesso del percipiente"
+SG008005;DT;"Data di nascita del percipiente"
+SG008006;AN;"Comune (o Stato estero) di nascita"
+SG008007;PN;"del percipiente Provincia di nascita del percipiente"
+SG008008;AN;"(sigla) Comune del domicilio fiscale del"
+SG008009;PR;"percipiente Provincia del domicilio fiscale del"
+SG008010;AN;"percipiente (sigla) Via e numero civico del domicilio"
+SG008011;AN;"fiscale del percipiente Causale"
+SG008012;VP;"Somme corrisposte"
+SG008013;VP;"Ammontare complessivo dei premi riscossi sui quali le ritenute sono"
+SG008014;PC;"state commisurate Aliquota"
+SG008015;VP;"Ritenute operate"
+SG009001;CF;"Codice fiscale del percipiente"
+SG009002;AN;"Cognome ovvero Denominazione"
+SG009003;AN;"del percipiente Nome del percipiente (solo per le"
+SG009004;AN;"persone fisiche) Sesso del percipiente"
+SG009005;DT;"Data di nascita del percipiente"
+SG009006;AN;"Comune (o Stato estero) di nascita"
+SG009007;PN;"del percipiente Provincia di nascita del percipiente"
+SG009008;AN;"(sigla) Comune del domicilio fiscale del"
+SG009009;PR;"percipiente Provincia del domicilio fiscale del"
+SG009010;AN;"percipiente (sigla) Via e numero civico del domicilio"
+SG009011;AN;"fiscale del percipiente Causale"
+SG009012;VP;"Somme corrisposte"
+SG009013;VP;"Ammontare complessivo dei premi riscossi sui quali le ritenute sono"
+SG009014;PC;"state commisurate Aliquota"
+SG009015;VP;"Ritenute operate"
+SG010001;CF;"Codice fiscale del percipiente"
+SG010002;AN;"Cognome ovvero Denominazione"
+SG010003;AN;"del percipiente Nome del percipiente (solo per le"
+SG010004;AN;"persone fisiche) Sesso del percipiente"
+SG010005;DT;"Data di nascita del percipiente"
+SG010006;AN;"Comune (o Stato estero) di nascita"
+SG010007;PN;"del percipiente Provincia di nascita del percipiente"
+SG010008;AN;"(sigla) Comune del domicilio fiscale del"
+SG010009;PR;"percipiente Provincia del domicilio fiscale del"
+SG010010;AN;"percipiente (sigla) Via e numero civico del domicilio"
+SG010011;AN;"fiscale del percipiente Causale"
+SG010012;VP;"Somme corrisposte"
+SG010013;VP;"Ammontare complessivo dei premi riscossi sui quali le ritenute sono"
+SG010014;PC;"state commisurate Aliquota"
+SG010015;VP;"Ritenute operate"
+SG011001;AN;"Causale Vale C,D,E,F Obbligatorio"
+SG011002;VP;"Ammontare complessivo"
+SG011003;VP;"Ammontare delle somme sulle quali Il dato"
+SG011004;VP;"Ritenute operate Il dato"
+SG012001;AN;Causale
+SG012002;VP;"Ammontare complessivo"
+SG012003;VP;"Ammontare delle somme sulle quali le ritenute sono state commisurate"
+SG012004;VP;"Ritenute operate"
+SG013001;AN;Causale
+SG013002;VP;"Ammontare complessivo"
+SG013003;VP;"Ammontare delle somme sulle quali le ritenute sono state commisurate"
+SG013004;VP;"Ritenute operate"
+SG014001;DT;"Riservato alle compagnie di assicurazione estere - Opzione per l'applicazione dell'imposta"
+SG014002;VP;"sostitutiva - Data Riservato alle compagnie di assicurazione estere - Imponibile"
+SG014003;VP;"Riservato alle compagnie di"
+SG014004;VP;"Riservato alle compagnie di Il dato"
+SG015001;AN;"Causale Vale G,H,I,L, Obbligatorio"
+SG015002;VP;"M Ammontare complessivo"
+SG015003;VP;"Ammontare delle somme sulle quali le imposte sostitutive sono state"
+SG015004;VP;"commisurate Imposte sostitutive applicate Il dato"
+SG016001;AN;Causale
+SG016002;VP;"Ammontare complessivo"
+SG016003;VP;"Ammontare delle somme sulle quali le imposte sostitutive sono state"
+SG016004;VP;"commisurate Imposte sostitutive applicate"
+SG017001;AN;Causale
+SG017002;VP;"Ammontare complessivo"
+SG017003;VP;"Ammontare delle somme sulle quali le imposte sostitutive sono state"
+SG017004;VP;"commisurate Imposte sostitutive applicate"
+SG023001;VP;"Valore contratto"
+SG023002;VP;Imposta
+SH001001;CF;"Codice fiscale del sostituto di Se presente"
+SH002001;N5;"Codice ABI"
+SH002002;AN;"Codice identificativo internazionale"
+SH002003;AN;"Codice fiscale"
+SH002004;AN;"Denominazione Obbligatorio"
+SH002005;N3;"SH002002 Codice stato estero Tabella SG Obbligatorio 770/2026"
+SH003001;VP;"Prospetto A Somme soggette a ritenuta"
+SH003002;VP;"Ritenute operate Prospetto B"
+SH004001;VP;"Somme soggette a ritenuta"
+SH004002;PC;Aliquota
+SH004003;VP;"Ritenute operate"
+SH005001;VP;"Somme soggette a ritenuta"
+SH005002;PC;Aliquota
+SH005003;VP;"Ritenute operate Prospetto C"
+SH006001;VP;"Proventi soggetti a ritenuta"
+SH006002;PC;Aliquota
+SH006003;VP;"Ritenute operate"
+SH007001;VP;"Proventi soggetti a ritenuta"
+SH007002;PC;Aliquota
+SH007003;VP;"Ritenute operate"
+SH008001;VP;"Proventi soggetti a ritenuta"
+SH008002;PC;Aliquota
+SH008003;VP;"Ritenute operate"
+SH009001;VP;"Proventi soggetti a ritenuta"
+SH009002;PC;Aliquota
+SH009003;VP;"Ritenute operate"
+SH010001;VP;"Proventi soggetti a ritenuta"
+SH010002;PC;Aliquota
+SH010003;VP;"Ritenute operate"
+SH011001;VP;"Proventi soggetti a ritenuta"
+SH011002;PC;Aliquota
+SH011003;VP;"Ritenute operate Prospetto D"
+SH012001;VP;"Somme soggette a ritenuta"
+SH012002;PC;Aliquota
+SH012003;VP;"Ritenute operate"
+SH013001;VP;"Somme soggette a ritenuta"
+SH013002;PC;Aliquota
+SH013003;VP;"Ritenute operate Prospetto E"
+SH014001;VP;"Somme soggette a ritenuta"
+SH014003;VP;"Ritenute operate"
+SH015001;VP;"Prospetto F Somme soggette al prelievo"
+SH015003;VP;"Prelievo operato Prospetto G"
+SH016001;VP;"Somme soggette a ritenuta"
+SH016002;PC;Aliquota
+SH016003;VP;"Ritenute operate"
+SH017001;VP;"Somme soggette a ritenuta"
+SH017002;PC;Aliquota
+SH017003;VP;"Ritenute operate"
+SH018001;VP;"Somme soggette a ritenuta"
+SH018002;PC;Aliquota
+SH018003;VP;"Ritenute operate Prospetto H"
+SH019001;VP;"Somme soggette a ritenuta"
+SH019002;PC;Aliquota
+SH019003;VP;"Ritenute operate"
+SH020001;VP;"Somme soggette a ritenuta"
+SH020002;PC;Aliquota
+SH020003;VP;"Ritenute operate"
+SH021001;VP;"Somme soggette a ritenuta"
+SH021002;PC;Aliquota
+SH021003;VP;"Ritenute operate"
+SI001001;CF;"Codice fiscale del sostituto di Se presente"
+SI002001;N5;"Codice ABI"
+SI002002;AN;"Codice identificativo internazionale"
+SI002003;AN;"Codice fiscale"
+SI002004;AN;"Denominazione Obbligatorio"
+SI002005;N3;"SI002002 Codice stato estero Tabella SG Obbligatorio del mod. SI002002 770/2026"
+SI003001;VP;"Utili pagati nell'anno 2025 in qualità"
+SI003002;VP;"di emittente Utili di cooperative non distribuiti"
+SI003003;VP;"Ritenute Utili e proventi equiparati"
+SI004001;VP;"Somme pagate nel 2025"
+SI004002;PC;Aliquota
+SI004003;AN;"Titolo ritenuta Vale A,I"
+SI004004;VP;"Ritenute effettuate"
+SI004005;N1;"Tipo Vale 1, 2, 3, 4"
+SI005001;VP;"Somme pagate nel 2025"
+SI005002;PC;Aliquota
+SI005003;AN;"Titolo ritenuta"
+SI005004;VP;"Ritenute effettuate"
+SI005005;N1;Tipo
+SI006001;VP;"Somme pagate nel 2025"
+SI006002;PC;Aliquota
+SI006003;AN;"Titolo ritenuta"
+SI006004;VP;"Ritenute effettuate"
+SI006005;N1;Tipo
+SI007001;VP;"Somme pagate nel 2025"
+SI007002;PC;Aliquota
+SI007003;AN;"Titolo ritenuta"
+SI007004;VP;"Ritenute effettuate"
+SI007005;N1;Tipo
+SI008001;VP;"Somme pagate nel 2025"
+SI008002;PC;Aliquota
+SI008003;AN;"Titolo ritenuta"
+SI008004;VP;"Ritenute effettuate"
+SI008005;N1;Tipo
+SI009001;VP;"Somme pagate nel 2025"
+SI009002;PC;Aliquota
+SI009003;AN;"Titolo ritenuta"
+SI009004;VP;"Ritenute effettuate"
+SI009005;N1;Tipo
+SI010001;VP;"Somme pagate nel 2025"
+SI010002;PC;Aliquota
+SI010003;AN;"Titolo ritenuta"
+SI010004;VP;"Ritenute effettuate"
+SI010005;N1;Tipo
+SI011001;VP;"Somme pagate nel 2025"
+SI011002;PC;Aliquota
+SI011003;AN;"Titolo ritenuta"
+SI011004;VP;"Ritenute effettuate"
+SI011005;N1;Tipo
+SI012001;VP;"Somme pagate nel 2025"
+SI012002;PC;Aliquota
+SI012003;AN;"Titolo ritenuta"
+SI012004;VP;"Ritenute effettuate"
+SI012005;N1;Tipo
+SI013001;VP;"Somme pagate nel 2025"
+SI013002;PC;Aliquota
+SI013003;AN;"Titolo ritenuta"
+SI013004;VP;"Ritenute effettuate"
+SI013005;N1;Tipo
+SI014001;VP;"Somme pagate nel 2025"
+SI014005;N1;Tipo
+SK001001;CF;"Codice fiscale del sostituto di Se presente"
+SK002001;AN;"Tipo comunicazione Vale A, B, C, Obbligatorio"
+SK003001;AN;"Codice fiscale Obbligatorio. SK003004"
+SK003002;CB;"ISIN Non può"
+SK003003;AN;"SK003004 Cognome Nome ovvero Obbligatorio"
+SK003004;N3;"Denominazione Codice stato estero Tabella SG Obbligatorio"
+SK003005;AN;"770/2026 Comune del domicilio fiscale"
+SK003006;PR;"Provincia del domicilio fiscale"
+SK003007;AN;"Via e numero civico del domicilio"
+SK004001;N5;"Codice ABI"
+SK004002;AN;"Codice identificativo internazionale"
+SK004003;AN;"Codice fiscale"
+SK004004;AN;"Denominazione Obbligatorio SK004002"
+SK004005;N3;"Codice stato estero Tabella SG Obbligatorio 770/2026 Elenco dei percipienti"
+SK005001;CF;"Dati del percipiente Codice fiscale del percipiente Il campo"
+SK005002;AN;"SK005011 Cognome ovvero Denominazione Il campo"
+SK005003;AN;"Nome (solo per le persone fisiche) Il campo"
+SK005004;AN;"Sesso del percipiente Vale M o F Il campo"
+SK005005;DT;"Data di nascita Il campo"
+SK005006;AN;"Comune (o Stato estero) di nascita Il campo"
+SK005007;PN;"Provincia di nascita (sigla)"
+SK005008;AN;"Comune del domicilio fiscale"
+SK005009;PE;"Provincia del domicilio fiscale"
+SK005010;AN;"Via e numero civico del domicilio"
+SK005011;N3;"Codice stato estero Tabella SG Il campo"
+SK005012;AN;"Codice di identificazione estero"
+SK005013;CF;"Dati del rappresentante della società estera - Codice fiscale"
+SK005014;AN;"Dati del rappresentante della Il campo"
+SK005015;AN;"Dati del rappresentante della"
+SK005016;AN;"Dati del rappresentante della Vale M o F"
+SK005017;DT;"Dati del rappresentante della"
+SK005018;AN;"Dati del rappresentante della"
+SK005019;PN;"Dati del rappresentante della società estera - Provincia di nascita"
+SK005020;AN;"(sigla) Dati del rappresentante della"
+SK005021;PE;"domicilio fiscale Dati del rappresentante della"
+SK005022;AN;"Dati del rappresentante della"
+SK005023;N3;"Dati del rappresentante della Tabella SG società estera - Codice stato estero delle istruzioni del mod. 770/2026"
+SK005024;N1;"Tipo oggetto Vale 1,2"
+SK005025;N1;"Tipo partecipazione Vale 1,2,3,4"
+SK005026;N1;"Tipo ritenuta Vale 1,2,3,4,"
+SK005027;CB;"Monte titoli"
+SK005028;QU;"Numero azioni o quote"
+SK005029;PC;"Percentuale contitolarità"
+SK005030;QU;"Dividendo unitario"
+SK005031;CB;"Tipo regime"
+SK005032;VP;"Dividendo da utili ante 31/12/2007 I campi SK005036"
+SK005033;VP;"SK005041 Dividendo da utili post 31/12/2007 SK005035, SK005039"
+SK005034;VP;"Dividendo da utili post 31/12/2016"
+SK005035;VP;"Strumenti finanziari da utili ante"
+SK005036;VP;"31/12/2007 Strumenti finanziari da utili post"
+SK005037;VP;"31/12/2007 e ante 31/12/2016 Strumenti finanziari da utili post"
+SK005038;VP;"31/12/2016 Associazione in partecipazione da"
+SK005039;VP;"utili ante 31/12/2007 Associazione in partecipazione da utili post 31/12/2007 ante"
+SK005040;VP;"31/12/2016 Associazione in partecipazione da"
+SK005041;VP;"utili post 31/12/2016 Interessi riqualificati dividendi"
+SK005042;VP;"Netto frontiera"
+SK005043;VP;"Utili da SIIQ e da SIINQ"
+SK005044;PC;Aliquota
+SK005045;VP;"Ritenute Se il campo SK005046"
+SK005046;VP;"Imposta sostitutiva Se il campo"
+SK005047;VP;"SK005045 Imposta estera"
+SK005048;VP;"Utili in trasparenza"
+SK005049;CB;"Vedere Istruzioni"
+SK005050;AN;"N. meccanismo transfrontaliero"
+SK006001;CF;"Codice fiscale del percipiente"
+SK006002;AN;"Cognome ovvero Denominazione"
+SK006003;AN;"Nome (solo per le persone fisiche)"
+SK006004;AN;"Sesso del percipiente"
+SK006005;DT;"Data di nascita"
+SK006006;AN;"Comune (o Stato estero) di nascita"
+SK006007;PN;"Provincia di nascita (sigla)"
+SK006008;AN;"Comune del domicilio fiscale"
+SK006009;PE;"Provincia del domicilio fiscale"
+SK006010;AN;"(sigla) Via e numero civico del domicilio"
+SK006011;N3;"fiscale Codice stato estero"
+SK006012;AN;"Codice di identificazione estero"
+SK006013;CF;"Dati del rappresentante della"
+SK006014;AN;"società estera - Codice fiscale Dati del rappresentante della società estera - Cognome ovvero"
+SK006015;AN;"Denominazione Dati del rappresentante della società estera - Nome (solo per le"
+SK006016;AN;"persone fisiche) Dati del rappresentante della"
+SK006017;DT;"società estera - Sesso Dati del rappresentante della"
+SK006018;AN;"società estera - Data di nascita Dati del rappresentante della società estera - Comune (o Stato"
+SK006019;PN;"estero) di nascita Dati del rappresentante della società estera - Provincia di nascita"
+SK006020;AN;"(sigla) Dati del rappresentante della società estera - Comune del"
+SK006021;PE;"domicilio fiscale Dati del rappresentante della"
+SK006022;AN;"società estera - Provincia (sigla) Dati del rappresentante della società estera - Via e numero civico"
+SK006023;N3;"Dati del rappresentante della società estera - Codice stato estero"
+SK006024;N1;"Tipo oggetto"
+SK006025;N1;"Tipo partecipazione"
+SK006026;N1;"Tipo ritenuta"
+SK006027;CB;"Monte titoli"
+SK006028;QU;"Numero azioni o quote"
+SK006029;PC;"Percentuale contitolarità"
+SK006030;QU;"Dividendo unitario"
+SK006031;CB;"Tipo regime"
+SK006032;VP;"Dividendo da utili ante 31/12/2007"
+SK006033;VP;"Dividendo da utili post 31/12/2007"
+SK006034;VP;"ante 31/12/2016 Dividendo da utili post 31/12/2016"
+SK006035;VP;"Strumenti finanziari da utili ante"
+SK006036;VP;"31/12/2007 Strumenti finanziari da utili post"
+SK006037;VP;"31/12/2007 e ante 31/12/2016 Strumenti finanziari da utili post"
+SK006038;VP;"31/12/2016 Associazione in partecipazione da"
+SK006039;VP;"utili ante 31/12/2007 Associazione in partecipazione da utili post 31/12/2007 ante"
+SK006040;VP;"31/12/2016 Associazione in partecipazione da"
+SK006041;VP;"utili post 31/12/2016 Interessi riqualificati dividendi"
+SK006042;VP;"Netto frontiera"
+SK006043;VP;"Utili da SIIQ e da SIINQ"
+SK006044;PC;Aliquota
+SK006045;VP;Ritenute
+SK006046;VP;"Imposta sostitutiva"
+SK006047;VP;"Imposta estera"
+SK006048;VP;"Utili in trasparenza"
+SK006049;CB;"Vedere Istruzioni"
+SK006050;AN;"N. meccanismo transfrontaliero"
+SK007001;CF;"Codice fiscale del percipiente"
+SK007002;AN;"Cognome ovvero Denominazione"
+SK007003;AN;"Nome (solo per le persone fisiche)"
+SK007004;AN;"Sesso del percipiente"
+SK007005;DT;"Data di nascita"
+SK007006;AN;"Comune (o Stato estero) di nascita"
+SK007007;PN;"Provincia di nascita (sigla)"
+SK007008;AN;"Comune del domicilio fiscale"
+SK007009;PE;"Provincia del domicilio fiscale"
+SK007010;AN;"(sigla) Via e numero civico del domicilio"
+SK007011;N3;"fiscale Codice stato estero"
+SK007012;AN;"Codice di identificazione estero"
+SK007013;CF;"Dati del rappresentante della"
+SK007014;AN;"società estera - Codice fiscale Dati del rappresentante della società estera - Cognome ovvero"
+SK007015;AN;"Denominazione Dati del rappresentante della società estera - Nome (solo per le"
+SK007016;AN;"persone fisiche) Dati del rappresentante della"
+SK007017;DT;"società estera - Sesso Dati del rappresentante della"
+SK007018;AN;"società estera - Data di nascita Dati del rappresentante della società estera - Comune (o Stato"
+SK007019;PN;"estero) di nascita Dati del rappresentante della società estera - Provincia di nascita"
+SK007020;AN;"(sigla) Dati del rappresentante della società estera - Comune del"
+SK007021;PE;"domicilio fiscale Dati del rappresentante della"
+SK007022;AN;"società estera - Provincia (sigla) Dati del rappresentante della società estera - Via e numero civico"
+SK007023;N3;"Dati del rappresentante della società estera - Codice stato estero"
+SK007024;N1;"Tipo oggetto"
+SK007025;N1;"Tipo partecipazione"
+SK007026;N1;"Tipo ritenuta"
+SK007027;CB;"Monte titoli"
+SK007028;QU;"Numero azioni o quote"
+SK007029;PC;"Percentuale contitolarità"
+SK007030;QU;"Dividendo unitario"
+SK007031;CB;"Tipo regime"
+SK007032;VP;"Dividendo da utili ante 31/12/2007"
+SK007033;VP;"Dividendo da utili post 31/12/2007"
+SK007034;VP;"ante 31/12/2016 Dividendo da utili post 31/12/2016"
+SK007035;VP;"Strumenti finanziari da utili ante"
+SK007036;VP;"31/12/2007 Strumenti finanziari da utili post"
+SK007037;VP;"31/12/2007 e ante 31/12/2016 Strumenti finanziari da utili post 31/12/2016"
+SK007038;VP;"Associazione in partecipazione da"
+SK007039;VP;"utili ante 31/12/2007 Associazione in partecipazione da utili post 31/12/2007 ante"
+SK007040;VP;"31/12/2016 Associazione in partecipazione da"
+SK007041;VP;"utili post 31/12/2016 Interessi riqualificati dividendi"
+SK007042;VP;"Netto frontiera"
+SK007043;VP;"Utili da SIIQ e da SIINQ"
+SK007044;PC;Aliquota
+SK007045;VP;Ritenute
+SK007046;VP;"Imposta sostitutiva"
+SK007047;VP;"Imposta estera"
+SK007048;VP;"Utili in trasparenza"
+SK007049;CB;"Vedere Istruzioni"
+SK007050;AN;"N. meccanismo transfrontaliero"
+SK008001;CF;"Codice fiscale socio affidante Il campo"
+SK008002;CN;"Codice fiscale società partecipata Il campo"
+SK008003;PC;"Quota di partecipazione Il campo"
+SK008004;VN;"Quota reddito o perdita"
+SK008005;CB;"Perdite illimitate"
+SK008006;VP;"Quota ritenute d'acconto"
+SK008007;VP;"Quota altri crediti d'imposta"
+SK008008;VP;"Quota credito imposte estere ante"
+SK008009;VP;"opzione Quota detrazioni"
+SK008010;VP;"Quota credito d'imposta fondi"
+SK008011;VP;"comuni d'investimento ordinario Quota eccedenza"
+SK008012;VP;"Quota acconti"
+SK008013;CB;"Casella Vedere Istruzioni"
+SK009001;CF;"Codice fiscale socio affidante"
+SK009002;CN;"Codice fiscale società partecipata"
+SK009003;PC;"Quota di partecipazione"
+SK009004;VN;"Quota reddito o perdita"
+SK009005;CB;"Perdite illimitate"
+SK009006;VP;"Quota ritenute d'acconto"
+SK009007;VP;"Quota altri crediti d'imposta"
+SK009008;VP;"Quota credito imposte estere ante"
+SK009009;VP;"opzione Quota detrazioni"
+SK009010;VP;"Quota credito d'imposta fondi"
+SK009011;VP;"comuni d'investimento ordinario Quota eccedenza"
+SK009012;VP;"Quota acconti"
+SK009013;CB;"Casella Vedere Istruzioni"
+SL001001;CF;"Codice fiscale del sostituto di Se presente"
+SL002001;AN;"Casi di mandato fiduciario Vale A o B"
+SL003001;N5;"Codice ABI"
+SL003002;AN;"Codice identificativo internazionale"
+SL003003;AN;"Codice fiscale"
+SL003004;AN;"Denominazione Obbligatorio"
+SL003005;N3;"SL003002 Codice stato estero Tabella SG Obbligatorio 770/2026 Elenco dei percipienti"
+SL004001;CF;"Sezione I Codice fiscale del percipiente Il campo"
+SL004002;AN;"SL004011 Cognome ovvero Denominazione Il campo"
+SL004003;AN;"Nome del percipiente (solo per le Il campo"
+SL004004;AN;"Sesso del percipiente Vale M o F Il campo"
+SL004005;DT;"Data di nascita del percipiente Il campo"
+SL004006;AN;"Comune (o Stato estero) di nascita Il campo"
+SL004007;PN;"Provincia di nascita del percipiente"
+SL004008;AN;"(sigla) Comune del domicilio fiscale del percipiente"
+SL004009;PE;"Provincia del domicilio fiscale del"
+SL004010;AN;"Via e numero civico del domicilio"
+SL004011;N3;"Codice stato estero Tabella SG delle istruzioni del mod."
+SL004012;AN;"770/2026 Codice di identificazione estero"
+SL004013;AN;"Denominazione del fondo"
+SL004014;VP;"Somme soggette a ritenuta"
+SL004015;PC;Aliquota
+SL004016;VP;"Ritenute operate"
+SL005001;CF;"Codice fiscale del percipiente"
+SL005002;AN;"Cognome ovvero Denominazione"
+SL005003;AN;"del percipiente Nome del percipiente (solo per le"
+SL005004;AN;"persone fisiche) Sesso del percipiente"
+SL005005;DT;"Data di nascita del percipiente"
+SL005006;AN;"Comune (o Stato estero) di nascita"
+SL005007;PN;"del percipiente Provincia di nascita del percipiente"
+SL005008;AN;"(sigla) Comune del domicilio fiscale del"
+SL005009;PE;"percipiente Provincia del domicilio fiscale del"
+SL005010;AN;"percipiente (sigla) Via e numero civico del domicilio"
+SL005011;N3;"fiscale del percipiente Codice stato estero"
+SL005012;AN;"Codice di identificazione estero"
+SL005013;AN;"Denominazione del fondo"
+SL005014;VP;"Somme soggette a ritenuta"
+SL005015;PC;Aliquota
+SL005016;VP;"Ritenute operate"
+SL006001;CF;"Codice fiscale del percipiente"
+SL006002;AN;"Cognome ovvero Denominazione"
+SL006003;AN;"del percipiente Nome del percipiente (solo per le"
+SL006004;AN;"persone fisiche) Sesso del percipiente"
+SL006005;DT;"Data di nascita del percipiente"
+SL006006;AN;"Comune (o Stato estero) di nascita"
+SL006007;PN;"del percipiente Provincia di nascita del percipiente"
+SL006008;AN;"(sigla) Comune del domicilio fiscale del"
+SL006009;PE;"percipiente Provincia del domicilio fiscale del percipiente (sigla)"
+SL006010;AN;"Via e numero civico del domicilio"
+SL006011;N3;"fiscale del percipiente Codice stato estero"
+SL006012;AN;"Codice di identificazione estero"
+SL006013;AN;"Denominazione del fondo"
+SL006014;VP;"Somme soggette a ritenuta"
+SL006015;PC;Aliquota
+SL006016;VP;"Ritenute operate"
+SL007001;CF;"Codice fiscale del percipiente"
+SL007002;AN;"Cognome ovvero Denominazione"
+SL007003;AN;"del percipiente Nome del percipiente (solo per le"
+SL007004;AN;"persone fisiche) Sesso del percipiente"
+SL007005;DT;"Data di nascita del percipiente"
+SL007006;AN;"Comune (o Stato estero) di nascita"
+SL007007;PN;"del percipiente Provincia di nascita del percipiente"
+SL007008;AN;"(sigla) Comune del domicilio fiscale del"
+SL007009;PE;"percipiente Provincia del domicilio fiscale del"
+SL007010;AN;"percipiente (sigla) Via e numero civico del domicilio"
+SL007011;N3;"fiscale del percipiente Codice stato estero"
+SL007012;AN;"Codice di identificazione estero"
+SL007013;AN;"Denominazione del fondo"
+SL007014;VP;"Somme soggette a ritenuta"
+SL007015;PC;Aliquota
+SL007016;VP;"Ritenute operate"
+SL008001;CF;"Codice fiscale del percipiente Il campo"
+SL008002;AN;"SL008011 Cognome ovvero Denominazione Il campo"
+SL008003;AN;"Nome del percipiente (solo per le Il campo"
+SL008004;AN;"Sesso del percipiente Vale M o F Il campo"
+SL008005;DT;"Data di nascita del percipiente Il campo"
+SL008006;AN;"Comune (o Stato estero) di nascita Il campo"
+SL008007;PN;"Provincia di nascita del percipiente (sigla)"
+SL008008;AN;"Comune del domicilio fiscale del percipiente"
+SL008009;PE;"Provincia del domicilio fiscale del"
+SL008010;AN;"Via e numero civico del domicilio"
+SL008011;N3;"Codice stato estero Tabella SG delle istruzioni del mod."
+SL008012;AN;"770/2026 Codice di identificazione estero"
+SL008013;AN;"Denominazione del fondo"
+SL008014;AN;"Numero Banca d'Italia"
+SL008015;N3;"Codice Stato OICR Tabella SG delle istruzioni del mod."
+SL008016;PC;"770/2026 Quota di partecipazione"
+SL008017;VP;"Redditi soggetti a ritenuta"
+SL008018;VN;"Redditi per trasparenza"
+SL008019;VP;"Ritenute operate"
+SL008020;CB;"Vedere istruzioni"
+SL008021;CB;"Vedere istruzioni"
+SL009001;CF;"Codice fiscale del percipiente"
+SL009002;AN;"Cognome ovvero Denominazione"
+SL009003;AN;"del percipiente Nome del percipiente (solo per le"
+SL009004;AN;"persone fisiche) Sesso del percipiente"
+SL009005;DT;"Data di nascita del percipiente"
+SL009006;AN;"Comune (o Stato estero) di nascita"
+SL009007;PN;"del percipiente Provincia di nascita del percipiente"
+SL009008;AN;"(sigla) Comune del domicilio fiscale del"
+SL009009;PE;"percipiente Provincia del domicilio fiscale del"
+SL009010;AN;"percipiente (sigla) Via e numero civico del domicilio"
+SL009011;N3;"fiscale del percipiente Codice stato estero"
+SL009012;AN;"Codice di identificazione estero"
+SL009013;AN;"Denominazione del fondo"
+SL009014;AN;"Numero Banca d'Italia"
+SL009015;N3;"Codice Stato OICR"
+SL009016;PC;"Quota di partecipazione"
+SL009017;VP;"Redditi soggetti a ritenuta"
+SL009018;VN;"Redditi per trasparenza"
+SL009019;VP;"Ritenute operate"
+SL009020;CB;"Vedere istruzioni"
+SL009021;CB;"Vedere istruzioni"
+SL010001;CF;"Codice fiscale del percipiente"
+SL010002;AN;"Cognome ovvero Denominazione"
+SL010003;AN;"del percipiente Nome del percipiente (solo per le"
+SL010004;AN;"persone fisiche) Sesso del percipiente"
+SL010005;DT;"Data di nascita del percipiente"
+SL010006;AN;"Comune (o Stato estero) di nascita"
+SL010007;PN;"del percipiente Provincia di nascita del percipiente (sigla)"
+SL010008;AN;"Comune del domicilio fiscale del"
+SL010009;PE;"percipiente Provincia del domicilio fiscale del"
+SL010010;AN;"percipiente (sigla) Via e numero civico del domicilio"
+SL010011;N3;"fiscale del percipiente Codice stato estero"
+SL010012;AN;"Codice di identificazione estero"
+SL010013;AN;"Denominazione del fondo"
+SL010014;AN;"Numero Banca d'Italia"
+SL010015;N3;"Codice Stato OICR"
+SL010016;PC;"Quota di partecipazione"
+SL010017;VP;"Redditi soggetti a ritenuta"
+SL010018;VN;"Redditi per trasparenza"
+SL010019;VP;"Ritenute operate"
+SL010020;CB;"Vedere istruzioni"
+SL010021;CB;"Vedere istruzioni"
+SL011001;CF;"Codice fiscale del percipiente"
+SL011002;AN;"Cognome ovvero Denominazione"
+SL011003;AN;"del percipiente Nome del percipiente (solo per le"
+SL011004;AN;"persone fisiche) Sesso del percipiente"
+SL011005;DT;"Data di nascita del percipiente"
+SL011006;AN;"Comune (o Stato estero) di nascita"
+SL011007;PN;"del percipiente Provincia di nascita del percipiente"
+SL011008;AN;"(sigla) Comune del domicilio fiscale del"
+SL011009;PE;"percipiente Provincia del domicilio fiscale del"
+SL011010;AN;"percipiente (sigla) Via e numero civico del domicilio"
+SL011011;N3;"fiscale del percipiente Codice stato estero"
+SL011012;AN;"Codice di identificazione estero"
+SL011013;AN;"Denominazione del fondo"
+SL011014;AN;"Numero Banca d'Italia"
+SL011015;N3;"Codice Stato OICR"
+SL011016;PC;"Quota di partecipazione"
+SL011017;VP;"Redditi soggetti a ritenuta"
+SL011018;VN;"Redditi per trasparenza"
+SL011019;VP;"Ritenute operate"
+SL011020;CB;"Vedere istruzioni"
+SL011021;CB;"Vedere istruzioni"
+SL012001;CF;"Codice fiscale del percipiente"
+SL012002;AN;"Cognome ovvero Denominazione"
+SL012003;AN;"del percipiente Nome del percipiente (solo per le"
+SL012004;AN;"persone fisiche) Sesso del percipiente"
+SL012005;DT;"Data di nascita del percipiente"
+SL012006;AN;"Comune (o Stato estero) di nascita"
+SL012007;PN;"del percipiente Provincia di nascita del percipiente"
+SL012008;AN;"(sigla) Comune del domicilio fiscale del"
+SL012009;PE;"percipiente Provincia del domicilio fiscale del"
+SL012010;AN;"percipiente (sigla) Via e numero civico del domicilio"
+SL012011;N3;"fiscale del percipiente Codice stato estero"
+SL012012;AN;"Codice di identificazione estero"
+SL012013;AN;"Denominazione del fondo"
+SL012014;AN;"Numero Banca d'Italia"
+SL012015;N3;"Codice Stato OICR"
+SL012016;PC;"Quota di partecipazione"
+SL012017;VP;"Redditi soggetti a ritenuta"
+SL012018;VN;"Redditi per trasparenza"
+SL012019;VP;"Ritenute operate"
+SL012020;CB;"Vedere istruzioni"
+SL012021;CB;"Vedere istruzioni"
+SM001001;CF;"d'imposta Codice fiscale del sostituto di Se presente"
+SM002001;N5;"Codice ABI"
+SM002002;AN;"Codice identificativo internazionale"
+SM002003;AN;"Codice fiscale"
+SM002004;AN;"Denominazione Obbligatorio"
+SM002005;N3;"SM002002 Codice stato estero Tabella SG Obbligatorio 770/2026"
+SM003001;AN;"Denominazione o codice ISIN del"
+SM003002;VP;"fondo Somme soggette a ritenuta"
+SM003003;PC;Aliquota
+SM003004;VP;"Ritenute operate"
+SM004001;AN;"Denominazione o codice ISIN del"
+SM004002;VP;"fondo Somme soggette a ritenuta"
+SM004003;PC;Aliquota
+SM004004;VP;"Ritenute operate"
+SM005001;AN;"Denominazione o codice ISIN del"
+SM005002;VP;"fondo Somme soggette a ritenuta"
+SM005003;PC;Aliquota
+SM005004;VP;"Ritenute operate"
+SM006001;AN;"Denominazione o codice ISIN del"
+SM006002;VP;"fondo Somme soggette a ritenuta"
+SM006003;PC;Aliquota
+SM006004;VP;"Ritenute operate"
+SM007001;AN;"Denominazione o codice ISIN del"
+SM007002;VP;"fondo Somme soggette a ritenuta"
+SM007003;PC;Aliquota
+SM007004;VP;"Ritenute operate"
+SM008001;AN;"Denominazione o codice ISIN del"
+SM008002;VP;"fondo Somme soggette a ritenuta"
+SM008003;PC;Aliquota
+SM008004;VP;"Ritenute operate"
+SM009001;AN;"Denominazione o codice ISIN del"
+SM009002;VP;"fondo Somme soggette a ritenuta"
+SM009003;PC;Aliquota
+SM009004;VP;"Ritenute operate"
+SM010001;AN;"Denominazione o codice ISIN del"
+SM010002;VP;"fondo Somme soggette a ritenuta"
+SM010003;PC;Aliquota
+SM010004;VP;"Ritenute operate"
+SM011001;AN;"Denominazione o codice ISIN del"
+SM011002;VP;"fondo Somme soggette a ritenuta"
+SM011003;PC;Aliquota
+SM011004;VP;"Ritenute operate"
+SM012001;AN;"Denominazione o codice ISIN del"
+SM012002;VP;"fondo Somme soggette a ritenuta"
+SM012003;PC;Aliquota
+SM012004;VP;"Ritenute operate"
+SM013001;AN;"Denominazione o codice ISIN del"
+SM013002;VP;"fondo Somme soggette a ritenuta"
+SM013003;PC;Aliquota
+SM013004;VP;"Ritenute operate"
+SM014001;AN;"Denominazione o codice ISIN del"
+SM014002;VP;"fondo Somme soggette a ritenuta"
+SM014003;PC;Aliquota
+SM014004;VP;"Ritenute operate"
+SM015001;AN;"Denominazione o codice ISIN del"
+SM015002;VP;"fondo Somme soggette a ritenuta"
+SM015003;PC;Aliquota
+SM015004;VP;"Ritenute operate"
+SM016001;AN;"Denominazione o codice ISIN del"
+SM016002;VP;"fondo Somme soggette a ritenuta"
+SM016003;PC;Aliquota
+SM016004;VP;"Ritenute operate"
+SM017001;AN;"Denominazione o codice ISIN del"
+SM017002;VP;"fondo Somme soggette a ritenuta"
+SM017003;PC;Aliquota
+SM017004;VP;"Ritenute operate"
+SM018001;AN;"Denominazione o codice ISIN del"
+SM018002;VP;"fondo Somme soggette a ritenuta"
+SM018003;PC;Aliquota
+SM018004;VP;"Ritenute operate"
+SM019001;AN;"Denominazione o codice ISIN del"
+SM019002;VP;"fondo Somme soggette a ritenuta"
+SM019003;PC;Aliquota
+SM019004;VP;"Ritenute operate"
+SM020001;AN;"Denominazione o codice ISIN del"
+SM020002;VP;"fondo Somme soggette a ritenuta"
+SM020003;PC;Aliquota
+SM020004;VP;"Ritenute operate"
+SM021001;AN;"Denominazione o codice ISIN del"
+SM021002;VP;"fondo Somme soggette a ritenuta"
+SM021003;PC;Aliquota
+SM021004;VP;"Ritenute operate"
+SM022001;AN;"Denominazione o codice ISIN del"
+SM022002;VP;"fondo Somme soggette a ritenuta"
+SM022003;PC;Aliquota
+SM022004;VP;"Ritenute operate"
+SM023001;AN;"Denominazione o codice ISIN del"
+SM023002;VP;"fondo Somme soggette a ritenuta"
+SM023003;PC;Aliquota
+SM023004;VP;"Ritenute operate"
+SM024001;AN;"Denominazione o codice ISIN del"
+SM024002;VP;"fondo Somme soggette a ritenuta"
+SM024003;PC;Aliquota
+SM024004;VP;"Ritenute operate"
+SO001001;CF;"Codice fiscale del sostituto di Se presente"
+SO002001;N5;"Codice ABI"
+SO002002;AN;"Codice identificativo internazionale"
+SO002003;AN;"Codice fiscale"
+SO002004;AN;"Denominazione Obbligatorio"
+SO002005;N3;"SO002002 Codice stato estero Tabella SG Obbligatorio 770/2026"
+SO003001;CF;"Elenco dei soggetti Codice fiscale del percipiente Il campo"
+SO003002;AN;"SO003011 Cognome ovvero Denominazione Il campo"
+SO003003;AN;"Nome del percipiente (solo per le Il campo"
+SO003004;AN;"Sesso del percipiente Vale M o F Il campo"
+SO003005;DT;"Data di nascita del percipiente Il campo"
+SO003006;AN;"Comune (o Stato estero) di nascita Il campo"
+SO003007;PN;"Provincia di nascita del percipiente"
+SO003008;AN;"(sigla) Comune del domicilio fiscale del percipiente"
+SO003009;PE;"Provincia del domicilio fiscale del"
+SO003010;AN;"Via e numero civico del domicilio"
+SO003011;N3;"Codice stato estero Tabella SG delle istruzioni del mod."
+SO003012;AN;"770/2026 Codice di identificazione fiscale"
+SO003013;AN;"estero Dati relativi all'operazione - Causale Vale A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S,"
+SO003014;N2;"T, U, V, W, X Dati relativi all'operazione - Oggetto Vale 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13"
+SO003015;D4;"Dati relativi all'operazione - giorno"
+SO003016;VP;"Dati relativi all'operazione - Ammontare"
+SO003017;QU;"Dati relativi all'operazione - Quantità"
+SO003018;VP;"Imposte non pagate"
+SO003019;NP;"Numero intestatari"
+SO003020;PC;Percentuale
+SO003021;CF;"Codice fiscale del cointestatario"
+SO003022;CF;"Dati del rappresentante della società estera - Codice fiscale"
+SO003023;AN;"Dati del rappresentante della Il campo"
+SO003024;AN;"Dati del rappresentante della"
+SO003025;AN;"Dati del rappresentante della Vale M o F"
+SO003026;DT;"Dati del rappresentante della"
+SO003027;AN;"Dati del rappresentante della"
+SO003028;PN;"Dati del rappresentante della società estera - Provincia di nascita"
+SO003029;AN;"(sigla) Dati del rappresentante della"
+SO003030;PE;"Dati del rappresentante della"
+SO003031;AN;"Dati del rappresentante della"
+SO003032;N3;"Dati del rappresentante della Tabella SG Obbligatorio"
+SO003A15;DA;"Dati relativi all'operazione - anno"
+SO004001;CF;"770/2026 Codice fiscale del percipiente"
+SO004002;AN;"Cognome ovvero Denominazione"
+SO004003;AN;"del percipiente Nome del percipiente (solo per le"
+SO004004;AN;"persone fisiche) Sesso del percipiente"
+SO004005;DT;"Data di nascita del percipiente"
+SO004006;AN;"Comune (o Stato estero) di nascita"
+SO004007;PN;"del percipiente Provincia di nascita del percipiente"
+SO004008;AN;"(sigla) Comune del domicilio fiscale del"
+SO004009;PE;"percipiente Provincia del domicilio fiscale del"
+SO004010;AN;"percipiente (sigla) Via e numero civico del domicilio fiscale del percipiente"
+SO004011;N3;"Codice stato estero"
+SO004012;AN;"Codice di identificazione fiscale"
+SO004013;AN;"estero Dati relativi all'operazione - Causale"
+SO004014;N2;"Dati relativi all'operazione - Oggetto"
+SO004015;D4;"Dati relativi all'operazione - Data"
+SO004016;VP;"Dati relativi all'operazione -"
+SO004017;QU;"Ammontare Dati relativi all'operazione - Quantità"
+SO004018;VP;"Imposte non pagate"
+SO004019;NP;"Numero intestatari"
+SO004020;PC;Percentuale
+SO004021;CF;"Codice fiscale del cointestatario"
+SO004022;CF;"Dati del rappresentante della"
+SO004023;AN;"società estera - Codice fiscale Dati del rappresentante della società estera - Cognome ovvero"
+SO004024;AN;"Denominazione Dati del rappresentante della società estera - Nome (solo per le"
+SO004025;AN;"persone fisiche) Dati del rappresentante della"
+SO004026;DT;"società estera - Sesso Dati del rappresentante della"
+SO004027;AN;"società estera - Data di nascita Dati del rappresentante della società estera - Comune (o Stato"
+SO004028;PN;"estero) di nascita Dati del rappresentante della società estera - Provincia di nascita"
+SO004029;AN;"(sigla) Dati del rappresentante della società estera - Comune del"
+SO004030;PE;"domicilio fiscale Dati del rappresentante della"
+SO004031;AN;"società estera - Provincia (sigla) Dati del rappresentante della società estera - Via e numero civico"
+SO004032;N3;"Dati del rappresentante della società estera - Codice stato estero"
+SO004A15;DA;"Dati relativi all'operazione - anno"
+SO005001;CF;"Codice fiscale del percipiente"
+SO005002;AN;"Cognome ovvero Denominazione"
+SO005003;AN;"del percipiente Nome del percipiente (solo per le"
+SO005004;AN;"persone fisiche) Sesso del percipiente"
+SO005005;DT;"Data di nascita del percipiente"
+SO005006;AN;"Comune (o Stato estero) di nascita"
+SO005007;PN;"del percipiente Provincia di nascita del percipiente"
+SO005008;AN;"(sigla) Comune del domicilio fiscale del"
+SO005009;PE;"percipiente Provincia del domicilio fiscale del"
+SO005010;AN;"percipiente (sigla) Via e numero civico del domicilio"
+SO005011;N3;"fiscale del percipiente Codice stato estero"
+SO005012;AN;"Codice di identificazione fiscale"
+SO005013;AN;"estero Dati relativi all'operazione - Causale"
+SO005014;N2;"Dati relativi all'operazione - Oggetto"
+SO005015;D4;"Dati relativi all'operazione - Data"
+SO005016;VP;"Dati relativi all'operazione -"
+SO005017;QU;"Ammontare Dati relativi all'operazione - Quantità"
+SO005018;VP;"Imposte non pagate"
+SO005019;NP;"Numero intestatari"
+SO005020;PC;Percentuale
+SO005021;CF;"Codice fiscale del cointestatario"
+SO005022;CF;"Dati del rappresentante della"
+SO005023;AN;"società estera - Codice fiscale Dati del rappresentante della società estera - Cognome ovvero"
+SO005024;AN;"Denominazione Dati del rappresentante della società estera - Nome (solo per le"
+SO005025;AN;"persone fisiche) Dati del rappresentante della"
+SO005026;DT;"società estera - Sesso Dati del rappresentante della"
+SO005027;AN;"società estera - Data di nascita Dati del rappresentante della società estera - Comune (o Stato"
+SO005028;PN;"estero) di nascita Dati del rappresentante della società estera - Provincia di nascita"
+SO005029;AN;"(sigla) Dati del rappresentante della società estera - Comune del"
+SO005030;PE;"domicilio fiscale Dati del rappresentante della"
+SO005031;AN;"società estera - Provincia (sigla) Dati del rappresentante della società estera - Via e numero civico"
+SO005032;N3;"Dati del rappresentante della società estera - Codice stato estero"
+SO005A15;DA;"Dati relativi all'operazione - anno"
+SO006001;CF;"Codice fiscale del percipiente"
+SO006002;AN;"Cognome ovvero Denominazione"
+SO006003;AN;"del percipiente Nome del percipiente (solo per le"
+SO006004;AN;"persone fisiche) Sesso del percipiente"
+SO006005;DT;"Data di nascita del percipiente"
+SO006006;AN;"Comune (o Stato estero) di nascita"
+SO006007;PN;"del percipiente Provincia di nascita del percipiente"
+SO006008;AN;"(sigla) Comune del domicilio fiscale del"
+SO006009;PE;"percipiente Provincia del domicilio fiscale del"
+SO006010;AN;"percipiente (sigla) Via e numero civico del domicilio"
+SO006011;N3;"fiscale del percipiente Codice stato estero"
+SO006012;AN;"Codice di identificazione fiscale"
+SO006013;AN;"estero Dati relativi all'operazione - Causale"
+SO006014;N2;"Dati relativi all'operazione - Oggetto"
+SO006015;D4;"Dati relativi all'operazione - Data"
+SO006016;VP;"Dati relativi all'operazione -"
+SO006017;QU;"Ammontare Dati relativi all'operazione - Quantità"
+SO006018;VP;"Imposte non pagate"
+SO006019;NP;"Numero intestatari"
+SO006020;PC;Percentuale
+SO006021;CF;"Codice fiscale del cointestatario"
+SO006022;CF;"Dati del rappresentante della società estera - Codice fiscale"
+SO006023;AN;"Dati del rappresentante della società estera - Cognome ovvero"
+SO006024;AN;"Denominazione Dati del rappresentante della società estera - Nome (solo per le"
+SO006025;AN;"persone fisiche) Dati del rappresentante della"
+SO006026;DT;"società estera - Sesso Dati del rappresentante della"
+SO006027;AN;"società estera - Data di nascita Dati del rappresentante della società estera - Comune (o Stato"
+SO006028;PN;"estero) di nascita Dati del rappresentante della società estera - Provincia di nascita"
+SO006029;AN;"(sigla) Dati del rappresentante della società estera - Comune del"
+SO006030;PE;"domicilio fiscale Dati del rappresentante della"
+SO006031;AN;"società estera - Provincia (sigla) Dati del rappresentante della società estera - Via e numero civico"
+SO006032;N3;"Dati del rappresentante della società estera - Codice stato estero"
+SO006A15;DA;"Dati relativi all'operazione - anno"
+SO007001;CF;"Codice fiscale fiduciante"
+SO007002;VP;"Valore immobile"
+SO007003;PC;"Quota possesso Dato obbligatorio"
+SO007004;NP;"Periodo Vale da 1 a 12 Dato obbligatorio"
+SO007005;VP;IVIE
+SO007006;VP;"Credito d'imposta"
+SO007007;VP;Detrazioni
+SO007008;VP;"IVIE dovuta"
+SO007009;VP;Acconto
+SO007010;VP;"Imposta a debito"
+SO007011;VP;"Imposta a credito"
+SO007012;CB;"Vedi istruzioni"
+SO007013;CB;"Vedi istruzioni"
+SO008001;CF;"Codice fiscale fiduciante"
+SO008002;VP;"Valore immobile"
+SO008003;PC;"Quota possesso"
+SO008004;NP;Periodo
+SO008005;VP;IVIE
+SO008006;VP;"Credito d'imposta"
+SO008007;VP;Detrazioni
+SO008008;VP;"IVIE dovuta"
+SO008009;VP;Acconto
+SO008010;VP;"Imposta a debito"
+SO008011;VP;"Imposta a credito"
+SO008012;CB;"Vedi istruzioni"
+SO008013;CB;"Vedi istruzioni"
+SO009001;NP;"Tipo intermediario Vale 1 o 2"
+SO009002;CF;"Codice fiscale del titolare"
+SO009003;CF;"Codice fiscale fiduciaria o altro"
+SO009004;CF;"intermediario Codice fiscale sottoscrittore"
+SO009005;CF;"Codice fiscale sottoscrittore"
+SO009006;DT;"Data costituzione PIR"
+SO009007;NP;"Tipo PIR Vale 1 o 2"
+SO009008;VP;"Plafond annuo"
+SO009009;VP;"Plafond complessivo"
+SO009010;VP;"Proventi complessivi"
+SO009011;VP;"Proventi annui"
+SO009012;VP;"Proventi oggetto di Recapture"
+SO009013;DT;Data
+SO009014;NP;"Causale Vale 1, 2, 3, 4,"
+SO010001;NP;"5 Tipo intermediario Vale 1 o 2"
+SO010002;CF;"Codice fiscale del titolare"
+SO010003;CF;"Codice fiscale fiduciaria o altro"
+SO010004;CF;"intermediario Codice fiscale sottoscrittore"
+SO010005;CF;"Codice fiscale sottoscrittore"
+SO010006;DT;"Data costituzione PIR"
+SO010007;NP;"Tipo PIR Vale 1 o 2"
+SO010008;VP;"Plafond annuo"
+SO010009;VP;"Plafond complessivo"
+SO010010;VP;"Proventi complessivi"
+SO010011;VP;"Proventi annui"
+SO010012;VP;"Proventi oggetto di Recapture"
+SO010013;DT;Data
+SO010014;NP;"Causale Vale 1, 2, 3, 4,"
+SO011001;NP;"5 Tipo intermediario Vale 1 o 2"
+SO011002;CF;"Codice fiscale del titolare"
+SO011003;CF;"Codice fiscale fiduciaria o altro"
+SO011004;CF;"intermediario Codice fiscale sottoscrittore"
+SO011005;CF;"Codice fiscale sottoscrittore"
+SO011006;DT;"Data costituzione PIR"
+SO011007;NP;"Tipo PIR Vale 1 o 2"
+SO011008;VP;"Plafond annuo"
+SO011009;VP;"Plafond complessivo"
+SO011010;VP;"Proventi complessivi"
+SO011011;VP;"Proventi annui"
+SO011012;VP;"Proventi oggetto di Recapture"
+SO011013;DT;Data
+SO011014;NP;"Causale Vale 1, 2, 3, 4,"
+SO012001;NP;"5 Tipo intermediario Vale 1 o 2"
+SO012002;CF;"Codice fiscale del titolare"
+SO012003;CF;"Codice fiscale fiduciaria o altro"
+SO012004;CF;"intermediario Codice fiscale sottoscrittore"
+SO012005;CF;"Codice fiscale sottoscrittore"
+SO012006;DT;"Data costituzione PIR"
+SO012007;NP;"Tipo PIR Vale 1 o 2"
+SO012008;VP;"Plafond annuo"
+SO012009;VP;"Plafond complessivo"
+SO012010;VP;"Proventi complessivi"
+SO012011;VP;"Proventi annui"
+SO012012;VP;"Proventi oggetto di Recapture"
+SO012013;DT;Data
+SO012014;NP;"Causale Vale 1, 2, 3, 4,"
+SO013001;NP;"5 Tipo intermediario Vale 1 o 2"
+SO013002;CF;"Codice fiscale del titolare"
+SO013003;CF;"Codice fiscale fiduciaria o altro"
+SO013004;CF;"intermediario Codice fiscale sottoscrittore"
+SO013005;CF;"Codice fiscale sottoscrittore"
+SO013006;DT;"Data costituzione PIR"
+SO013007;NP;"Tipo PIR Vale 1 o 2"
+SO013008;VP;"Plafond annuo"
+SO013009;VP;"Plafond complessivo"
+SO013010;VP;"Proventi complessivi"
+SO013011;VP;"Proventi annui"
+SO013012;VP;"Proventi oggetto di Recapture"
+SO013013;DT;Data
+SO013014;NP;"Causale Vale 1, 2, 3, 4,"
+SO014001;NP;"5 Tipo intermediario Vale 1 o 2"
+SO014002;CF;"Codice fiscale del titolare"
+SO014003;CF;"Codice fiscale fiduciaria o altro"
+SO014004;CF;"intermediario Codice fiscale sottoscrittore"
+SO014005;CF;"Codice fiscale sottoscrittore"
+SO014006;DT;"Data costituzione PIR"
+SO014007;NP;"Tipo PIR Vale 1 o 2"
+SO014008;VP;"Plafond annuo"
+SO014009;VP;"Plafond complessivo"
+SO014010;VP;"Proventi complessivi"
+SO014011;VP;"Proventi annui"
+SO014012;VP;"Proventi oggetto di Recapture"
+SO014013;DT;Data
+SO014014;NP;"Causale Vale 1, 2, 3, 4, 5"
+SP001001;CF;"Quadro SP - Titoli atipici Codice fiscale del sostituto di Se presente"
+SP002001;AN;Denominazione
+SP002002;VP;"Somme soggette a ritenuta"
+SP002003;PC;Aliquota
+SP002004;VP;"Ritenute operate"
+SP003001;AN;Denominazione
+SP003002;VP;"Somme soggette a ritenuta"
+SP003003;PC;Aliquota
+SP003004;VP;"Ritenute operate"
+SP004001;AN;Denominazione
+SP004002;VP;"Somme soggette a ritenuta"
+SP004003;PC;Aliquota
+SP004004;VP;"Ritenute operate"
+SP005001;AN;Denominazione
+SP005002;VP;"Somme soggette a ritenuta"
+SP005003;PC;Aliquota
+SP005004;VP;"Ritenute operate"
+SP006001;AN;Denominazione
+SP006002;VP;"Somme soggette a ritenuta"
+SP006003;PC;Aliquota
+SP006004;VP;"Ritenute operate"
+SP007001;VP;"relativo all'anno successivo Valore complessivo dei titoli o certificati non ancora rimborsati alla"
+SP008001;VP;"data del 31/12/2025 Valore complessivo dei titoli o certificati emessi nel corso del"
+SP009001;VN;"2025 Valore complessivo dei titoli o"
+SP010001;VP;"Valore complessivo dei titoli o certificati preso a base ai fini del"
+SP011001;VP;"versamento relativo al 2024 Valore, in base al prezzo di emissione, dei titoli o certificati emessi nel corso del 2024"
+SP012001;VP;"Valore corrispondente ai titoli o certificati di cui ai righi SP10 e SP11 rimborsati nel corso del 2025"
+SP013001;VN;"Somma algebrica di cui ai"
+SP014001;VN;"Differenza tra il valore complessivo"
+SP015001;VP;"Ammontare della differenza dichiarazione relativa al 2024 da computare in diminuzione ai fini del"
+SP016001;VP;"versamento relativo al 2025 Ammontare assoggettabile al da versare entro il 31 marzo 2026"
+SP017001;VP;"Ammontare della differenza diminuzione ai fini del versamento relativo al 2025"
+SP018001;NP;"Numero e valore complessivo al 31 dicembre 2024 dei titoli e certificati non rimborsati alla stessa data -"
+SP018002;VP;"Numero Numero e valore complessivo al 31 dicembre 2024 dei titoli e certificati non rimborsati alla stessa data -"
+SP019001;NP;"Valore Numero e valore complessivo al 31 dicembre 2025 dei titoli e certificati non rimborsati alla stessa data -"
+SP019002;VP;"Numero Numero e valore complessivo al 31 dicembre 2025 dei titoli e certificati non rimborsati alla stessa data - Valore"
+SP020001;CF;"Codice fiscale della società di"
+SP020002;AN;"Denominazione della società di revisione che ha redatto la relazione"
+SP020003;AN;"Comune del domicilio fiscale della società di revisione che ha redatto"
+SP020004;PR;"la relazione Provincia del domicilio fiscale della società di revisione che ha redatto la relazione (sigla)"
+SP020005;AN;"Via e numero civico del domicilio fiscale della società di revisione che ha redatto la relazione"
+SP021001;CF;"Codice fiscale del percipiente Il campo"
+SP021002;AN;"SP021011 Cognome ovvero Denominazione Il campo"
+SP021003;AN;"Nome del percipiente (solo per le Il campo"
+SP021004;AN;"Sesso del percipiente Vale M o F Il campo"
+SP021005;DT;"Data di nascita del percipiente Il campo"
+SP021006;AN;"Comune (o Stato estero) di nascita Il campo"
+SP021007;PN;"Provincia di nascita del percipiente"
+SP021008;AN;"(sigla) Comune del domicilio fiscale del percipiente"
+SP021009;PE;"Provincia del domicilio fiscale del"
+SP021010;AN;"Via e numero civico del domicilio"
+SP021011;N3;"Codice stato estero Tabella SG delle istruzioni del mod."
+SP021012;AN;"770/2026 Codice di identificazione estero"
+SP021013;VP;"Importi non soggetti a ritenuta"
+SQ001001;CF;"Codice fiscale del sostituto Se presente"
+SQ001002;NP;"Eventi eccezionali Vale 1 e 99 Puo' essere"
+SQ002001;N5;"Codice ABI dell'intermediario non"
+SQ002002;AN;"residente Codice identificativo internazionale"
+SQ002003;AN;"Codice fiscale dell'intermediario"
+SQ002004;AN;"non residente Denominazione dell'intermediario Obbligatorio"
+SQ002005;N3;"SQ002002 Codice stato estero Tabella SG Obbligatorio 770/2026"
+SQ003001;N6;"Periodo di riferimento Il campo seguente"
+SQ003002;VP;"Totale importo ll campo"
+SQ003003;N1;"SQ003007 Ravvedimento Vale 1 e 2 Il campo"
+SQ003004;VP;"SQ003004 Interessi Il campo"
+SQ003005;AN;"Codice tributo Il dato"
+SQ003006;AN;"Note Vale K, L"
+SQ003007;DT;"Data di versamento Il campo SQ003002"
+SQ003008;AN;"1/1/2025 Codice Ente Il campo"
+SQ004001;N6;"t Periodo di riferimento"
+SQ004002;VP;"Totale importo"
+SQ004003;N1;Ravvedimento
+SQ004004;VP;Interessi
+SQ004005;AN;"Codice tributo"
+SQ004006;AN;Note
+SQ004007;DT;"Data di versamento"
+SQ004008;AN;"Codice Ente"
+SQ005001;N6;"Periodo di riferimento"
+SQ005002;VP;"Totale importo"
+SQ005003;N1;Ravvedimento
+SQ005004;VP;Interessi
+SQ005005;AN;"Codice tributo"
+SQ005006;AN;Note
+SQ005007;DT;"Data di versamento"
+SQ005008;AN;"Codice Ente"
+SQ006001;N6;"Periodo di riferimento"
+SQ006002;VP;"Totale importo"
+SQ006003;N1;Ravvedimento
+SQ006004;VP;Interessi
+SQ006005;AN;"Codice tributo"
+SQ006006;AN;Note
+SQ006007;DT;"Data di versamento"
+SQ006008;AN;"Codice Ente"
+SQ007001;N6;"Periodo di riferimento"
+SQ007002;VP;"Totale importo"
+SQ007003;N1;Ravvedimento
+SQ007004;VP;Interessi
+SQ007005;AN;"Codice tributo"
+SQ007006;AN;Note
+SQ007007;DT;"Data di versamento"
+SQ007008;AN;"Codice Ente"
+SQ008001;N6;"Periodo di riferimento"
+SQ008002;VP;"Totale importo"
+SQ008003;N1;Ravvedimento
+SQ008004;VP;Interessi
+SQ008005;AN;"Codice tributo"
+SQ008006;AN;Note
+SQ008007;DT;"Data di versamento"
+SQ008008;AN;"Codice Ente"
+SQ009001;N6;"Periodo di riferimento"
+SQ009002;VP;"Totale importo"
+SQ009003;N1;Ravvedimento
+SQ009004;VP;Interessi
+SQ009005;AN;"Codice tributo"
+SQ009006;AN;Note
+SQ009007;DT;"Data di versamento"
+SQ009008;AN;"Codice Ente"
+SQ010001;N6;"Periodo di riferimento"
+SQ010002;VP;"Totale importo"
+SQ010003;N1;Ravvedimento
+SQ010004;VP;Interessi
+SQ010005;AN;"Codice tributo"
+SQ010006;AN;Note
+SQ010007;DT;"Data di versamento"
+SQ010008;AN;"Codice Ente"
+SQ011001;N6;"Periodo di riferimento"
+SQ011002;VP;"Totale importo"
+SQ011003;N1;Ravvedimento
+SQ011004;VP;Interessi
+SQ011005;AN;"Codice tributo"
+SQ011006;AN;Note
+SQ011007;DT;"Data di versamento"
+SQ011008;AN;"Codice Ente"
+SQ012001;N6;"Periodo di riferimento"
+SQ012002;VP;"Totale importo"
+SQ012003;N1;Ravvedimento
+SQ012004;VP;Interessi
+SQ012005;AN;"Codice tributo"
+SQ012006;AN;Note
+SQ012007;DT;"Data di versamento"
+SQ012008;AN;"Codice Ente Riepilogo del conto unico"
+SQ013001;VP;"Gennaio - Accrediti per operazioni del mese"
+SQ013002;VP;"Gennaio - Accrediti per imposta sostitutiva su dividendi"
+SQ013003;VP;"Gennaio - Imposta sostitutiva a riporto dal mese precedente"
+SQ013004;VP;"Gennaio - Versamenti in eccesso effettuati"
+SQ013005;VP;"Gennaio - Totale addebiti per operazioni del mese"
+SQ013006;VP;"Gennaio - Risultato del mese - Il campo SQ013003 SQ013004 SQ013005"
+SQ013007;VP;"Gennaio - Risultato del mese - Il campo SQ013002 SQ013003 SQ013004"
+SQ013008;VP;"Gennaio - Imposta sostitutiva relativa ad operazioni di mesi precedenti - Imposta art. 7, c. 5,"
+SQ013009;VP;"con maggiorazione 1,5 % Gennaio - Imposta sostitutiva relativa ad operazioni di mesi"
+SQ013010;VP;"precedenti - Altre imposte sostitutive Gennaio - Totale somme versate nel mese successivo"
+SQ014001;VP;"Febbraio - Accrediti per operazioni del mese"
+SQ014002;VP;"Febbraio - Accrediti per imposta sostitutiva su dividendi"
+SQ014003;VP;"Febbraio - Imposta sostitutiva a Il campo"
+SQ014004;VP;"Febbraio - Versamenti in eccesso effettuati"
+SQ014005;VP;"Febbraio - Totale addebiti per operazioni del mese"
+SQ014006;VP;"Febbraio - Risultato del mese - Saldo positivo"
+SQ014007;VP;"Febbraio - Risultato del mese - Saldo negativo"
+SQ014008;VP;"Febbraio - Imposta sostitutiva relativa ad operazioni di mesi precedenti - Imposta art. 7, c. 5,"
+SQ014009;VP;"con maggiorazione 1,5 % Febbraio - Imposta sostitutiva relativa ad operazioni di mesi precedenti - Altre imposte"
+SQ014010;VP;"sostitutive Febbraio - Totale somme versate nel mese successivo"
+SQ015001;VP;"Marzo - Accrediti per operazioni del mese"
+SQ015002;VP;"Marzo - Accrediti per imposta sostitutiva su dividendi"
+SQ015003;VP;"Marzo - Imposta sostitutiva a riporto Il campo"
+SQ015004;VP;"Marzo - Versamenti in eccesso effettuati"
+SQ015005;VP;"Marzo - Totale addebiti per operazioni del mese"
+SQ015006;VP;"Marzo - Risultato del mese - Saldo positivo"
+SQ015007;VP;"Marzo - Risultato del mese - Saldo negativo"
+SQ015008;VP;"Marzo - Imposta sostitutiva relativa ad operazioni di mesi precedenti - Imposta art. 7, c. 5, con"
+SQ015009;VP;"maggiorazione 1,5 % Marzo - Imposta sostitutiva relativa ad operazioni di mesi precedenti - Altre imposte sostitutive"
+SQ015010;VP;"Marzo - Totale somme versate nel mese successivo"
+SQ016001;VP;"Aprile - Accrediti per operazioni del mese"
+SQ016002;VP;"Aprile - Accrediti per imposta sostitutiva su dividendi"
+SQ016003;VP;"Aprile - Imposta sostitutiva a riporto Il campo"
+SQ016004;VP;"Aprile - Versamenti in eccesso effettuati"
+SQ016005;VP;"Aprile - Totale addebiti per operazioni del mese"
+SQ016006;VP;"Aprile - Risultato del mese - Saldo positivo"
+SQ016007;VP;"Aprile - Risultato del mese - Saldo negativo"
+SQ016008;VP;"Aprile - Imposta sostitutiva relativa ad operazioni di mesi precedenti - Imposta art. 7, c. 5, con"
+SQ016009;VP;"maggiorazione 1,5 % Aprile - Imposta sostitutiva relativa ad operazioni di mesi precedenti - Altre imposte sostitutive"
+SQ016010;VP;"Aprile - Totale somme versate nel mese successivo"
+SQ017001;VP;"Maggio - Accrediti per operazioni del mese"
+SQ017002;VP;"Maggio - Accrediti per imposta sostitutiva su dividendi"
+SQ017003;VP;"Maggio - Imposta sostitutiva a Il campo"
+SQ017004;VP;"Maggio - Versamenti in eccesso effettuati"
+SQ017005;VP;"Maggio - Totale addebiti per operazioni del mese"
+SQ017006;VP;"Maggio - Risultato del mese - Saldo positivo"
+SQ017007;VP;"Maggio - Risultato del mese - Saldo negativo"
+SQ017008;VP;"Maggio - Imposta sostitutiva relativa ad operazioni di mesi precedenti - Imposta art. 7, c. 5, con"
+SQ017009;VP;"maggiorazione 1,5 % Maggio - Imposta sostitutiva relativa ad operazioni di mesi precedenti - Altre imposte sostitutive"
+SQ017010;VP;"Maggio - Totale somme versate nel mese successivo"
+SQ018001;VP;"Giugno - Accrediti per operazioni del mese"
+SQ018002;VP;"Giugno - Accrediti per imposta sostitutiva su dividendi"
+SQ018003;VP;"Giugno - Imposta sostitutiva a Il campo"
+SQ018004;VP;"Giugno - Versamenti in eccesso effettuati"
+SQ018005;VP;"Giugno - Totale addebiti per operazioni del mese"
+SQ018006;VP;"Giugno - Risultato del mese - Saldo positivo"
+SQ018007;VP;"Giugno - Risultato del mese - Saldo negativo"
+SQ018008;VP;"Giugno - Imposta sostitutiva relativa ad operazioni di mesi precedenti - Imposta art. 7, c. 5, con"
+SQ018009;VP;"maggiorazione 1,5 % Giugno - Imposta sostitutiva relativa ad operazioni di mesi precedenti - Altre imposte sostitutive"
+SQ018010;VP;"Giugno - Totale somme versate nel mese successivo"
+SQ019001;VP;"Luglio - Accrediti per operazioni del mese"
+SQ019002;VP;"Luglio - Accrediti per imposta sostitutiva su dividendi"
+SQ019003;VP;"Luglio - Imposta sostitutiva a riporto Il campo"
+SQ019004;VP;"Luglio - Versamenti in eccesso effettuati"
+SQ019005;VP;"Luglio - Totale addebiti per operazioni del mese"
+SQ019006;VP;"Luglio - Risultato del mese - Saldo positivo"
+SQ019007;VP;"Luglio - Risultato del mese - Saldo negativo"
+SQ019008;VP;"Luglio - Imposta sostitutiva relativa ad operazioni di mesi precedenti - Imposta art. 7, c. 5, con"
+SQ019009;VP;"maggiorazione 1,5 % Luglio - Imposta sostitutiva relativa ad operazioni di mesi precedenti -"
+SQ019010;VP;"Altre imposte sostitutive Luglio - Totale somme versate nel mese successivo"
+SQ020001;VP;"Agosto - Accrediti per operazioni del mese"
+SQ020002;VP;"Agosto - Accrediti per imposta sostitutiva su dividendi"
+SQ020003;VP;"Agosto - Imposta sostitutiva a Il campo"
+SQ020004;VP;"Agosto - Versamenti in eccesso effettuati"
+SQ020005;VP;"Agosto - Totale addebiti per operazioni del mese"
+SQ020006;VP;"Agosto - Risultato del mese - Saldo positivo"
+SQ020007;VP;"Agosto - Risultato del mese - Saldo negativo"
+SQ020008;VP;"Agosto - Imposta sostitutiva relativa ad operazioni di mesi precedenti - Imposta art. 7, c. 5, con"
+SQ020009;VP;"maggiorazione 1,5 % Agosto - Imposta sostitutiva relativa ad operazioni di mesi precedenti - Altre imposte sostitutive"
+SQ020010;VP;"Agosto - Totale somme versate nel mese successivo"
+SQ021001;VP;"Settembre - Accrediti per operazioni del mese"
+SQ021002;VP;"Settembre - Accrediti per imposta sostitutiva su dividendi"
+SQ021003;VP;"Settembre - Imposta sostitutiva a Il campo"
+SQ021004;VP;"Settembre - Versamenti in eccesso effettuati"
+SQ021005;VP;"Settembre - Totale addebiti per operazioni del mese"
+SQ021006;VP;"Settembre - Risultato del mese - Saldo positivo"
+SQ021007;VP;"Settembre - Risultato del mese - Saldo negativo"
+SQ021008;VP;"Settembre - Imposta sostitutiva relativa ad operazioni di mesi"
+SQ021009;VP;"precedenti - Imposta art. 7, c. 5, con maggiorazione 1,5 % Settembre - Imposta sostitutiva relativa ad operazioni di mesi precedenti - Altre imposte"
+SQ021010;VP;"sostitutive Settembre - Totale somme versate nel mese successivo"
+SQ022001;VP;"Ottobre - Accrediti per operazioni del mese"
+SQ022002;VP;"Ottobre - Accrediti per imposta sostitutiva su dividendi"
+SQ022003;VP;"Ottobre - Imposta sostitutiva a Il campo"
+SQ022004;VP;"Ottobre - Versamenti in eccesso effettuati"
+SQ022005;VP;"Ottobre - Totale addebiti per operazioni del mese"
+SQ022006;VP;"Ottobre - Risultato del mese - Saldo positivo"
+SQ022007;VP;"Ottobre - Risultato del mese - Saldo negativo"
+SQ022008;VP;"Ottobre - Imposta sostitutiva relativa ad operazioni di mesi precedenti - Imposta art. 7, c. 5,"
+SQ022009;VP;"con maggiorazione 1,5 % Ottobre - Imposta sostitutiva relativa ad operazioni di mesi precedenti - Altre imposte"
+SQ022010;VP;"sostitutive Ottobre - Totale somme versate nel mese successivo"
+SQ023001;VP;"Novembre - Accrediti per operazioni del mese"
+SQ023002;VP;"Novembre - Accrediti per imposta sostitutiva su dividendi"
+SQ023003;VP;"Novembre - Imposta sostitutiva a Il campo"
+SQ023004;VP;"Novembre - Versamenti in eccesso effettuati"
+SQ023005;VP;"Novembre - Totale addebiti per operazioni del mese"
+SQ023006;VP;"Novembre - Risultato del mese - Saldo positivo"
+SQ023007;VP;"Novembre - Risultato del mese - Saldo negativo"
+SQ023008;VP;"Novembre - Imposta sostitutiva relativa ad operazioni di mesi precedenti - Imposta art. 7, c. 5,"
+SQ023009;VP;"con maggiorazione 1,5 % Novembre - Imposta sostitutiva relativa ad operazioni di mesi precedenti - Altre imposte"
+SQ023010;VP;"sostitutive Novembre - Totale somme versate nel mese successivo"
+SQ024001;VP;"Dicembre - Accrediti per operazioni del mese"
+SQ024002;VP;"Dicembre - Accrediti per imposta sostitutiva su dividendi"
+SQ024003;VP;"Dicembre - Imposta sostitutiva a Il campo"
+SQ024004;VP;"Dicembre - Versamenti in eccesso effettuati"
+SQ024005;VP;"Dicembre - Totale addebiti per operazioni del mese"
+SQ024006;VP;"Dicembre - Risultato del mese - Saldo positivo"
+SQ024007;VP;"Dicembre - Risultato del mese - Saldo negativo"
+SQ024008;VP;"Dicembre - Imposta sostitutiva relativa ad operazioni di mesi"
+SQ024009;VP;"precedenti - Imposta art. 7, c. 5, con maggiorazione 1,5 % Dicembre - Imposta sostitutiva relativa ad operazioni di mesi"
+SQ024010;VP;"precedenti - Altre imposte sostitutive Dicembre - Totale somme versate"
+SQ025001;VP;"nel mese successivo Saldo negativo di cui si è chiesto il"
+SQ026001;VP;"rimborso Versamenti in eccesso"
+SS001001;CF;"Codice fiscale del sostituto di imposta"
+SS002001;VP;"SF -Ritenute"
+SS002002;VP;"SF - Ritenute sospese"
+SS003001;VP;"SG - Ritenute a titolo d'acconto"
+SS003002;VP;"SG - Ritenute a titolo d'imposta"
+SS003003;VP;"SG - Imposte sostitutive"
+SS003004;VP;"SG - Imposta applicata"
+SS004001;VP;"SH Prospetto A - Ritenute"
+SS004002;VP;"SH Prospetto B - Ritenute"
+SS004003;VP;"SH Prospetto C - Ritenute"
+SS004004;VP;"SH Prospetto D - Ritenute"
+SS004005;VP;"SH Prospetto E - Ritenute"
+SS004006;VP;"SH Prospetto F - Prelievi"
+SS004007;VP;"SH Prospetto G - Ritenute"
+SS004008;VP;"SH Prospetto H - Ritenute"
+SS005001;VP;"SI - Ritenute utili"
+SS006001;VP;"SK - Ritenute"
+SS006002;VP;"SK - Imposte Sostitutive"
+SS007001;VP;"SL - Ritenute"
+SS007002;VP;"SL - Ritenute"
+SS008001;VP;"SM - Ritenute"
+SS009001;VP;"SP Prospetto A - Ritenute"
+SS010001;VP;"SS - Ritenute"
+SS010002;VP;"SS - Ritenute"
+ST001001;CF;"Valori ammessi fiscale del Se presente deve essere tributaria"
+ST001002;NP;"eccezionali Vale 1 e 99 Puo' essere presente campo ST001001"
+ST002001;N6;"di riferimento Il dato è obbligatorio 26"
+ST002002;VP;"Valori ammessi operate Se nel campo ST002010"
+ST002006;VP;"d'imposta Il campo non deve"
+ST002007;VP;"versato Il campo è obbligatorio ST002014"
+ST002008;VP;"il campo non può essere ST002007 + 0,1"
+ST002009;CB;
+ST002010;AN;"Può assumere Se è presente il valore uno o più tra i campo ST001001. seguenti valori: A, B, C, D, E, F,"
+ST002011;AN;"K, L, M, P, Q, S, T, U, V, Z tributo Il dato è obbligatorio 1020 ovvero 1020 record B : B: 104E 1019 1020 1040 27 1919"
+ST002014;DT;"Valori ammessi B: 104E 1019 1020 1040 1919 record B. versamento Il campo è obbligatorio ST002007 e non è ST002015."
+ST002015;AN;"- Nota Può assumere Il campo è obbligatorio valori: 16, 20"
+ST002016;VP;"- Importo Il campo può essere"
+ST003001;N6;"di riferimento"
+ST003002;VP;operate
+ST003006;VP;d'imposta
+ST003007;VP;versato
+ST003008;VP;
+ST003009;CB;
+ST003010;AN;
+ST003011;AN;tributo
+ST003014;DT;versamento
+ST003015;AN;"- Nota"
+ST003016;VP;"- Importo"
+ST004001;N6;"di riferimento"
+ST004002;VP;"operate 28"
+ST004006;VP;"Valori ammessi d'imposta"
+ST004007;VP;versato
+ST004008;VP;
+ST004009;CB;
+ST004010;AN;
+ST004011;AN;tributo
+ST004014;DT;versamento
+ST004015;AN;"- Nota"
+ST004016;VP;"- Importo"
+ST005001;N6;"di riferimento"
+ST005002;VP;operate
+ST005006;VP;d'imposta
+ST005007;VP;versato
+ST005008;VP;
+ST005009;CB;
+ST005010;AN;
+ST005011;AN;tributo
+ST005014;DT;versamento
+ST005015;AN;"- Nota"
+ST005016;VP;"- Importo"
+ST006001;N6;"di riferimento"
+ST006002;VP;operate
+ST006006;VP;d'imposta
+ST006007;VP;versato
+ST006008;VP;
+ST006009;CB;
+ST006010;AN;
+ST006011;AN;tributo
+ST006014;DT;versamento
+ST006015;AN;"- Nota"
+ST006016;VP;"- Importo"
+ST007001;N6;"di riferimento"
+ST007002;VP;operate
+ST007006;VP;d'imposta
+ST007007;VP;versato
+ST007008;VP;
+ST007009;CB;
+ST007010;AN;
+ST007011;AN;tributo
+ST007014;DT;versamento
+ST007015;AN;"- Nota"
+ST007016;VP;"- Importo"
+ST008001;N6;"di riferimento"
+ST008002;VP;operate
+ST008006;VP;d'imposta
+ST008007;VP;versato
+ST008008;VP;
+ST008009;CB;
+ST008010;AN;
+ST008011;AN;"tributo 29"
+ST008014;DT;"Valori ammessi versamento"
+ST008015;AN;"- Nota"
+ST008016;VP;"- Importo"
+ST009001;N6;"di riferimento"
+ST009002;VP;operate
+ST009006;VP;d'imposta
+ST009007;VP;versato
+ST009008;VP;
+ST009009;CB;
+ST009010;AN;
+ST009011;AN;tributo
+ST009014;DT;versamento
+ST009015;AN;"- Nota"
+ST009016;VP;"- Importo"
+ST010001;N6;"di riferimento"
+ST010002;VP;operate
+ST010006;VP;d'imposta
+ST010007;VP;versato
+ST010008;VP;
+ST010009;CB;
+ST010010;AN;
+ST010011;AN;tributo
+ST010014;DT;versamento
+ST010015;AN;"- Nota"
+ST010016;VP;"- Importo"
+ST011001;N6;"di riferimento"
+ST011002;VP;operate
+ST011006;VP;d'imposta
+ST011007;VP;versato
+ST011008;VP;
+ST011009;CB;
+ST011010;AN;
+ST011011;AN;tributo
+ST011014;DT;versamento
+ST011015;AN;"- Nota"
+ST011016;VP;"- Importo"
+ST012001;N6;"di riferimento"
+ST012002;VP;operate
+ST012006;VP;d'imposta
+ST012007;VP;versato
+ST012008;VP;
+ST012009;CB;
+ST012010;AN;
+ST012011;AN;tributo
+ST012014;DT;versamento
+ST012015;AN;"- Nota"
+ST012016;VP;"- Importo"
+ST013001;N6;"di riferimento"
+ST013002;VP;"operate 30"
+ST013006;VP;"Valori ammessi d'imposta"
+ST013007;VP;versato
+ST013008;VP;
+ST013009;CB;
+ST013010;AN;
+ST013011;AN;tributo
+ST013014;DT;versamento
+ST013015;AN;"- Nota"
+ST013016;VP;"- Importo 31"
+ST014001;N6;"Valori ammessi di riferimento Il dato è obbligatorio 2025."
+ST014002;VP;"operate Se nel campo ST014010"
+ST014006;VP;"d'imposta Il campo non deve"
+ST014007;VP;"versato Il campo è obbligatorio ST014014"
+ST014008;VP;"il campo non può essere ST014007 + 0,1"
+ST014009;CB;
+ST014010;AN;"Può assumere Se è presente il valore uno o più tra i campo ST001001. seguenti valori: B, F, K, L, M, S, V, Z 32"
+ST014011;AN;"Valori ammessi tributo Il dato è obbligatorio. 381E, 3802"
+ST014014;DT;"versamento Il campo è obbligatorio ST014007 e non è ST014015."
+ST014015;AN;"- Nota Può assumere Il campo è obbligatorio valori: 16, 20"
+ST014016;VP;"- Importo Il campo può essere"
+ST015001;N6;"di riferimento"
+ST015002;VP;operate
+ST015006;VP;d'imposta
+ST015007;VP;versato
+ST015008;VP;
+ST015009;CB;
+ST015010;AN;
+ST015011;AN;tributo
+ST015014;DT;versamento
+ST015015;AN;"- Nota"
+ST015016;VP;"- Importo"
+ST016001;N6;"di riferimento"
+ST016002;VP;operate
+ST016006;VP;d'imposta
+ST016007;VP;versato
+ST016008;VP;
+ST016009;CB;
+ST016010;AN;33
+ST016011;AN;"Valori ammessi tributo"
+ST016014;DT;versamento
+ST016015;AN;"- Nota"
+ST016016;VP;"- Importo"
+ST017001;N6;"di riferimento"
+ST017002;VP;operate
+ST017006;VP;d'imposta
+ST017007;VP;versato
+ST017008;VP;
+ST017009;CB;
+ST017010;AN;
+ST017011;AN;tributo
+ST017014;DT;versamento
+ST017015;AN;"- Nota"
+ST017016;VP;"- Importo"
+ST018001;N6;"di riferimento"
+ST018002;VP;operate
+ST018006;VP;d'imposta
+ST018007;VP;versato
+ST018008;VP;
+ST018009;CB;
+ST018010;AN;
+ST018011;AN;tributo
+ST018014;DT;versamento
+ST018015;AN;"- Nota"
+ST018016;VP;"- Importo"
+ST019001;N6;"di riferimento"
+ST019002;VP;operate
+ST019006;VP;d'imposta
+ST019007;VP;versato
+ST019008;VP;
+ST019009;CB;
+ST019010;AN;
+ST019011;AN;tributo
+ST019014;DT;versamento
+ST019015;AN;"- Nota"
+ST019016;VP;"- Importo"
+ST020001;N6;"di riferimento"
+ST020002;VP;operate
+ST020006;VP;d'imposta
+ST020007;VP;versato
+ST020008;VP;
+ST020009;CB;
+ST020010;AN;
+ST020011;AN;tributo
+ST020014;DT;versamento
+ST020015;AN;"- Nota"
+ST020016;VP;"- Importo"
+ST021001;N6;"di riferimento"
+ST021002;VP;"operate 34"
+ST021006;VP;"Valori ammessi d'imposta"
+ST021007;VP;versato
+ST021008;VP;
+ST021009;CB;
+ST021010;AN;
+ST021011;AN;tributo
+ST021014;DT;versamento
+ST021015;AN;"- Nota"
+ST021016;VP;"- Importo"
+ST022001;N6;"di riferimento"
+ST022002;VP;operate
+ST022006;VP;d'imposta
+ST022007;VP;versato
+ST022008;VP;
+ST022009;CB;
+ST022010;AN;
+ST022011;AN;tributo
+ST022014;DT;versamento
+ST022015;AN;"- Nota"
+ST022016;VP;"- Importo"
+ST023001;N6;"di riferimento"
+ST023002;VP;operate
+ST023006;VP;d'imposta
+ST023007;VP;versato
+ST023008;VP;
+ST023009;CB;
+ST023010;AN;
+ST023011;AN;tributo
+ST023014;DT;versamento
+ST023015;AN;"- Nota"
+ST023016;VP;"- Importo"
+ST024001;N6;"di riferimento"
+ST024002;VP;operate
+ST024006;VP;d'imposta
+ST024007;VP;versato
+ST024008;VP;
+ST024009;CB;
+ST024010;AN;
+ST024011;AN;tributo
+ST024014;DT;versamento
+ST024015;AN;"- Nota"
+ST024016;VP;"- Importo"
+ST025001;N6;"di riferimento"
+ST025002;VP;operate
+ST025006;VP;d'imposta
+ST025007;VP;versato
+ST025008;VP;
+ST025009;CB;
+ST025010;AN;
+ST025011;AN;tributo
+ST025014;DT;versamento
+ST025015;AN;"- Nota 35"
+ST025016;VP;"Valori ammessi - Importo"
+ST026001;N5;ABI
+ST026002;AN;identificativo
+ST026003;AN;fiscale
+ST026004;AN;"Obbligatorio se presente"
+ST026005;N3;"stato estero Tabella SG delle Obbligatorio se presente"
+ST027001;N6;"di riferimento Il dato è obbligatorio"
+ST027002;VP;"2025. operate Se nel campo ST027010"
+ST027006;VP;"d'imposta Il campo non deve"
+ST027007;VP;"versato Il campo è obbligatorio ST027014"
+ST027008;VP;"il campo non può essere ST027007 + 0,1"
+ST027009;CB;36
+ST027010;AN;"Valori ammessi Può assumere Se è presente il valore uno o più tra i campo ST001001. seguenti valori:"
+ST027011;AN;"G, H, K, L, Z tributo Il dato è obbligatorio. record B:"
+ST027014;DT;"1964, 1070 versamento Il campo è obbligatorio ST027007."
+ST028001;N6;"di riferimento"
+ST028002;VP;operate
+ST028006;VP;d'imposta
+ST028007;VP;versato
+ST028008;VP;
+ST028009;CB;
+ST028010;AN;
+ST028011;AN;tributo
+ST028014;DT;versamento
+ST029001;N6;"di riferimento"
+ST029002;VP;operate
+ST029006;VP;d'imposta
+ST029007;VP;versato
+ST029008;VP;
+ST029009;CB;
+ST029010;AN;
+ST029011;AN;tributo
+ST029014;DT;versamento
+ST030001;N6;"di riferimento"
+ST030002;VP;operate
+ST030006;VP;d'imposta
+ST030007;VP;versato
+ST030008;VP;
+ST030009;CB;
+ST030010;AN;
+ST030011;AN;tributo
+ST030014;DT;versamento
+ST031001;N6;"di riferimento"
+ST031002;VP;operate
+ST031006;VP;d'imposta
+ST031007;VP;versato
+ST031008;VP;
+ST031009;CB;37
+ST031010;AN;"Valori ammessi"
+ST031011;AN;tributo
+ST031014;DT;versamento
+ST032001;N6;"di riferimento"
+ST032002;VP;operate
+ST032006;VP;d'imposta
+ST032007;VP;versato
+ST032008;VP;
+ST032009;CB;
+ST032010;AN;
+ST032011;AN;tributo
+ST032014;DT;versamento
+ST033001;N6;"di riferimento"
+ST033002;VP;operate
+ST033006;VP;d'imposta
+ST033007;VP;versato
+ST033008;VP;
+ST033009;CB;
+ST033010;AN;
+ST033011;AN;tributo
+ST033014;DT;versamento
+ST034001;N6;"di riferimento"
+ST034002;VP;operate
+ST034006;VP;d'imposta
+ST034007;VP;versato
+ST034008;VP;
+ST034009;CB;
+ST034010;AN;
+ST034011;AN;tributo
+ST034014;DT;versamento
+ST035001;N6;"di riferimento"
+ST035002;VP;operate
+ST035006;VP;d'imposta
+ST035007;VP;versato
+ST035008;VP;
+ST035009;CB;
+ST035010;AN;
+ST035011;AN;tributo
+ST035014;DT;versamento
+ST036001;N6;"di riferimento"
+ST036002;VP;operate
+ST036006;VP;d'imposta
+ST036007;VP;versato
+ST036008;VP;
+ST036009;CB;
+ST036010;AN;
+ST036011;AN;tributo
+ST036014;DT;versamento
+ST037001;N6;"di riferimento"
+ST037002;VP;operate
+ST037006;VP;d'imposta
+ST037007;VP;versato
+ST037008;VP;
+ST037009;CB;
+ST037010;AN;
+ST037011;AN;tributo
+ST037014;DT;"versamento 38"
+ST038001;N5;"Valori ammessi sostitutive allegate ABI"
+ST038002;AN;identificativo
+ST038003;AN;fiscale
+ST038004;AN;"Obbligatorio se presente"
+ST038005;N3;"stato estero Tabella SG delle Obbligatorio se presente"
+ST039001;N6;"di riferimento Il campo è obbligatorio."
+ST039002;VP;plusvalenze
+ST039003;VP;applicata
+ST039004;VP;"ST039006 utilizzati a"
+ST039006;VP;"di imposta"
+ST039007;VP;"versato Il campo è obbligatorio ST0390014"
+ST039008;VP;"Il campo non può essere ST039007 + 0,1"
+ST039009;CB;
+ST039010;AN;"Può assumere Se è presente il valore uno o più tra i campo ST001001. seguenti valori: G, K, L, Z 39"
+ST039011;AN;"Valori ammessi tributo Il dato è obbligatorio. record B:"
+ST039014;DT;"versamento Il dato è obbligatorio ST039007."
+ST040001;N6;"di riferimento"
+ST040002;VP;plusvalenze
+ST040003;VP;applicata
+ST040004;VP;"utilizzati a"
+ST040006;VP;"di imposta"
+ST040007;VP;versato
+ST040008;VP;
+ST040009;CB;
+ST040010;AN;
+ST040011;AN;tributo
+ST040014;DT;versamento
+ST041001;N6;"di riferimento"
+ST041002;VP;plusvalenze
+ST041003;VP;applicata
+ST041004;VP;"utilizzati a"
+ST041006;VP;"di imposta"
+ST041007;VP;versato
+ST041008;VP;
+ST041009;CB;
+ST041010;AN;
+ST041011;AN;tributo
+ST041014;DT;versamento
+ST042001;N6;"di riferimento"
+ST042002;VP;plusvalenze
+ST042003;VP;applicata
+ST042004;VP;"utilizzati a"
+ST042006;VP;"di imposta"
+ST042007;VP;versato
+ST042008;VP;
+ST042009;CB;
+ST042010;AN;40
+ST042011;AN;"Valori ammessi tributo"
+ST042014;DT;versamento
+ST043001;N6;"di riferimento"
+ST043002;VP;plusvalenze
+ST043003;VP;applicata
+ST043004;VP;"utilizzati a"
+ST043006;VP;"di imposta"
+ST043007;VP;versato
+ST043008;VP;
+ST043009;CB;
+ST043010;AN;
+ST043011;AN;tributo
+ST043014;DT;versamento
+ST044001;N6;"di riferimento"
+ST044002;VP;plusvalenze
+ST044003;VP;applicata
+ST044004;VP;"utilizzati a"
+ST044006;VP;"di imposta"
+ST044007;VP;versato
+ST044008;VP;
+ST044009;CB;
+ST044010;AN;
+ST044011;AN;tributo
+ST044014;DT;versamento
+ST045001;N6;"di riferimento"
+ST045002;VP;plusvalenze
+ST045003;VP;applicata
+ST045004;VP;"utilizzati a"
+ST045006;VP;"di imposta"
+ST045007;VP;versato
+ST045008;VP;
+ST045009;CB;
+ST045010;AN;
+ST045011;AN;tributo
+ST045014;DT;versamento
+ST046001;N6;"di riferimento"
+ST046002;VP;plusvalenze
+ST046003;VP;applicata
+ST046004;VP;"utilizzati a"
+ST046006;VP;"di imposta"
+ST046007;VP;versato
+ST046008;VP;
+ST046009;CB;
+ST046010;AN;
+ST046011;AN;tributo
+ST046014;DT;versamento
+ST047001;N6;"di riferimento 41"
+ST047002;VP;"Valori ammessi plusvalenze"
+ST047003;VP;applicata
+ST047004;VP;"utilizzati a"
+ST047006;VP;"di imposta"
+ST047007;VP;versato
+ST047008;VP;
+ST047009;CB;
+ST047010;AN;
+ST047011;AN;tributo
+ST047014;DT;versamento
+ST048001;N6;"di riferimento"
+ST048002;VP;plusvalenze
+ST048003;VP;applicata
+ST048004;VP;"utilizzati a"
+ST048006;VP;"di imposta"
+ST048007;VP;versato
+ST048008;VP;
+ST048009;CB;
+ST048010;AN;
+ST048011;AN;tributo
+ST048014;DT;versamento
+ST049001;N6;"di riferimento"
+ST049002;VP;plusvalenze
+ST049003;VP;applicata
+ST049004;VP;"utilizzati a"
+ST049006;VP;"di imposta"
+ST049007;VP;versato
+ST049008;VP;
+ST049009;CB;
+ST049010;AN;
+ST049011;AN;tributo
+ST049014;DT;"versamento 42"
+SV001001;CF;"Valori ammessi fiscale del Se presente il codice"
+SV001002;NP;"eccezionali Vale 1 e 99 Puo' essere presente campo SV001001"
+SV002001;N6;"di riferimento Il dato è obbligatorio 2025."
+SV002002;VP;"operate Se nel campo SV002010"
+SV002006;VP;"d'imposta Il campo non deve"
+SV002007;VP;"versato Il campo è obbligatorio SV002014"
+SV002008;VP;"il campo non può essere SV002007 + 0,1"
+SV002009;CB;"Il campo non deve"
+SV002010;AN;"Può assumere Se è presente il valore uno o più tra i campo SV001001. seguenti valori: B, F, K, L, M, S, V, Z 43"
+SV002011;AN;"Valori ammessi tributo Il dato è obbligatorio. 3846, 3847, 3848"
+SV002014;DT;"versamento Il campo è obbligatorio SV002007 e non è SV002015."
+SV002015;AN;"- Nota Può assumere Il campo è obbligatorio valori: 16, 20"
+SV002016;VP;"- Importo Il campo può essere"
+SV003001;N6;"di riferimento"
+SV003002;VP;operate
+SV003006;VP;d'imposta
+SV003007;VP;versato
+SV003008;VP;
+SV003009;CB;
+SV003010;AN;
+SV003011;AN;tributo
+SV003014;DT;versamento
+SV003015;AN;"- Nota"
+SV003016;VP;"- Importo"
+SV004001;N6;"di riferimento"
+SV004002;VP;operate
+SV004006;VP;d'imposta
+SV004007;VP;versato
+SV004008;VP;
+SV004009;CB;44
+SV004010;AN;"Valori ammessi"
+SV004011;AN;tributo
+SV004014;DT;versamento
+SV004015;AN;"- Nota"
+SV004016;VP;"- Importo"
+SV005001;N6;"di riferimento"
+SV005002;VP;operate
+SV005006;VP;d'imposta
+SV005007;VP;versato
+SV005008;VP;
+SV005009;CB;
+SV005010;AN;
+SV005011;AN;tributo
+SV005014;DT;versamento
+SV005015;AN;"- Nota"
+SV005016;VP;"- Importo"
+SV006001;N6;"di riferimento"
+SV006002;VP;operate
+SV006006;VP;d'imposta
+SV006007;VP;versato
+SV006008;VP;
+SV006009;CB;
+SV006010;AN;
+SV006011;AN;tributo
+SV006014;DT;versamento
+SV006015;AN;"- Nota"
+SV006016;VP;"- Importo"
+SV007001;N6;"di riferimento"
+SV007002;VP;operate
+SV007006;VP;d'imposta
+SV007007;VP;versato
+SV007008;VP;
+SV007009;CB;
+SV007010;AN;
+SV007011;AN;tributo
+SV007014;DT;versamento
+SV007015;AN;"- Nota"
+SV007016;VP;"- Importo"
+SV008001;N6;"di riferimento"
+SV008002;VP;operate
+SV008006;VP;d'imposta
+SV008007;VP;versato
+SV008008;VP;
+SV008009;CB;
+SV008010;AN;
+SV008011;AN;tributo
+SV008014;DT;versamento
+SV008015;AN;"- Nota"
+SV008016;VP;"- Importo"
+SV009001;N6;"di riferimento"
+SV009002;VP;"operate 45"
+SV009006;VP;"Valori ammessi d'imposta"
+SV009007;VP;versato
+SV009008;VP;
+SV009009;CB;
+SV009010;AN;
+SV009011;AN;tributo
+SV009014;DT;versamento
+SV009015;AN;"- Nota"
+SV009016;VP;"- Importo"
+SV010001;N6;"di riferimento"
+SV010002;VP;operate
+SV010006;VP;d'imposta
+SV010007;VP;versato
+SV010008;VP;
+SV010009;CB;
+SV010010;AN;
+SV010011;AN;tributo
+SV010014;DT;versamento
+SV010015;AN;"- Nota"
+SV010016;VP;"- Importo"
+SV011001;N6;"di riferimento"
+SV011002;VP;operate
+SV011006;VP;d'imposta
+SV011007;VP;versato
+SV011008;VP;
+SV011009;CB;
+SV011010;AN;
+SV011011;AN;tributo
+SV011014;DT;versamento
+SV011015;AN;"- Nota"
+SV011016;VP;"- Importo"
+SV012001;N6;"di riferimento"
+SV012002;VP;operate
+SV012006;VP;d'imposta
+SV012007;VP;versato
+SV012008;VP;
+SV012009;CB;
+SV012010;AN;
+SV012011;AN;tributo
+SV012014;DT;versamento
+SV012015;AN;"- Nota"
+SV012016;VP;"- Importo"
+SV013001;N6;"di riferimento"
+SV013002;VP;operate
+SV013006;VP;d'imposta
+SV013007;VP;versato
+SV013008;VP;
+SV013009;CB;
+SV013010;AN;46
+SV013011;AN;"Valori ammessi tributo"
+SV013014;DT;versamento
+SV013015;AN;"- Nota"
+SV013016;VP;"- Importo"
+SX001001;VP;"derivante da Il campo può essere"
+SX001002;VP;"2025 in Il campo può essere"
+SX001003;VP;"scaturito dalla Il campo può essere"
+SX001004;VP;"su IVIE versata Il campo può essere"
+SX001005;VP;"spettante su Il campo può essere"
+SX001006;VP;"integrativo Il campo può essere"
+SX001007;VP;"utilizzato in F24 Il campo può essere"
+SX002001;VP;"derivante da Il campo può essere"
+SX002002;VP;"utilizzato in F24 Il campo può essere"
+SX003001;VP;"per canoni di Il campo può essere 47"
+SX003002;VP;"Valori ammessi marittimi Il campo può essere"
+SX003003;VP;"Ape Il campo può essere modulo."
+SX003004;VP;"utilizzato in F24 Il campo può essere"
+SX004001;VP;"Importo Complessivo risultante dalla Il campo può essere"
+SX004002;VP;"utilizzato in F24 Il campo può essere"
+SX004003;VP;"da DI Il campo può essere"
+SX004004;VP;"risultante dalla Il campo può essere"
+SX004005;VP;"da utilizzare in Il campo può essere 48"
+SX004006;VP;"Valori ammessi di cui si chiede Il campo può essere"
+SX031001;CB;"Regioni a statuto speciale D'Aosta modulo"
+SX031002;CB;modulo
+SX031003;CB;modulo
+SX032001;VP;"scaturito da Il campo può essere"
+SX032002;VP;"scaturito da Il campo può essere"
+SX033001;VP;"scaturito da Il campo può essere"
+SX033002;VP;"scaturito da Il campo può essere"
+SX034001;VP;"scaturito da Il campo può essere"
+SX034002;VP;"scaturito da Il campo può essere SX033002 + SX034002 SX004005"
+SX037001;VP;"spettante nel Il campo può essere 49"
+SX037002;VP;"Valori ammessi acquisito Il campo può essere modulo"
+SX037003;VP;"ceduto Il campo può essere modulo. SX037002"
+SX037004;VP;"utilizzato in F24 Il campo può essere modulo"
+SX037006;VP;"del credito Il campo può essere SX037004 + la somma"
+SX040001;VP;"residuo anno Il campo può essere"
+SX040002;VP;"maturato Il campo può essere"
+SX040003;VP;acquisito
+SX040004;CF;"fiscale cedente Il campo non può essere"
+SX040005;VP;"ceduto Deve essere minore SX040002 + SX040003"
+SX040006;CF;"fiscale Il campo non può essere"
+SX040007;VP;"utilizzato in F24 Il campo può essere"
+SX040008;VP;"maturato per il Il campo può essere 50"
+SX040009;VP;"Valori ammessi ulteriore Il campo può essere"
+SX040010;VP;"residuo Il campo può essere modulo. SX040001 + SX04002 SX040007 - SX040009"
+SX041001;VP;"zero residuo anno Il campo può essere"
+SX041002;VP;"maturato Il campo può essere"
+SX041003;VP;acquisito
+SX041004;CF;"fiscale cedente Il campo non può essere"
+SX041005;VP;"ceduto SX041002 + SX041003"
+SX041006;CF;"compilati) fiscale Il campo non può essere"
+SX041007;VP;"utilizzato in F24 Il campo può essere"
+SX041008;VP;"residuo Il campo può essere modulo SX041001 + SX041002 SX041007 + la somma 51"
+SX042001;VP;"Valori ammessi residuo anno Il campo può essere"
+SX042002;VP;"maturato Il campo può essere"
+SX042003;VP;acquisito
+SX042004;CF;"fiscale cedente Il campo non può essere"
+SX042005;VP;"ceduto SX042002 + SX042003"
+SX042006;CF;"compilati) fiscale Il campo non può essere"
+SX042007;VP;"utilizzato in F24 Il campo può essere"
+SX042008;VP;"residuo Il campo può essere modulo SX042001 + SX042002"
+SX042009;VP;"SX042007 + la somma da utilizzare in Il campo può essere"
+SX042010;VP;"Chiesto a Il campo può essere 52"
+SX044001;VP;"Valori ammessi spettante Il campo può essere modulo"
+SX044002;VP;"utilizzato Il campo può essere modulo"
+SX044003;VP;"utilizzato a Il campo può essere"
+SX044004;VP;"certificato ai Il campo può essere"
+SX044005;VP;"ceduto Il campo può essere modulo"
+SX044006;VP;"acquisito Il campo può essere modulo"
+SX044007;VP;"residuo Il campo può essere modulo. SX044002 - SX044003 SX044005 + SX044006"
+SX046001;VP;"risparmio amministrato residuo anno Il campo può essere"
+SX046002;VP;"maturato Il campo può essere"
+SX046003;VP;acquisito
+SX046004;CF;"fiscale cedente Il campo non può essere"
+SX046005;VP;"ceduto 53"
+SX046006;CF;"Valori ammessi fiscale Il campo non può essere"
+SX046007;VP;"utilizzato in F24 Il campo può essere modulo."
+SX046008;VP;"residuo Il campo può essere modulo SX046001 + SX046002 SX046007 + la somma 54"
+SX047001;VP;"Valori ammessi Credito bonus riconosciuto residuo anno Il campo può essere"
+SX047004;VP;"utilizzato in F24 Il campo può essere modulo"
+SX047005;VP;"residuo Il campo può essere modulo SX047004 + la somma assume il valore P."
+SX048001;NP;"indicare zero Aiuti di Stato Aiuto Vale 1 o 2 Per ciascun codice un modulo."
+SX048002;AN;"Giuridica Vale AA, AF, Il campo può essere PA, AT, AM, AP, modulo. AR, AZ, LL, AL, CF, CR, CM, CS, RC, OO, EC, EN, EP, ES, ED, EE, ER, EI, EM, EL, FO, FI, IC, ID, MA, PC, PS, AU, SR, RR, SU, RS, SA, CN, SL, OS, SO, SC, CI, CL, OC, SG, SS,"
+SX048003;N1;"SM, SD, SZ, SP, SV, ST d'impresa Vale 1, 2 ,3, 4 o Il campo può essere 5 modulo. 55"
+SX048004;AN;"Valori ammessi attività ATECO Deve essere Dato obbligatorio se compreso nella tabella delle attività economiche,"
+SX048005;N1;"denominata ATECO 2025 Vale 1, 2, 3, 4 o Dato obbligatorio se 5"
+SX048006;VP;"Dato obbligatorio se"
+SX048007;VP;"aiuto spettante Dato obbligatorio se"
+SX049001;VP;"Intergrativo Il campo può essere"
+SX049002;VP;"Intergrativo Il campo può essere"
+SX049003;VP;"Intergrativo Il campo può essere"
+SX049004;VP;"da ""P"" Intergrativo Il campo può essere"
+SX049005;VP;"Intergrativo Il campo può essere"
+SX049006;VP;"valore ""P"". Intergrativo Il campo può essere 56"
+SX049007;VP;"Valori ammessi Intergrativo Il campo può essere SX049002 - SX049006"
+SX050002;VP;"indicare zero maturato Il campo può essere"
+SX050003;VP;"recuperato Il campo può essere"
+SX050004;VP;"1704 o 175E da recuperare Il campo può essere modulo"
+SX050006;VP;"utilizzato in F24 Il campo può essere modulo"
+SX050007;VP;"residuo Il campo può essere modulo. SX050006. indicare zero 57"
+SY001001;CF;"dell'utente dell'utente per l'identificazione della dichiarazione del software (codice fiscale) Formato codice fiscale Codice fiscale del sostituto"
+SY001002;NP;"d'imposta Eventi eccezionali Vale 1 e 99"
+SY002001;CF;"Codice fiscale creditore pignoratizio"
+SY002002;VP;"Somme erogate"
+SY002003;NP;"Tipologia Vale 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,"
+SY002004;VP;"13 Somme erogate"
+SY002005;NP;"Tipologia Vale 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,"
+SY002006;VP;"13 Somme erogate"
+SY002007;NP;"Tipologia Vale 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,"
+SY002008;VP;"13 Somme erogate 109"
+SY002009;NP;Tipologia
+SY002010;VP;"Somme erogate"
+SY002011;NP;Tipologia
+SY003001;CF;"Codice fiscale creditore pignoratizio"
+SY003002;VP;"Somme erogate"
+SY003003;NP;Tipologia
+SY003004;VP;"Somme erogate"
+SY003005;NP;Tipologia
+SY003006;VP;"Somme erogate"
+SY003007;NP;Tipologia
+SY003008;VP;"Somme erogate"
+SY003009;NP;Tipologia
+SY003010;VP;"Somme erogate"
+SY003011;NP;Tipologia
+SY004001;CF;"Codice fiscale creditore pignoratizio"
+SY004002;VP;"Somme erogate"
+SY004003;NP;Tipologia
+SY004004;VP;"Somme erogate"
+SY004005;NP;Tipologia
+SY004006;VP;"Somme erogate"
+SY004007;NP;Tipologia
+SY004008;VP;"Somme erogate"
+SY004009;NP;Tipologia
+SY004010;VP;"Somme erogate"
+SY004011;NP;Tipologia
+SY005001;CF;"Codice fiscale creditore pignoratizio"
+SY005002;VP;"Somme erogate"
+SY005003;NP;Tipologia
+SY005004;VP;"Somme erogate"
+SY005005;NP;Tipologia
+SY005006;VP;"Somme erogate"
+SY005007;NP;Tipologia
+SY005008;VP;"Somme erogate"
+SY005009;NP;Tipologia
+SY005010;VP;"Somme erogate"
+SY005011;NP;Tipologia
+SY006001;CF;"Codice fiscale creditore pignoratizio"
+SY006002;VP;"Somme erogate"
+SY006003;NP;Tipologia
+SY006004;VP;"Somme erogate"
+SY006005;NP;Tipologia
+SY006006;VP;"Somme erogate"
+SY006007;NP;Tipologia
+SY006008;VP;"Somme erogate"
+SY006009;NP;Tipologia
+SY006010;VP;"Somme erogate"
+SY006011;NP;Tipologia
+SY007001;CF;"Codice fiscale debitore principale"
+SY007002;CN;"Codice fiscale creditore pignoratizio"
+SY007003;VP;"Somme erogate"
+SY008001;CF;"Codice fiscale debitore"
+SY008002;CN;"principale Codice fiscale creditore"
+SY008003;VP;"pignoratizio Somme erogate"
+SY009001;CF;"Codice fiscale debitore principale"
+SY009002;CN;"Codice fiscale creditore"
+SY009003;VP;"pignoratizio Somme erogate"
+SY010001;CF;"Codice fiscale debitore principale"
+SY010002;CN;"Codice fiscale creditore pignoratizio"
+SY010003;VP;"Somme erogate"
+SY011001;CF;"Codice fiscale debitore principale"
+SY011002;CN;"Codice fiscale creditore pignoratizio"
+SY011003;VP;"Somme erogate"
+SY012001;CF;"Codice fiscale beneficiario"
+SY012002;VP;"Ammontare del bonifico"
+SY012003;VP;"Ritenue effettuate"
+SY013001;CF;"Codice fiscale beneficiario"
+SY013002;VP;"Ammontare del bonifico"
+SY013003;VP;"Ritenue effettuate"
+SY014001;CF;"Codice fiscale beneficiario"
+SY014002;VP;"Ammontare del bonifico"
+SY014003;VP;
+SY015001;CF;"Ritenue effettuate Codice fiscale beneficiario"
+SY015002;VP;"Ammontare del bonifico"
+SY015003;VP;"Ritenue effettuate"
+SY016001;AN;Cognome/Denominazione
+SY016002;AN;Nome
+SY016003;AN;Sesso
+SY016004;DT;"Data di Nascita"
+SY016005;AN;"Codice di identificazione"
+SY016006;AN;"fiscale estero Località di residenza estera"
+SY016007;AN;"Via e numero civico"
+SY016008;N3;"Codice stato estero"
+SY016009;AN;Causale
+SY016010;VP;"Ammontare lordo corrisposto"
+SY016011;VP;"Somme non soggette a ritenuta per regime"
+SY016012;VP;"convenzionale Altre somme non soggette a ritenuta"
+SY016013;VP;Imponibile
+SY016014;VP;"Ritenute a titolo d'imposta"
+SY016015;VP;"Ritenute sospese"
+SY017001;AN;Cognome/Denominazione
+SY017002;AN;Nome
+SY017003;AN;Sesso
+SY017004;DT;"Data di Nascita"
+SY017005;AN;"Codice di identificazione fiscale estero"
+SY017006;AN;"Località di residenza estera"
+SY017007;AN;"Via e numero civico"
+SY017008;N3;"Codice stato estero"
+SY017009;AN;Causale
+SY017010;VP;"Ammontare lordo corrisposto"
+SY017011;VP;"Somme non soggette a ritenuta per regime"
+SY017012;VP;"convenzionale Altre somme non soggette a"
+SY017013;VP;"ritenuta Imponibile"
+SY017014;VP;"Ritenute a titolo d'imposta"
+SY017015;VP;"Ritenute sospese"
+SY018001;AN;Cognome/Denominazione
+SY018002;AN;Nome
+SY018003;AN;Sesso
+SY018004;DT;"Data di Nascita"
+SY018005;AN;"Codice di identificazione fiscale estero"
+SY018006;AN;"Località di residenza estera"
+SY018007;AN;"Via e numero civico"
+SY018008;N3;"Codice stato estero"
+SY018009;AN;Causale
+SY018010;VP;"Ammontare lordo corrisposto"
+SY018011;VP;"Somme non soggette a ritenuta per regime"
+SY018012;VP;"convenzionale Altre somme non soggette a"
+SY018013;VP;"ritenuta Imponibile"
+SY018014;VP;"Ritenute a titolo d'imposta"
+SY018015;VP;"Ritenute sospese"
+SY019001;AN;Cognome/Denominazione
+SY019002;AN;Nome
+SY019003;AN;Sesso
+SY019004;DT;"Data di Nascita"
+SY019005;AN;"Codice di identificazione fiscale estero"
+SY019006;AN;"Località di residenza estera"
+SY019007;AN;"Via e numero civico"
+SY019008;N3;"Codice stato estero"
+SY019009;AN;Causale
+SY019010;VP;"Ammontare lordo corrisposto"
+SY019011;VP;"Somme non soggette a ritenuta per regime"
+SY019012;VP;"convenzionale Altre somme non soggette a ritenuta"
+SY019013;VP;Imponibile
+SY019014;VP;"Ritenute a titolo d'imposta"
+SY019015;VP;"Ritenute sospese"
+SY020001;AN;Cognome/Denominazione
+SY020002;AN;Nome
+SY020003;AN;Sesso
+SY020004;DT;"Data di Nascita"
+SY020005;AN;"Codice di identificazione fiscale estero"
+SY020006;AN;"Località di residenza estera"
+SY020007;AN;"Via e numero civico"
+SY020008;N3;"Codice stato estero"
+SY020009;AN;Causale
+SY020010;VP;"Ammontare lordo corrisposto"
+SY020011;VP;"Somme non soggette a ritenuta per regime"
+SY020012;VP;"convenzionale Altre somme non soggette a ritenuta"
+SY020013;VP;Imponibile
+SY020014;VP;"Ritenute a titolo d'imposta"
+SY020015;VP;"Ritenute sospese"

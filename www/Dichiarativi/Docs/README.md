@@ -15,7 +15,10 @@ cedolare secca, versamenti e crediti in Deleghe e file telematico. Dalla
 persone** e **Redditi Società di capitali 2026**, con il consolidato
 nazionale e la trasparenza fiscale, il modello **Consolidato nazionale e
 mondiale (CNM)** della consolidante e il modello **IRAP 2026** (fornitura
-XML).
+XML). Dalla 0.18 gestisce anche la **Certificazione Unica 2026** e il
+**modello 770/2026** dei sostituti d'imposta per i compensi di lavoro
+autonomo, le provvigioni e i redditi diversi, dalle ritenute operate
+registrate in Contabilità e dai versamenti in Deleghe.
 
 Il contribuente è il soggetto dell'Anagrafica; partita IVA, natura
 giuridica, codice ATECO, regime e periodicità IVA si leggono dai dati
@@ -1345,6 +1348,82 @@ XSD (verificato nei test).
   e acconti 3812 e 3813 (100 per cento, 40/60 o 50/50 per i soggetti ISA;
   nessun acconto fino a 20,66 euro, 51,65 per le società di persone).
 
+## Certificazione Unica e modello 770
+
+Per le aziende sostituti d'imposta (ritenute d'acconto operate nell'anno,
+registrate in Contabilità con il percipiente come controparte, o casella
+"sostituto d'imposta" nei dati fiscali) la suite propone la Certificazione
+Unica 2026 (fornitura "CUR26") e il modello 770/2026 ("77026") per i
+compensi di lavoro autonomo, le provvigioni e i redditi diversi. Il
+catalogo dei campi viene dalle specifiche tecniche ufficiali come per gli
+altri modelli (`specifiche-dichiarativi --modello=CUR` e `--modello=770`).
+Non sono gestiti il lavoro dipendente (quadri DB, DC, DF della CU),
+l'assistenza fiscale (730-4) e i redditi di capitale del 770.
+
+### Certificazione Unica (`Services\Sostituti\PropostaCu`)
+
+Una certificazione (modulo della dichiarazione, con il numero come
+progressivo) per percipiente, dalle ritenute dell'anno raggruppate per
+codice fiscale della controparte (per cassa, nel mese del pagamento):
+
+- DA1: dati del sostituto (domicilio fiscale, recapiti, codice attività ATECO 2025 dei dati fiscali di fine anno o, se ancora 2022, dal raccordo ISTAT);
+- DA2: cognome e nome della controparte; sesso, data e luogo di nascita
+  ricavati dal codice fiscale con le tabelle dei comuni e degli stati
+  esteri dell'Anagrafica;
+- DA3: data e firma;
+- AU1: causale della controparte (campo "Causale CU" di Contabilità; in
+  mancanza "A" con un avviso), imponibile (punto 8) uguale alle ritenute
+  diviso l'aliquota della causale, compenso lordo (punto 4) uguale
+  all'imponibile diviso la quota soggetta a ritenuta (50 per cento per le
+  provvigioni, 78 per le vendite a domicilio, 75 per i diritti d'autore),
+  la parte non soggetta nel punto 7 con il codice 21 (punto 6), ritenute a
+  titolo d'acconto (punto 9).
+
+I percipienti senza ritenute registrate (compensi dei forfetari, codici 24
+e 25 del punto 6) si aggiungono con "Aggiungi certificazione" e il codice
+fiscale; i valori inseriti a mano restano alle proposte successive, che
+conservano il progressivo di ogni percipiente. Rimborsi spese (punto 20),
+contributi previdenziali e la quota delle provvigioni quando l'agente si
+avvale di dipendenti (ritenuta sul 20 per cento) si correggono a mano.
+
+### Modello 770 (`Services\Sostituti\Proposta770`)
+
+Prospetto ST, sezione I: un rigo per mese con ritenute (periodo di
+riferimento `MMAAAA`, colonna 2), importo versato (colonna 7), codice
+tributo 1040 e data del versamento (colonna 14) dai versamenti 1040
+dell'anno in una delega F24 di Deleghe, con il mese nella rateazione
+`00MM` (generati dalla Contabilità o inseriti a mano): data della
+quietanza o, se la delega non è quietanzata, la sua scadenza con un
+avviso. Mesi non versati, versati in parte o dopo la scadenza sono
+segnalati: ravvedimento, interessi, note e crediti a scomputo si indicano
+a mano, come i quadri SV, SX e SS.
+
+### Controlli e file
+
+`ControlliSostituti` blocca il file per i controlli delle specifiche sui
+dati proposti: rappresentante dei soggetti diversi dalle persone fisiche,
+impegno dell'intermediario, codice fiscale del percipiente (una sola
+certificazione per percipiente), causale, imponibile uguale al lordo meno
+le somme non soggette (tolleranza di 2 euro), codice del punto 6 con il
+punto 7, ritenute entro l'imponibile; nel 770 periodo e codice tributo dei
+righi, importo versato con la data, interessi entro il versato. Avvertenze
+per i dati anagrafici del percipiente mancanti e i righi ST senza
+versamento.
+
+`GeneratoreSostituti` scrive la fornitura (`TracciatoSostituti`):
+
+- CU: record A, B (frontespizio della comunicazione con il numero delle
+  certificazioni), per ogni certificazione un record D (quadro DA) seguito dal
+  record H (quadro AU) con codice fiscale del percipiente e progressivo
+  della certificazione nella parte posizionale, Z con il conteggio dei
+  record;
+- 770: record A, B (tipologia di invio 1, un solo flusso; caselle dei
+  quadri compilati e delle ritenute sul lavoro autonomo; codici statistici
+  1 e 6 per le società), record D con i quadri, Z.
+
+Le ritenute si versano mese per mese dalla Contabilità: le due
+dichiarazioni non hanno versamenti né crediti propri.
+
 ## Fixture
 
 - **Alfa Consulting S.r.l.** (mensile): esercizio 2025 con prestazioni al
@@ -1367,6 +1446,14 @@ XSD (verificato nei test).
   trasparenza (art. 116) con i soci Laura Bianchi e Mario Rossi (quadro TN,
   IRAP); la dichiarazione di Rossi ha le quote del bar (RH1) e di Lumen
   (RH5);
+- **sostituti d'imposta 2026** (`SostitutiAlfa2025Fixture`, dopo i
+  modelli delle società): Alfa Consulting paga nel 2025 una prestazione
+  occasionale (causale M, 7.500 euro, ritenuta di maggio versata con la
+  delega di giugno insieme al credito Art-Bonus) e diritti d'autore
+  (causale B, 2.000 euro con la quota non soggetta del 25 per cento,
+  ritenuta di ottobre versata dalla Contabilità con la delega di novembre);
+  Certificazione Unica 2026 con le due certificazioni e modello 770/2026
+  con i righi ST di maggio e ottobre;
 - **modelli Redditi PF 2026**: Mario Rossi (dipendente con la CU, casa di
   Massimeno locata con il box pertinenza e la cedolare al 21 per cento,
   aggiornamento ISTAT, coniuge e due figli nei legami familiari con il

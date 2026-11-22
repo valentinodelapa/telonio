@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.37.0-alpha] - 2026-11-22 - Certificazione Unica e Modello 770
+
+Versioni dei moduli: `Dichiarativi` 0.18.0 (richiede `Anagrafica` 0.15.0, `Deleghe` 0.5.0 e `Contabilita` 0.16.0), `Contabilita` 0.16.0; gli altri invariati.
+
+**Aggiornamento**: `aggiorna.sh` (cioè `sisma aggiorna-database`) esegue `Contabilita/Database/aggiornamento-0.16.sql` (nuova colonna `causale_cu` in `controparte`; idempotente) e importa da `Dichiarativi/Database/dati-riferimento.sql` i cataloghi dei modelli CU 2026 e 770/2026. Nessun passo manuale.
+
+### ✨ Nuove Funzionalità
+
+#### `Dichiarativi` 0.18.0 — Certificazione Unica e modello 770 dei sostituti d'imposta
+
+- **Certificazione Unica 2026** (lavoro autonomo, provvigioni e redditi diversi) proposta dalle ritenute d'acconto operate registrate in Contabilità: una certificazione per percipiente, con i dati del sostituto (DA1), del percipiente (DA2, nascita ricavata dal codice fiscale) e i compensi (AU1).
+  - Imponibile dalle ritenute con l'aliquota della causale della controparte, compenso lordo con la quota soggetta a ritenuta (provvigioni 50%, vendite a domicilio 78%, diritti d'autore 75%), parte non soggetta nel punto 7 con il codice 21.
+  - "Aggiungi certificazione" per i percipienti senza ritenute (es. forfetari), da compilare a mano; i valori manuali restano alle proposte successive.
+- **Modello 770/2026**: prospetto ST con un rigo per mese (ritenute operate, importo e data del versamento 1040 dalle deleghe F24 di Deleghe); avvisi per mesi non versati, versati in parte o in ritardo.
+- **Controlli** bloccanti delle specifiche (codice fiscale e causale, imponibile coerente con lordo e somme non soggette, righi ST con periodo, codice tributo e versamento) e **file telematici** "CUR26" (record A, B, per ogni certificazione D seguito dai suoi H, Z) e "77026" (record A, B, D, Z; tipologia di invio 1, casella "Autonomo"), con il codice attività ATECO 2025 (dal raccordo ISTAT se i dati fiscali hanno ancora il codice 2022).
+- CU e 770 compaiono tra i modelli del contribuente quando nell'anno ci sono ritenute operate (o il soggetto è sostituto d'imposta nei dati fiscali).
+- Cataloghi dei campi CUR 2026 (968 campi) e 770 2026 (2.406 campi) dalle specifiche tecniche ufficiali.
+- Dati demo: Alfa Consulting S.r.l. con una prestazione occasionale e diritti d'autore pagati nel 2025, CU e 770 proposti.
+
+#### `Contabilita` 0.16.0
+
+- **Causale CU della controparte** (A, B, C, M, M1, Q, R, S, T, U, V, V1, W) con l'aliquota della ritenuta e la quota del compenso soggetta, nel modulo della controparte.
+
 ## [0.36.0-alpha] - 2026-11-21 - Stampa sul Modello Ufficiale dei Modelli delle Società
 
 Versioni dei moduli: `Dichiarativi` 0.17.0 (richiede `Anagrafica` 0.15.0, `Deleghe` 0.5.0 e `Contabilita` 0.15.0); gli altri invariati.

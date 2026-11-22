@@ -10,6 +10,8 @@ $id = $dichiarazione->id;
 $modificabile = $dichiarazione->isModificabile();
 $redditi = $dichiarazione->modello->isRedditi();
 $isa = $dichiarazione->modello === \Dichiarativi\Application\Enumerations\ModelloDichiarativo::isa;
+$sostituti = $dichiarazione->modello->isSostituti();
+$certificazioni = $dichiarazione->modello === \Dichiarativi\Application\Enumerations\ModelloDichiarativo::certificazioneUnica;
 $fileDisponibile = (count($errori) === 0) && ((count($segnalazioni) === 0) || $dichiarazione->flagConferma);
 
 require Layout::percorso('header');
@@ -20,7 +22,7 @@ require Layout::percorso('header');
         <?php if ($isa === false): ?>
             <a href="/dichiarazione/update/dichiarazione/<?= Html::e($id) ?>" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil me-1"></i><?= Html::e($titoloFrontespizio) ?></a>
         <?php endif; ?>
-        <?php if (($dichiarazione->modello->isTrimestrale() === false) && ($redditi === false) && ($isa === false)): ?>
+        <?php if (($dichiarazione->modello->isTrimestrale() === false) && ($redditi === false) && ($isa === false) && ($sostituti === false)): ?>
             <a href="/dichiarazione/rettifiche/dichiarazione/<?= Html::e($id) ?><?= ($modulo ?? 1) > 1 ? '/modulo/' . Html::e($modulo) : '' ?>" class="btn btn-sm btn-outline-primary"><?= Html::e($prospettoD) ?></a>
         <?php endif; ?>
         <form method="post" action="/dichiarazione/proponi/dichiarazione/<?= Html::e($id) ?>"><?= $campoCsrf ?><button type="submit" class="btn btn-sm btn-outline-primary"><i class="bi bi-arrow-repeat me-1"></i><?= Html::e($azioni['riproponi']) ?></button></form>
@@ -254,6 +256,16 @@ require Layout::percorso('header');
         <?php endif; ?>
 
         <?php if ($isa): ?>
+        <?php elseif ($sostituti): ?>
+        <div class="card shadow-sm mt-3">
+            <div class="card-header bg-white fw-semibold"><?= Html::e($titoloRisultato) ?></div>
+            <ul class="list-group list-group-flush small">
+                <?php foreach ($riepilogoRedditi as $etichettaRigo => $importoRigo): ?>
+                    <li class="list-group-item d-flex"><span class="me-auto"><?= Html::e($etichettaRigo) ?></span><?= Html::e(is_int($importoRigo) ? (string) $importoRigo : Importo::euro($importoRigo)) ?></li>
+                <?php endforeach; ?>
+            </ul>
+            <div class="card-body small text-body-secondary"><?= Html::e($aiutoSostituti) ?></div>
+        </div>
         <?php elseif ($redditi): ?>
         <div class="card shadow-sm mt-3">
             <div class="card-header bg-white fw-semibold"><?= Html::e($titoloRisultato) ?></div>
@@ -339,17 +351,26 @@ require Layout::percorso('header');
         <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
             <ul class="nav nav-pills me-auto">
                 <?php foreach ($moduliDichiarazione as $numero => $etichetta): ?>
-                    <li class="nav-item"><a class="nav-link py-1 <?= $numero === $modulo ? 'active' : '' ?>" href="/dichiarazione/show/dichiarazione/<?= Html::e($id) ?><?= $numero > 1 ? '/quadro/' . Html::e($redditi ? ($quadri->getQuadriCompilati($numero)[0] ?? 'RB') : 'VA') . '/modulo/' . Html::e($numero) : '' ?>" title="<?= Html::e($etichetta) ?>"><?= Html::e($numero === 1 ? $etichetta : mb_strimwidth($etichetta, 0, 40, '…')) ?></a></li>
+                    <li class="nav-item"><a class="nav-link py-1 <?= $numero === $modulo ? 'active' : '' ?>" href="/dichiarazione/show/dichiarazione/<?= Html::e($id) ?><?= $numero > 1 ? '/quadro/' . Html::e($redditi ? ($quadri->getQuadriCompilati($numero)[0] ?? 'RB') : ($sostituti ? $dichiarazione->modello->getQuadri()[0] : 'VA')) . '/modulo/' . Html::e($numero) : '' ?>" title="<?= Html::e($etichetta) ?>"><?= Html::e($numero === 1 ? $etichetta : mb_strimwidth($etichetta, 0, 40, '…')) ?></a></li>
                 <?php endforeach; ?>
             </ul>
             <?php if ($modificabile && ($modulo > 1)): ?>
                 <form method="post" action="/dichiarazione/elimina-modulo/dichiarazione/<?= Html::e($id) ?>/numero/<?= Html::e($modulo) ?>" data-conferma="<?= Html::e($confermaEliminaModulo) ?>"><?= $campoCsrf ?><button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash me-1"></i><?= Html::e($azioni['eliminaModulo']) ?></button></form>
             <?php endif; ?>
-            <?php if ($modificabile && ($redditi === false) && ($isa === false)): ?>
+            <?php if ($modificabile && ((($redditi || $isa || $sostituti) === false) || $certificazioni)): ?>
                 <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#nuovoModulo" aria-expanded="false"><i class="bi bi-plus-lg me-1"></i><?= Html::e($azioni['aggiungiModulo']) ?></button>
             <?php endif; ?>
         </div>
-        <?php if ($modificabile && ($redditi === false) && ($isa === false)): ?>
+        <?php if ($modificabile && $certificazioni): ?>
+            <div class="collapse mb-2" id="nuovoModulo">
+                <form method="post" action="/dichiarazione/aggiungi-modulo/dichiarazione/<?= Html::e($id) ?>" class="card card-body shadow-sm row g-2 flex-row align-items-end">
+                    <?= $campoCsrf ?>
+                    <div class="col-md-5"><label class="form-label small mb-0" for="codiceFiscalePercipiente"><?= Html::e($codiceFiscalePercipiente) ?></label><input type="text" class="form-control form-control-sm" id="codiceFiscalePercipiente" name="codiceFiscale" maxlength="16" style="text-transform: uppercase" required></div>
+                    <div class="col-md-3 d-grid"><button type="submit" class="btn btn-sm btn-primary"><?= Html::e($aggiungiCertificazione) ?></button></div>
+                    <div class="col-12 small text-body-secondary"><?= Html::e($aiutoCertificazioni) ?></div>
+                </form>
+            </div>
+        <?php elseif ($modificabile && ($redditi === false) && ($isa === false) && ($sostituti === false)): ?>
             <div class="collapse mb-2" id="nuovoModulo">
                 <form method="post" action="/dichiarazione/aggiungi-modulo/dichiarazione/<?= Html::e($id) ?>" class="card card-body shadow-sm row g-2 flex-row align-items-end">
                     <?= $campoCsrf ?>

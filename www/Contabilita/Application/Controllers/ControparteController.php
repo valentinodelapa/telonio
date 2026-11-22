@@ -2,6 +2,7 @@
 
 namespace Contabilita\Application\Controllers;
 
+use Contabilita\Application\Enumerations\CausaleCu;
 use Contabilita\Application\Enumerations\ModalitaPagamento;
 use Anagrafica\Application\Entities\Soggetto;
 use Anagrafica\Application\Models\NazioneModel;
@@ -141,6 +142,7 @@ class ControparteController extends ContabilitaController
         $this->vars['codiciIva'] = (new CodiceIvaModel($this->dataMapper))->getElenco($this->studio);
         $this->vars['nazioni'] = $this->getNazioni();
         $this->vars['modalitaPagamento'] = ModalitaPagamento::cases();
+        $this->vars['causaliCu'] = CausaleCu::cases();
         $this->vars['pageTitle'] = $titolo;
         $this->getEsercizio($soggetto, 0);
         $this->impostaBriciole($soggetto, null, $titolo, ['Clienti e fornitori' => '/controparte/index/soggetto/' . $soggetto->id]);

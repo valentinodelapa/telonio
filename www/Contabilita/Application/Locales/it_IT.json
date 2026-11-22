@@ -141,6 +141,7 @@
                 "giorniPagamento": "Termini di pagamento (giorni)",
                 "fineMesePagamento": "Scadenze a fine mese",
                 "modalitaPagamento": "Modalità di pagamento abituale",
+                "causaleCu": "Causale dei compensi con ritenuta d'acconto (Certificazione Unica)",
                 "impostaBollo": "Imposta di bollo",
                 "detrazione": "Detrazione",
                 "documento": "Documento",

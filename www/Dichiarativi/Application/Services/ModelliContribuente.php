@@ -17,7 +17,8 @@ use SismaFramework\Orm\HelperClasses\DataMapper;
  * liquidazioni IVA (dati fiscali dell'Anagrafica), Redditi PF per le
  * persone fisiche, Redditi SP per le società di persone e le associazioni
  * professionali, Redditi SC per le società di capitali (tipo del soggetto
- * nell'Anagrafica), modello IVA TR per il credito trimestrale.
+ * nell'Anagrafica), modello IVA TR per il credito trimestrale, Certificazione
+ * Unica e 770 per i sostituti d'imposta con ritenute operate nell'anno.
  */
 class ModelliContribuente
 {
@@ -59,6 +60,12 @@ class ModelliContribuente
         $modelli[ModelloDichiarativo::ivaTr->value] = $esonerato ? 'Agricoltore esonerato: nessuna liquidazione periodica.' : $modelli[ModelloDichiarativo::iva->value]
                 ?? ((new PartecipanteGruppoIvaModel($this->dataMapper))->getPerControllata($soggetto, $anno) === null ? null
                     : 'Società del gruppo IVA: il credito trimestrale lo chiede la controllante nel suo modello IVA TR.');
+        // Certificazione Unica e 770: sostituto d'imposta con ritenute operate nell'anno (o indicato nei dati fiscali)
+        $sostituto = (count((new \Contabilita\Application\Services\RitenuteOperate($this->dataMapper))->getPerMese($soggetto, $anno)) > 0)
+                || ((new \Anagrafica\Application\Models\DatiFiscaliModel($this->dataMapper))->getVigenteAl($soggetto, new \SismaFramework\Orm\CustomTypes\SismaDate($anno . '-12-31'))?->sostitutoImposta === true);
+        foreach ([ModelloDichiarativo::certificazioneUnica, ModelloDichiarativo::modello770] as $modello) {
+            $modelli[$modello->value] = $sostituto ? null : "Nessuna ritenuta d'acconto operata nell'anno (Contabilità) e soggetto non indicato come sostituto d'imposta nei dati fiscali.";
+        }
         return $modelli;
     }
 

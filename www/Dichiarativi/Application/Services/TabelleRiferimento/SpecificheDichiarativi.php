@@ -35,7 +35,26 @@ class SpecificheDichiarativi
     /** Namespace degli elementi del modello IRAP nello schema XSD */
     public const NAMESPACE_IRAP = 'urn:www.agenziaentrate.gov.it:specificheTecniche:sco:ira';
 
-    /**
+        /**
+     * Denominazioni dei quadri dei modelli le cui specifiche e istruzioni non
+     * hanno i titoli nella forma "Quadro XX": per la Certificazione Unica le
+     * sezioni delle specifiche (intestazioni delle pagine dei record C, D, G,
+     * H e L).
+     */
+    public const DENOMINAZIONI_QUADRI = [
+        'CUR' => [
+            'CT' => 'Comunicazione per la ricezione telematica dei dati del modello 730-4',
+            'DA' => 'Dati anagrafici del percipiente (frontespizio)',
+            'DB' => 'Lavoro dipendente e assimilati: dati fiscali',
+            'DC' => 'Lavoro dipendente e assimilati: dati previdenziali e assistenziali',
+            'DF' => 'Trattamento di fine rapporto e indennità equipollenti',
+            'DN' => 'Annotazioni',
+            'AU' => 'Lavoro autonomo, provvigioni e redditi diversi',
+            'LB' => 'Locazioni brevi',
+        ],
+    ];
+
+/**
      * Formati incoerenti nelle specifiche ufficiali, corretti alla lettura:
      * il codice del rigo CR31 del modello Redditi PF 2026 è indicato N1 ma
      * i valori ammessi vanno da 12 a 21.
@@ -112,6 +131,7 @@ class SpecificheDichiarativi
             }
             $quadri += array_intersect_key(self::leggiTitoliIstruzioni($testo), array_flip($mancanti));
         }
+        $quadri += array_intersect_key(self::DENOMINAZIONI_QUADRI[$specifica['modello']] ?? [], array_flip($mancanti));
         ksort($quadri);
         $nome = $specifica['modello'] . '-' . $specifica['anno'] . '.csv';
         $this->scriviCsv('campi-' . $nome, TabelleDichiarativi::COLONNE_CAMPI, array_map(fn(string $codice, array $campo) => [$codice, $campo['formato'], $campo['descrizione']], array_keys($campi), $campi));

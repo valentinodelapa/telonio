@@ -65,6 +65,7 @@ class ControparteForm extends BaseForm
                 ->addFilterFieldMode('fornitore', FilterType::isBoolean)
                 ->addFilterFieldMode('agricoltoreEsonerato', FilterType::isBoolean)
                 ->addFilterFieldMode('pubblicaAmministrazione', FilterType::isBoolean)
+                ->addFilterFieldMode('causaleCu', FilterType::isEnumeration, [], true)
                 ->addFilterFieldMode('contoContropartita', FilterType::isEntity, [], true)
                 ->addFilterFieldMode('codiceIva', FilterType::isEntity, [], true)
                 ->addFilterFieldMode('giorniPagamento', FilterType::isMaxLimitString, [100], true)

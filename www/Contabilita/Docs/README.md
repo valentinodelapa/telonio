@@ -984,8 +984,12 @@ versamento del mese (riferimento `ritenute-<anno>-<mese>`) è dovuto entro il
 dal 2027 artt. 8 e 32 D.Lgs. 33/2025), con il codice tributo 1040, che dal
 2017 comprende anche le provvigioni (risoluzione 13/E/2016), il mese nel
 campo della rateazione (`00MM`) e l'anno; i termini festivi e del 16 agosto
-slittano come gli altri versamenti. Le ritenute sui redditi di lavoro
-dipendente (paghe) e le certificazioni (CU, 770) non sono gestite.
+slittano come gli altri versamenti. La causale dei compensi della
+controparte (`Enumerations\CausaleCu`: A professionisti, M occasionali,
+Q-V provvigioni, B diritti d'autore...) dà l'aliquota della ritenuta e la
+quota del compenso soggetta, con cui il modulo Dichiarativi ricava compensi
+e imponibili della Certificazione Unica e del 770. Le ritenute sui redditi
+di lavoro dipendente (paghe) non sono gestite.
 
 **Imposta di bollo sulle fatture elettroniche** (`Services\ImpostaBolloFatture`):
 2 euro sulle fatture con operazioni senza IVA oltre 77,47 euro, assolta in

@@ -50,6 +50,7 @@ require Layout::percorso('header');
             <?= Campo::testo('giorniPagamento', $campi['giorniPagamento'], $formEntity, $errors, ['colonna' => 'col-md-3', 'attributi' => 'maxlength="100" placeholder="30,60,90"', 'aiuto' => $aiutoGiorniPagamento]) ?>
             <?= Campo::spunta('fineMesePagamento', $campi['fineMesePagamento'], $formEntity, $errors, ['colonna' => 'col-md-3']) ?>
             <?= Campo::selezioneEnum('modalitaPagamento', $campi['modalitaPagamento'], $formEntity, $errors, $modalitaPagamento, ['colonna' => 'col-md-6', 'vuota' => $nessuno]) ?>
+            <?= Campo::selezioneEnum('causaleCu', $campi['causaleCu'], $formEntity, $errors, $causaliCu, ['colonna' => 'col-md-6', 'vuota' => $nessuno]) ?>
             <?= Campo::areaTesto('note', $campi['note'], $formEntity, $errors, ['colonna' => 'col-12', 'righe' => 2]) ?>
             <?php if (isset($controparte->id)): ?>
                 <div class="col-12 small">

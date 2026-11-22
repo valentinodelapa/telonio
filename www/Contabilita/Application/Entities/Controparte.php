@@ -2,6 +2,7 @@
 
 namespace Contabilita\Application\Entities;
 
+use Contabilita\Application\Enumerations\CausaleCu;
 use Contabilita\Application\Enumerations\ModalitaPagamento;
 use Anagrafica\Application\Entities\Nazione;
 use Anagrafica\Application\Entities\Soggetto;
@@ -37,6 +38,8 @@ class Controparte extends ReferencedEntity
     protected bool $fornitore = false;
     protected bool $pubblicaAmministrazione = false;
     protected bool $agricoltoreEsonerato = false;
+    /** Causale dei compensi soggetti a ritenuta d'acconto (Certificazione Unica) */
+    protected ?CausaleCu $causaleCu = null;
     protected ?Conto $contoCliente = null;
     protected ?Conto $contoFornitore = null;
     protected ?Conto $contoContropartita = null;

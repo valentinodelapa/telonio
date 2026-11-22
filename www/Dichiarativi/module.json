@@ -1,8 +1,8 @@
 {
   "name": "Dichiarativi",
-  "version": "0.17.0",
+  "version": "0.18.0",
   "framework_version": "12.14.0",
-  "description": "Dichiarazioni fiscali dei contribuenti dello studio: IVA annuale e IVA TR dalla contabilità, Redditi PF, SP e SC, Consolidato nazionale e mondiale, IRAP e modelli ISA, con quadri per campo del modello, controlli, file telematico e versamenti per le deleghe F24",
+  "description": "Dichiarazioni fiscali dei contribuenti dello studio: IVA annuale e IVA TR dalla contabilità, Redditi PF, SP e SC, Consolidato nazionale e mondiale, IRAP, modelli ISA, Certificazione Unica e 770 dei sostituti d'imposta, con quadri per campo del modello, controlli, file telematico e versamenti per le deleghe F24",
   "authors": [
     "Valentino de Lapa <valentino.delapa@gmail.com>"
   ],
@@ -11,7 +11,7 @@
     "Telonio": ">=0.6.2",
     "Anagrafica": ">=0.15.0",
     "Deleghe": ">=0.5.0",
-    "Contabilita": ">=0.15.0"
+    "Contabilita": ">=0.16.0"
   },
   "license": "MIT"
 }
