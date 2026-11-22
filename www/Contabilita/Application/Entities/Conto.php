@@ -2,6 +2,7 @@
 
 namespace Contabilita\Application\Entities;
 
+use Contabilita\Application\Enumerations\DestinazioneConto;
 use Contabilita\Application\Enumerations\FunzioneConto;
 use Contabilita\Application\Enumerations\LivelloConto;
 use Contabilita\Application\Enumerations\NaturaConto;
@@ -12,7 +13,8 @@ use SismaFramework\Orm\ExtendedClasses\SelfReferencedEntity;
  * Conto del piano: mastro, conto o sottoconto, con il conto superiore
  * (parentConto). Si registra solo sui sottoconti; la funzione lo indica
  * alle proposte automatiche, la voce CEE lo raccorda agli schemi di
- * bilancio.
+ * bilancio; la destinazione separa negli enti non commerciali l'attività
+ * commerciale da quella istituzionale.
  */
 class Conto extends SelfReferencedEntity
 {
@@ -31,6 +33,7 @@ class Conto extends SelfReferencedEntity
     protected ?string $rigoIrap = null;
     protected ?float $percentualeDeducibile = null;
     protected ?string $variazioneRedditi = null;
+    protected ?DestinazioneConto $destinazione = null;
     protected bool $attivo = true;
 
     #[\Override]

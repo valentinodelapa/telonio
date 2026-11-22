@@ -5,9 +5,11 @@ namespace Contabilita\Application\Services;
 use Contabilita\Application\Models\EsercizioContabileModel;
 use Anagrafica\Application\Entities\Soggetto;
 use Contabilita\Application\Entities\Abbinamento;
+use Contabilita\Application\Entities\Conto;
 use Contabilita\Application\Entities\Partita;
 use Contabilita\Application\Entities\RigaContabile;
 use Contabilita\Application\Enumerations\CausaleContabile;
+use Contabilita\Application\Enumerations\DestinazioneConto;
 use Contabilita\Application\Enumerations\NaturaConto;
 use Contabilita\Application\Enumerations\TipoChiusura;
 use Contabilita\Application\Enumerations\TipoPartita;
@@ -43,6 +45,13 @@ use SismaFramework\Orm\HelperClasses\DataMapper;
  * Ogni conto economico confluisce nel rigo indicato sul conto o, in
  * mancanza, in quello proposto dalla voce di conto economico
  * (RighiRedditi); i ricavi sono positivi, i costi positivi.
+ *
+ * Enti non commerciali (destinazione dei conti, art. 144 TUIR): concorrono
+ * solo i conti dell'attività commerciale (o senza destinazione) e la quota
+ * dei costi promiscui pari al rapporto tra i ricavi dei conti commerciali e
+ * il totale dei ricavi e proventi dello stesso calcolo; il resto (conti
+ * istituzionali e parte istituzionale dei promiscui) è nelle voci CEE
+ * dell'attività istituzionale (base retributiva IRAP degli enti).
  */
 class ComponentiReddito
 {
@@ -64,6 +73,12 @@ class ComponentiReddito
 
     /** @var array<string, float> */
     private array $perRigoIrap = [];
+
+    /** @var array<string, float> voci CEE dei conti istituzionali e parte istituzionale dei promiscui */
+    private array $perVoceIstituzionale = [];
+
+    /** Quota commerciale dei costi promiscui dell'ultimo calcolo, null se nessun conto ha una destinazione */
+    private ?float $quotaPromiscui = null;
 
     public function __construct(private DataMapper $dataMapper = new DataMapper())
     {
@@ -116,6 +131,78 @@ class ComponentiReddito
     public function getAvvisi(): array
     {
         return $this->avvisi;
+    }
+
+    /**
+     * Enti non commerciali: componenti dell'ultimo calcolo dell'attività
+     * istituzionale (conti istituzionali e parte non commerciale dei costi
+     * promiscui) per voce del conto economico CEE, con la parte deducibile.
+     *
+     * @return array<string, float> voce CEE => importo
+     */
+    public function getPerVoceCeeIstituzionale(): array
+    {
+        return array_map(fn(float $importo) => round($importo, 2), $this->perVoceIstituzionale);
+    }
+
+    /**
+     * Quota commerciale dei costi promiscui dell'ultimo calcolo (da 0 a 1),
+     * null se nessun conto movimentato ha una destinazione (imprese).
+     */
+    public function getQuotaPromiscui(): ?float
+    {
+        return $this->quotaPromiscui === null ? null : round($this->quotaPromiscui, 6);
+    }
+
+    /**
+     * Rapporto dell'art. 144, c. 4, TUIR tra i ricavi e proventi
+     * dell'attività commerciale e l'ammontare complessivo dei ricavi e
+     * proventi (da 0 a 1; 0 senza ricavi).
+     */
+    public static function calcolaQuotaPromiscui(float $ricaviCommerciali, float $ricaviTotali): float
+    {
+        return $ricaviTotali <= 0 ? 0.0 : max(0.0, min(1.0, $ricaviCommerciali / $ricaviTotali));
+    }
+
+    /**
+     * Parte del conto che concorre all'attività commerciale: 1 per i conti
+     * commerciali o senza destinazione, 0 per gli istituzionali, la quota
+     * dei promiscui.
+     */
+    private function getFattore(Conto $conto): float
+    {
+        return match ($conto->destinazione) {
+            null, DestinazioneConto::commerciale => 1.0,
+            DestinazioneConto::istituzionale => 0.0,
+            DestinazioneConto::promiscuo => $this->quotaPromiscui ?? 1.0,
+        };
+    }
+
+    /**
+     * Quota dei promiscui dalle righe del calcolo (riga, frazione
+     * dell'anno), solo se qualche conto economico ha una destinazione.
+     *
+     * @param array<array{0: RigaContabile, 1: float}> $righe
+     */
+    private function impostaQuotaPromiscui(array $righe): void
+    {
+        $this->quotaPromiscui = null;
+        $this->perVoceIstituzionale = [];
+        $commerciali = $totali = 0.0;
+        $destinazioni = false;
+        foreach ($righe as [$riga, $frazione]) {
+            $destinazioni = $destinazioni || ($riga->conto->natura->isEconomico() && ($riga->conto->destinazione !== null));
+            if ($riga->conto->natura === NaturaConto::ricavo) {
+                $importo = ($riga->avere - $riga->dare) * $frazione;
+                $totali += $importo;
+                if (in_array($riga->conto->destinazione, [null, DestinazioneConto::commerciale], true)) {
+                    $commerciali += $importo;
+                }
+            }
+        }
+        if ($destinazioni) {
+            $this->quotaPromiscui = self::calcolaQuotaPromiscui($commerciali, $totali);
+        }
     }
 
     /**
@@ -254,6 +341,7 @@ class ComponentiReddito
             }
         }
         $componenti = [];
+        $daAggiungere = [];
         foreach ($righe as $riga) {
             if (($riga->conto->natura->isEconomico() === false) || isset($conAbbuoni[$riga->registrazioneContabile->id])) {
                 continue;
@@ -264,6 +352,10 @@ class ComponentiReddito
             if ($frazione <= 0) {
                 continue;
             }
+            $daAggiungere[] = [$riga, $frazione];
+        }
+        $this->impostaQuotaPromiscui($daAggiungere);
+        foreach ($daAggiungere as [$riga, $frazione]) {
             $this->aggiungi($componenti, $riga, $frazione, $professionista);
         }
         // parte indeducibile degli ammortamenti dei cespiti (limiti fiscali, coefficiente)
@@ -271,6 +363,7 @@ class ComponentiReddito
         if ($esercizio !== null) {
             foreach ((new Ammortamenti($this->dataMapper))->getVariazioni($soggetto, $esercizio)['conti'] as ['conto' => $conto, 'importo' => $importo]) {
                 $rigo = $conto->rigoRedditi ?? RighiRedditi::getPredefinito($conto->voceCee, $professionista);
+                $importo *= $this->getFattore($conto);
                 if (($rigo !== null) && isset($componenti[$rigo])) {
                     $componenti[$rigo] -= $importo;
                     if ($rigo !== RighiRedditi::ESCLUSO) {
@@ -311,17 +404,27 @@ class ComponentiReddito
         $this->perRigoIrap = [];
         $dal = new SismaDate($anno . '-01-01');
         $al = new SismaDate($anno . '-12-31');
-        foreach ((new RigaContabileModel($this->dataMapper))->getMovimenti($soggetto, null, $dal, $al) as $riga) {
-            if ($riga->registrazioneContabile->origine === ChiusuraEsercizio::ORIGINE) {
+        $righe = array_values(array_filter(iterator_to_array((new RigaContabileModel($this->dataMapper))->getMovimenti($soggetto, null, $dal, $al), false),
+                        fn(RigaContabile $riga) => $riga->registrazioneContabile->origine !== ChiusuraEsercizio::ORIGINE));
+        $this->impostaQuotaPromiscui(array_map(fn(RigaContabile $riga) => [$riga, 1.0], $righe));
+        foreach ($righe as $riga) {
+            $fattore = $this->getFattore($riga->conto);
+            if (in_array($riga->conto->natura, [NaturaConto::ricavo, NaturaConto::costo], true) && ($riga->conto->voceCee !== null)) {
+                $importo = ($riga->conto->natura === NaturaConto::ricavo ? $riga->avere - $riga->dare : $riga->dare - $riga->avere) * ($riga->conto->percentualeDeducibile ?? 100.0) / 100;
+                $voce = $riga->conto->voceCee->value;
+                if ($fattore > 0) {
+                    $this->perVoce[$voce] = ($this->perVoce[$voce] ?? 0.0) + $importo * $fattore;
+                }
+                if ($fattore < 1) {
+                    $this->perVoceIstituzionale[$voce] = ($this->perVoceIstituzionale[$voce] ?? 0.0) + $importo * (1 - $fattore);
+                }
+            }
+            // conti dell'attività istituzionale: fuori dal reddito d'impresa
+            if ($fattore <= 0) {
                 continue;
             }
-            if (in_array($riga->conto->natura, [NaturaConto::ricavo, NaturaConto::costo], true) && ($riga->conto->voceCee !== null)) {
-                $importo = $riga->conto->natura === NaturaConto::ricavo ? $riga->avere - $riga->dare : $riga->dare - $riga->avere;
-                $voce = $riga->conto->voceCee->value;
-                $this->perVoce[$voce] = ($this->perVoce[$voce] ?? 0.0) + $importo * ($riga->conto->percentualeDeducibile ?? 100.0) / 100;
-            }
             if (in_array($riga->conto->natura, [NaturaConto::ricavo, NaturaConto::costo], true)) {
-                $importo = $riga->conto->natura === NaturaConto::ricavo ? $riga->avere - $riga->dare : $riga->dare - $riga->avere;
+                $importo = ($riga->conto->natura === NaturaConto::ricavo ? $riga->avere - $riga->dare : $riga->dare - $riga->avere) * $fattore;
                 foreach (RighiIsa::getChiavi($riga->conto) as $chiave) {
                     $this->perRigoIsa[$chiave] = ($this->perRigoIsa[$chiave] ?? 0.0) + $importo * ($riga->conto->percentualeDeducibile ?? 100.0) / 100;
                 }
@@ -331,17 +434,17 @@ class ComponentiReddito
                 }
             }
             if ($riga->conto->natura === NaturaConto::ricavo) {
-                $ricavi += $riga->avere - $riga->dare;
+                $ricavi += ($riga->avere - $riga->dare) * $fattore;
                 if ($riga->conto->percentualeDeducibile !== null) {
                     // parte non imponibile dei ricavi: variazione in diminuzione
                     $rigo = RighiRedditi::VARIAZIONE_DIMINUZIONE;
-                    $variazioni[$rigo] = ($variazioni[$rigo] ?? 0.0) + ($riga->avere - $riga->dare) * (100 - $riga->conto->percentualeDeducibile) / 100;
+                    $variazioni[$rigo] = ($variazioni[$rigo] ?? 0.0) + ($riga->avere - $riga->dare) * $fattore * (100 - $riga->conto->percentualeDeducibile) / 100;
                 }
             } elseif ($riga->conto->natura === NaturaConto::costo) {
-                $costi += $riga->dare - $riga->avere;
+                $costi += ($riga->dare - $riga->avere) * $fattore;
                 if ($riga->conto->percentualeDeducibile !== null) {
                     $rigo = $riga->conto->variazioneRedditi ?? 'RF31:99';
-                    $variazioni[$rigo] = ($variazioni[$rigo] ?? 0.0) + ($riga->dare - $riga->avere) * (100 - $riga->conto->percentualeDeducibile) / 100;
+                    $variazioni[$rigo] = ($variazioni[$rigo] ?? 0.0) + ($riga->dare - $riga->avere) * $fattore * (100 - $riga->conto->percentualeDeducibile) / 100;
                 }
             }
         }
@@ -368,6 +471,15 @@ class ComponentiReddito
             // nei quadri RG ed RE solo la parte deducibile dei costi e la parte imponibile dei ricavi
             $importo *= $conto->percentualeDeducibile / 100;
         }
+        // enti non commerciali: solo la parte dell'attività commerciale
+        $fattore = $this->getFattore($conto);
+        if (($fattore < 1) && ($conto->voceCee !== null) && ($rigo !== RighiRedditi::ESCLUSO)) {
+            $this->perVoceIstituzionale[$conto->voceCee->value] = ($this->perVoceIstituzionale[$conto->voceCee->value] ?? 0.0) + $importo * (1 - $fattore);
+        }
+        if ($fattore <= 0) {
+            return;
+        }
+        $importo *= $fattore;
         $componenti[$rigo] = ($componenti[$rigo] ?? 0.0) + $importo;
         if (($conto->voceCee !== null) && ($rigo !== RighiRedditi::ESCLUSO)) {
             $this->perVoce[$conto->voceCee->value] = ($this->perVoce[$conto->voceCee->value] ?? 0.0) + $importo;

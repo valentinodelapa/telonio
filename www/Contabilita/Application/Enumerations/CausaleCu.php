@@ -65,15 +65,17 @@ enum CausaleCu: string
 
     /**
      * Parte del compenso soggetta a ritenuta (per cento): il resto va tra le
-     * somme non soggette (punto 7 della certificazione).
+     * somme non soggette (punto 7 della certificazione). Diritti d'autore:
+     * deduzione forfetaria delle spese del 25 per cento, del 40 se il
+     * percipiente ha meno di 35 anni (istruzioni Redditi PF 2026, rigo RL31).
      */
-    public function getQuotaImponibile(): float
+    public function getQuotaImponibile(bool $sotto35Anni = false): float
     {
         return match ($this) {
             self::agenteMonomandatario, self::agentePlurimandatario, self::commissionario, self::mediatore, self::procacciatore => 50.0,
             // vendite a domicilio: ritenuta sul 78 per cento (deduzione forfetaria del 22 per cento)
             self::venditaDomicilio => 78.0,
-            self::dirittiAutore => 75.0,
+            self::dirittiAutore => $sotto35Anni ? 60.0 : 75.0,
             default => 100.0,
         };
     }

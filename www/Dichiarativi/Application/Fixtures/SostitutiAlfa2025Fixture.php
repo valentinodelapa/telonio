@@ -39,7 +39,10 @@ use Telonio\Application\HelperClasses\CodiceFiscale;
  *   credito Art-Bonus);
  * - diritti d'autore (causale B) di Giulia Ferrante, 2.000 euro pagati il
  *   15 ottobre con la ritenuta del 20 per cento sul 75 per cento (300),
- *   versata con la delega di novembre quietanzata.
+ *   versata con la delega di novembre quietanzata;
+ * - diritti d'autore (causale B) di Luca Marini, con meno di 35 anni:
+ *   1.000 euro pagati il 15 ottobre con la ritenuta del 20 per cento sul
+ *   60 per cento (120), nella stessa delega di novembre.
  *
  * Eseguita dopo le dichiarazioni Redditi e IRAP demo delle società, che
  * restano come proposte prima di questi costi (riproponendole li
@@ -65,6 +68,8 @@ class SostitutiAlfa2025Fixture extends BaseFixture
         $ferrante = $this->percipiente($alfa, 'FERRANTE', 'GIULIA', 'F', '1985-09-03', 'F205', 'Via Solari 18', '20144', 'Milano', 'MI', CausaleCu::dirittiAutore);
         $this->paga($alfa, $conti, '2025-05-20', 'Prestazione occasionale di consulenza (ricevuta n. 1/2025)', 7500.0, 1500.0);
         $this->paga($alfa, $ferrante, '2025-10-15', 'Diritti d\'autore per il manuale tecnico', 2000.0, 300.0);
+        $marini = $this->percipiente($alfa, 'MARINI', 'LUCA', 'M', '2001-02-10', 'A944', 'Via Zamboni 33', '40126', 'Bologna', 'BO', CausaleCu::dirittiAutore);
+        $this->paga($alfa, $marini, '2025-10-15', 'Diritti d\'autore per le illustrazioni del catalogo', 1000.0, 120.0);
         // ritenute di ottobre: versamento generato dalla Contabilità, nella delega del 17 novembre (il 16 è domenica)
         (new RitenuteOperate($this->dataMapper))->registra($alfa, 2025, 10);
         $delega = new Delega($this->dataMapper);

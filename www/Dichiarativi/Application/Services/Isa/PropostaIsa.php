@@ -249,8 +249,10 @@ class PropostaIsa
             $spostati = ['1-1' => ['F01', ['E.A.1']], '10-1' => ['F10', ['E.B.6']], '14-1' => ['F14', ['E.B.9']], '15-1' => ['F15', ['E.B.10.a', 'E.B.10.b']]];
             foreach (self::DA_RG as $rigoCampo => $codici) {
                 [$rigo, $campo] = array_map('intval', explode('-', $rigoCampo));
-                // Redditi SP: totale dei ricavi nella colonna 5 del rigo RG2 (allegato 2, controllo 6.2.1)
-                $codici = $societa && ($rigoCampo === '1-1') ? ['RG002005'] : $codici;
+                // Redditi SP: totale dei ricavi nella colonna 5 del rigo RG2 (allegato 2, controllo 6.2.1); Redditi ENC nella colonna 7 (controllo 6.4)
+                if ($societa && ($rigoCampo === '1-1')) {
+                    $codici = $redditi->getDichiarazione()->modello === ModelloDichiarativo::redditiEnc ? ['RG002007'] : ['RG002005'];
+                }
                 $valore = $redditi->somma(...$codici);
                 if (isset($spostati[$rigoCampo])) {
                     [$chiave, $prefissi] = $spostati[$rigoCampo];

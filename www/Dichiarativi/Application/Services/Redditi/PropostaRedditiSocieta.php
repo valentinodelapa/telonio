@@ -63,6 +63,8 @@ class PropostaRedditiSocieta
             'RF019002', 'RF020001', 'RF021003', 'RF022004', 'RF023003', 'RF024001', 'RF025003', 'RF026003', 'RF027001', 'RF030003', 'RF031055'],
         'RSP' => ['RF007002', 'RF008001', 'RF009001', 'RF010001', 'RF011001', 'RF012002', 'RF013001', 'RF014001', 'RF015002', 'RF016001', 'RF017002', 'RF018001',
             'RF019002', 'RF020001', 'RF021003', 'RF023003', 'RF024001', 'RF025003', 'RF027001', 'RF030003', 'RF031055'],
+        'ENC' => ['RF007002', 'RF008001', 'RF010001', 'RF011001', 'RF012002', 'RF013001', 'RF014001', 'RF015002', 'RF016001', 'RF017002', 'RF018001',
+            'RF019002', 'RF020001', 'RF021003', 'RF023003', 'RF024001', 'RF025003', 'RF027001', 'RF031055'],
     ];
     private const DIMINUZIONI = [
         'RSC' => ['RF034002', 'RF036001', 'RF037001', 'RF038001', 'RF039001', 'RF040001', 'RF041001', 'RF042004', 'RF043003', 'RF044001', 'RF046002', 'RF047003',
@@ -70,11 +72,13 @@ class PropostaRedditiSocieta
         // il controllo delle specifiche SP cita RF048002, che non è nel modello: il rigo RF48 ha la sola colonna 1
         'RSP' => ['RF034002', 'RF036001', 'RF037001', 'RF039001', 'RF040001', 'RF043003', 'RF044001', 'RF046002', 'RF047002', 'RF048001', 'RF050008', 'RF053002',
             'RF054001', 'RF055055'],
+        'ENC' => ['RF034002', 'RF036001', 'RF039001', 'RF040001', 'RF043003', 'RF044001', 'RF046002', 'RF047002', 'RF048001', 'RF050007', 'RF055055'],
     ];
     /** Colonne degli importi sommate nei totali delle altre variazioni (RF31 col. 55, RF55 col. 55): Redditi SC salta la coppia 43-44 */
     private const ALTRE = [
         'RSC' => [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 46, 48, 50, 52, 54],
         'RSP' => [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54],
+        'ENC' => [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 46, 48, 50, 52, 54],
     ];
 
     /** Codici tributo degli acconti IRES versati per l'anno */
@@ -152,7 +156,23 @@ class PropostaRedditiSocieta
         return array_values(array_unique($this->avvisi));
     }
 
-    private function proponiRf(QuadriDichiarazione $quadri, DatiFiscali $dati, Soggetto $soggetto, int $anno, string $modello): void
+    /**
+     * Avvisi dell'ultima proposta (anche del solo quadro RF, proponiRf).
+     *
+     * @return string[]
+     */
+    public function getAvvisi(): array
+    {
+        return array_values(array_unique($this->avvisi));
+    }
+
+    /**
+     * Quadro RF dei modelli Redditi SC, SP ed ENC ("RSC", "RSP", "ENC"):
+     * per Redditi ENC con i soli conti dell'attività commerciale e la quota
+     * dei costi promiscui (ComponentiReddito), perdite pregresse RF64 (a
+     * mano) e reddito RF65 da riportare nel quadro RN.
+     */
+    public function proponiRf(QuadriDichiarazione $quadri, DatiFiscali $dati, Soggetto $soggetto, int $anno, string $modello): void
     {
         $componenti = new ComponentiReddito($this->dataMapper);
         $competenza = $componenti->perCompetenza($soggetto, $anno);
@@ -191,10 +211,18 @@ class PropostaRedditiSocieta
                 : $somma + $quadri->getImporto('RF058002') - $quadri->getImporto('RF059002');
         $quadri->proponi('RF060002', $lordo ?: null);
         $reddito = $lordo - $quadri->getImporto('RF061001');
-        if ($modello === 'RSP') {
-            $reddito -= $reddito < 0 ? $quadri->getImporto('RF062001') : 0;
+        if ($modello !== 'RSC') {
+            // proventi esenti: riducono la perdita (RF63 = RF60 - RF61 + RF62, controlli delle specifiche SP ed ENC)
+            $reddito += $reddito < 0 ? $quadri->getImporto('RF062001') : 0;
         }
         $quadri->proponi('RF063001', $reddito ?: null);
+        if ($modello === 'ENC') {
+            // perdite pregresse (colonne 1 e 2 e "di periodo" a mano), totale colonna 3 e reddito RF65 da riportare nel rigo RN6
+            $perdite = $reddito > 0 ? min($reddito, $quadri->getImporto('RF064001') + $quadri->getImporto('RF064002') + $quadri->getImporto('RF0640A1') + $quadri->getImporto('RF0640A2')) : 0;
+            $quadri->proponi('RF064003', $perdite ?: null);
+            // campo positivo: in caso di perdita resta vuoto (la perdita va nel prospetto delle perdite del quadro RS)
+            $quadri->proponi('RF065001', $reddito - $perdite > 0 ? $reddito - $perdite : null);
+        }
         if ($modello === 'RSP') {
             $perdite = $reddito > 0 ? min($reddito, $quadri->getImporto('RF064001') + $quadri->getImporto('RF064002') + $quadri->getImporto('RF064003')) : 0;
             $quadri->proponi('RF064004', $perdite ?: null);
@@ -240,7 +268,8 @@ class PropostaRedditiSocieta
         $lordo = $differenza + $quadri->getImporto('RG026002') - $quadri->getImporto('RG027002');
         $quadri->proponi('RG028002', $lordo ?: null);
         $reddito = $lordo - $quadri->getImporto('RG029001');
-        $reddito -= $reddito < 0 ? $quadri->getImporto('RG030001') : 0;
+        // proventi esenti: riducono la perdita (RG31 = RG28 - RG29 + RG30)
+        $reddito += $reddito < 0 ? $quadri->getImporto('RG030001') : 0;
         $quadri->proponi('RG031001', $reddito ?: null);
         $perdite = $reddito > 0 ? min($reddito, $quadri->getImporto('RG032001') + $quadri->getImporto('RG032002') + $quadri->getImporto('RG032003')) : 0;
         $quadri->proponi('RG032004', $perdite ?: null);

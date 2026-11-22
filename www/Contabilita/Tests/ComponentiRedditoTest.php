@@ -2,9 +2,12 @@
 
 namespace Contabilita\Tests;
 
+use Contabilita\Application\Entities\Conto;
 use Contabilita\Application\Entities\RegistrazioneContabile;
 use Contabilita\Application\Entities\RigaContabile;
 use Contabilita\Application\Enumerations\CausaleContabile;
+use Contabilita\Application\Enumerations\DestinazioneConto;
+use Contabilita\Application\Enumerations\NaturaConto;
 use Contabilita\Application\Enumerations\FunzioneConto;
 use Contabilita\Application\Enumerations\VoceCee;
 use Contabilita\Application\Services\ComponentiReddito;
@@ -119,6 +122,57 @@ class ComponentiRedditoTest extends ContabilitaTestCase
         $this->assertSame(1800.0, $servizio->perCassa($this->azienda, 2025, false)['RG2']);
         $this->testAdapter->impostaSelectCallback(fn(string $cmd) => new TestResultSet(preg_match('/FROM\W+esercizio_contabile\W/', $cmd) === 1 ? [] : $nel2025));
         $this->assertEquals(['RF18' => 60.0, 'RF55:99' => 200.0], $servizio->perCompetenza($this->azienda, 2025)['variazioni']);
+    }
+
+    public function testDestinazioneDeiContiDellEnteNonCommerciale(): void
+    {
+        $banca = $this->conti[FunzioneConto::banca->value];
+        $ricavi = $this->conti[FunzioneConto::ricavi->value];
+        $ricavi->voceCee = VoceCee::economicoA1;
+        $ricavi->destinazione = DestinazioneConto::commerciale;
+        $quote = new Conto($this->dataMapper);
+        $quote->id = 200001;
+        $quote->pianoConti = $this->piano;
+        $quote->codice = '20.02.0001';
+        $quote->descrizione = 'Quote associative';
+        $quote->natura = NaturaConto::ricavo;
+        $quote->voceCee = VoceCee::economicoA5;
+        $quote->destinazione = DestinazioneConto::istituzionale;
+        $consulenze = $this->conti['22.01.0001'];
+        $consulenze->voceCee = VoceCee::economicoB7;
+        $consulenze->destinazione = DestinazioneConto::promiscuo;
+        $acquisti = $this->conti[FunzioneConto::costi->value];
+        $acquisti->voceCee = VoceCee::economicoB6;
+        $acquisti->destinazione = DestinazioneConto::istituzionale;
+        $righe = array_merge(
+                $this->registra(CausaleContabile::giroconto, '2025-03-10', [[$banca, 6000, 0], [$ricavi, 0, 6000]], false),
+                $this->registra(CausaleContabile::giroconto, '2025-03-11', [[$banca, 4000, 0], [$quote, 0, 4000]], false),
+                $this->registra(CausaleContabile::giroconto, '2025-05-05', [[$consulenze, 1000, 0], [$banca, 0, 1000]], false),
+                $this->registra(CausaleContabile::giroconto, '2025-05-06', [[$acquisti, 500, 0], [$banca, 0, 500]], false),
+        );
+        $servizio = new ComponentiReddito($this->dataMapper);
+        $this->testAdapter->impostaSelectCallback(fn(string $cmd) => new TestResultSet(preg_match('/FROM\W+esercizio_contabile\W/', $cmd) === 1 ? [] : $righe));
+        // promiscui al 60 per cento (6.000 di ricavi commerciali su 10.000 di ricavi e proventi), istituzionali esclusi
+        $this->assertSame(['ricavi' => 6000.0, 'costi' => 600.0, 'utile' => 5400.0, 'variazioni' => []], $servizio->perCompetenza($this->azienda, 2025));
+        $this->assertSame(0.6, $servizio->getQuotaPromiscui());
+        $this->assertSame(['E.A.1' => 6000.0, 'E.B.7' => 600.0], $servizio->getPerVoceCee());
+        $this->assertEquals(['E.A.5' => 4000.0, 'E.B.7' => 400.0, 'E.B.6' => 500.0], $servizio->getPerVoceCeeIstituzionale());
+        // per cassa (quadro RG) lo stesso criterio
+        $this->rispondiSenzaPartite($righe);
+        $componenti = $servizio->perCassa($this->azienda, 2025, false);
+        $this->assertSame(6000.0, $componenti['RG2']);
+        $this->assertSame(600.0, $componenti['RG22:99']);
+        $this->assertSame(0.0, $componenti['RG5'] ?? 0.0);
+        // senza destinazioni (imprese) nessuna quota
+        foreach ([$ricavi, $quote, $consulenze, $acquisti] as $conto) {
+            $conto->destinazione = null;
+        }
+        $this->testAdapter->impostaSelectCallback(fn(string $cmd) => new TestResultSet(preg_match('/FROM\W+esercizio_contabile\W/', $cmd) === 1 ? [] : $righe));
+        $this->assertSame(10000.0, $servizio->perCompetenza($this->azienda, 2025)['ricavi']);
+        $this->assertNull($servizio->getQuotaPromiscui());
+        $this->assertSame([], $servizio->getPerVoceCeeIstituzionale());
+        $this->assertSame(0.25, ComponentiReddito::calcolaQuotaPromiscui(1000.0, 4000.0));
+        $this->assertSame(0.0, ComponentiReddito::calcolaQuotaPromiscui(0.0, 0.0));
     }
 
     public function testNotaDiCreditoChiudeLaFattura(): void

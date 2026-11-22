@@ -9,6 +9,7 @@ use Anagrafica\Application\Entities\Soggetto;
 use Contabilita\Application\BaseClasses\ContabilitaController;
 use Contabilita\Application\Entities\Conto;
 use Contabilita\Application\Entities\PianoConti;
+use Contabilita\Application\Enumerations\DestinazioneConto;
 use Contabilita\Application\Enumerations\FunzioneConto;
 use Contabilita\Application\Enumerations\LivelloConto;
 use Contabilita\Application\Enumerations\NaturaConto;
@@ -47,6 +48,7 @@ class ContoController extends ContabilitaController
             $conto->rigoIrap = $superiore->rigoIrap;
             $conto->percentualeDeducibile = $superiore->percentualeDeducibile;
             $conto->variazioneRedditi = $superiore->variazioneRedditi;
+            $conto->destinazione = $superiore->destinazione;
         }
         return $this->gestisci($request, $conto, 'Nuovo conto');
     }
@@ -115,6 +117,7 @@ class ContoController extends ContabilitaController
         $this->vars['righiRedditi'] = RighiRedditi::getRighi();
         $this->vars['righiIsa'] = RighiIsa::getRighi();
         $this->vars['righiIrap'] = RighiIrap::getRighi();
+        $this->vars['destinazioni'] = DestinazioneConto::cases();
         $this->vars['variazioniRedditi'] = RighiRedditi::VARIAZIONI;
         $this->vars['vociCee'] = VoceCee::perSezione();
         $this->vars['pageTitle'] = $titolo;

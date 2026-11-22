@@ -152,6 +152,59 @@ class IrapTest extends DichiarativiTestCase
         $this->assertFalse(\Contabilita\Application\Services\RighiIrap::isValido('IC52'));
     }
 
+    public function testQuadroIeDegliEntiNonCommerciali(): void
+    {
+        $dichiarazione = $this->creaDichiarazione();
+        $dichiarazione->modello = ModelloDichiarativo::irap;
+        $quadri = new QuadriDichiarazione($dichiarazione, $this->dataMapper, $this->getCatalogo(ModelloDichiarativo::irap, 2026));
+        $this->testAdapter->impostaSelectCallback(fn() => new \Telonio\Tests\TestResultSet([]));
+        $dati = $this->creaDatiFiscali();
+        $dati->enteNonCommerciale = true;
+        $dati->partitaIva = '01234567890';
+        $dati->regimeFiscale = \Anagrafica\Application\Enumerations\RegimeFiscale::ordinario;
+        // attività istituzionale: retribuzioni della voce B9a dei conti istituzionali; attività commerciale: voci dei conti commerciali
+        $componenti = new class($this->dataMapper) extends \Contabilita\Application\Services\ComponentiReddito {
+
+            #[\Override]
+            public function getPerVoceCeeIstituzionale(): array
+            {
+                return ['E.B.9.a' => 20000.0, 'E.B.7' => 500.0];
+            }
+
+            #[\Override]
+            public function getQuotaPromiscui(): ?float
+            {
+                return 0.6;
+            }
+        };
+        $voci = ['E.A.1' => 10000, 'E.B.7' => 3000, 'E.B.9' => 2000];
+        $voce = fn(string ...$prefissi): int => array_sum(array_map(fn(string $prefisso) => $voci[$prefisso] ?? 0, $prefissi));
+        $metodo = new \ReflectionMethod(PropostaIrap::class, 'proponiIe');
+        $netto = $metodo->invoke(new PropostaIrap($this->dataMapper), $quadri, $dichiarazione, $dati, $componenti, $voce, ['IC46' => 800.0, 'IC51:99' => 100.0]);
+        // sezione I
+        $this->assertSame(20000, $quadri->getImporto('IE001001'));
+        $this->assertSame(20000, $quadri->getImporto('IE004001'));
+        // sezione II: ricavi 10.000, servizi 3.000, IMU (IC46 dei conti, rigo IE23) e altra variazione codice 99 (IE26)
+        $this->assertSame(10000, $quadri->getImporto('IE011001'));
+        $this->assertSame(3000, $quadri->getImporto('IE019001'));
+        $this->assertSame(800, $quadri->getImporto('IE023001'));
+        $this->assertSame(99, $quadri->getImporto('IE026001'));
+        $this->assertSame(900, $quadri->getImporto('IE027001'));
+        $this->assertSame(7900, $quadri->getImporto('IE032001'));
+        // sezione VI: totale 27.900, deduzione del personale dell'attività commerciale, ulteriore deduzione di 8.000 euro
+        $this->assertSame(27900, $quadri->getImporto('IE053001'));
+        $this->assertSame(2000, $quadri->getImporto('IE057001'));
+        $this->assertSame(8000, $quadri->getImporto('IE060001'));
+        $this->assertSame(17900, $quadri->getImporto('IE061001'));
+        $this->assertSame(17900, $netto);
+        // ente senza partita IVA: tutta la contabilità è istituzionale, nessuna sezione II
+        $dati->partitaIva = null;
+        $quadri = new QuadriDichiarazione($dichiarazione, $this->dataMapper, $this->getCatalogo(ModelloDichiarativo::irap, 2026));
+        $metodo->invoke(new PropostaIrap($this->dataMapper), $quadri, $dichiarazione, $dati, $componenti, $voce, []);
+        $this->assertNull($quadri->get('IE032001'));
+        $this->assertNull($quadri->get('IE057001'));
+    }
+
     public function testDeduzioniEAcconti(): void
     {
         // ulteriore deduzione (art. 11, c. 4-bis): società di capitali e società di persone (importi aumentati)

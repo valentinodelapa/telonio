@@ -40,6 +40,20 @@ use SismaFramework\Orm\HelperClasses\DataMapper;
  * 11, comma 4-bis (tabella delle istruzioni; per le società di persone,
  * art. 3, c. 1, lett. b, importi aumentati).
  *
+ * Enti non commerciali, quadro IE: sezione I (attività istituzionale,
+ * metodo retributivo dell'art. 10, c. 1: retribuzioni della voce B9a e
+ * compensi di lavoro autonomo occasionale ai percipienti con la causale CU
+ * "M", dei conti istituzionali e della parte non commerciale dei costi
+ * promiscui; per gli enti senza partita IVA tutta la contabilità; redditi
+ * assimilati del rigo IE2 a mano), sezione II (attività commerciale in
+ * contabilità ordinaria o semplificata, art. 5: voci CEE dei conti
+ * commerciali e variazioni dei conti, come il quadro IC), sezione III
+ * (regimi forfetari dell'art. 145 TUIR e della legge 398/1991, art. 17,
+ * c. 2: reddito forfetario della dichiarazione Redditi ENC, retribuzioni e
+ * interessi passivi dell'attività commerciale) e sezione VI (valore della
+ * produzione netta, deduzione del personale a tempo indeterminato
+ * dell'attività commerciale e ulteriore deduzione dell'art. 11, c. 4-bis).
+ *
  * Quadro IR: regione del domicilio fiscale (sede legale), valore della
  * produzione (il negativo ripartito in un rigo a sé: IC64 - IC65 o
  * colonne 3 negative dei righi da IP60 a IP65) e base imponibile, codice
@@ -52,7 +66,10 @@ use SismaFramework\Orm\HelperClasses\DataMapper;
 class PropostaIrap
 {
 
-    public const QUADRI = ['IC', 'IP', 'IR'];
+    public const QUADRI = ['IC', 'IP', 'IE', 'IR'];
+
+    /** Variazioni dei conti del quadro IC (RighiIrap) nei righi corrispondenti del quadro IE */
+    private const VARIAZIONI_IE = ['IC43' => 'IE020001', 'IC44' => 'IE021001', 'IC45' => 'IE022001', 'IC46' => 'IE023001', 'IC48' => 'IE025001'];
     public const ALIQUOTA_ORDINARIA = 3.9;
     public const ACCONTI = ['3812', '3813'];
 
@@ -81,6 +98,7 @@ class PropostaIrap
         $dati = (new DatiFiscaliModel($this->dataMapper))->getVigenteAl($soggetto, new SismaDate($anno . '-12-31'));
         $componenti = new ComponentiReddito($this->dataMapper);
         $persone = $soggetto->tipoSoggetto === TipoSoggetto::societaPersone;
+        $ente = $dati?->enteNonCommerciale === true;
         if ($persone && ($dati?->regimeFiscale !== RegimeFiscale::ordinario)) {
             $componenti->perCassa($soggetto, $anno, false);
         } else {
@@ -110,7 +128,11 @@ class PropostaIrap
                 $this->avvisi[] = sprintf('Rigo IC44: quota interessi dei canoni dei contratti di leasing (%s euro, metodo forfetario del D.M. 24 aprile 1998), dall\'archivio dei contratti della contabilità.', number_format($interessi, 0, ',', '.'));
             }
         }
-        $netto = $persone ? $this->proponiIp($quadri, $voce) : $this->proponiIc($quadri, $voce, $variazioni);
+        $netto = match (true) {
+            $ente => $this->proponiIe($quadri, $dichiarazione, $dati, $componenti, $voce, $variazioni),
+            $persone => $this->proponiIp($quadri, $voce),
+            default => $this->proponiIc($quadri, $voce, $variazioni),
+        };
         $this->proponiIr($quadri, $dichiarazione, $netto, $dati?->soggettoIsa ?? false, AliquoteIrap::getCategoria($dati?->codiceAteco?->codice));
         array_push($this->avvisi, ...array_values($componenti->getAvvisi()));
         array_push($this->avvisi, ...$quadri->getDifferenzeManuali());
@@ -176,6 +198,150 @@ class PropostaIrap
     }
 
     /**
+     * Quadro IE degli enti non commerciali: valore della produzione netta.
+     */
+    private function proponiIe(QuadriDichiarazione $quadri, Dichiarazione $dichiarazione, \Anagrafica\Application\Entities\DatiFiscali $dati, ComponentiReddito $componenti, \Closure $voce, array $variazioni): int
+    {
+        $soggetto = $dichiarazione->soggetto;
+        $anno = $dichiarazione->anno;
+        $commerciale = $dati->partitaIva !== null;
+        // sezione I: senza partita IVA tutta l'attività è istituzionale
+        $istituzionale = $commerciale ? $componenti->getPerVoceCeeIstituzionale() : $componenti->getPerVoceCee();
+        $retribuzioni = (int) round(array_sum(array_filter($istituzionale, fn(string $codice) => ($codice === 'E.B.9.a') || str_starts_with($codice, 'E.B.9.a.'), ARRAY_FILTER_USE_KEY)));
+        $quadri->proponi('IE001001', $retribuzioni ?: null);
+        $quadri->proponi('IE003001', ((int) round($this->getCompensiOccasionali($soggetto, $anno, $componenti->getQuotaPromiscui(), $commerciale === false))) ?: null);
+        $quadri->proponi('IE004001', ($quadri->getImporto('IE001001') + $quadri->getImporto('IE002001') + $quadri->getImporto('IE003001')) ?: null);
+        $forfetario = in_array($dati->regimeFiscale, [RegimeFiscale::forfetarioEnc, RegimeFiscale::associazioniSportive], true);
+        if ($commerciale && $forfetario) {
+            $this->proponiIeForfetario($quadri, $soggetto, $anno, $voce);
+        } elseif ($commerciale) {
+            $this->proponiIeCommerciale($quadri, $voce, $variazioni);
+        }
+        // sezione VI: valore della produzione di ciascuna sezione (nessuna attività all'estero: colonna 3 uguale alla colonna 1)
+        foreach (['IE047' => 'IE004001', 'IE048' => 'IE032001', 'IE049' => 'IE037001'] as $rigo => $sezione) {
+            $valore = $quadri->getImporto($sezione);
+            $quadri->proponi($rigo . '001', $valore ?: null);
+            $quadri->proponi($rigo . '003', ($valore - $quadri->getImporto($rigo . '002')) ?: null);
+        }
+        $totale = 0;
+        foreach (['IE047003', 'IE048003', 'IE049003', 'IE051003', 'IE052003'] as $codice) {
+            $totale += max(0, $quadri->getImporto($codice));
+        }
+        $quadri->proponi('IE053001', $totale ?: null);
+        // deduzione del personale a tempo indeterminato (art. 11, c. 4-octies): solo per il valore dell'attività commerciale (art. 5)
+        $personale = $commerciale && ($forfetario === false) ? $voce('E.B.9') : 0;
+        $quadri->proponi('IE057001', $personale > 0 ? min($personale, max(0, $quadri->getImporto('IE048003'))) ?: null : null);
+        $base = $totale;
+        foreach (['IE054001', 'IE055001', 'IE057001', 'IE058001', 'IE059001', 'IE059A01'] as $codice) {
+            $base -= $quadri->getImporto($codice);
+        }
+        $ulteriore = min(max(0, $base), self::getUlterioreDeduzione($base, false));
+        $quadri->proponi('IE060001', $ulteriore ?: null);
+        $netto = max(0, $base - $ulteriore);
+        $quadri->proponi('IE061001', $netto ?: null);
+        $this->avvisi[] = sprintf('Quadro IE, sezione I (attività istituzionale): retribuzioni della voce B9a e compensi di lavoro autonomo occasionale (causale CU "M") %s; i redditi assimilati a quelli di lavoro dipendente (collaborazioni coordinate e continuative, rigo IE2) si indicano a mano.',
+                $commerciale ? 'dei conti istituzionali e della parte non commerciale dei costi promiscui' : 'di tutta la contabilità (ente senza partita IVA)');
+        if ($personale > 0) {
+            $this->avvisi[] = sprintf('Quadro IE: deduzione del costo del personale dipendente dell\'attività commerciale (rigo IE57) proposta per l\'intero costo (voce B9, %s euro): spetta per i lavoratori a tempo indeterminato.', number_format($personale, 0, ',', '.'));
+        }
+        return $netto;
+    }
+
+    /**
+     * Quadro IE, sezione II (attività commerciale, art. 5): componenti del
+     * conto economico dei conti commerciali, variazioni dei conti (righi
+     * del quadro IC nei corrispondenti del quadro IE) e valore IE32.
+     */
+    private function proponiIeCommerciale(QuadriDichiarazione $quadri, \Closure $voce, array $variazioni): void
+    {
+        $positivi = ['IE006001' => $voce('E.A.1'), 'IE007001' => $voce('E.A.2'), 'IE008001' => $voce('E.A.3'), 'IE009001' => $voce('E.A.4'), 'IE010001' => $voce('E.A.5')];
+        $negativi = ['IE012001' => $voce('E.B.6'), 'IE013001' => $voce('E.B.7'), 'IE014001' => $voce('E.B.8'), 'IE015001' => $voce('E.B.10.a'), 'IE016001' => $voce('E.B.10.b'),
+            'IE017001' => $voce('E.B.11'), 'IE018001' => $voce('E.B.14')];
+        foreach ($positivi + $negativi as $codice => $importo) {
+            $quadri->proponi($codice, $importo ?: null);
+        }
+        $totalePositivi = array_sum(array_map(fn(string $codice) => $quadri->getImporto($codice), array_keys($positivi)));
+        $totaleNegativi = array_sum(array_map(fn(string $codice) => $quadri->getImporto($codice), array_keys($negativi)));
+        $quadri->proponi('IE011001', $totalePositivi ?: null);
+        $quadri->proponi('IE019001', $totaleNegativi ?: null);
+        foreach (self::VARIAZIONI_IE as $rigo => $codice) {
+            $importo = (int) round($variazioni[$rigo] ?? 0);
+            $quadri->proponi($codice, $importo > 0 ? $importo : null);
+        }
+        $this->proponiAltreVariazioni($quadri, $variazioni, ['IC51' => ['IE026', 9], 'IC57' => ['IE030', 18]]);
+        if (($variazioni['IC49'] ?? 0) > 0) {
+            $this->avvisi[] = 'Quadro IE: gli interessi passivi indeducibili (variazione IC49 dei conti) non hanno un rigo proprio nella sezione II: indicali tra le altre variazioni in aumento (rigo IE26) con il codice delle istruzioni.';
+        }
+        $altre = 0;
+        for ($colonna = 2; $colonna <= 18; $colonna += 2) {
+            $altre += $quadri->getImporto(sprintf('IE026%03d', $colonna));
+        }
+        $quadri->proponi('IE026019', $altre ?: null);
+        $aumenti = $altre;
+        foreach (self::VARIAZIONI_IE as $codice) {
+            $aumenti += $quadri->getImporto($codice);
+        }
+        $quadri->proponi('IE027001', $aumenti ?: null);
+        $altreDiminuzioni = 0;
+        for ($colonna = 2; $colonna <= 36; $colonna += 2) {
+            $altreDiminuzioni += $quadri->getImporto(sprintf('IE030%03d', $colonna));
+        }
+        // il totale della colonna 37 indicato dalle istruzioni non è nello schema del file: concorre solo al rigo IE31
+        $diminuzioni = $quadri->getImporto('IE028001') + $altreDiminuzioni;
+        $quadri->proponi('IE031001', $diminuzioni ?: null);
+        $valore = $totalePositivi + $aumenti - $totaleNegativi - $diminuzioni;
+        $quadri->proponi('IE032001', $valore ?: null);
+        $this->avvisi[] = 'Quadro IE, sezione II (attività commerciale): componenti dal conto economico per competenza dei conti dell\'attività commerciale e quota dei promiscui; variazioni dai conti con la variazione IRAP, le altre a mano.';
+    }
+
+    /**
+     * Quadro IE, sezione III (regimi forfetari, art. 17, c. 2): reddito
+     * forfetario (rigo RG31 della dichiarazione Redditi ENC dell'anno nella
+     * suite), retribuzioni dell'attività commerciale (voce B9) e interessi
+     * passivi (voce C17).
+     */
+    private function proponiIeForfetario(QuadriDichiarazione $quadri, Soggetto $soggetto, int $anno, \Closure $voce): void
+    {
+        $redditi = (new DichiarazioneModel($this->dataMapper))->getPerModello($soggetto, ModelloDichiarativo::redditiEnc, $anno);
+        if ($redditi === null) {
+            $this->avvisi[] = 'Quadro IE, sezione III: dichiarazione Redditi ENC dell\'anno non trovata, reddito forfetario (rigo IE34) da indicare a mano.';
+        } else {
+            $quadri->proponi('IE034001', max(0, (new QuadriDichiarazione($redditi, $this->dataMapper))->getImporto('RG031001', 1)) ?: null);
+        }
+        $quadri->proponi('IE035001', $voce('E.B.9') ?: null);
+        $quadri->proponi('IE036001', $voce('E.C.17') ?: null);
+        $quadri->proponi('IE037001', ($quadri->getImporto('IE034001') + $quadri->getImporto('IE035001') + $quadri->getImporto('IE036001')) ?: null);
+        $this->avvisi[] = 'Quadro IE, sezione III (regime forfetario): reddito d\'impresa forfetario, retribuzioni e compensi dell\'attività commerciale (rigo IE35: aggiungi a mano collaboratori coordinati e continuativi e lavoro autonomo occasionale) e interessi passivi.';
+    }
+
+    /**
+     * Compensi di lavoro autonomo occasionale (art. 67, c. 1, lett. l, TUIR)
+     * dell'attività istituzionale dell'anno: costi registrati con una
+     * controparte di causale CU "M" sui conti istituzionali per intero e sui
+     * promiscui per la parte non commerciale (1 - quota commerciale); i
+     * conti commerciali non concorrono.
+     */
+    private function getCompensiOccasionali(Soggetto $soggetto, int $anno, ?float $quotaPromiscui, bool $tuttoIstituzionale): float
+    {
+        $totale = 0.0;
+        $movimenti = (new \Contabilita\Application\Models\RigaContabileModel($this->dataMapper))->getMovimenti($soggetto, null, new SismaDate($anno . '-01-01'), new SismaDate($anno . '-12-31'));
+        foreach ($movimenti as $riga) {
+            if (($riga->conto->natura !== \Contabilita\Application\Enumerations\NaturaConto::costo) || ($riga->registrazioneContabile->controparte?->causaleCu !== \Contabilita\Application\Enumerations\CausaleCu::occasionale)) {
+                continue;
+            }
+            // ente senza attività commerciale (senza partita IVA): tutti i conti sono istituzionali
+            $parte = match (true) {
+                $tuttoIstituzionale => 1.0,
+                $riga->conto->destinazione === \Contabilita\Application\Enumerations\DestinazioneConto::istituzionale => 1.0,
+                $riga->conto->destinazione === \Contabilita\Application\Enumerations\DestinazioneConto::promiscuo => 1.0 - ($quotaPromiscui ?? 1.0),
+                default => 0.0,
+            };
+            $totale += ($riga->dare - $riga->avere) * $parte;
+        }
+        return $totale;
+    }
+
+    /**
      * Variazioni dei righi da IC43 a IC57 dai conti con la variazione IRAP
      * (Contabilita, RighiIrap): righi propri (IC43-IC49) e altre variazioni
      * con il codice (IC51 in aumento, IC57 in diminuzione) nella coppia con
@@ -189,8 +355,22 @@ class PropostaIrap
             $importo = (int) round($variazioni[$rigo] ?? 0);
             $quadri->proponi(sprintf('IC%03d001', (int) substr($rigo, 2)), $importo > 0 ? $importo : null);
         }
-        foreach (['IC51' => 9, 'IC57' => 18] as $rigo => $coppie) {
-            $base = sprintf('IC%03d', (int) substr($rigo, 2));
+        $this->proponiAltreVariazioni($quadri, $variazioni, ['IC51' => ['IC051', 9], 'IC57' => ['IC057', 18]]);
+        if (count($variazioni) > 0) {
+            $this->avvisi[] = 'Quadro IC: variazioni dai conti con la variazione IRAP indicata nel piano dei conti (' . implode(', ', array_keys($variazioni)) . '); le altre si indicano a mano.';
+        }
+    }
+
+    /**
+     * Altre variazioni con il codice (in aumento e in diminuzione) nella
+     * coppia con lo stesso codice o nella prima libera del rigo indicato.
+     *
+     * @param array<string, float> $variazioni rigo del conto => importo
+     * @param array<string, array{0: string, 1: int}> $righi rigo del conto (IC51, IC57) => [prefisso del rigo del modello, coppie]
+     */
+    private function proponiAltreVariazioni(QuadriDichiarazione $quadri, array $variazioni, array $righi): void
+    {
+        foreach ($righi as $rigo => [$base, $coppie]) {
             $usate = [];
             foreach ($variazioni as $chiave => $importo) {
                 if (str_starts_with($chiave, $rigo . ':') === false) {
@@ -223,9 +403,6 @@ class PropostaIrap
                 $quadri->proponi(sprintf('%s%03d', $base, $libera * 2 - 1), $codice);
                 $quadri->proponi(sprintf('%s%03d', $base, $libera * 2), $importo);
             }
-        }
-        if (count($variazioni) > 0) {
-            $this->avvisi[] = 'Quadro IC: variazioni dai conti con la variazione IRAP indicata nel piano dei conti (' . implode(', ', array_keys($variazioni)) . '); le altre si indicano a mano.';
         }
     }
 
@@ -378,7 +555,7 @@ class PropostaIrap
         return array_filter([
             'Valore della produzione lorda (IC64)' => $quadri->getImporto('IC064001', 1),
             'Valore della produzione (IP66)' => $quadri->getImporto('IP066001', 1),
-            'Valore della produzione netta (IC76, IP74)' => $quadri->getImporto('IC076001', 1) + $quadri->getImporto('IP074001', 1),
+            'Valore della produzione netta (IC76, IP74, IE61)' => $quadri->getImporto('IC076001', 1) + $quadri->getImporto('IP074001', 1) + $quadri->getImporto('IE061001', 1),
             'Imposta (IR21)' => $quadri->getImporto('IR021001', 1),
             'IRAP a debito (IR26)' => $quadri->getImporto('IR026001', 1),
             'IRAP a credito (IR27)' => $quadri->getImporto('IR027001', 1),

@@ -46,6 +46,7 @@ require Layout::percorso('header');
             <?= Campo::selezione('rigoIrap', $campi['rigoIrap'], $formEntity, $errors, $righiIrap, ['colonna' => 'col-md-8', 'vuota' => $nessunaVariazioneIrap, 'aiuto' => $aiutoRigoIrap]) ?>
             <?= Campo::testo('percentualeDeducibile', $campi['percentualeDeducibile'], $formEntity, $errors, ['colonna' => 'col-md-4', 'attributi' => 'inputmode="decimal"', 'aiuto' => $aiutoPercentualeDeducibile]) ?>
             <?= Campo::selezione('variazioneRedditi', $campi['variazioneRedditi'], $formEntity, $errors, $variazioniRedditi, ['colonna' => 'col-md-8', 'vuota' => $variazioneAltre, 'aiuto' => $aiutoVariazione]) ?>
+            <?= Campo::selezioneEnum('destinazione', $campi['destinazione'], $formEntity, $errors, $destinazioni, ['colonna' => 'col-md-8', 'vuota' => $destinazioneCommerciale, 'aiuto' => $aiutoDestinazione]) ?>
         </div>
     </div>
     <?php require __DIR__ . '/../commonParts/pulsantiForm.php'; ?>

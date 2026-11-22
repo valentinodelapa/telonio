@@ -27,6 +27,7 @@ enum ModelloDichiarativo: string
     case irap = 'IRA';
     case certificazioneUnica = 'CUR';
     case modello770 = '770';
+    case redditiEnc = 'ENC';
 
     public function getLabel(): string
     {
@@ -41,6 +42,7 @@ enum ModelloDichiarativo: string
             self::irap => 'Imposta regionale sulle attività produttive',
             self::certificazioneUnica => "Certificazione Unica (sostituto d'imposta)",
             self::modello770 => "Dichiarazione dei sostituti d'imposta (770)",
+            self::redditiEnc => 'Redditi Enti non commerciali ed equiparati',
         };
     }
 
@@ -57,6 +59,7 @@ enum ModelloDichiarativo: string
             self::irap => 'IRAP',
             self::certificazioneUnica => 'CU',
             self::modello770 => '770',
+            self::redditiEnc => 'Redditi ENC',
         };
     }
 
@@ -66,7 +69,7 @@ enum ModelloDichiarativo: string
      */
     public function isGestito(): bool
     {
-        return in_array($this, [self::iva, self::ivaTr, self::redditiPf, self::redditiSp, self::redditiSc, self::consolidato, self::irap, self::certificazioneUnica, self::modello770], true);
+        return in_array($this, [self::iva, self::ivaTr, self::redditiPf, self::redditiSp, self::redditiSc, self::consolidato, self::irap, self::certificazioneUnica, self::modello770, self::redditiEnc], true);
     }
 
     /**
@@ -80,24 +83,24 @@ enum ModelloDichiarativo: string
     }
 
     /**
-     * Modelli delle imposte sui redditi (Redditi PF, SP, SC, Consolidato
-     * nazionale e mondiale) e IRAP: stessi termini di presentazione e
+     * Modelli delle imposte sui redditi (Redditi PF, SP, SC, ENC,
+     * Consolidato nazionale e mondiale) e IRAP: stessi termini di presentazione e
      * versamenti con le deleghe F24 (saldo, acconti, crediti); i modelli
      * Redditi hanno la fornitura a record A, B, C (P, Q, R dei modelli ISA)
      * e Z, l'IRAP la fornitura XML.
      */
     public function isRedditi(): bool
     {
-        return in_array($this, [self::redditiPf, self::redditiSp, self::redditiSc, self::consolidato, self::irap], true);
+        return in_array($this, [self::redditiPf, self::redditiSp, self::redditiSc, self::redditiEnc, self::consolidato, self::irap], true);
     }
 
     /**
-     * Modelli Redditi delle società (SP e SC), con il frontespizio dei
-     * soggetti diversi dalle persone fisiche.
+     * Modelli Redditi delle società (SP e SC) e degli enti non commerciali
+     * (ENC), con il frontespizio dei soggetti diversi dalle persone fisiche.
      */
     public function isRedditiSocieta(): bool
     {
-        return in_array($this, [self::redditiSp, self::redditiSc], true);
+        return in_array($this, [self::redditiSp, self::redditiSc, self::redditiEnc], true);
     }
 
     /**
@@ -123,12 +126,16 @@ enum ModelloDichiarativo: string
     }
 
     /**
-     * Codice della fornitura nel record A (es. "IVA26", "IVT25").
+     * Codice della fornitura nel record A (es. "IVA26", "IVT25"; Redditi
+     * ENC "RNC26").
      */
     public function getCodiceFornitura(int $annoImposta): string
     {
-        return $this === self::ivaTr ? 'IVT' . substr((string) self::getAnnoModello($annoImposta, $this), -2)
-                : $this->value . substr((string) self::getAnnoModello($annoImposta), -2);
+        return match ($this) {
+            self::ivaTr => 'IVT' . substr((string) self::getAnnoModello($annoImposta, $this), -2),
+            self::redditiEnc => 'RNC' . substr((string) self::getAnnoModello($annoImposta), -2),
+            default => $this->value . substr((string) self::getAnnoModello($annoImposta), -2),
+        };
     }
 
     /**
@@ -138,7 +145,7 @@ enum ModelloDichiarativo: string
     {
         return match ($this) {
             self::iva => 'D',
-            self::redditiPf, self::ivaTr, self::redditiSp, self::redditiSc, self::consolidato => 'C',
+            self::redditiPf, self::ivaTr, self::redditiSp, self::redditiSc, self::consolidato, self::redditiEnc => 'C',
             // fornitura XML: nessun record a struttura variabile
             self::irap => '',
             self::isa => 'Q',
@@ -162,7 +169,7 @@ enum ModelloDichiarativo: string
         }
         return new SismaDate(($annoImposta + 1) . match ($this) {
             self::iva => '-04-30',
-            self::redditiPf, self::isa, self::redditiSp, self::redditiSc, self::consolidato, self::irap => '-10-31',
+            self::redditiPf, self::isa, self::redditiSp, self::redditiSc, self::consolidato, self::irap, self::redditiEnc => '-10-31',
             self::ivaTr => '-04-30',
             // CU: 16 marzo, termine di consegna al percipiente e di invio (30 aprile per le sole certificazioni di lavoro autonomo abituale e provvigioni non occasionali, istruzioni CU 2026 par. 2.1); 770: 31 ottobre
             self::certificazioneUnica => '-03-16',
@@ -192,6 +199,8 @@ enum ModelloDichiarativo: string
             self::certificazioneUnica => ['DA', 'AU'],
             // 770: versamenti delle ritenute (ST, SV), riepilogo dei crediti e delle compensazioni (SX), riepilogo dei dati (SS)
             self::modello770 => ['ST', 'SV', 'SX', 'SS'],
+            // terreni, fabbricati, impresa (RF, RG), partecipazioni, altri redditi, IRES, amministratori, prospetti, crediti, risultato
+            self::redditiEnc => ['RA', 'RB', 'RC', 'RD', 'RE', 'RF', 'RG', 'RH', 'RL', 'RM', 'RN', 'RO', 'RQ', 'RS', 'RT', 'RU', 'RW', 'RX', 'RZ', 'AC', 'CE', 'CP', 'DI', 'FC', 'OP', 'PN', 'TR', 'VO'],
             self::redditiSc => ['RA', 'RB', 'RF', 'RH', 'RI', 'RJ', 'RK', 'RL', 'RM', 'RN', 'RO', 'RQ', 'RS', 'RT', 'RU', 'RV', 'RX', 'RZ', 'AC', 'CE', 'CP', 'DI', 'FC', 'GC', 'GN', 'NI', 'OP', 'PN', 'TN', 'TR'],
         };
     }

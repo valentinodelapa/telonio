@@ -33,10 +33,12 @@ use Telonio\Application\HelperClasses\CodiceFiscale;
  * - DA3: data e firma;
  * - AU1: causale della controparte (in mancanza "A", con un avviso),
  *   imponibile ricavato dalle ritenute con l'aliquota della causale,
- *   compenso lordo dall'imponibile con la quota soggetta a ritenuta, la
- *   parte non soggetta (provvigioni, vendite a domicilio, diritti
- *   d'autore) nel punto 7 con il codice 21 (altri redditi non soggetti a
- *   ritenuta), ritenute a titolo d'acconto.
+ *   compenso lordo dall'imponibile con la quota soggetta a ritenuta (per
+ *   i diritti d'autore 60 per cento invece di 75 se il percipiente ha
+ *   meno di 35 anni al pagamento), la parte non soggetta nel punto 7 con
+ *   il codice 21 (quota delle provvigioni) o 22 (deduzioni forfetarie dei
+ *   diritti d'autore e delle vendite a domicilio), ritenute a titolo
+ *   d'acconto.
  *
  * Compensi senza ritenuta (regime forfetario, codici 24 e 25 del punto
  * 6), rimborsi spese (punto 20) e contributi previdenziali si aggiungono a
@@ -49,8 +51,9 @@ class PropostaCu
 
     public const QUADRI = ['DA', 'AU'];
 
-    /** Codice del punto 6 per la parte del compenso non soggetta a ritenuta */
+    /** Codici del punto 6 per la parte del compenso non soggetta a ritenuta (getCodiceNonSoggette) */
     public const CODICE_NON_SOGGETTE = 21;
+    public const CODICE_NON_REDDITO = 22;
 
     /** @var string[] */
     private array $avvisi = [];
@@ -106,7 +109,7 @@ class PropostaCu
                 $causale = CausaleCu::professionista;
                 $this->avvisi[] = sprintf('%s: causale della Certificazione Unica non indicata nella controparte, proposta "A" (lavoro autonomo abituale).', $percipiente['controparte']->denominazione);
             }
-            self::proponiCompensi($quadri, $causale, $percipiente['ritenute']);
+            self::proponiCompensi($quadri, $causale, $percipiente['ritenute'], $percipiente['ritenuteSotto35Anni']);
         }
         if (count($moduli) === 0) {
             $this->avvisi[] = 'Nessuna ritenuta d\'acconto registrata nell\'anno con un percipiente: le certificazioni si compilano a mano.';
@@ -125,7 +128,7 @@ class PropostaCu
      * nell'ordine della denominazione; le controparti senza codice fiscale
      * sono segnalate.
      *
-     * @return array<string, array{controparte: Controparte, ritenute: float}>
+     * @return array<string, array{controparte: Controparte, ritenute: float, ritenuteSotto35Anni: float}>
      */
     public function getPercipienti(Soggetto $soggetto, int $anno): array
     {
@@ -138,8 +141,11 @@ class PropostaCu
                     $this->avvisi[] = sprintf('%s: codice fiscale mancante nella controparte, ritenute di € %s non certificate.', $controparte->denominazione, number_format($importo, 2, ',', '.'));
                     continue;
                 }
-                $percipienti[$codiceFiscale] ??= ['controparte' => $controparte, 'ritenute' => 0.0];
+                $percipienti[$codiceFiscale] ??= ['controparte' => $controparte, 'ritenute' => 0.0, 'ritenuteSotto35Anni' => 0.0];
                 $percipienti[$codiceFiscale]['ritenute'] = round($percipienti[$codiceFiscale]['ritenute'] + $importo, 2);
+                if (self::isSotto35Anni($codiceFiscale, $riga->registrazioneContabile->dataRegistrazione)) {
+                    $percipienti[$codiceFiscale]['ritenuteSotto35Anni'] = round($percipienti[$codiceFiscale]['ritenuteSotto35Anni'] + $importo, 2);
+                }
             }
         }
         foreach ($percipienti as $codiceFiscale => $percipiente) {
@@ -153,25 +159,51 @@ class PropostaCu
     }
 
     /**
+     * Il percipiente (persona fisica, età dal codice fiscale) non ha ancora
+     * 35 anni alla data del pagamento.
+     */
+    public static function isSotto35Anni(string $codiceFiscale, \DateTimeInterface $pagamento): bool
+    {
+        if (CodiceFiscale::isValidoPersonaFisica($codiceFiscale) === false) {
+            return false;
+        }
+        return CodiceFiscale::estraiDataNascita($codiceFiscale, $pagamento)->modify('+35 years') > $pagamento;
+    }
+
+    /**
      * Imponibile (ritenute diviso l'aliquota), compenso lordo (imponibile
      * diviso la quota soggetta a ritenuta) e parte non soggetta.
      *
      * @return array{lordo: float, imponibile: float, nonSoggette: float}
      */
-    public static function getCompensi(CausaleCu $causale, float $ritenute): array
+    public static function getCompensi(CausaleCu $causale, float $ritenute, float $ritenuteSotto35Anni = 0.0): array
     {
         $imponibile = round($ritenute * 100 / $causale->getAliquota(), 2);
-        $lordo = round($imponibile * 100 / $causale->getQuotaImponibile(), 2);
+        // la parte pagata quando il percipiente aveva meno di 35 anni ha la propria quota soggetta (diritti d'autore)
+        $lordo = round(($ritenute - $ritenuteSotto35Anni) * 100 / $causale->getAliquota() * 100 / $causale->getQuotaImponibile()
+                + $ritenuteSotto35Anni * 100 / $causale->getAliquota() * 100 / $causale->getQuotaImponibile(true), 2);
         return ['lordo' => $lordo, 'imponibile' => $imponibile, 'nonSoggette' => round($lordo - $imponibile, 2)];
     }
 
-    public static function proponiCompensi(QuadriDichiarazione $quadri, CausaleCu $causale, float $ritenute): void
+    /**
+     * Codice del punto 6 per la parte del compenso non soggetta a ritenuta
+     * (istruzioni CU 2026): 21 "altri redditi non soggetti a ritenuta" per
+     * la quota delle provvigioni, che resta reddito del percipiente; 22
+     * "somme che non costituiscono reddito" per le deduzioni forfetarie
+     * delle spese (diritti d'autore, vendite a domicilio).
+     */
+    public static function getCodiceNonSoggette(CausaleCu $causale): int
     {
-        $compensi = self::getCompensi($causale, $ritenute);
+        return in_array($causale, [CausaleCu::dirittiAutore, CausaleCu::venditaDomicilio], true) ? self::CODICE_NON_REDDITO : self::CODICE_NON_SOGGETTE;
+    }
+
+    public static function proponiCompensi(QuadriDichiarazione $quadri, CausaleCu $causale, float $ritenute, float $ritenuteSotto35Anni = 0.0): void
+    {
+        $compensi = self::getCompensi($causale, $ritenute, $ritenuteSotto35Anni);
         $quadri->proponi('AU001001', $causale->value);
         $quadri->proponi('AU001004', $compensi['lordo']);
         if ($compensi['nonSoggette'] > 0) {
-            $quadri->proponi('AU001006', self::CODICE_NON_SOGGETTE);
+            $quadri->proponi('AU001006', self::getCodiceNonSoggette($causale));
             $quadri->proponi('AU001007', $compensi['nonSoggette']);
         }
         $quadri->proponi('AU001008', $compensi['imponibile']);

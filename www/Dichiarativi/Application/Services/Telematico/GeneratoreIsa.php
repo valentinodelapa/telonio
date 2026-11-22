@@ -37,13 +37,15 @@ class GeneratoreIsa
 
     /**
      * Modello di dichiarazione della testa dei record ISA: 1-3 Redditi PF
-     * (quadro RE, RF, RG), 4-6 Redditi SP, 7 Redditi SC.
+     * (quadro RE, RF, RG), 4-6 Redditi SP, 7 Redditi SC, 8-10 Redditi ENC
+     * (specifiche ISA 2026, campo "Codice modello").
      */
     public static function getModelloDichiarazione(ModelloDichiarativo $modello, string $quadro): int
     {
         return match ($modello) {
             ModelloDichiarativo::redditiSp => self::MODELLI_DICHIARAZIONE[$quadro] + 3,
             ModelloDichiarativo::redditiSc => 7,
+            ModelloDichiarativo::redditiEnc => self::MODELLI_DICHIARAZIONE[$quadro] + 7,
             default => self::MODELLI_DICHIARAZIONE[$quadro],
         };
     }

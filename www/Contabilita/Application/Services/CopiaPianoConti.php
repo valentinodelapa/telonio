@@ -47,6 +47,7 @@ class CopiaPianoConti
             $copia->rigoRedditi = $conto->rigoRedditi;
             $copia->rigoIsa = $conto->rigoIsa;
             $copia->rigoIrap = $conto->rigoIrap;
+            $copia->destinazione = $conto->destinazione;
             $copia->percentualeDeducibile = $conto->percentualeDeducibile;
             $copia->variazioneRedditi = $conto->variazioneRedditi;
             $copia->attivo = $conto->attivo;

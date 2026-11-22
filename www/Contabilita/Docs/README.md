@@ -232,6 +232,22 @@ l'utile per competenza con le variazioni in aumento e in diminuzione;
 criterio e la parte deducibile) per voce del conto economico CEE dei
 conti, per i righi del quadro F del modello ISA che distinguono i costi
 per natura (servizi, godimento di beni di terzi, oneri diversi...).
+
+### Enti non commerciali: attività commerciale e istituzionale
+
+Gli enti non commerciali tengono un'unica contabilità con l'attività
+commerciale separata per conti (art. 144, c. 2, TUIR): la **destinazione**
+del conto economico (`Enumerations\DestinazioneConto`) è commerciale,
+istituzionale o promiscua; i conti senza destinazione (le imprese non la
+indicano) sono commerciali, e i sottoconti nuovi ereditano quella del
+conto superiore. `ComponentiReddito` considera, per cassa e per
+competenza, solo i conti commerciali e la quota dei costi promiscui pari
+al rapporto tra i ricavi dei conti commerciali e il totale dei ricavi e
+proventi dello stesso calcolo (art. 144, c. 4, TUIR; `getQuotaPromiscui`,
+`calcolaQuotaPromiscui`); i ricavi non possono essere promiscui. I conti
+istituzionali e la parte non commerciale dei promiscui sono in
+`getPerVoceCeeIstituzionale`, per voce CEE (base retributiva IRAP
+dell'attività istituzionale nel modulo Dichiarativi).
 `BeniStrumentali` ricava dal registro dei cespiti il valore dei beni
 strumentali dell'anno (costo ragguagliato ai giorni di possesso, senza
 immobili e avviamento, con le riduzioni delle istruzioni ISA) e le quote
@@ -987,7 +1003,7 @@ campo della rateazione (`00MM`) e l'anno; i termini festivi e del 16 agosto
 slittano come gli altri versamenti. La causale dei compensi della
 controparte (`Enumerations\CausaleCu`: A professionisti, M occasionali,
 Q-V provvigioni, B diritti d'autore...) dà l'aliquota della ritenuta e la
-quota del compenso soggetta, con cui il modulo Dichiarativi ricava compensi
+quota del compenso soggetta (per i diritti d'autore 75 per cento, 60 se l'autore ha meno di 35 anni), con cui il modulo Dichiarativi ricava compensi
 e imponibili della Certificazione Unica e del 770. Le ritenute sui redditi
 di lavoro dipendente (paghe) non sono gestite.
 

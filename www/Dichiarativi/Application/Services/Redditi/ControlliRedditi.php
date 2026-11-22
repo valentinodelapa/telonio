@@ -76,7 +76,11 @@ class ControlliRedditi
         if ($dichiarazione->canoneRai === null) {
             $errori[] = 'Frontespizio: manca la casella "Canone RAI" (1 apparecchi radio, 2 radiotelevisivi, 3 nessun apparecchio).';
         } elseif ($dichiarazione->canoneRai !== CanoneRai::nessunApparecchio) {
-            $rigo = $dichiarazione->modello === ModelloDichiarativo::redditiSc ? 'RS111' : 'RS047';
+            $rigo = match ($dichiarazione->modello) {
+                ModelloDichiarativo::redditiSc => 'RS111',
+                ModelloDichiarativo::redditiEnc => 'RS081',
+                default => 'RS047',
+            };
             if ($quadri->get($rigo . '002', 1) === null) {
                 $errori[] = sprintf('Quadro RS: con la casella "Canone RAI" %s va compilato il prospetto del canone (rigo %s, numero di abbonamento e indirizzo).', $dichiarazione->canoneRai->value, $rigo);
             }

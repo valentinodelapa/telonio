@@ -2,6 +2,43 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.38.0-alpha] - 2026-11-22 - Redditi Enti non Commerciali e IRAP degli Enti
+
+Versioni dei moduli: `Dichiarativi` 0.19.0 (richiede `Anagrafica` 0.15.0, `Deleghe` 0.5.0 e `Contabilita` 0.17.0), `Contabilita` 0.17.0; gli altri invariati.
+
+**Aggiornamento**: `aggiorna.sh` (cioè `sisma aggiorna-database`) esegue `Contabilita/Database/aggiornamento-0.17.sql` (nuova colonna `destinazione` in `conto`; idempotente) e importa da `Dichiarativi/Database/dati-riferimento.sql` il catalogo del modello Redditi ENC 2026. Nessun passo manuale. Le Certificazioni Uniche già proposte con compensi per diritti d'autore, provvigioni o vendite a domicilio vanno riproposte.
+
+### ✨ Nuove Funzionalità
+
+#### `Dichiarativi` 0.19.0 — Redditi Enti non commerciali e IRAP degli enti
+
+- **Modello Redditi ENC 2026** per i soggetti con la casella "ente non commerciale" nei dati fiscali, con il reddito dell'attività commerciale dai soli conti commerciali della contabilità dell'ente e dalla quota dei costi promiscui (art. 144 TUIR):
+  - quadro RF in contabilità ordinaria, come le società, con le perdite pregresse del rigo RF64 e il reddito RF65;
+  - quadro RG in contabilità semplificata (per cassa) e nei regimi forfetari dell'art. 145 TUIR (ricavi nel rigo RG4 con il codice dell'attività proposto dal codice ATECO, costi forfetari per scaglioni) e della legge 398/1991 (costi forfetari del 97 per cento);
+  - quadro RN con il reddito complessivo, gli oneri deducibili, l'IRES al 24 per cento, le ritenute subite, gli acconti versati in `Deleghe` e il saldo o il credito nel rigo RX1; versamenti del saldo e degli acconti IRES e credito in compensazione;
+  - quadro RO con gli amministratori e i componenti dell'organo di controllo dai legami dell'Anagrafica, quadro RU dai crediti in `Deleghe`.
+- **Frontespizio e file telematico "RNC26"** (record A, B, C e Z), con i campi propri degli enti nel record B; codici del modello di dichiarazione 8-10 per i modelli ISA allegati, dalle specifiche ISA 2026.
+- **IRAP degli enti non commerciali, quadro IE**: attività istituzionale con il metodo retributivo (retribuzioni e compensi di lavoro autonomo occasionale dei conti istituzionali e della parte non commerciale dei promiscui), attività commerciale dalle voci del conto economico dei conti commerciali, regimi forfetari e valore della produzione netta con le deduzioni; il modello IRAP compare tra quelli degli enti.
+- Catalogo dei campi del modello Redditi ENC 2026 (4.655 campi, 30 quadri) dalle specifiche tecniche ufficiali aggiornate al 25 giugno 2026.
+- Dati demo: Associazione Culturale Orizzonti in contabilità semplificata con corsi a pagamento, quote associative, una dipendente, compensi occasionali e costi promiscui; Redditi ENC e IRAP proposti.
+
+#### `Contabilita` 0.17.0 — attività commerciale e istituzionale degli enti non commerciali
+
+- **Destinazione del conto** (attività commerciale, istituzionale o costi promiscui) per gli enti non commerciali, che tengono un'unica contabilità con l'attività commerciale separata per conti (art. 144 TUIR). I componenti del reddito d'impresa e della base IRAP considerano solo i conti commerciali e la quota dei costi promiscui pari al rapporto tra i ricavi commerciali e il totale dei ricavi e proventi; i conti delle imprese, senza destinazione, restano invariati.
+
+### 🐛 Correzioni
+
+#### `Dichiarativi` 0.19.0
+
+- **Certificazione Unica, codice del punto 6**: la parte dei diritti d'autore (causale B) e delle vendite a domicilio (causale V) non soggetta a ritenuta è proposta con il codice 22 ("somme che non costituiscono reddito", perché è una deduzione forfetaria delle spese) invece del 21. Il 21 ("altri redditi non soggetti a ritenuta") resta per la quota delle provvigioni.
+- **Certificazione Unica, diritti d'autore degli autori con meno di 35 anni**: compenso lordo e somme non soggette sono ricavati dalla ritenuta sul 60 per cento del compenso (deduzione forfetaria del 40 per cento) invece che sul 75. L'età è ricavata dal codice fiscale alla data del pagamento.
+- Dati demo: Alfa Consulting S.r.l. paga diritti d'autore anche a un autore con meno di 35 anni, quindi la CU 2026 ha tre certificazioni e il rigo ST di ottobre del 770 vale 420 euro.
+- **Redditi SP, proventi esenti in caso di perdita**: i proventi esenti (righi RF62 e RG30) riducono la perdita, come prevedono i controlli delle specifiche (RF63 = RF60 - RF61 + RF62; RG31 = RG28 - RG29 + RG30); prima la aumentavano.
+
+#### `Contabilita` 0.17.0
+
+- **Causale CU della controparte**: la quota soggetta a ritenuta dei diritti d'autore è del 60 per cento se l'autore ha meno di 35 anni.
+
 ## [0.37.0-alpha] - 2026-11-22 - Certificazione Unica e Modello 770
 
 Versioni dei moduli: `Dichiarativi` 0.18.0 (richiede `Anagrafica` 0.15.0, `Deleghe` 0.5.0 e `Contabilita` 0.16.0), `Contabilita` 0.16.0; gli altri invariati.

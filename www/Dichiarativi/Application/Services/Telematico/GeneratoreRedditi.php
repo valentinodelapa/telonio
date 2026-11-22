@@ -24,8 +24,9 @@ use SismaFramework\Orm\CustomTypes\SismaDate;
 use SismaFramework\Orm\HelperClasses\DataMapper;
 
 /**
- * Fornitura telematica dei modelli Redditi: PF ("RPF26"), SP ("RSP26") e
- * SC ("RSC26", frontespizio in recordBSocieta). Per Redditi PF: record A, B
+ * Fornitura telematica dei modelli Redditi: PF ("RPF26"), SP ("RSP26"),
+ * SC ("RSC26") ed ENC ("RNC26"), questi tre con il frontespizio in
+ * recordBSocieta. Per Redditi PF: record A, B
  * (frontespizio: dati anagrafici, residenza variata nell'anno, domicilio
  * fiscale al 1° gennaio dell'anno d'imposta e del successivo, caselle dei
  * quadri compilati, impegno alla trasmissione e visto), record C dei quadri
@@ -314,9 +315,19 @@ class GeneratoreRedditi
         $soggetto = $dichiarazione->soggetto;
         $anno = $dichiarazione->anno;
         $sc = $dichiarazione->modello === ModelloDichiarativo::redditiSc;
+        $enc = $dichiarazione->modello === ModelloDichiarativo::redditiEnc;
         $autonoma = in_array($comunicazioneCpb, [self::CPB_ADESIONE, self::CPB_REVOCA], true);
-        $campi = TracciatoRedditiSocieta::RECORD_B + ($sc ? TracciatoRedditiSocieta::RECORD_B_SC : TracciatoRedditiSocieta::RECORD_B_SP);
-        foreach ($sc ? TracciatoRedditiSocieta::NUMERICI_B_SC : TracciatoRedditiSocieta::NUMERICI_B_SP as $posizione => $lunghezza) {
+        $campi = TracciatoRedditiSocieta::RECORD_B + match (true) {
+            $sc => TracciatoRedditiSocieta::RECORD_B_SC,
+            $enc => TracciatoRedditiSocieta::RECORD_B_ENC,
+            default => TracciatoRedditiSocieta::RECORD_B_SP,
+        };
+        $numerici = match (true) {
+            $sc => TracciatoRedditiSocieta::NUMERICI_B_SC,
+            $enc => TracciatoRedditiSocieta::NUMERICI_B_ENC,
+            default => TracciatoRedditiSocieta::NUMERICI_B_SP,
+        };
+        foreach ($numerici as $posizione => $lunghezza) {
             $campi['numerico' . $posizione] = [$posizione, $lunghezza, 'NU'];
         }
         $recapiti = (new Frontespizio($this->dataMapper))->getRecapiti($soggetto);
@@ -396,14 +407,18 @@ class GeneratoreRedditi
             }
         }
         $testo = (string) $record;
-        $caselle = $sc ? TracciatoRedditiSocieta::CASELLE_QUADRI_SC : TracciatoRedditiSocieta::CASELLE_QUADRI_SP;
+        $caselle = match (true) {
+            $sc => TracciatoRedditiSocieta::CASELLE_QUADRI_SC,
+            $enc => TracciatoRedditiSocieta::CASELLE_QUADRI_ENC,
+            default => TracciatoRedditiSocieta::CASELLE_QUADRI_SP,
+        };
         foreach (array_unique($compilati) as $quadro) {
             if (isset($caselle[$quadro])) {
                 $testo = substr_replace($testo, '1', $caselle[$quadro] - 1, 1);
             }
         }
-        // organo di controllo (Redditi SC, campi B86-B105): soggetto, codice fiscale, firma della dichiarazione, firma per attestazione
-        if ($sc && isset($dichiarazione->id)) {
+        // organo di controllo (Redditi SC ed ENC, campi B86-B105): soggetto, codice fiscale, firma della dichiarazione, firma per attestazione
+        if (($sc || $enc) && isset($dichiarazione->id)) {
             foreach (array_slice(iterator_to_array((new SottoscrizioneControlloModel($this->dataMapper))->getSottoscrizioni($dichiarazione), false), 0, 5) as $indice => $sottoscrizione) {
                 $gruppo = (string) $sottoscrizione->tipoSoggetto . str_pad(strtoupper((string) $sottoscrizione->soggetto->codiceFiscale), 16) . (int) $sottoscrizione->isFirmata() . '0';
                 $testo = substr_replace($testo, $gruppo, TracciatoRedditiSocieta::ORGANO_CONTROLLO_SC[$indice] - 1, strlen($gruppo));

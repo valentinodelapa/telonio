@@ -18,7 +18,10 @@ mondiale (CNM)** della consolidante e il modello **IRAP 2026** (fornitura
 XML). Dalla 0.18 gestisce anche la **Certificazione Unica 2026** e il
 **modello 770/2026** dei sostituti d'imposta per i compensi di lavoro
 autonomo, le provvigioni e i redditi diversi, dalle ritenute operate
-registrate in Contabilità e dai versamenti in Deleghe.
+registrate in Contabilità e dai versamenti in Deleghe. Dalla 0.19 gestisce
+anche il modello **Redditi Enti non commerciali 2026** e l'IRAP degli
+enti (quadro IE), con l'attività commerciale separata dai conti della
+contabilità dell'ente.
 
 Il contribuente è il soggetto dell'Anagrafica; partita IVA, natura
 giuridica, codice ATECO, regime e periodicità IVA si leggono dai dati
@@ -1275,6 +1278,59 @@ dati fiscali): consolidato nazionale con la consolidante, trasparenza
 Restano a mano: quadri GC, NI, PN, le sezioni II-V del quadro NF e il
 consolidato mondiale.
 
+## Modello Redditi ENC
+
+Modello Redditi Enti non commerciali ed equiparati 2026 (fornitura
+"RNC26", catalogo `campi-ENC-2026.csv` dalle specifiche aggiornate al 25
+giugno 2026) per i soggetti con la casella "ente non commerciale" nei dati
+fiscali dell'Anagrafica. Il frontespizio è quello delle società
+(`isRedditiSocieta`: natura giuridica, rappresentante, impegno, visto,
+organo di controllo, casella "Canone RAI" con il prospetto del rigo RS81),
+con i campi propri del record B di Redditi ENC in
+`TracciatoRedditiSocieta::RECORD_B_ENC`, `CASELLE_QUADRI_ENC` e
+`NUMERICI_B_ENC` (ente di tipo associativo, ONLUS, impresa sociale, trust,
+IRES premiale; impegno nelle posizioni di Redditi SC). I modelli ISA
+allegati hanno il codice modello 8, 9 o 10 (quadro RE, RF o RG, specifiche
+ISA 2026).
+
+L'attività commerciale si ricava dalla contabilità dell'ente con la
+destinazione dei conti (`Contabilita`, `DestinazioneConto`): concorrono i
+conti commerciali e la quota dei costi promiscui pari al rapporto tra i
+ricavi commerciali e il totale dei ricavi e proventi (art. 144, c. 4,
+TUIR), indicata tra gli avvisi della proposta.
+
+### Proposta (`Redditi\PropostaRedditiEnc`)
+
+- **Quadro RF** (contabilità ordinaria): come Redditi SC e SP
+  (`PropostaRedditiSocieta::proponiRf` con i totali RF32 e RF56 delle
+  specifiche ENC), perdite pregresse del rigo RF64 a mano (totale colonna
+  3) e reddito RF65 da riportare nel quadro RN (vuoto in caso di perdita,
+  che va nel prospetto delle perdite).
+- **Quadro RG** (contabilità semplificata, per cassa): ricavi nel rigo RG2
+  colonna 7, componenti per rigo dei conti e totali con le formule dei
+  controlli (RG12, RG24, RG25, RG28, RG31 con le erogazioni liberali e i
+  proventi esenti, RG32 colonna 3, RG33). Regimi forfetari: art. 145 TUIR
+  (ricavi nel rigo RG4 con il codice 1 per le prestazioni di servizi o 2
+  per le altre attività, proposto dalla divisione ATECO, e costi forfetari
+  nel rigo RG21 colonna 2 per scaglioni: 85 e 75 per cento per i servizi,
+  90 e 85 per le altre attività, con l'avviso oltre i limiti di 500.000 e
+  800.000 euro) e legge 398/1991 (proventi nel rigo RG2 colonna 4, costi
+  forfetari del 97 per cento nel rigo RG21 colonna 1).
+- **Quadro RN** (istruzioni, par. 15.1): redditi dei quadri nei righi da RN1
+  a RN11 (RA, RB, RH, RL e RT compilati a mano), reddito complessivo RN13,
+  oneri deducibili RN15 dal rigo RS31 (a mano) fino a concorrenza,
+  imponibile RN16, IRES al 24 per cento RN17 (aliquote agevolate del rigo
+  RN18 a mano), detrazioni RN20 a mano fino a concorrenza dell'imposta,
+  imposta netta RN21, ritenute d'acconto subite dalle partite aperte RN26,
+  IRES dovuta RN28, eccedenza della dichiarazione dell'anno prima RN30,
+  acconti versati in `Deleghe` (2001 e 2002) RN33, saldo RN34 o credito
+  RN35 e RN38, rigo RX1. Versamenti come Redditi SC (saldo 2003, acconti
+  sull'IRES dovuta del rigo RN28, credito IRES in compensazione).
+- **Quadro RO**: amministratori e rappresentanti in carica alla fine
+  dell'anno dai legami dell'Anagrafica con la qualifica B (amministratore
+  non socio), sindaci e revisori con la qualifica C.
+- Quadro RU dai crediti in `Deleghe`, come le società.
+
 ## Modello IRAP
 
 Il modello IRAP 2026 (società di persone e di capitali; le persone fisiche
@@ -1323,6 +1379,19 @@ XSD (verificato nei test).
 - **Quadro IP** (società di persone, art. 5-bis): ricavi meno costi di
   materie e merci, servizi, ammortamenti e canoni, per cassa in
   contabilità semplificata.
+- **Quadro IE** (enti non commerciali): sezione I, attività istituzionale
+  con il metodo retributivo (art. 10, c. 1): retribuzioni della voce B9a e
+  compensi di lavoro autonomo occasionale ai percipienti con la causale CU
+  "M", dei conti istituzionali e della parte non commerciale dei costi
+  promiscui (tutta la contabilità per gli enti senza partita IVA; redditi
+  assimilati del rigo IE2 a mano); sezione II, attività commerciale (art.
+  5) dalle voci CEE dei conti commerciali, con le variazioni dei conti del
+  piano nei righi corrispondenti (IC43-IC48 nei righi IE20-IE25, altre
+  variazioni nei righi IE26 e IE30); sezione III per i regimi forfetari
+  (reddito forfetario dal rigo RG31 della dichiarazione Redditi ENC,
+  retribuzioni e interessi passivi); sezione VI con la deduzione del
+  personale a tempo indeterminato dell'attività commerciale (art. 11, c.
+  4-octies) e l'ulteriore deduzione dell'art. 11, c. 4-bis.
 - Deduzioni: costo del personale dipendente (voce B9) proposto con un
   avviso, perché spetta per il tempo indeterminato; ulteriore deduzione
   dell'art. 11, comma 4-bis (8.000 euro fino a 180.759,91 euro di base, a
@@ -1375,9 +1444,13 @@ codice fiscale della controparte (per cassa, nel mese del pagamento):
   mancanza "A" con un avviso), imponibile (punto 8) uguale alle ritenute
   diviso l'aliquota della causale, compenso lordo (punto 4) uguale
   all'imponibile diviso la quota soggetta a ritenuta (50 per cento per le
-  provvigioni, 78 per le vendite a domicilio, 75 per i diritti d'autore),
-  la parte non soggetta nel punto 7 con il codice 21 (punto 6), ritenute a
-  titolo d'acconto (punto 9).
+  provvigioni, 78 per le vendite a domicilio, 75 per i diritti d'autore
+  o 60 per i pagamenti agli autori con meno di 35 anni, età dal codice
+  fiscale alla data della registrazione), la parte non soggetta nel punto
+  7 con il codice del punto 6: 21 "altri redditi non soggetti a ritenuta"
+  per la quota delle provvigioni, 22 "somme che non costituiscono reddito"
+  per le deduzioni forfetarie delle spese (diritti d'autore, vendite a
+  domicilio); ritenute a titolo d'acconto (punto 9).
 
 I percipienti senza ritenute registrate (compensi dei forfetari, codici 24
 e 25 del punto 6) si aggiungono con "Aggiungi certificazione" e il codice
@@ -1450,10 +1523,20 @@ dichiarazioni non hanno versamenti né crediti propri.
   modelli delle società): Alfa Consulting paga nel 2025 una prestazione
   occasionale (causale M, 7.500 euro, ritenuta di maggio versata con la
   delega di giugno insieme al credito Art-Bonus) e diritti d'autore
-  (causale B, 2.000 euro con la quota non soggetta del 25 per cento,
-  ritenuta di ottobre versata dalla Contabilità con la delega di novembre);
-  Certificazione Unica 2026 con le due certificazioni e modello 770/2026
+  (causale B: 2.000 euro a Giulia Ferrante con la quota non soggetta del
+  25 per cento e 1.000 euro a Luca Marini, con meno di 35 anni, con la
+  quota del 40 per cento; ritenute di ottobre versate dalla Contabilità con
+  la delega di novembre); Certificazione Unica 2026 con le tre
+  certificazioni e modello 770/2026
   con i righi ST di maggio e ottobre;
+- **ente non commerciale 2026** (`RedditiEnc2025Fixture`): Associazione
+  Culturale Orizzonti di Bologna in contabilità semplificata con la
+  destinazione dei conti: corsi a pagamento (30.000 euro) e docente
+  occasionale (8.000) dell'attività commerciale, quote associative
+  (20.000), segretaria dipendente (18.000) e relatore occasionale (2.000)
+  di quella istituzionale, energia elettrica promiscua (5.000, deducibile
+  al 60 per cento); Redditi ENC con il quadro RG (19.000 euro), l'IRES e il
+  quadro RO della presidente, IRAP con il quadro IE (sezioni I, II e VI);
 - **modelli Redditi PF 2026**: Mario Rossi (dipendente con la CU, casa di
   Massimeno locata con il box pertinenza e la cedolare al 21 per cento,
   aggiornamento ISTAT, coniuge e due figli nei legami familiari con il
@@ -1651,6 +1734,11 @@ dei moduli devono essere dello stesso studio.
   febbraio 2026), dalle pagine dell'Agenzia delle Entrate "Redditi
   società di persone 2026", "Redditi società di capitali 2026",
   "Consolidato nazionale e mondiale 2026" e "Dichiarazione Irap 2026";
+- modello Redditi ENC 2026, istruzioni (aggiornate al 27 maggio 2026) e
+  specifiche tecniche (aggiornate al 25 giugno 2026), dalla pagina
+  dell'Agenzia delle Entrate "Redditi Enti non commerciali Enc 2026";
+  specifiche ISA 2026 (campo "Codice modello" della testa dei record ISA,
+  valori 8-10 per Redditi ENC);
 - controlli di coerenza tra modelli ISA e Redditi SP e SC (allegato 2 al
   provvedimento del 27 febbraio 2026, par. 6.2 e 6.3);
 - modelli in PDF per la stampa: Redditi PF 2026, fascicoli 1, 2 e 3
@@ -1670,8 +1758,9 @@ dei moduli devono essere dello stesso studio.
   (RM51-RM54, RM91, RL17, CR16);
 - **società**: quadri RV, RQ, GC, NI, PN, sezioni II e III del quadro RU e
   consolidato mondiale a mano; codice delle aliquote IRAP agevolate o di
-  settore e variazioni IRAP non legate a un conto a mano; modello Redditi
-  ENC e IRAP degli enti;
+  settore e variazioni IRAP non legate a un conto a mano;
+- **enti non commerciali**: quadri RA, RB, RL e prospetto delle perdite a
+  mano; stampa sul modello ufficiale di Redditi ENC;
 - calcolo automatico di rimanenze e servizi non utilizzati nella rettifica per
   il cambio di regime;
 - verifica dei file con il software di controllo dell'Agenzia delle

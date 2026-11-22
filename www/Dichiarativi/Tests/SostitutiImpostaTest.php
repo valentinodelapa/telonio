@@ -50,6 +50,9 @@ class SostitutiImpostaTest extends DichiarativiTestCase
         $this->assertSame(23.0, CausaleCu::agenteMonomandatario->getAliquota());
         $this->assertSame(50.0, CausaleCu::agentePlurimandatario->getQuotaImponibile());
         $this->assertSame(78.0, CausaleCu::venditaDomicilio->getQuotaImponibile());
+        $this->assertSame(75.0, CausaleCu::dirittiAutore->getQuotaImponibile());
+        $this->assertSame(60.0, CausaleCu::dirittiAutore->getQuotaImponibile(true));
+        $this->assertSame(100.0, CausaleCu::occasionale->getQuotaImponibile(true));
         $this->assertStringStartsWith('M - ', CausaleCu::occasionale->getLabel());
     }
 
@@ -58,6 +61,21 @@ class SostitutiImpostaTest extends DichiarativiTestCase
         $this->assertSame(['lordo' => 1000.0, 'imponibile' => 1000.0, 'nonSoggette' => 0.0], PropostaCu::getCompensi(CausaleCu::professionista, 200.0));
         // provvigioni: ritenuta del 23% sul 50%
         $this->assertSame(['lordo' => 2000.0, 'imponibile' => 1000.0, 'nonSoggette' => 1000.0], PropostaCu::getCompensi(CausaleCu::agenteMonomandatario, 230.0));
+        // diritti d'autore: ritenuta del 20% sul 75%, sul 60% per i pagamenti agli autori con meno di 35 anni
+        $this->assertSame(['lordo' => 2000.0, 'imponibile' => 1500.0, 'nonSoggette' => 500.0], PropostaCu::getCompensi(CausaleCu::dirittiAutore, 300.0));
+        $this->assertSame(['lordo' => 1000.0, 'imponibile' => 600.0, 'nonSoggette' => 400.0], PropostaCu::getCompensi(CausaleCu::dirittiAutore, 120.0, 120.0));
+        $this->assertSame(['lordo' => 3000.0, 'imponibile' => 2100.0, 'nonSoggette' => 900.0], PropostaCu::getCompensi(CausaleCu::dirittiAutore, 420.0, 120.0));
+    }
+
+    public function testCodiciNonSoggetteEEta(): void
+    {
+        $this->assertSame(21, PropostaCu::getCodiceNonSoggette(CausaleCu::agenteMonomandatario));
+        $this->assertSame(22, PropostaCu::getCodiceNonSoggette(CausaleCu::dirittiAutore));
+        $this->assertSame(22, PropostaCu::getCodiceNonSoggette(CausaleCu::venditaDomicilio));
+        // nato il 1° gennaio 1980 (RSSMRA80A01H501U): 35 anni compiuti il 1° gennaio 2015
+        $this->assertTrue(PropostaCu::isSotto35Anni('RSSMRA80A01H501U', new \DateTimeImmutable('2014-12-31')));
+        $this->assertFalse(PropostaCu::isSotto35Anni('RSSMRA80A01H501U', new \DateTimeImmutable('2015-01-01')));
+        $this->assertFalse(PropostaCu::isSotto35Anni('01234560785', new \DateTimeImmutable('2025-01-01')));
     }
 
     public function testCertificazioneProvvigioniEControlli(): void

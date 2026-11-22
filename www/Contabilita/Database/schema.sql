@@ -53,6 +53,7 @@ CREATE TABLE IF NOT EXISTS `conto` (
   `rigo_irap` VARCHAR(8) NULL COMMENT 'Variazione del valore della produzione del quadro IC del modello IRAP (es. IC43, IC46, IC51:99); NULL = nessuna',
   `percentuale_deducibile` DECIMAL(5,2) NULL COMMENT 'Percentuale deducibile del costo (es. 20 auto, 80 telefonia); NULL = interamente deducibile',
   `variazione_redditi` VARCHAR(10) NULL COMMENT 'Rigo della variazione in aumento del quadro RF per la parte indeducibile (RF16, RF18, RF31:99)',
+  `destinazione` CHAR(1) NULL COMMENT 'Enti non commerciali: C attività commerciale, I istituzionale, P promiscuo (art. 144 TUIR); NULL = commerciale',
   `attivo` TINYINT(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_conto_codice` (`piano_conti_id`, `codice`),

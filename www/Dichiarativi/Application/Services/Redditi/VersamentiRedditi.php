@@ -165,9 +165,10 @@ class VersamentiRedditi
                 [SezioneF24::erario, '2002', $secondoIres, $anno + 1, $novembre, null, 'Secondo o unico acconto IRES del consolidato'],
             ];
         }
-        if ($dichiarazione->modello === ModelloDichiarativo::redditiSc) {
-            // IRES: saldo 2003 (RX1, col. 1) e acconti 2001 e 2002 sull'IRES dovuta (RN17) con il metodo storico (istruzioni generali, par. 4.2)
-            [$primoIres, $secondoIres] = PropostaRedditiSocieta::getAccontiIres((float) $quadri->getImporto('RN017001', 1), $isa);
+        if (in_array($dichiarazione->modello, [ModelloDichiarativo::redditiSc, ModelloDichiarativo::redditiEnc], true)) {
+            // IRES: saldo 2003 (RX1, col. 1) e acconti 2001 e 2002 sull'IRES dovuta (RN17 di SC, RN28 di ENC) con il metodo storico (istruzioni generali, par. 4.2)
+            $dovuta = $quadri->getImporto($dichiarazione->modello === ModelloDichiarativo::redditiEnc ? 'RN028001' : 'RN017001', 1);
+            [$primoIres, $secondoIres] = PropostaRedditiSocieta::getAccontiIres((float) max(0, $dovuta), $isa);
             $voci = [
                 [SezioneF24::erario, '2003', $q('RX001001'), $anno, $giugno, null, 'Saldo IRES'],
                 [SezioneF24::erario, '2001', $primoIres, $anno + 1, $giugno, null, 'Primo acconto IRES'],
@@ -260,7 +261,7 @@ class VersamentiRedditi
             [SezioneF24::erario, '1856', 'RX018005', null, 'Credito imposta sostitutiva sulle lezioni private'],
             [SezioneF24::erario, '1715', 'RX021005', null, 'Credito imposta sostitutiva sulle plusvalenze delle cripto-attività'],
         ];
-        if ($dichiarazione->modello === ModelloDichiarativo::redditiSc) {
+        if (in_array($dichiarazione->modello, [ModelloDichiarativo::redditiSc, ModelloDichiarativo::redditiEnc], true)) {
             $voci = [[SezioneF24::erario, '2003', 'RX001005', null, 'Credito IRES']];
         }
         if ($dichiarazione->modello === ModelloDichiarativo::consolidato) {

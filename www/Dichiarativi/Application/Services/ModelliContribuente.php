@@ -47,10 +47,14 @@ class ModelliContribuente
         $modelli[ModelloDichiarativo::redditiPf->value] = $soggetto->isPersonaFisica() ? null : 'Il soggetto non è una persona fisica.';
         $modelli[ModelloDichiarativo::redditiSp->value] = $soggetto->tipoSoggetto === TipoSoggetto::societaPersone ? null : 'Il soggetto non è una società di persone o un\'associazione professionale.';
         $modelli[ModelloDichiarativo::redditiSc->value] = $soggetto->tipoSoggetto === TipoSoggetto::societaCapitali ? null : 'Il soggetto non è una società di capitali.';
-        // IRAP: società di persone e di capitali (le persone fisiche non sono soggetti passivi dal 2022, L. 234/2021), non nel regime forfetario
+        // Redditi ENC: enti non commerciali (casella dei dati fiscali dell'Anagrafica)
+        $ente = (new \Anagrafica\Application\Models\DatiFiscaliModel($this->dataMapper))->getVigenteAl($soggetto, new \SismaFramework\Orm\CustomTypes\SismaDate($anno . '-12-31'))?->enteNonCommerciale === true;
+        $modelli[ModelloDichiarativo::redditiEnc->value] = $ente ? null : "Il soggetto non è un ente non commerciale (dati fiscali dell'Anagrafica).";
+        // IRAP: società di persone e di capitali ed enti non commerciali (le persone fisiche non sono soggetti passivi dal 2022, L. 234/2021), non nel regime forfetario
         $regime = (new \Anagrafica\Application\Models\DatiFiscaliModel($this->dataMapper))->getVigenteAl($soggetto, new \SismaFramework\Orm\CustomTypes\SismaDate($anno . '-12-31'))?->regimeFiscale;
         $modelli[ModelloDichiarativo::irap->value] = match (true) {
-            in_array($soggetto->tipoSoggetto, [TipoSoggetto::societaPersone, TipoSoggetto::societaCapitali], true) === false => 'Il soggetto non è una società: le persone fisiche non sono soggette all\'IRAP dal 2022 (L. 234/2021); per gli enti il modello non è ancora gestito.',
+            $ente => null,
+            in_array($soggetto->tipoSoggetto, [TipoSoggetto::societaPersone, TipoSoggetto::societaCapitali], true) === false => 'Il soggetto non è una società né un ente non commerciale: le persone fisiche non sono soggette all\'IRAP dal 2022 (L. 234/2021).',
             $regime === \Anagrafica\Application\Enumerations\RegimeFiscale::forfetario => 'Regime forfetario: nessuna IRAP.',
             default => null,
         };

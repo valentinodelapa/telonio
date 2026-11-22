@@ -42,6 +42,7 @@ use Dichiarativi\Application\Services\Redditi\ControlliRedditi;
 use Dichiarativi\Application\Services\Irap\PropostaIrap;
 use Dichiarativi\Application\Services\Redditi\PropostaConsolidato;
 use Dichiarativi\Application\Services\Redditi\PropostaRedditi;
+use Dichiarativi\Application\Services\Redditi\PropostaRedditiEnc;
 use Dichiarativi\Application\Services\Redditi\PropostaRedditiSocieta;
 use Dichiarativi\Application\Services\Redditi\VersamentiRedditi;
 use Dichiarativi\Application\Services\Iva\PropostaTr;
@@ -333,6 +334,7 @@ class DichiarazioneController extends DichiarativiController
         };
         $this->vars['riepilogoRedditi'] = match (true) {
             $dichiarazione->modello === ModelloDichiarativo::redditiPf => PropostaRedditi::getRiepilogo($quadri),
+            $dichiarazione->modello === ModelloDichiarativo::redditiEnc => PropostaRedditiEnc::getRiepilogo($quadri),
             $dichiarazione->modello->isRedditiSocieta() => PropostaRedditiSocieta::getRiepilogo($quadri),
             $dichiarazione->modello === ModelloDichiarativo::consolidato => PropostaConsolidato::getRiepilogo($quadri),
             $dichiarazione->modello === ModelloDichiarativo::irap => PropostaIrap::getRiepilogo($quadri),
@@ -803,6 +805,8 @@ class DichiarazioneController extends DichiarativiController
             (new PropostaTr($this->dataMapper))->proponi($dichiarazione);
         } elseif ($dichiarazione->modello === ModelloDichiarativo::redditiPf) {
             (new PropostaRedditi($this->dataMapper))->proponi($dichiarazione);
+        } elseif ($dichiarazione->modello === ModelloDichiarativo::redditiEnc) {
+            (new PropostaRedditiEnc($this->dataMapper))->proponi($dichiarazione);
         } elseif ($dichiarazione->modello->isRedditiSocieta()) {
             (new PropostaRedditiSocieta($this->dataMapper))->proponi($dichiarazione);
         } elseif ($dichiarazione->modello === ModelloDichiarativo::consolidato) {
