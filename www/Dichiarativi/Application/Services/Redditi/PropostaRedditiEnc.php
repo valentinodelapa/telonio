@@ -35,21 +35,45 @@ use SismaFramework\Orm\HelperClasses\DataMapper;
  *   costi forfetari RG21 col. 2 con i coefficienti per scaglioni dei
  *   controlli delle specifiche) e legge 398/1991 (ricavi in RG2 col. 4,
  *   costi forfetari del 97 per cento in RG21 col. 1).
+ * - Quadri RA e RB: terreni e fabbricati dai possessi dell'Anagrafica
+ *   (PropostaTerreni e PropostaFabbricati in modalità ente), redditi con le
+ *   regole di Redditi ENC (CalcoloTerreniEnc, CalcoloFabbricatiEnc): il
+ *   reddito dominicale concorre anche per i terreni non affittati, il
+ *   canone è per intero al netto delle spese di manutenzione ordinaria
+ *   (colonna 7, a mano, fino al 15 per cento del canone).
+ * - Quadro RL: righi dei redditi di capitale e diversi a mano, totali RL3,
+ *   RL20 e reddito netto RL21 con le formule dei controlli delle
+ *   specifiche; le ritenute del quadro (RL3 col. 3, RL4 col. 5, RL22)
+ *   concorrono a quelle del rigo RN26.
  * - Quadro RN: redditi dei quadri (RN1-RN11, dei quadri compilati a mano
- *   RA, RB, RH, RL, RT), reddito complessivo RN13, oneri deducibili RN15
+ *   RH, RT), reddito complessivo RN13, oneri deducibili RN15
  *   (rigo RS31 a mano), imponibile RN16, IRES al 24 per cento RN17 (le
  *   aliquote agevolate dell'art. 6 D.P.R. 601/1973, rigo RN18, a mano),
  *   detrazioni RN20 a mano, imposta netta RN21, ritenute d'acconto subite
  *   dalle partite aperte RN26, IRES dovuta RN28, crediti RU, eccedenza
  *   dell'anno prima RN30, acconti versati in Deleghe (2001 e 2002) RN33,
  *   saldo RN34 o credito RN35 e RN38, rigo RX1.
+ * - Perdite d'impresa: residui della dichiarazione Redditi ENC dell'anno
+ *   prima o dell'archivio delle perdite pregresse (RiportoPerdite),
+ *   utilizzati nei righi RF64 e RG32 (colonne 1 e 2, prima quelle in misura
+ *   limitata fino all'80 per cento del reddito); prospetto delle perdite non
+ *   compensate del quadro RS (righi RS10 e RS11) con la perdita dell'anno,
+ *   in misura piena nei primi tre periodi d'imposta (art. 84, c. 2, TUIR).
  * - Quadro RO: amministratori e rappresentanti dai legami dell'Anagrafica
  *   (qualifica B, amministratore non socio).
  */
 class PropostaRedditiEnc
 {
 
-    public const QUADRI = ['RF', 'RG', 'RN', 'RO', 'RX'];
+    public const QUADRI = ['RA', 'RB', 'RF', 'RG', 'RN', 'RO', 'RX'];
+
+    /** Righi per modulo dei quadri RA (RA1-RA51), RB (RB1-RB34) e della sezione II del quadro RB (RB36-RB38) */
+    private const RIGHI_RA = 51;
+    private const RIGHI_RB = 34;
+    private const RIGHI_CONTRATTI = 3;
+
+    /** Spese di manutenzione ordinaria deducibili dal canone (art. 144, c. 1, TUIR, rinvio all'art. 90) */
+    public const SPESE_MANUTENZIONE = 0.15;
 
     /** Costi forfetari dei ricavi dell'art. 145 TUIR per scaglione: [limite, percentuale] (codice 1 servizi, 2 altre attività) */
     public const SCAGLIONI_145 = [
@@ -62,6 +86,12 @@ class PropostaRedditiEnc
 
     /** @var string[] */
     private array $avvisi = [];
+
+    /** @var array{limitata: int, piena: int, fonte: string}|null perdite residue alla fine dell'anno prima (RiportoPerdite) */
+    private ?array $residui = null;
+
+    /** Primi tre periodi d'imposta dall'inizio dell'attività: perdite in misura piena */
+    private bool $primiTreAnni = false;
 
     public function __construct(private DataMapper $dataMapper = new DataMapper())
     {
@@ -79,6 +109,11 @@ class PropostaRedditiEnc
         $soggetto = $dichiarazione->soggetto;
         $anno = $dichiarazione->anno;
         $dati = (new DatiFiscaliModel($this->dataMapper))->getVigenteAl($soggetto, new SismaDate($anno . '-12-31'));
+        $this->residui = (new RiportoPerdite($this->dataMapper))->getResidui($soggetto, $anno, ModelloDichiarativo::redditiEnc);
+        $this->primiTreAnni = ($dati?->dataInizioAttivita !== null) && ($anno - (int) $dati->dataInizioAttivita->format('Y') <= 2);
+        foreach (['RS001001', 'RS010001', 'RS010002', 'RS011001', 'RS011002'] as $codice) {
+            $quadri->proponi($codice, null);
+        }
         if ($dati === null) {
             $this->avvisi[] = 'Dati fiscali dell\'anno non trovati in Anagrafica: quadri del reddito d\'impresa da compilare a mano.';
         } elseif ($dati->partitaIva === null) {
@@ -92,6 +127,7 @@ class PropostaRedditiEnc
                 default => $this->avvisi[] = 'Regime ' . ($dati->regimeFiscale?->getLabel() ?? 'non indicato') . ' non previsto per gli enti non commerciali: quadro del reddito d\'impresa da compilare a mano.',
             };
         }
+        $this->proponiImmobili($quadri, $soggetto, $anno);
         $this->proponiIres($quadri, $dichiarazione, $dati?->soggettoIsa ?? false);
         $this->proponiAmministratori($quadri, $soggetto, $anno);
         array_push($this->avvisi, ...(new CreditiImpostaRu($this->dataMapper))->proponi($quadri, $dichiarazione));
@@ -110,6 +146,10 @@ class PropostaRedditiEnc
         $societa = new PropostaRedditiSocieta($this->dataMapper);
         $societa->proponiRf($quadri, $dati, $soggetto, $anno, ModelloDichiarativo::redditiEnc->value);
         array_push($this->avvisi, ...$societa->getAvvisi());
+        $reddito = $quadri->getImporto('RF063001');
+        $perdite = $this->proponiPerdite($quadri, 'RF064', $reddito, 'RF');
+        // campo positivo: in caso di perdita resta vuoto (la perdita va nel prospetto delle perdite del quadro RS)
+        $quadri->proponi('RF065001', $reddito - $perdite > 0 ? $reddito - $perdite : null);
         $componenti = new ComponentiReddito($this->dataMapper);
         $componenti->perCompetenza($soggetto, $anno);
         $this->avvisoPromiscui($componenti);
@@ -221,11 +261,52 @@ class PropostaRedditiEnc
         $reddito = $lordo - ($lordo > 0 ? $quadri->getImporto('RG029001') : 0);
         $reddito += $reddito < 0 ? $quadri->getImporto('RG030001') : 0;
         $quadri->proponi('RG031001', $reddito ?: null);
-        $perdite = $reddito > 0 ? min($reddito, $quadri->getImporto('RG0320A1') + $quadri->getImporto('RG032001') + $quadri->getImporto('RG032002') + $quadri->getImporto('RG0320A2')) : 0;
-        $quadri->proponi('RG032003', $perdite ?: null);
+        $perdite = $this->proponiPerdite($quadri, 'RG032', $reddito, 'RG');
         $quadri->proponi('RG033001', $reddito >= 0 ? (($reddito - $perdite) ?: null) : null);
         $rimanenze = $quadri->getImporto('RG038002') + $quadri->getImporto('RG038003') + $quadri->getImporto('RG038004');
         $quadri->proponi('RG038001', $rimanenze > 0 ? null : 1);
+    }
+
+    /**
+     * Perdite d'impresa del rigo RF64 o RG32 e prospetto delle perdite non
+     * compensate (righi RS10 e RS11). Le perdite di periodo delle
+     * partecipazioni (colonna 1A) e quelle della liquidazione (colonna 2A)
+     * si indicano a mano; quelle dei periodi precedenti (colonne 1 e 2)
+     * vengono dai residui dell'anno prima, sul reddito al netto di quelle
+     * di periodo. Senza residui noti restano quelle indicate a mano.
+     *
+     * @return int perdite utilizzate (colonna 3)
+     */
+    private function proponiPerdite(QuadriDichiarazione $quadri, string $rigo, int $reddito, string $quadro): int
+    {
+        if ($this->residui !== null) {
+            $utilizzo = PropostaImpresa::utilizzaPerdite(max(0, $reddito - $quadri->getImporto($rigo . '0A1')), $this->residui, $this->primiTreAnni);
+            $quadri->proponi($rigo . '001', $utilizzo['limitata'] ?: null);
+            $quadri->proponi($rigo . '002', $utilizzo['piena'] ?: null);
+            if ($this->residui['limitata'] + $this->residui['piena'] > 0) {
+                $this->avvisi[] = sprintf('Perdite d\'impresa pregresse dalla %s: %s euro in misura limitata e %s in misura piena; utilizzate %s e %s (rigo %s).', $this->residui['fonte'],
+                        number_format($this->residui['limitata'], 0, ',', '.'), number_format($this->residui['piena'], 0, ',', '.'),
+                        number_format($quadri->getImporto($rigo . '001'), 0, ',', '.'), number_format($quadri->getImporto($rigo . '002'), 0, ',', '.'), substr($rigo, 0, 2) . (int) substr($rigo, 2));
+            }
+        }
+        $manuali = ($this->residui === null) && ($quadri->getImporto($rigo . '001') + $quadri->getImporto($rigo . '002') > 0);
+        if ($manuali) {
+            $this->avvisi[] = 'Perdite d\'impresa pregresse indicate a mano: senza la dichiarazione Redditi ENC dell\'anno prima nella suite né l\'archivio delle perdite pregresse dell\'ente, compila a mano anche i residui del prospetto delle perdite (righi RS10 e RS11, colonna 2).';
+        }
+        $perdite = $reddito > 0 ? min($reddito, $quadri->getImporto($rigo . '0A1') + $quadri->getImporto($rigo . '001') + $quadri->getImporto($rigo . '002') + $quadri->getImporto($rigo . '0A2')) : 0;
+        $quadri->proponi($rigo . '003', $perdite ?: null);
+        $perditaAnno = $reddito < 0 ? -$reddito : 0;
+        $limitataAnno = $this->primiTreAnni ? 0 : $perditaAnno;
+        $pienaAnno = $this->primiTreAnni ? $perditaAnno : 0;
+        $quadri->proponi('RS010001', $limitataAnno ?: null);
+        $quadri->proponi('RS011001', $pienaAnno ?: null);
+        if ($manuali === false) {
+            $quadri->proponi('RS010002', (($this->residui['limitata'] ?? 0) - $quadri->getImporto($rigo . '001') + $limitataAnno) ?: null);
+            $quadri->proponi('RS011002', (($this->residui['piena'] ?? 0) - $quadri->getImporto($rigo . '002') + $pienaAnno) ?: null);
+        }
+        $prospetto = $quadri->getImporto('RS010001') + $quadri->getImporto('RS010002') + $quadri->getImporto('RS011001') + $quadri->getImporto('RS011002');
+        $quadri->proponi('RS001001', $prospetto > 0 ? $quadro : null);
+        return $perdite;
     }
 
     /**
@@ -268,13 +349,164 @@ class PropostaRedditiEnc
     }
 
     /**
+     * Quadri RA e RB dai possessi dei terreni e dei fabbricati
+     * dell'Anagrafica, con i moduli che servono (51 terreni, 34 fabbricati e
+     * 3 contratti della sezione II del quadro RB per modulo).
+     */
+    private function proponiImmobili(QuadriDichiarazione $quadri, Soggetto $soggetto, int $anno): void
+    {
+        $terreni = new PropostaTerreni($this->dataMapper);
+        $righiRa = $terreni->getRighi($soggetto, $anno, true);
+        $fabbricati = new PropostaFabbricati($this->dataMapper);
+        $righiRb = $fabbricati->getRighi($soggetto, $anno, true);
+        array_push($this->avvisi, ...$terreni->getAvvisi(), ...$fabbricati->getAvvisi());
+        $abruzzo = array_values(array_filter($righiRb, fn(RigoFabbricato $rigo) => ($rigo->utilizzo === 14) && ($rigo->contratto !== null)));
+        $moduli = max((int) ceil(count($righiRa) / self::RIGHI_RA), (int) ceil(count($righiRb) / self::RIGHI_RB), (int) ceil(count($abruzzo) / self::RIGHI_CONTRATTI), max($quadri->getModuli() ?: [1]));
+        for ($modulo = 2; $modulo <= $moduli; $modulo++) {
+            $quadri->usaModulo($modulo)->avviaProposta('RA', 'RB');
+        }
+        $this->proponiTerreni($quadri, $righiRa);
+        $this->proponiFabbricati($quadri, $righiRb);
+        $quadri->usaModulo(1);
+    }
+
+    /**
+     * @param RigoTerreno[] $righi
+     */
+    private function proponiTerreni(QuadriDichiarazione $quadri, array $righi): void
+    {
+        $calcolo = new CalcoloTerreniEnc();
+        $calcolo->calcola($righi);
+        foreach ($righi as $indice => $rigo) {
+            $quadri->usaModulo(intdiv($indice, self::RIGHI_RA) + 1);
+            $codice = fn(int $colonna) => sprintf('RA%03d%03d', $indice % self::RIGHI_RA + 1, $colonna);
+            $quadri->proponi($codice(1), $rigo->dominicale ?: null);
+            $quadri->proponi($codice(2), $rigo->titolo);
+            $quadri->proponi($codice(3), $rigo->agrario ?: null);
+            $quadri->proponi($codice(4), $rigo->giorni);
+            $quadri->proponi($codice(5), $rigo->percentuale);
+            $quadri->proponi($codice(6), $rigo->canone);
+            $quadri->proponi($codice(7), $rigo->casiParticolari);
+            $quadri->proponi($codice(8), $rigo->continuazione ?: null);
+            foreach ($rigo->redditi as $colonna => $importo) {
+                $quadri->proponi($codice($colonna), $importo);
+            }
+            $quadri->proponi($codice(11), $rigo->produzioneVegetali);
+        }
+        $quadri->usaModulo(1);
+        foreach ($calcolo->totali($righi) as $colonna => $importo) {
+            $quadri->proponi(sprintf('RA052%03d', $colonna), $importo ?: null);
+        }
+    }
+
+    /**
+     * Quadro RB: le spese di manutenzione ordinaria della colonna 7 si
+     * indicano a mano e riducono il canone fino al 15 per cento (non per gli
+     * immobili storici); sezione II per i contratti con l'utilizzo 14.
+     *
+     * @param RigoFabbricato[] $righi
+     */
+    private function proponiFabbricati(QuadriDichiarazione $quadri, array $righi): void
+    {
+        $posizione = fn(int $indice) => [intdiv($indice, self::RIGHI_RB) + 1, sprintf('RB%03d', $indice % self::RIGHI_RB + 1)];
+        foreach ($righi as $indice => $rigo) {
+            [$modulo, $numero] = $posizione($indice);
+            $spese = $quadri->isManuale($numero . '007', $modulo) ? $quadri->getImporto($numero . '007', $modulo) : 0;
+            if ($spese === 0) {
+                continue;
+            }
+            if ($rigo->storico || ($rigo->canone === null)) {
+                $this->avvisi[] = sprintf('Quadro RB, rigo %d del modulo %d: spese di manutenzione ordinaria non deducibili (%s), non considerate.', $indice % self::RIGHI_RB + 1, $modulo, $rigo->storico ? 'immobile storico' : 'senza canone');
+                continue;
+            }
+            $massimo = (int) floor($rigo->canone * self::SPESE_MANUTENZIONE);
+            if ($spese > $massimo) {
+                $this->avvisi[] = sprintf('Quadro RB, rigo %d del modulo %d: spese di manutenzione ordinaria oltre il 15 per cento del canone, considerate fino a %s euro.', $indice % self::RIGHI_RB + 1, $modulo, number_format($massimo, 0, ',', '.'));
+            }
+            $rigo->spese = min($spese, $massimo);
+        }
+        $calcolo = new CalcoloFabbricatiEnc();
+        $calcolo->calcola($righi);
+        $contratti = [];
+        foreach ($righi as $indice => $rigo) {
+            [$modulo, $numero] = $posizione($indice);
+            $quadri->usaModulo($modulo);
+            $quadri->proponi($numero . '001', $rigo->rendita ?: null);
+            $quadri->proponi($numero . '002', $rigo->utilizzo);
+            $quadri->proponi($numero . '003', $rigo->giorni);
+            $quadri->proponi($numero . '004', $rigo->percentuale);
+            $quadri->proponi($numero . '005', $rigo->storico ?: null);
+            $quadri->proponi($numero . '006', $rigo->canone);
+            $quadri->proponi($numero . '008', $rigo->casiParticolari);
+            $quadri->proponi($numero . '009', $rigo->continuazione ?: null);
+            $quadri->proponi($numero . '010', $rigo->redditi[10] ?? null);
+            $quadri->proponi($numero . '011', $rigo->codiceComune);
+            if (($rigo->utilizzo === 14) && ($rigo->contratto !== null)) {
+                $contratti[] = ['rigo' => $indice % self::RIGHI_RB + 1, 'modulo' => $modulo, 'contratto' => $rigo->contratto];
+            }
+        }
+        $this->proponiContratti($quadri, $contratti);
+        $quadri->usaModulo(1);
+        $quadri->proponi('RB035010', $calcolo->totale($righi) ?: null);
+        if (count(array_filter($righi, fn(RigoFabbricato $rigo) => $rigo->utilizzo === 9)) > 0) {
+            $this->avvisi[] = 'Quadro RB: i fabbricati con l\'utilizzo 9 (tra cui quelli dell\'attività istituzionale) si dichiarano salvo le esclusioni delle istruzioni (unità destinate al culto non locate, musei e biblioteche aperti al pubblico senza reddito, immobili delle organizzazioni di volontariato, degli enti filantropici e delle associazioni di promozione sociale destinati in via esclusiva all\'attività non commerciale): svuota a mano i righi esclusi.';
+        }
+    }
+
+    /**
+     * Sezione II del quadro RB (righi RB36-RB38): estremi dei contratti con
+     * l'utilizzo 14.
+     */
+    private function proponiContratti(QuadriDichiarazione $quadri, array $contratti): void
+    {
+        foreach ($contratti as $indice => ['rigo' => $rigo, 'modulo' => $modulo, 'contratto' => $contratto]) {
+            $quadri->usaModulo(intdiv($indice, self::RIGHI_CONTRATTI) + 1);
+            $codice = fn(string $colonna) => sprintf('RB%03d%s', 36 + $indice % self::RIGHI_CONTRATTI, $colonna);
+            $quadri->proponi($codice('001'), $rigo);
+            $quadri->proponi($codice('002'), $modulo);
+            if ($contratto->codiceIdentificativo !== null) {
+                $quadri->proponi($codice('007'), $contratto->codiceIdentificativo);
+            } elseif ($contratto->dataRegistrazione !== null) {
+                $quadri->proponi($codice('003'), $contratto->dataRegistrazione->format('Y-m-d'));
+                $quadri->proponi($codice('004'), $contratto->serieRegistrazione);
+                [$numero, $sottonumero] = array_pad(explode('/', (string) $contratto->numeroRegistrazione, 2), 2, null);
+                $quadri->proponi($codice('A05'), $numero === '' ? null : $numero);
+                $quadri->proponi($codice('B05'), $sottonumero);
+                $quadri->proponi($codice('006'), $contratto->codiceUfficio);
+            } else {
+                $quadri->proponi($codice('008'), true);
+                $this->avvisi[] = 'Quadro RB, sezione II: contratto ' . $contratto->getDescrizione() . ' senza estremi di registrazione, segnato come non superiore a 30 giorni.';
+            }
+        }
+    }
+
+    /**
+     * Totali del quadro RL con le formule dei controlli delle specifiche ENC:
+     * redditi di capitale e ritenute (RL3, colonne 2 e 3), redditi diversi
+     * (RL20, colonna 1) e spese (colonna 2), reddito netto RL21 se positivo.
+     */
+    private function proponiTotaliRl(QuadriDichiarazione $quadri): void
+    {
+        $quadri->proponi('RL003002', $quadri->somma('RL001002', 'RL002002') ?: null);
+        $quadri->proponi('RL003003', $quadri->getImporto('RL002003') ?: null);
+        $redditi = $quadri->somma('RL005001', 'RL006001', 'RL006A01', 'RL007001', 'RL008001', 'RL009001', 'RL010001', 'RL011001', 'RL012001', 'RL013001',
+                'RL014001', 'RL015001', 'RL016001', 'RL017001', 'RL018001', 'RL019001');
+        $spese = $quadri->somma('RL005002', 'RL006A02', 'RL006002', 'RL007002', 'RL008002', 'RL012002', 'RL013002', 'RL014002', 'RL015002', 'RL016002',
+                'RL017002', 'RL018002', 'RL019002');
+        $quadri->proponi('RL020001', $redditi ?: null);
+        $quadri->proponi('RL020002', $spese ?: null);
+        $quadri->proponi('RL021001', max(0, $redditi - $spese) ?: null);
+    }
+
+    /**
      * Quadro RN (istruzioni, par. 15.1) e rigo RX1.
      */
     private function proponiIres(QuadriDichiarazione $quadri, Dichiarazione $dichiarazione, bool $isa): void
     {
         $soggetto = $dichiarazione->soggetto;
         $anno = $dichiarazione->anno;
-        // redditi dei quadri (RA, RB, RH, RL e RT compilati a mano)
+        $this->proponiTotaliRl($quadri);
+        // redditi dei quadri (RH e RT compilati a mano)
         $redditi = [
             'RN001001' => $quadri->getImporto('RA052009') + $quadri->getImporto('RA052010'),
             'RN002001' => $quadri->getImporto('RB035010'),
@@ -306,7 +538,8 @@ class PropostaRedditiEnc
         $netta = max(0, $imposta - $quadri->getImporto('RN019A01') - min($imposta, $quadri->getImporto('RN020006')));
         $quadri->proponi('RN021001', $netta ?: null);
         $ritenute = (int) round((new PartiteAperte($this->dataMapper))->getRitenute($soggetto, $anno));
-        $quadri->proponi('RN026003', ($ritenute + $quadri->getImporto('RN026001')) ?: null);
+        // ritenute d'acconto: della contabilità (partite aperte), altre ritenute (col. 1) e del quadro RL
+        $quadri->proponi('RN026003', ($ritenute + $quadri->somma('RN026001', 'RL003003', 'RL004005', 'RL022001')) ?: null);
         $crediti = $quadri->getImporto('RN023001') + $quadri->getImporto('RN024001') + $quadri->getImporto('RN025010') + $quadri->getImporto('RN026003') - $quadri->getImporto('RN026002');
         $quadri->proponi('RN027001', $crediti ?: null);
         $dovuta = $netta + $quadri->getImporto('RN022001') - $crediti;
@@ -337,7 +570,7 @@ class PropostaRedditiEnc
             $this->avvisi[] = sprintf('Acconti IRES %d: %s euro (100%% dell\'IRES dovuta, rigo RN28, metodo storico)%s.', $anno + 1, number_format($primo + $secondo, 0, ',', '.'),
                     $primo > 0 ? sprintf(', in due rate da %s e %s euro', number_format($primo, 0, ',', '.'), number_format($secondo, 0, ',', '.')) : ' in unica rata a novembre');
         }
-        $this->avvisi[] = 'Quadro RN: redditi dei terreni e dei fabbricati (quadri RA e RB), di capitale e diversi (RL), oneri deducibili (RS31) e detraibili (RS43, rigo RN20), aliquote agevolate (RN18) e crediti d\'imposta da indicare a mano; reddito imponibile e IRES si ricalcolano alla riproposta.';
+        $this->avvisi[] = 'Quadro RN: righi dei redditi di capitale e diversi (quadro RL, i totali si calcolano), oneri deducibili (RS31) e detraibili (RS43, rigo RN20), aliquote agevolate (RN18) e crediti d\'imposta da indicare a mano; reddito imponibile e IRES si ricalcolano alla riproposta.';
     }
 
     /**

@@ -4,6 +4,8 @@ namespace Dichiarativi\Tests;
 
 use Anagrafica\Application\Enumerations\RegimeDetrazioneIva;
 use Contabilita\Application\Entities\Conto;
+use Contabilita\Application\Entities\RigaContabile;
+use Contabilita\Application\Services\ChiusuraEsercizio;
 use Contabilita\Application\Enumerations\CausaleContabile;
 use Contabilita\Application\Enumerations\VoceCee;
 use Dichiarativi\Application\Entities\RettificaDetrazione;
@@ -12,8 +14,8 @@ use Dichiarativi\Application\Services\Iva\ProspettoRettifiche;
 use Telonio\Tests\TestResultSet;
 
 /**
- * Prospetto D: rigo VF70 e proposta per i beni ammortizzabili al passaggio
- * tra il regime ordinario e un regime speciale agricolo.
+ * Prospetto D: rigo VF70 e proposta per i beni ammortizzabili e le rimanenze
+ * al passaggio tra il regime ordinario e un regime speciale agricolo.
  */
 class ProspettoRettificheTest extends DichiarativiTestCase
 {
@@ -65,7 +67,7 @@ class ProspettoRettificheTest extends DichiarativiTestCase
     {
         $this->rispondi(['dati_fiscali' => [$this->dati(null, 2020)], 'riga_iva' => [$this->bene('2024-03-10', 1000.0)]]);
         $proposta = (new ProspettoRettifiche($this->dataMapper))->getProposta($this->azienda, 2025);
-        $this->assertSame(['totale' => 0, 'beni' => []], $proposta);
+        $this->assertSame(['totale' => 0, 'beni' => [], 'rimanenze' => null], $proposta);
     }
 
     public function testDopoLAbrogazioneNessunaProposta(): void
@@ -85,19 +87,104 @@ class ProspettoRettificheTest extends DichiarativiTestCase
     /**
      * Regime che cambia dal 2025: i dati fiscali dipendono dalla data cercata.
      */
-    private function rispondiPassaggio(?RegimeDetrazioneIva $prima, ?RegimeDetrazioneIva $ora, array $righe): void
+    private function rispondiPassaggio(?RegimeDetrazioneIva $prima, ?RegimeDetrazioneIva $ora, array $righe, array $contabili = []): void
     {
         $vecchi = $this->dati($prima, 2020);
         $nuovi = $this->dati($ora, 2025);
-        $this->testAdapter->impostaSelectCallback(function (string $cmd, array $bind = []) use ($vecchi, $nuovi, $righe): TestResultSet {
+        $this->testAdapter->impostaSelectCallback(function (string $cmd, array $bind = []) use ($vecchi, $nuovi, $righe, $contabili): TestResultSet {
             if (str_contains($cmd, 'COUNT(')) {
                 return TestResultSet::conteggio(0);
             }
             if (str_contains($cmd, 'FROM `dati_fiscali`')) {
                 return new TestResultSet(str_contains(print_r($bind, true), '2025-') ? [$nuovi] : [$vecchi]);
             }
+            if (str_contains($cmd, 'FROM `riga_contabile`')) {
+                return new TestResultSet($contabili);
+            }
             return new TestResultSet(str_contains($cmd, 'FROM `riga_iva`') ? $righe : []);
         });
+    }
+
+    private function movimento(VoceCee $voce, float $dare, float $avere = 0.0, ?string $origine = null): RigaContabile
+    {
+        $registrazione = $this->creaRegistrazione(CausaleContabile::giroconto, null, '2024-12-31');
+        $registrazione->origine = $origine;
+        $conto = new Conto($this->dataMapper);
+        $conto->id = random_int(100, 100000);
+        $conto->voceCee = $voce;
+        $riga = new RigaContabile($this->dataMapper);
+        $riga->registrazioneContabile = $registrazione;
+        $riga->conto = $conto;
+        $riga->dare = $dare;
+        $riga->avere = $avere;
+        return $riga;
+    }
+
+    /**
+     * Rimanenze a fine 2024: esistenze riaperte 2.000, stornate, finali 3.000;
+     * la chiusura e gli altri conti non contano.
+     */
+    private function movimentiRimanenze(): array
+    {
+        return [$this->movimento(VoceCee::attivoCI4, 2000.0, 0.0, ChiusuraEsercizio::ORIGINE_RIAPERTURA), $this->movimento(VoceCee::attivoCI4, 0.0, 2000.0),
+            $this->movimento(VoceCee::attivoCI4, 3000.0), $this->movimento(VoceCee::attivoCI4, 0.0, 3000.0, ChiusuraEsercizio::ORIGINE),
+            $this->movimento(VoceCee::attivoCII1, 5000.0)];
+    }
+
+    public function testRimanenzeDalSaldoConAliquotaMediaDegliAcquistiDiBeni(): void
+    {
+        $merci22 = $this->bene('2024-03-10', 1000.0, VoceCee::economicoB6);
+        $merci10 = $this->bene('2024-05-10', 1000.0, VoceCee::economicoB6);
+        $merci10->codiceIva = $this->codiciIva['10'];
+        $merci10->imposta = 100.0;
+        // un servizio e gli acquisti di un altro anno non entrano nella media
+        $servizio = $this->bene('2024-06-10', 1000.0, VoceCee::economicoB7);
+        $altroAnno = $this->bene('2023-06-10', 1000.0, VoceCee::economicoB6);
+        $this->rispondiPassaggio(RegimeDetrazioneIva::agricolo, null, [$merci22, $merci10, $servizio, $altroAnno], $this->movimentiRimanenze());
+        $proposta = (new ProspettoRettifiche($this->dataMapper))->getProposta($this->azienda, 2025);
+        $this->assertSame([], $proposta['beni']);
+        $this->assertSame(3000.0, $proposta['rimanenze']['valoreProposto']);
+        // (220 + 100) / 2.000 = 16%: si recuperano 480
+        $this->assertSame(16.0, $proposta['rimanenze']['aliquotaProposta']);
+        $this->assertSame(480.0, $proposta['rimanenze']['importo']);
+        $this->assertSame(480, $proposta['totale']);
+        $this->assertTrue(ProspettoRettifiche::haProposta($proposta));
+    }
+
+    public function testRimanenzeCorretteAMano(): void
+    {
+        $this->rispondiPassaggio(RegimeDetrazioneIva::agricolo, null, [$this->bene('2024-03-10', 1000.0, VoceCee::economicoB6), $this->bene('2024-03-10', 1000.0)], $this->movimentiRimanenze());
+        $prospetto = new ProspettoRettifiche($this->dataMapper);
+        $proposta = $prospetto->getProposta($this->azienda, 2025, null, 1000.0, 10.0);
+        // la proposta resta visibile, il totale usa i valori a mano: 100 di rimanenze e 176 del bene
+        $this->assertSame(3000.0, $proposta['rimanenze']['valoreProposto']);
+        $this->assertSame(22.0, $proposta['rimanenze']['aliquotaProposta']);
+        $this->assertSame(100.0, $proposta['rimanenze']['imposta']);
+        $this->assertSame(276, $proposta['totale']);
+        // senza valori a mano torna la proposta
+        $this->assertSame(660 + 176, ProspettoRettifiche::impostaRimanenze($proposta, null, null)['totale']);
+    }
+
+    public function testRimanenzeDallOrdinarioSiRestituisconoConLaDetrazioneEffettiva(): void
+    {
+        $merci = $this->bene('2024-03-10', 1000.0, VoceCee::economicoB6);
+        $merci->quotaCommerciale = 0.5;
+        $this->rispondiPassaggio(null, RegimeDetrazioneIva::agricolo, [$merci], $this->movimentiRimanenze());
+        $proposta = (new ProspettoRettifiche($this->dataMapper))->getProposta($this->azienda, 2025);
+        // detratti 110 su 1.000: 11% di 3.000, restituiti
+        $this->assertSame(11.0, $proposta['rimanenze']['aliquotaProposta']);
+        $this->assertSame(-330, $proposta['totale']);
+    }
+
+    public function testRimanenzeSenzaAcquistiDiBeniAliquotaDaIndicare(): void
+    {
+        $this->rispondiPassaggio(RegimeDetrazioneIva::agricolo, null, [], $this->movimentiRimanenze());
+        $proposta = (new ProspettoRettifiche($this->dataMapper))->getProposta($this->azienda, 2025);
+        $this->assertNull($proposta['rimanenze']['aliquotaProposta']);
+        $this->assertSame(0, $proposta['totale']);
+        // il cambio di regime resta segnalato
+        $this->assertTrue(ProspettoRettifiche::haProposta($proposta));
+        $this->assertSame(300, ProspettoRettifiche::impostaRimanenze($proposta, null, 10.0)['totale']);
     }
 
     public function testDalRegimeSpecialeAllOrdinarioSiRecupera(): void

@@ -23,6 +23,12 @@ class RigoFabbricato
     public ?int $casiImu = null;
     public ?int $altriDati = null;
 
+    /** Immobile di interesse storico o artistico (rendita al 50 per cento) */
+    public bool $storico = false;
+
+    /** Spese di manutenzione ordinaria (Redditi ENC, colonna 7) */
+    public int $spese = 0;
+
     /** @var array<int, int> colonne da 13 a 19 */
     public array $redditi = [];
 

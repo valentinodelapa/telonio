@@ -448,28 +448,34 @@ class DichiarazioneController extends DichiarativiController
         $esistenti = $model->getRighi($dichiarazione, $modulo);
         $errori = [];
         $prospetto = new ProspettoRettifiche($this->dataMapper);
-        $proposta = $prospetto->getProposta($dichiarazione->soggetto, $dichiarazione->anno, $this->getAttivitaModulo($dichiarazione, $modulo));
+        $proposta = $prospetto->getProposta($dichiarazione->soggetto, $dichiarazione->anno, $this->getAttivitaModulo($dichiarazione, $modulo), $esistenti[3]->valoreRimanenze ?? null, $esistenti[3]->aliquotaRimanenze ?? null);
         if (($request->server['REQUEST_METHOD'] ?? 'GET') === 'POST') {
             $this->verificaCsrf($request);
             $importi = is_array($request->input['importi'] ?? null) ? $request->input['importi'] : [];
             $note = is_array($request->input['note'] ?? null) ? $request->input['note'] : [];
             $valori = [];
             foreach (array_keys(ProspettoRettifiche::RIGHI) as $rigo) {
-                $testo = str_replace(['.', ','], ['', '.'], trim((string) ($importi[$rigo] ?? '')));
-                if (($testo !== '') && (is_numeric($testo) === false)) {
-                    $errori[$rigo] = 'Importo non valido nel rigo ' . $rigo . '.';
-                }
-                $valori[$rigo] = $testo === '' ? null : (float) $testo;
+                $valori[$rigo] = $this->leggiImporto($importi[$rigo] ?? '', $errori, $rigo, 'Importo non valido nel rigo ' . $rigo . '.');
+            }
+            $rimanenze = is_array($request->input['rimanenze'] ?? null) ? $request->input['rimanenze'] : [];
+            $valoreRimanenze = $this->leggiImporto($rimanenze['valore'] ?? '', $errori, 'rimanenze', 'Valore delle rimanenze non valido.');
+            $aliquotaRimanenze = $this->leggiImporto($rimanenze['aliquota'] ?? '', $errori, 'rimanenze', 'Aliquota delle rimanenze non valida.');
+            if (($aliquotaRimanenze !== null) && (($aliquotaRimanenze < 0) || ($aliquotaRimanenze > 100))) {
+                $errori['rimanenze'] = 'Aliquota delle rimanenze non valida.';
             }
             if (count($errori) === 0) {
+                // valore e aliquota uguali alla proposta (o vuoti) la seguono anche dopo
+                $proposte = $proposta['rimanenze'] ?? ['valoreProposto' => null, 'aliquotaProposta' => null];
+                $valoreRimanenze = ($valoreRimanenze === null) || (abs($valoreRimanenze - $proposte['valoreProposto']) < 0.005) ? null : $valoreRimanenze;
+                $aliquotaRimanenze = ($aliquotaRimanenze === null) || (abs($aliquotaRimanenze - ($proposte['aliquotaProposta'] ?? -1.0)) < 0.005) ? null : $aliquotaRimanenze;
                 $primaTransazione = $this->dataMapper->startTransaction();
-                $aggiornata = $prospetto->salvaEsclusi($proposta, is_array($request->input['esclusi'] ?? null) ? $request->input['esclusi'] : []);
+                $aggiornata = ProspettoRettifiche::impostaRimanenze($prospetto->salvaEsclusi($proposta, is_array($request->input['esclusi'] ?? null) ? $request->input['esclusi'] : []), $valoreRimanenze, $aliquotaRimanenze);
                 // il rigo 3 segue la proposta finché non è stato cambiato a mano
-                if (($valori[3] !== null) && (count($proposta['beni']) > 0) && (abs($valori[3] - $proposta['totale']) < 0.005)) {
+                if (($valori[3] !== null) && ProspettoRettifiche::haProposta($proposta) && (abs($valori[3] - $proposta['totale']) < 0.005)) {
                     $valori[3] = (float) $aggiornata['totale'];
                 }
                 foreach ($valori as $rigo => $valore) {
-                    $this->salvaRettifica($dichiarazione, $modulo, $rigo, $valore, trim((string) ($note[$rigo] ?? '')), $esistenti[$rigo] ?? null);
+                    $this->salvaRettifica($dichiarazione, $modulo, $rigo, $valore, trim((string) ($note[$rigo] ?? '')), $esistenti[$rigo] ?? null, $rigo === 3 ? [$valoreRimanenze, $aliquotaRimanenze] : [null, null]);
                 }
                 $this->proponiQuadri($dichiarazione);
                 $this->dataMapper->commitTransaction($primaTransazione);
@@ -508,7 +514,24 @@ class DichiarazioneController extends DichiarativiController
         return null;
     }
 
-    private function salvaRettifica(Dichiarazione $dichiarazione, int $modulo, int $rigo, ?float $importo, string $nota, ?RettificaDetrazione $rettifica): void
+    /**
+     * Importo scritto all'italiana (punto delle migliaia, virgola decimale);
+     * vuoto: null. Se non è un numero registra l'errore sotto la chiave.
+     */
+    private function leggiImporto(mixed $testo, array &$errori, int|string $chiave, string $messaggio): ?float
+    {
+        $testo = str_replace(['.', ','], ['', '.'], trim(is_scalar($testo) ? (string) $testo : ''));
+        if (($testo !== '') && (is_numeric($testo) === false)) {
+            $errori[$chiave] = $messaggio;
+            return null;
+        }
+        return $testo === '' ? null : (float) $testo;
+    }
+
+    /**
+     * @param array{0: ?float, 1: ?float} $rimanenze valore e aliquota corretti a mano (solo rigo 3)
+     */
+    private function salvaRettifica(Dichiarazione $dichiarazione, int $modulo, int $rigo, ?float $importo, string $nota, ?RettificaDetrazione $rettifica, array $rimanenze = [null, null]): void
     {
         if ($importo === null) {
             if ($rettifica !== null) {
@@ -522,6 +545,7 @@ class DichiarazioneController extends DichiarativiController
         $rettifica->rigo = $rigo;
         $rettifica->importo = $importo;
         $rettifica->nota = $nota === '' ? null : mb_substr($nota, 0, 255);
+        [$rettifica->valoreRimanenze, $rettifica->aliquotaRimanenze] = $rimanenze;
         $this->dataMapper->save($rettifica);
     }
 

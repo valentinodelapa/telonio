@@ -25,6 +25,7 @@ class RiportoPerdite
     public const RESIDUI = [
         'RPF' => ['RS012002', 'RS013002'],
         'RSC' => ['RS044006', 'RS045006'],
+        'ENC' => ['RS010002', 'RS011002'],
         'CNM' => ['CS001002', 'CS001004'],
     ];
 

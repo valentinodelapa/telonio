@@ -378,7 +378,7 @@ class LettoreModelloPdf
             if ($r !== null) {
                 $casella = ['x' => $r['x'], 'y' => $r['y'], 'w' => min($r['w'], $fine - $r['x'] + 1), 'h' => $r['h']];
             }
-            $codice = self::codice($rigo, $ancora['colonna']);
+            $codice = $this->codice($rigo, $ancora['colonna']);
             if (isset($this->catalogo[$codice]) === false) {
                 $this->scarti[] = sprintf('pagina %d: %s non è nel catalogo (rigo %s, colonna %s)', $pagina, $codice, $rigo, $ancora['colonna'] ?? '-');
                 continue;
@@ -434,7 +434,7 @@ class LettoreModelloPdf
                             $colonna = $numero;
                         }
                     }
-                    $codice = $colonna === null ? null : self::codice($rigo, $colonna['t']);
+                    $codice = $colonna === null ? null : $this->codice($rigo, $colonna['t']);
                     if (($codice !== null) && isset($this->catalogo[$codice]) && (isset($perRigo[$prefisso][substr($codice, 5)]) === false)) {
                         $nuovo = ['codice' => $codice, 'x' => round($r['x'], 1), 'y' => round($r['y'], 1), 'larghezza' => round($r['w'], 1), 'altezza' => round($r['h'], 1), 'celle' => [], 'destra' => false];
                         $perRigo[$prefisso][substr($codice, 5)] = $nuovo;
@@ -680,10 +680,24 @@ class LettoreModelloPdf
         return array_map(fn(float $x) => round($x, 1), $bordi);
     }
 
-    private static function codice(string $rigo, ?string $colonna): string
+    /**
+     * Codice del campo dal rigo e dalla colonna stampati. Le colonne con la
+     * lettera ("1A", "12B") hanno nei cataloghi più forme: con la lettera in
+     * fondo (RD01006A) o prima del numero (RF0640A1, RH001A12, NF001A01); si
+     * usa quella presente nel catalogo.
+     */
+    private function codice(string $rigo, ?string $colonna): string
     {
         $numeroColonna = $colonna === null ? '001' : (ctype_digit($colonna) ? sprintf('%03d', (int) $colonna) : str_pad($colonna, 3, '0', STR_PAD_LEFT));
-        return substr($rigo, 0, 2) . sprintf('%03d', (int) substr($rigo, 2)) . $numeroColonna;
+        $prefisso = substr($rigo, 0, 2) . sprintf('%03d', (int) substr($rigo, 2));
+        if ((isset($this->catalogo[$prefisso . $numeroColonna]) === false) && (preg_match('/^(\d{1,2})([A-Z])$/', (string) $colonna, $parti) === 1)) {
+            foreach ([str_pad($parti[2] . $parti[1], 3, '0', STR_PAD_LEFT), $parti[2] . sprintf('%02d', (int) $parti[1])] as $alternativa) {
+                if (isset($this->catalogo[$prefisso . $alternativa])) {
+                    return $prefisso . $alternativa;
+                }
+            }
+        }
+        return $prefisso . $numeroColonna;
     }
 
     /**

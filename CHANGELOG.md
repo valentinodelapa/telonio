@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.40.0-alpha] - 2026-11-23 - Redditi ENC Completo, Stampa e Rimanenze nella Rettifica della Detrazione
+
+Versioni dei moduli: `Dichiarativi` 0.21.0; gli altri invariati.
+
+**Aggiornamento**: `aggiorna.sh` (cioè `sisma aggiorna-database`) esegue `Dichiarativi/Database/aggiornamento-0.21.sql` (idempotente), che aggiunge alla tabella `rettifica_detrazione` le colonne del valore e dell'aliquota delle rimanenze. Nessun passo manuale. Le dichiarazioni Redditi ENC già elaborate vanno riproposte per avere i quadri RA, RB e il prospetto delle perdite.
+
+### ✨ Nuove Funzionalità
+
+#### `Dichiarativi` 0.21.0 — Redditi ENC completo e stampa
+
+- **Terreni e fabbricati degli enti non commerciali** (quadri RA e RB di Redditi ENC) dagli immobili, dai possessi e dai contratti di locazione dell'Anagrafica, con le regole delle istruzioni ENC:
+  - il reddito dominicale dei terreni non affittati concorre sempre, perché l'IMU sostituisce l'IRPEF e non l'IRES;
+  - il canone si indica per intero (65 per cento per gli immobili storici) e si riduce delle spese di manutenzione ordinaria indicate a mano, fino al 15 per cento del canone;
+  - i fabbricati strumentali dell'attività commerciale non si dichiarano, quelli dell'attività istituzionale sì, con l'avviso delle esclusioni previste dalle istruzioni.
+- **Perdite d'impresa degli enti**: perdite pregresse dalla dichiarazione Redditi ENC dell'anno prima o dall'archivio delle perdite pregresse, utilizzate nei righi RF64 e RG32 (prima quelle in misura limitata fino all'80 per cento del reddito); prospetto delle perdite non compensate del quadro RS (righi RS10 e RS11) con la perdita dell'anno, in misura piena nei primi tre periodi d'imposta.
+- **Quadro RL di Redditi ENC**: totali RL3, RL20 e reddito netto RL21 dai righi inseriti a mano; le ritenute del quadro concorrono al rigo RN26.
+- **Stampa sul modello ufficiale di Redditi ENC 2026**, con il frontespizio e la copertina.
+- **Stampa dei modelli Redditi e CNM**: più campi collocati nelle caselle del modello invece che nell'elenco finale. Sono riconosciute tutte le forme dei codici delle colonne con la lettera, come 1A e 12B. Hanno ora una posizione anche il quadro FC (colonna laterale, quote di partecipazione, attestazione della sezione V) e i righi del prospetto VD del modello IVA, dove prima il codice fiscale finiva nella casella dell'importo.
+- **Rimanenze nella rettifica per il cambio di regime** (prospetto D, rigo 3, art. 19-bis2, c. 3, D.P.R. 633/1972, fino al 2026): accanto ai beni ammortizzabili la suite propone le rimanenze di fine anno precedente dai conti di magazzino. L'imposta è stimata con l'aliquota media degli acquisti di beni dello stesso anno e l'avviso lo segnala. Valore e aliquota si correggono nel prospetto e restano salvati; i servizi non utilizzati restano a mano.
+- **Dati demo**: l'Associazione Culturale Orizzonti ha la sede, un negozio locato e un terreno affittato. Il suo Redditi ENC ha i quadri RA e RB e un'IRES di 7.523 euro. L'agricoltore Mario Campi ha in contabilità i concimi rimasti a fine 2024, proposti nel suo prospetto D.
+
+### 🔧 Modifiche
+
+- **Test**: la suite imposta il limite di memoria a 512 MB in `phpunit.xml`, perché la suite completa supera i 128 MB predefiniti. I test della stampa sul modello non vanno più in errore quando poppler-utils manca e vengono saltati.
+
 ## [0.39.0-alpha] - 2026-11-22 - Attività del Soggetto come Dimensione della Contabilità
 
 Versioni dei moduli: `Contabilita` 0.18.0, `Dichiarativi` 0.20.0 (richiede `Anagrafica` 0.15.0, `Deleghe` 0.5.0 e `Contabilita` 0.18.0); gli altri invariati.

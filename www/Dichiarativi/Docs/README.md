@@ -151,20 +151,27 @@ riga (quadro RX, righi RP42-RP47, quadri TA-TE del modello IVA TR) prendono
 le colonne dalla griglia dell'intestazione, i righi senza caselle proprie
 quelle del rigo sopra; le cifre stampate dopo il ",00" sulla stessa linea
 sono aliquote, non numeri di colonna (righi VE1-VE23 e VF1-VF13). Le
+colonne con la lettera ("1A", "12B") hanno nei cataloghi più forme del
+codice (RD01006A, RF0640A1, RH001A12, NF001A01): si usa quella presente
+nel catalogo. Le
 posizioni del frontespizio, che riporta i dati del record B
-(`DatiFrontespizioStampa`), quelle dei quadri TC e TD del modello IVA TR
-e le correzioni sono rilevate a mano in
+(`DatiFrontespizioStampa`), quelle dei quadri TC e TD del modello IVA TR,
+della colonna laterale e delle sezioni III e V del quadro FC dei modelli
+Redditi, dei righi del prospetto VD senza numeri di colonna e le
+correzioni sono rilevate a mano in
 `Database/sorgenti/posizioni-<modello>-<anno>.csv` (la colonna `celle`
 vi indica il numero di celle uguali della casella). Tutte le posizioni,
 lette o corrette, passano poi dalla rifinitura sulla pagina
 (`LettoreModelloPdf::rifinisci`): gli importi prendono la fine e la linea
 del ",00" stampato o, nei modelli con i centesimi, la virgola e le due
 celle dei centesimi; le caselle divise da tacche verticali regolari
-prendono i bordi delle celle. Campi collocati: Redditi PF 2026 4.228 su
-4.605, IVA 2026 1.057 su 1.144, IVA TR 356 su 413, Redditi SP 2026
-3.470 su 3.984, Redditi SC 2026 5.286 su 5.973, CNM 2026 1.477 su
-1.731, IRAP 2026 857 su 888; gli altri vanno nell'elenco finale. I
-frontespizi delle società (Redditi SP e SC, CNM, IRAP) hanno i dati del
+prendono i bordi delle celle. Campi collocati: Redditi PF 2026 4.288 su
+4.605, IVA 2026 1.093 su 1.144, IVA TR 356 su 413, Redditi SP 2026
+3.575 su 3.984, Redditi SC 2026 5.440 su 5.973, Redditi ENC 2026 4.298
+su 4.655, CNM 2026 1.533 su 1.731, IRAP 2026 858 su 888; gli altri (tra
+cui il quadro VO, che si stampa con il modello IVA) vanno nell'elenco
+finale. I frontespizi delle società e degli enti (Redditi SP, SC ed ENC,
+CNM, IRAP) hanno i dati del
 record B o del frontespizio XML (`DatiFrontespizioStampa`: periodo,
 stato e situazione, rappresentante, canone RAI, caselle ISA, CPB,
 consolidato e trasparenza, organo di controllo, regione dell'IRAP). Il modello si sceglie
@@ -794,8 +801,19 @@ mancanti (decimi per terreni e fabbricati), in più se si recupera la detrazione
 in meno se si restituisce. Sono esclusi i beni di costo unitario fino a 516,46 euro
 (c. 5); quelli con coefficiente di ammortamento oltre il 25%, che la suite non
 conosce, si segnano sulla proposta: restano in elenco fuori dal totale e il rigo 3
-si aggiorna se è uguale alla proposta. Rimanenze e servizi non utilizzati si
-aggiungono a mano. Il rigo 3 è quello delle istruzioni fino al modello 2025, che vi indicano
+si aggiorna se è uguale alla proposta.
+
+Nel rigo 3 si propongono anche le **rimanenze**, cioè i beni non ancora ceduti o
+utilizzati al cambio di regime. Il valore è il saldo dei conti delle rimanenze
+(voci C.I.1-4 dell'attivo) a fine anno precedente, senza la scrittura di chiusura.
+L'imposta è una stima: la contabilità non lega le rimanenze alle fatture d'acquisto,
+quindi si usa l'aliquota media degli acquisti di beni (voce B.6 del conto economico)
+dello stesso anno, cioè l'imposta detratta (o detraibile, se l'anno era in regime
+speciale) sull'imponibile. Valore e aliquota si correggono nel prospetto e restano
+salvati sul rigo 3 (`valore_rimanenze`, `aliquota_rimanenze`); vuoti, torna la
+proposta. Senza acquisti di beni l'aliquota va indicata a mano. Con le attività
+separate contano solo le righe dell'attività del modulo. I servizi non utilizzati
+si aggiungono a mano. Il rigo 3 è quello delle istruzioni fino al modello 2025, che vi indicano
 l'adozione o l'abbandono di un regime speciale in agricoltura: il modello 2026 lo
 riserva al forfetario perché è precedente alla proroga.
 
@@ -1305,27 +1323,58 @@ VF21).
 
 ### Proposta (`Redditi\PropostaRedditiEnc`)
 
+- **Quadri RA e RB**: terreni e fabbricati dai possessi, dai dati catastali
+  e dai contratti di locazione dell'Anagrafica (`PropostaTerreni` e
+  `PropostaFabbricati` in modalità ente), con i redditi calcolati secondo
+  le istruzioni di Redditi ENC (`CalcoloTerreniEnc`, colonne 9 e 10 e rigo
+  RA52; `CalcoloFabbricatiEnc`, colonna 10 e rigo RB35). A differenza del
+  Redditi PF il reddito dominicale dei terreni non affittati concorre
+  sempre (l'IMU sostituisce l'IRPEF, non l'IRES), non ci sono le colonne
+  dei coltivatori diretti, l'abitazione principale, la cedolare secca e i
+  casi IMU; il canone si indica per intero (65 per cento per gli immobili
+  storici), ridotto delle spese di manutenzione ordinaria della colonna 7
+  (indicate a mano, fino al 15 per cento del canone, non per gli immobili
+  storici). I fabbricati strumentali (utilizzo "strumentale" del possesso)
+  sono quelli dell'attività commerciale e non si dichiarano; quelli
+  dell'attività istituzionale hanno l'utilizzo 9, con l'avviso delle
+  esclusioni delle istruzioni (culto, musei aperti al pubblico, immobili
+  delle organizzazioni di volontariato e delle associazioni di promozione
+  sociale), da togliere a mano. Sezione II del quadro RB per i contratti
+  con l'utilizzo 14.
 - **Quadro RF** (contabilità ordinaria): come Redditi SC e SP
   (`PropostaRedditiSocieta::proponiRf` con i totali RF32 e RF56 delle
-  specifiche ENC), perdite pregresse del rigo RF64 a mano (totale colonna
-  3) e reddito RF65 da riportare nel quadro RN (vuoto in caso di perdita,
-  che va nel prospetto delle perdite).
+  specifiche ENC), perdite e reddito RF65 da riportare nel quadro RN (vuoto
+  in caso di perdita, che va nel prospetto delle perdite).
+- **Perdite d'impresa**: residui della dichiarazione Redditi ENC dell'anno
+  prima (righi RS10 e RS11, colonna 2) o dell'archivio delle perdite
+  pregresse (`RiportoPerdite`), utilizzati nel rigo RF64 o RG32 (colonne 1
+  e 2: prima quelle in misura limitata fino all'80 per cento del reddito
+  al netto delle perdite di periodo della colonna 1A, poi quelle in misura
+  piena); prospetto delle perdite non compensate del quadro RS con il
+  quadro di riferimento (RS1), la perdita dell'anno (colonna 1, nel rigo
+  RS11 nei primi tre periodi d'imposta, art. 84, c. 2, TUIR) e i residui
+  (colonna 2). Senza residui noti le perdite pregresse e i residui si
+  indicano a mano.
 - **Quadro RG** (contabilità semplificata, per cassa): ricavi nel rigo RG2
   colonna 7, componenti per rigo dei conti e totali con le formule dei
   controlli (RG12, RG24, RG25, RG28, RG31 con le erogazioni liberali e i
-  proventi esenti, RG32 colonna 3, RG33). Regimi forfetari: art. 145 TUIR
+  proventi esenti, perdite del rigo RG32, RG33). Regimi forfetari: art. 145 TUIR
   (ricavi nel rigo RG4 con il codice 1 per le prestazioni di servizi o 2
   per le altre attività, proposto dalla divisione ATECO, e costi forfetari
   nel rigo RG21 colonna 2 per scaglioni: 85 e 75 per cento per i servizi,
   90 e 85 per le altre attività, con l'avviso oltre i limiti di 500.000 e
   800.000 euro) e legge 398/1991 (proventi nel rigo RG2 colonna 4, costi
   forfetari del 97 per cento nel rigo RG21 colonna 1).
+- **Quadro RL**: righi dei redditi di capitale e diversi a mano; totali RL3
+  (colonne 2 e 3), RL20 e reddito netto RL21 con le formule dei controlli
+  delle specifiche.
 - **Quadro RN** (istruzioni, par. 15.1): redditi dei quadri nei righi da RN1
-  a RN11 (RA, RB, RH, RL e RT compilati a mano), reddito complessivo RN13,
+  a RN11 (RH e RT compilati a mano), reddito complessivo RN13,
   oneri deducibili RN15 dal rigo RS31 (a mano) fino a concorrenza,
   imponibile RN16, IRES al 24 per cento RN17 (aliquote agevolate del rigo
   RN18 a mano), detrazioni RN20 a mano fino a concorrenza dell'imposta,
-  imposta netta RN21, ritenute d'acconto subite dalle partite aperte RN26,
+  imposta netta RN21, ritenute d'acconto subite dalle partite aperte e
+  del quadro RL (RL3 colonna 3, RL4 colonna 5, RL22) nel rigo RN26,
   IRES dovuta RN28, eccedenza della dichiarazione dell'anno prima RN30,
   acconti versati in `Deleghe` (2001 e 2002) RN33, saldo RN34 o credito
   RN35 e RN38, rigo RX1. Versamenti come Redditi SC (saldo 2003, acconti
@@ -1542,9 +1591,12 @@ dichiarazioni non hanno versamenti né crediti propri.
   dipendente (18.000) e relatore occasionale (2.000) di quella
   istituzionale; energia elettrica comune (5.000 più IVA nel sezionale degli
   acquisti comuni, 60 per cento all'attività commerciale: IVA detraibile
-  660 euro, 440 a costo); liquidazioni trimestrali e modello IVA 2026,
-  Redditi ENC con il quadro RG (17.736 euro), l'IRES e il quadro RO della
-  presidente, IRAP con il quadro IE (sezioni I, II e VI);
+  660 euro, 440 a costo); la sede di Bologna (A/10, attività istituzionale,
+  utilizzo 9), un negozio locato a canone libero (12.000 euro) e un
+  terreno affittato a libero mercato; liquidazioni trimestrali e modello
+  IVA 2026, Redditi ENC con i quadri RA (351 euro), RB (13.260) e RG
+  (17.736), l'IRES (7.523) e il quadro RO della presidente, IRAP con il
+  quadro IE (sezioni I, II e VI);
 - **modelli Redditi PF 2026**: Mario Rossi (dipendente con la CU, casa di
   Massimeno locata con il box pertinenza e la cedolare al 21 per cento,
   aggiornamento ISTAT, coniuge e due figli nei legami familiari con il
@@ -1671,7 +1723,8 @@ dichiarazioni non hanno versamenti né crediti propri.
   il file.
 - **Mario Campi**: esonerato fino al 2024, rinuncia e opzione per i modi
   ordinari dal 2025 (VO3, caselle 1 e 3), connessa occasionale (VF62, VF18) e
-  prospetto D con il trattore del 2024 e le rimanenze (VF70).
+  prospetto D con il trattore del 2024 e le rimanenze di concimi proposte dalla
+  contabilità, 600 euro al 10% (VF70).
 - **Le Querce Agricola S.r.l.**: agriturismo nei modi ordinari per opzione su
   un'attività separata (VO32, casella 1).
 - **Tenuta Colli Berici S.r.l.**: revoca dal 2025 dell'opzione dell'agriturismo
@@ -1756,9 +1809,9 @@ dei moduli devono essere dello stesso studio.
 ## Da completare
 
 - **stampa sul modello ufficiale**: posizioni dei campi oggi nell'elenco
-  finale (righi con strutture particolari, come i righi RF31 e RG10 dei
-  codici, il quadro FC e il prospetto VD), da aggiungere alle correzioni;
-
+  finale (righi con strutture particolari, soprattutto nei quadri RS, RU e
+  CE dei modelli Redditi e nei quadri NE, NX e ME del modello CNM), da
+  aggiungere alle correzioni;
 - **modelli ISA**: l'importazione delle variabili precalcolate è provata
   sullo schema XSD dell'Agenzia, non ancora con un file reale del Cassetto
   fiscale;
@@ -1767,11 +1820,17 @@ dei moduli devono essere dello stesso studio.
 - **società**: quadri RV, RQ, GC, NI, PN, sezioni II e III del quadro RU e
   consolidato mondiale a mano; codice delle aliquote IRAP agevolate o di
   settore e variazioni IRAP non legate a un conto a mano;
-- **enti non commerciali**: quadri RA, RB, RL e prospetto delle perdite a
-  mano; stampa sul modello ufficiale di Redditi ENC;
-- calcolo automatico di rimanenze e servizi non utilizzati nella rettifica per
-  il cambio di regime;
+- **enti non commerciali**: righi del quadro RL, terreni e fabbricati
+  all'estero, spese di manutenzione ordinaria del quadro RB ed esclusioni
+  dei fabbricati istituzionali a mano;
+- servizi non utilizzati nella rettifica per il cambio di regime, a mano (le
+  rimanenze sono proposte con un'aliquota media stimata);
 - verifica dei file con il software di controllo dell'Agenzia delle
   Entrate;
 - modelli 2027: nuovo catalogo dalle specifiche quando pubblicate e
-  riferimenti al Testo unico IVA.
+  riferimenti al Testo unico IVA (D.Lgs. 10/2026, in vigore dal 1° gennaio
+  2027, testo della G.U. del 30 gennaio 2026): l'art. 19-ter diventa l'art.
+  60 (detrazione degli enti non commerciali con criteri oggettivi, stessa
+  regola), l'art. 19-bis2 l'art. 59 (senza la rettifica per cambio di
+  regime, già esclusa dal 2027), l'art. 19-bis1 l'art. 58; da rivedere
+  sul testo definitivo del correttivo dei testi unici.

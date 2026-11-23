@@ -50,11 +50,13 @@ class CalcoloTerreni
     }
 
     /**
-     * Terreni affittati (specifiche 6.2.1.1.2, 6.2.1.2.4 e 6.2.1.2.5).
+     * Terreni affittati (specifiche 6.2.1.1.2, 6.2.1.2.4 e 6.2.1.2.5; le
+     * istruzioni di Redditi ENC, colonna 9 del quadro RA, hanno le stesse
+     * regole).
      *
      * @param RigoTerreno[] $righi
      */
-    private function affittati(array $righi): float
+    public function affittati(array $righi): float
     {
         $imponibileA = array_sum(array_map(fn(RigoTerreno $rigo) => $rigo->getQuotaDominicale(), $righi));
         if (count(array_filter($righi, fn(RigoTerreno $rigo) => $rigo->titolo === 2)) === 0) {

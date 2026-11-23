@@ -206,6 +206,8 @@ CREATE TABLE IF NOT EXISTS `rettifica_detrazione` (
   `rigo` TINYINT UNSIGNED NOT NULL COMMENT 'Rigo del prospetto D, da 1 a 5',
   `importo` DECIMAL(15,2) NOT NULL DEFAULT 0.00 COMMENT 'Più: aumento della detrazione; meno: diminuzione',
   `nota` VARCHAR(255) NULL,
+  `valore_rimanenze` DECIMAL(15,2) NULL COMMENT 'Rigo 3: valore delle rimanenze corretto a mano (NULL = proposta)',
+  `aliquota_rimanenze` DECIMAL(5,2) NULL COMMENT 'Rigo 3: aliquota media delle rimanenze corretta a mano (NULL = proposta)',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_rettifica_detrazione` (`dichiarazione_id`, `modulo`, `rigo`),
   CONSTRAINT `fk_rettifica_detrazione_dichiarazione` FOREIGN KEY (`dichiarazione_id`) REFERENCES `dichiarazione` (`id`) ON DELETE CASCADE

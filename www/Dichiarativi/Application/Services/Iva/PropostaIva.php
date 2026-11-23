@@ -775,8 +775,8 @@ class PropostaIva
             return;
         }
         $proposta = (new ProspettoRettifiche($this->dataMapper))->getProposta($dichiarazione->soggetto, $dichiarazione->anno, $attivita);
-        if (count($proposta['beni']) > 0) {
-            $this->avvisa($etichetta . sprintf('cambio di regime: rettifica della detrazione (art. 19-bis2, c. 3) da indicare nel prospetto D, proposti € %s per i beni ammortizzabili; rimanenze e servizi non utilizzati vanno aggiunti a mano.', number_format($proposta['totale'], 0, ',', '.')));
+        if (ProspettoRettifiche::haProposta($proposta)) {
+            $this->avvisa($etichetta . sprintf('cambio di regime: rettifica della detrazione (art. 19-bis2, c. 3) da indicare nel prospetto D, proposti € %s per beni ammortizzabili e rimanenze (aliquota media stimata dagli acquisti di beni, da verificare); i servizi non utilizzati vanno aggiunti a mano.', number_format($proposta['totale'], 0, ',', '.')));
         }
     }
 

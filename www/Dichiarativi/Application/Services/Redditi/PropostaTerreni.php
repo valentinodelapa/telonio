@@ -33,6 +33,10 @@ use Telonio\Application\Enumerations\ModuloSuite;
  * isole minori interamente esenti (circolare 9/1993). Il titolare
  * dell'impresa agricola (codici 7-9), il conduttore (4), la conduzione
  * associata e la perdita di prodotto si indicano a mano.
+ *
+ * Per gli enti non commerciali (Redditi ENC, quadro RA) non ci sono le
+ * caselle "IMU non dovuta" e "coltivatore diretto o IAP": la verifica
+ * dell'esenzione IMU non si fa.
  */
 class PropostaTerreni
 {
@@ -56,7 +60,7 @@ class PropostaTerreni
     /**
      * @return RigoTerreno[]
      */
-    public function getRighi(Soggetto $soggetto, int $anno): array
+    public function getRighi(Soggetto $soggetto, int $anno, bool $ente = false): array
     {
         $this->avvisi = [];
         $inizio = new \DateTimeImmutable($anno . '-01-01');
@@ -74,10 +78,10 @@ class PropostaTerreni
             $perImmobile[$possesso->immobile->id]['immobile'] = $possesso->immobile;
             $perImmobile[$possesso->immobile->id]['possessi'][] = $possesso;
         }
-        $iap = (new DatiFiscaliModel($this->dataMapper))->getVigenteAl($soggetto, new SismaDate($fine->format('Y-m-d')))?->coltivatoreIap ?? false;
+        $iap = $ente ? false : (new DatiFiscaliModel($this->dataMapper))->getVigenteAl($soggetto, new SismaDate($fine->format('Y-m-d')))?->coltivatoreIap ?? false;
         $righi = [];
         foreach ($perImmobile as ['immobile' => $immobile, 'possessi' => $possessi]) {
-            $imuNonDovuta = $iap || $this->isEsenteImu($immobile, $inizio);
+            $imuNonDovuta = ($ente === false) && ($iap || $this->isEsenteImu($immobile, $inizio));
             $primo = true;
             foreach ($this->getSituazioni($immobile, $possessi, $inizio, $fine) as $situazione) {
                 $rigo = new RigoTerreno($immobile->id, (int) round($situazione['dominicale']), $situazione['titolo'], (int) round($situazione['agrario']),

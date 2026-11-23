@@ -38,6 +38,12 @@ use Telonio\Application\Enumerations\ModuloSuite;
  * abitazioni principali A/1, A/8 e A/9 e le loro pertinenze, 1 per i
  * fabbricati esenti, 3 per le abitazioni non locate nel comune
  * dell'abitazione principale (art. 9, c. 9, D.Lgs. 23/2011).
+ *
+ * Per gli enti non commerciali (Redditi ENC, quadro RB) i fabbricati
+ * strumentali sono quelli dell'attività commerciale e non si dichiarano,
+ * mentre quelli dell'attività istituzionale (con un altro utilizzo) sì;
+ * non ci sono abitazione principale, cedolare secca e casi IMU, il canone
+ * è per intero (65 per cento per gli immobili storici).
  */
 class PropostaFabbricati
 {
@@ -46,6 +52,9 @@ class PropostaFabbricati
 
     /** @var string[] */
     private array $avvisi = [];
+
+    /** Righi del quadro RB di Redditi ENC */
+    private bool $ente = false;
 
     public function __construct(private DataMapper $dataMapper = new DataMapper())
     {
@@ -63,9 +72,10 @@ class PropostaFabbricati
     /**
      * @return RigoFabbricato[]
      */
-    public function getRighi(Soggetto $soggetto, int $anno): array
+    public function getRighi(Soggetto $soggetto, int $anno, bool $ente = false): array
     {
         $this->avvisi = [];
+        $this->ente = $ente;
         $inizio = new \DateTimeImmutable($anno . '-01-01');
         $fine = new \DateTimeImmutable($anno . '-12-31');
         $perImmobile = [];
@@ -144,7 +154,7 @@ class PropostaFabbricati
                 continue;
             }
             if ($possesso->utilizzo === UtilizzoImmobile::strumentale) {
-                $this->avvisi[] = $descrizione . ': strumentale all\'attività, non si dichiara nel quadro RB.';
+                $this->avvisi[] = $descrizione . ($this->ente ? ': strumentale all\'attività commerciale dell\'ente, non si dichiara nel quadro RB (gli immobili dell\'attività istituzionale si dichiarano: indica un altro utilizzo nel possesso).' : ': strumentale all\'attività, non si dichiara nel quadro RB.');
                 continue;
             }
             if ($caratteristiche?->ruraleStrumentale === true) {
@@ -242,6 +252,16 @@ class PropostaFabbricati
         $rigo = new RigoFabbricato($immobile->id, (int) round($situazione['rendita']), $utilizzo, min(365, $giorni), round($possesso->quota, 2));
         $rigo->continuazione = count(array_filter($precedenti, fn(RigoFabbricato $altro) => $altro->fabbricato === $immobile->id)) > 0;
         $rigo->codiceComune = $rigo->continuazione ? null : $immobile->comune->codiceCatastale;
+        $rigo->storico = $situazione['storico'];
+        if ($this->ente) {
+            if (($contratto !== null) && in_array($utilizzo, [3, 4, 8, 14], true)) {
+                $canoni = new CanoniLocazione($this->dataMapper);
+                $quota = $canoni->getRipartizione($contratto, $situazione['dal'])[$immobile->id] ?? 1.0;
+                $rigo->canone = (int) round($canoni->getCanonePeriodo($contratto, $situazione['dal'], $situazione['al']) * $quota * ($situazione['storico'] ? 0.65 : 1.0));
+                $rigo->contratto = $contratto;
+            }
+            return $rigo;
+        }
         $rigo->casiImu = $situazione['casiImu'];
         if (($contratto !== null) && in_array($utilizzo, [3, 4, 8, 11, 12, 14], true)) {
             $cedolare = $contratto->isCedolareAl($situazione['dal']);
@@ -270,7 +290,7 @@ class PropostaFabbricati
 
     private function getUtilizzo(Possesso $possesso, ?CategoriaCatastale $categoria, ?ContrattoLocazione $contratto, Immobile $immobile): int
     {
-        $principale = $possesso->utilizzo === UtilizzoImmobile::abitazionePrincipale;
+        $principale = ($this->ente === false) && ($possesso->utilizzo === UtilizzoImmobile::abitazionePrincipale);
         if ($contratto !== null) {
             // pertinenza di una locazione breve: il canone va all'abitazione, la pertinenza ha l'utilizzo 9
             if (($contratto->tipo === TipoContrattoLocazione::locazioneBreve) && ($contratto->immobile->id !== $immobile->id)) {
@@ -284,6 +304,14 @@ class PropostaFabbricati
             };
         }
         $abitativa = $categoria?->isAbitativa() ?? true;
+        if ($this->ente) {
+            // enti: a disposizione (2) le unità abitative non utilizzate, 9 le altre e quelle dell'attività istituzionale
+            return match ($possesso->utilizzo) {
+                UtilizzoImmobile::locatoLiberoMercato, UtilizzoImmobile::locatoCanoneConcordato => $this->senzaContratto($immobile, $abitativa),
+                UtilizzoImmobile::comodato, UtilizzoImmobile::aDisposizione, null => $abitativa ? 2 : 9,
+                default => 9,
+            };
+        }
         return match ($possesso->utilizzo) {
             UtilizzoImmobile::abitazionePrincipale => 1,
             UtilizzoImmobile::pertinenzaAbitazionePrincipale => 5,

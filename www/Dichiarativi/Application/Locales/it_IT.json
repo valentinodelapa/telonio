@@ -24,6 +24,10 @@
                 "impostaDetratta": "Imposta",
                 "coefficienteElevato": "Coeff. oltre 25%",
                 "totaleProposto": "Totale proposto",
+                "valoreRimanenze": "Rimanenze finali dell'anno precedente",
+                "aliquotaRimanenze": "Aliquota media (%)",
+                "proposto": "Proposto",
+                "nessunAcquisto": "nessun acquisto di beni",
                 "descrizione": "Descrizione",
                 "valore": "Valore",
                 "ripristina": "Ripristina",
@@ -218,9 +222,10 @@
                 "prospettoD": "Prospetto D (VF70)"
             },
             "rettifiche": {
-                "aiutoProspettoD": "Importi con il segno: più per l'aumento della detrazione, meno per la diminuzione. Il totale va nel rigo VF70. Il cambio di regime (art. 19-bis2, c. 3, in vigore fino al 31/12/2026) va nel rigo 3: ai beni ammortizzabili proposti vanno aggiunti a mano rimanenze e servizi non utilizzati.",
+                "aiutoProspettoD": "Importi con il segno: più per l'aumento della detrazione, meno per la diminuzione. Il totale va nel rigo VF70. Il cambio di regime (art. 19-bis2, c. 3, in vigore fino al 31/12/2026) va nel rigo 3: la suite propone beni ammortizzabili e rimanenze, i servizi non utilizzati vanno aggiunti a mano.",
                 "aiutoCoefficienteElevato": "Bene con coefficiente di ammortamento oltre il 25%: non è ammortizzabile ai fini della rettifica (art. 19-bis2, c. 5) ed esce dal totale. Il rigo 3 si aggiorna solo se è uguale alla proposta.",
-                "titoloPropostaRettifica": "Beni ammortizzabili rettificati per il cambio di regime"
+                "titoloPropostaRettifica": "Proposta per il cambio di regime: rimanenze e beni ammortizzabili",
+                "aiutoRimanenze": "Beni non ancora ceduti o utilizzati al cambio di regime: il valore è il saldo dei conti delle rimanenze a fine anno, l'aliquota è la media degli acquisti di beni dello stesso anno ed è una stima da verificare sulle fatture. Correggili se serve: restano salvati e il rigo 3 si aggiorna se è uguale alla proposta. Vuoti: torna la proposta."
             },
             "show": {
                 "presentataIl": "presentata il",

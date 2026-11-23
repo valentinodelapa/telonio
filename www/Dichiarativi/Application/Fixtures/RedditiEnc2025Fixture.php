@@ -2,15 +2,25 @@
 
 namespace Dichiarativi\Application\Fixtures;
 
+use Anagrafica\Application\Entities\ContrattoLocazione;
+use Anagrafica\Application\Entities\DatiCatastali;
 use Anagrafica\Application\Entities\DatiFiscali;
+use Anagrafica\Application\Entities\Immobile;
+use Anagrafica\Application\Entities\Possesso;
 use Anagrafica\Application\Entities\Indirizzo;
 use Anagrafica\Application\Entities\Soggetto;
+use Anagrafica\Application\Enumerations\CategoriaCatastale;
+use Anagrafica\Application\Enumerations\CausaleClassamento;
 use Anagrafica\Application\Enumerations\ClassificazioneAteco;
 use Anagrafica\Application\Enumerations\NaturaGiuridica;
 use Anagrafica\Application\Enumerations\RegimeFiscale;
 use Anagrafica\Application\Enumerations\RuoloLegame;
 use Anagrafica\Application\Enumerations\Sesso;
+use Anagrafica\Application\Enumerations\TipoCatasto;
+use Anagrafica\Application\Enumerations\TipoContrattoLocazione;
 use Anagrafica\Application\Enumerations\TipoIndirizzo;
+use Anagrafica\Application\Enumerations\TitoloPossesso;
+use Anagrafica\Application\Enumerations\UtilizzoImmobile;
 use Anagrafica\Application\Enumerations\TipoSoggetto;
 use Anagrafica\Application\Models\CodiceAtecoModel;
 use Anagrafica\Application\Models\ComuneModel;
@@ -73,8 +83,15 @@ use Telonio\Application\HelperClasses\CodiceFiscale;
  *   commerciale per l'IVA (detraibili 660 euro, art. 19-ter D.P.R.
  *   633/1972) e per i redditi; i 440 euro di IVA indetraibile sono costo.
  *
- * Redditi ENC: quadro RG 30.000 - 1.000 - 3.264 - 8.000 = 17.736, IRES
- * 4.257. IRAP, quadro IE: sezione I 18.000 + 2.000, sezione II 17.736,
+ * Immobili (Anagrafica, redditi fondiari dei quadri RA e RB): la sede di
+ * Bologna (A/10, rendita 1.200 euro, attività istituzionale: utilizzo 9,
+ * 1.260 euro), un negozio ricevuto in lascito e locato a canone libero (C/1,
+ * rendita 900 euro, canone 12.000 euro) e un terreno affittato a libero
+ * mercato (dominicale 150 euro: 150 x 1,80 x 1,30 = 351 euro).
+ *
+ * Redditi ENC: quadro RG 30.000 - 1.000 - 3.264 - 8.000 = 17.736, terreni
+ * 351 (RN1), fabbricati 13.260 (RN2), reddito complessivo 31.347, IRES
+ * 7.523. IRAP, quadro IE: sezione I 18.000 + 2.000, sezione II 17.736,
  * ulteriore deduzione di 8.000 euro, valore netto 29.736. IVA dovuta per
  * l'anno: 6.600 - 880 = 5.720.
  */
@@ -128,6 +145,7 @@ class RedditiEnc2025Fixture extends BaseFixture
         $this->registra($ente, '2025-05-10', 'Relazione alla conferenza annuale', $relatore, [[$conti['occasionaliIstituzionali'], 2000.0, 0.0], [$banca, 0.0, 1600.0], [$ritenute, 0.0, 400.0]]);
         $docente = $this->percipiente($ente, 'VITALI', 'CHIARA', 'F', '1990-03-22', 'A944', $conti['occasionaliCommerciali']);
         $this->registra($ente, '2025-11-15', 'Docenza dei corsi di fotografia', $docente, [[$conti['occasionaliCommerciali'], 8000.0, 0.0], [$banca, 0.0, 6400.0], [$ritenute, 0.0, 1600.0]]);
+        $this->creaImmobili($ente);
         // liquidazioni IVA trimestrali e dichiarazione IVA 2026
         $elaborazione = new ElaborazioneLiquidazione($this->dataMapper);
         for ($periodo = 1; $periodo <= PeriodiIva::getNumeroPeriodi(PeriodicitaIva::trimestrale); $periodo++) {
@@ -144,6 +162,84 @@ class RedditiEnc2025Fixture extends BaseFixture
         (new PropostaIrap($this->dataMapper))->proponi($irap);
         $versamenti->registraVersamenti($irap, new QuadriDichiarazione($irap, $this->dataMapper));
         $this->addEntity($redditi);
+    }
+
+    /**
+     * Sede, negozio locato e terreno affittato dell'ente.
+     */
+    private function creaImmobili(Soggetto $ente): void
+    {
+        $sede = $this->immobile($ente, TipoCatasto::fabbricati, '182', '411', '12', 'Sede dell\'associazione');
+        $this->datiCatastali($sede, CategoriaCatastale::a10, 1200.0);
+        $this->possesso($ente, $sede, UtilizzoImmobile::altro, '2015-02-01');
+        $negozio = $this->immobile($ente, TipoCatasto::fabbricati, '182', '415', '3', 'Negozio ricevuto in lascito');
+        $this->datiCatastali($negozio, CategoriaCatastale::c1, 900.0);
+        $this->possesso($ente, $negozio, UtilizzoImmobile::locatoLiberoMercato, '2019-05-01');
+        $this->contratto($negozio, TipoContrattoLocazione::canoneLibero, 'LIBRERIA FELSINEA S.N.C.', '2020-01-01', 12000.0, 'TNT20T004561000CD');
+        $terreno = $this->immobile($ente, TipoCatasto::terreni, '12', '88', null, 'Terreno agricolo ricevuto in lascito');
+        $dati = new DatiCatastali($this->dataMapper);
+        $dati->immobile = $terreno;
+        $dati->validoDal = new SismaDate('2019-05-01');
+        $dati->causale = CausaleClassamento::costituzione;
+        $dati->classe = '1';
+        $dati->superficie = 15000.0;
+        $dati->qualitaColtura = 'SEMINATIVO';
+        $dati->redditoDominicale = 150.0;
+        $dati->redditoAgrario = 100.0;
+        $this->dataMapper->save($dati);
+        $this->possesso($ente, $terreno, UtilizzoImmobile::altro, '2019-05-01');
+        $this->contratto($terreno, TipoContrattoLocazione::affittoLibero, 'AZIENDA AGRICOLA RENO', '2020-11-11', 1800.0, null);
+    }
+
+    private function immobile(Soggetto $ente, TipoCatasto $catasto, string $foglio, string $particella, ?string $subalterno, string $descrizione): Immobile
+    {
+        $immobile = new Immobile($this->dataMapper);
+        $immobile->studio = $ente->studio;
+        $immobile->tipoCatasto = $catasto;
+        $immobile->comune = (new ComuneModel($this->dataMapper))->getByCodice('A944');
+        $immobile->foglio = $foglio;
+        $immobile->particella = $particella;
+        $immobile->subalterno = $subalterno;
+        $immobile->descrizione = $descrizione;
+        $this->dataMapper->save($immobile);
+        return $immobile;
+    }
+
+    private function datiCatastali(Immobile $immobile, CategoriaCatastale $categoria, float $rendita): void
+    {
+        $dati = new DatiCatastali($this->dataMapper);
+        $dati->immobile = $immobile;
+        $dati->validoDal = new SismaDate('2010-01-01');
+        $dati->causale = CausaleClassamento::costituzione;
+        $dati->categoria = $categoria;
+        $dati->classe = '3';
+        $dati->consistenza = 80;
+        $dati->rendita = $rendita;
+        $this->dataMapper->save($dati);
+    }
+
+    private function possesso(Soggetto $ente, Immobile $immobile, UtilizzoImmobile $utilizzo, string $dal): void
+    {
+        $possesso = new Possesso($this->dataMapper);
+        $possesso->immobile = $immobile;
+        $possesso->soggetto = $ente;
+        $possesso->titolo = TitoloPossesso::proprieta;
+        $possesso->quota = 100.0;
+        $possesso->validoDal = new SismaDate($dal);
+        $possesso->utilizzo = $utilizzo;
+        $this->dataMapper->save($possesso);
+    }
+
+    private function contratto(Immobile $immobile, TipoContrattoLocazione $tipo, string $conduttore, string $inizio, float $canone, ?string $codice): void
+    {
+        $contratto = new ContrattoLocazione($this->dataMapper);
+        $contratto->immobile = $immobile;
+        $contratto->tipo = $tipo;
+        $contratto->conduttore = $conduttore;
+        $contratto->dataInizio = new SismaDate($inizio);
+        $contratto->canoneAnnuo = $canone;
+        $contratto->codiceIdentificativo = $codice;
+        $this->dataMapper->save($contratto);
     }
 
     private function attivitaIstituzionale(Soggetto $ente): Attivita

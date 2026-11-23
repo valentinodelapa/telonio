@@ -19,12 +19,18 @@ use Anagrafica\Application\Models\CodiceAtecoModel;
 use Anagrafica\Application\Models\ComuneModel;
 use Anagrafica\Application\Models\DatiFiscaliModel;
 use Anagrafica\Application\Models\NazioneModel;
+use Contabilita\Application\Entities\EsercizioContabile;
+use Contabilita\Application\Entities\RegistrazioneContabile;
+use Contabilita\Application\Entities\RigaContabile;
 use Contabilita\Application\Enumerations\CausaleContabile;
 use Contabilita\Application\Enumerations\QualificaOperazione;
 use Contabilita\Application\Enumerations\TipoRegistroIva;
+use Contabilita\Application\Models\ContoModel;
+use Contabilita\Application\Models\PianoContiModel;
 use Contabilita\Application\Services\ElaborazioneLiquidazione;
 use Contabilita\Application\Services\Lipe\PreparazioneLipe;
 use Contabilita\Application\Services\RegistrazioneDocumentoIva;
+use Contabilita\Application\Services\SalvataggioRegistrazione;
 use Deleghe\Application\Fixtures\IntermediarioStudioFixture;
 use Dichiarativi\Application\Entities\Dichiarazione;
 use Dichiarativi\Application\Entities\RettificaDetrazione;
@@ -47,7 +53,8 @@ use Telonio\Application\Fixtures\StudioFixture;
  * (esonerata nei limiti: dichiarazione non dovuta) e Gino Orti (esonerato
  * oltre il limite di un terzo: dichiarazione senza VH), Mario Campi
  * (rinuncia all'esonero e opzione per i modi ordinari dal 2025: VO3, caselle
- * 1 e 3). Tenuta Colli Berici revoca dal 2025 l'opzione dell'agriturismo (VO32,
+ * 1 e 3, prospetto D con il trattore del 2024 e le rimanenze di concimi proposte
+ * dalla contabilità). Tenuta Colli Berici revoca dal 2025 l'opzione dell'agriturismo (VO32,
  * casella 2) e ha un acquisto per le connesse occasionali (VF18).
  */
 class DichiarazioneIvaAgricoltura2025Fixture extends BaseFixture
@@ -147,6 +154,9 @@ class DichiarazioneIvaAgricoltura2025Fixture extends BaseFixture
         RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizioBene, $demo->controparte($campi, 'Macchine Agricole Vicentine S.r.l.', '07000220207', false, '02.02.0002'), $acquisto, '2024-05-20', 'MA/1', ['22' => 5000.0]);
         // coefficiente oltre il 25%: resta nella proposta del prospetto D ma fuori dal totale
         RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizioBene, $demo->controparte($campi, 'Macchine Agricole Vicentine S.r.l.', '07000220207', false, '02.02.0002'), $acquisto, '2024-06-12', 'MA/2', ['22' => 1000.0], ['coefficienteElevato' => true]);
+        // concimi del 2024 rimasti in magazzino: rimanenze finali 600, aliquota media degli acquisti di beni 10%
+        RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizioBene, $demo->controparte($campi, 'Consorzio Agrario Vicentino', '07000440404', false, '21.01.0002'), $acquisto, '2024-09-15', 'CA/1', ['10' => 600.0]);
+        $this->rimanenzeFinali($campi, $esercizioBene, '2024-12-31', 600.0);
         $demo->variaDatiFiscali($campi, '2025-01-01', ['regimeDetrazioneIva' => null, 'opzioniOrdinarie' => RegimeDetrazioneIva::agricolo->value, 'rinunciaEsonero' => true]);
         $esercizio = $demo->apriEsercizio($campi, 2025);
         RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $demo->controparte($campi, 'Mercato Ortofrutticolo di Vicenza', '07999000990', true), $vendita, '2025-06-10', '1', ['4' => 5000.0]);
@@ -155,13 +165,13 @@ class DichiarazioneIvaAgricoltura2025Fixture extends BaseFixture
         RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $demo->controparte($campi, 'Azienda Vicina S.S.', '07000330303', true), $vendita, '2025-10-05', '2', ['22' => 1000.0], ['qualifica' => QualificaOperazione::connessaOccasionale]);
         RegistrazioneDocumentoIva::registra($this->dataMapper, $esercizio, $demo->controparte($campi, 'Attrezzature Agricole S.r.l.', '07000111000', false), $acquisto, '2025-10-01', 'AA/2', ['22' => 400.0], ['qualifica' => QualificaOperazione::connessaOccasionale]);
         $this->elaboraAnno($elaborazione, $campi);
-        // prospetto D per il passaggio dal regime speciale: il bene del 2024 per quattro quinti e le rimanenze
+        // prospetto D per il passaggio dal regime speciale: il bene del 2024 per quattro quinti e le rimanenze, come nella proposta
         $dichiarazioneCampi = $this->dichiara($campi);
         $rettifica = new RettificaDetrazione($this->dataMapper);
         $rettifica->dichiarazione = $dichiarazioneCampi;
         $rettifica->rigo = 3;
         $rettifica->importo = 940.0;
-        $rettifica->nota = 'Trattore del 2024: 880 (4/5 dell\'imposta); rimanenze di concimi: 60';
+        $rettifica->nota = 'Trattore del 2024: 880 (4/5 dell\'imposta); rimanenze di concimi: 600 al 10% = 60';
         $this->dataMapper->save($rettifica);
         (new PropostaIva($this->dataMapper))->proponi($dichiarazioneCampi);
         // Le Querce: agriturismo nei modi ordinari per opzione su un'attività separata
@@ -186,6 +196,31 @@ class DichiarazioneIvaAgricoltura2025Fixture extends BaseFixture
         $this->elaboraAnno($elaborazione, $querce);
         $this->dichiara($querce);
         $this->addEntity($dichiarazioneCampi);
+    }
+
+    /**
+     * Rimanenze finali di materie prime a fine esercizio (registrazione senza IVA).
+     */
+    private function rimanenzeFinali(Soggetto $soggetto, EsercizioContabile $esercizio, string $data, float $importo): void
+    {
+        $piano = (new PianoContiModel($this->dataMapper))->getPerAzienda($soggetto);
+        $conti = new ContoModel($this->dataMapper);
+        $registrazione = new RegistrazioneContabile($this->dataMapper);
+        $registrazione->studio = $soggetto->studio;
+        $registrazione->soggetto = $soggetto;
+        $registrazione->esercizioContabile = $esercizio;
+        $registrazione->causale = CausaleContabile::giroconto;
+        $registrazione->dataRegistrazione = new SismaDate($data);
+        $registrazione->descrizione = 'Rimanenze finali di concimi';
+        $righe = [];
+        foreach ([['05.01.0001', $importo, 0.0], ['26.01.0002', 0.0, $importo]] as [$codice, $dare, $avere]) {
+            $riga = new RigaContabile($this->dataMapper);
+            $riga->conto = $conti->getPerCodice($piano, $codice);
+            $riga->dare = $dare;
+            $riga->avere = $avere;
+            $righe[] = $riga;
+        }
+        (new SalvataggioRegistrazione($this->dataMapper))->salva($registrazione, [], $righe);
     }
 
     private function elaboraAnno(ElaborazioneLiquidazione $elaborazione, Soggetto $soggetto): void

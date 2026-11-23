@@ -25,7 +25,7 @@ use Telonio\Tests\SuiteTestCase;
 class StampaModelloTest extends SuiteTestCase
 {
 
-    private string $cartella;
+    private ?string $cartella = null;
 
     #[\Override]
     protected function setUp(): void
@@ -41,8 +41,10 @@ class StampaModelloTest extends SuiteTestCase
     #[\Override]
     protected function tearDown(): void
     {
-        array_map('unlink', glob($this->cartella . '*') ?: []);
-        @rmdir($this->cartella);
+        if ($this->cartella !== null) {
+            array_map('unlink', glob($this->cartella . '*') ?: []);
+            @rmdir($this->cartella);
+        }
         parent::tearDown();
     }
 

@@ -61,6 +61,8 @@ THE SOFTWARE.
         </testsuite>
     </testsuites>
     <php>
+        <!-- la suite completa supera i 128M predefiniti (picco circa 175M) -->
+        <ini name="memory_limit" value="512M"/>
         <server name="HTTP_USER_AGENT" value=""/>
         <server name="HTTP_HOST" value="localhost"/>
         <server name="QUERY_STRING" value=""/>
